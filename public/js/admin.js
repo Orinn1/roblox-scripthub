@@ -189,7 +189,46 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     // 4. จัดการสคริปต์ (Add, Single Delete, Bulk Delete)
     // =========================================================================
+    // Cloud Database (JSONBin) Realtime Sync
+    async function syncToCloudDb(scriptsToSave) {
+        if (SITE_CONFIG.cloudDb && SITE_CONFIG.cloudDb.enabled && SITE_CONFIG.cloudDb.binId && SITE_CONFIG.cloudDb.masterKey) {
+            try {
+                await fetch(`https://api.jsonbin.io/v3/b/${SITE_CONFIG.cloudDb.binId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': SITE_CONFIG.cloudDb.masterKey
+                    },
+                    body: JSON.stringify({ scripts: scriptsToSave })
+                });
+                console.log("Synced scripts to JSONBin Cloud Database successfully!");
+            } catch (err) {
+                console.warn("Failed to sync to JSONBin Cloud:", err);
+            }
+        }
+    }
+
     async function loadScriptsFromServer() {
+        // 1. Try Cloud DB first for global sync
+        if (SITE_CONFIG.cloudDb && SITE_CONFIG.cloudDb.enabled && SITE_CONFIG.cloudDb.binId) {
+            try {
+                const binRes = await fetch(`https://api.jsonbin.io/v3/b/${SITE_CONFIG.cloudDb.binId}/latest?meta=false`);
+                if (binRes.ok) {
+                    const binData = await binRes.json();
+                    const remoteScripts = Array.isArray(binData) ? binData : (binData.scripts || []);
+                    scripts = remoteScripts;
+                    saveScriptsData(scripts);
+                    selectedIds.clear();
+                    updateSelectedUI();
+                    renderTable();
+                    return;
+                }
+            } catch (cloudErr) {
+                console.warn("Admin Cloud DB fetch notice:", cloudErr);
+            }
+        }
+
+        // 2. Try Local Server
         try {
             const res = await fetch("/api/scripts");
             if (res.ok) {
@@ -318,23 +357,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
+            // Always update state & save
+            scripts = scripts.filter(s => !selectedIds.has(s.id));
+            saveScriptsData(scripts);
+            selectedIds.clear();
+            renderTable();
+            loadDbStats();
+            syncToCloudDb(scripts);
+            showToast(`ลบ ${ids.length} สคริปต์ออกจากฐานข้อมูลเรียบร้อยแล้ว!`);
+
             try {
-                const res = await fetch("/api/scripts/delete-multiple", {
+                await fetch("/api/scripts/delete-multiple", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ ids })
                 });
-                if (res.ok) {
-                    scripts = scripts.filter(s => !selectedIds.has(s.id));
-                    saveScriptsData(scripts);
-                    selectedIds.clear();
-                    renderTable();
-                    loadDbStats();
-                    showToast(`ลบ ${ids.length} สคริปต์ออกจากฐานข้อมูลเรียบร้อยแล้ว!`);
-                }
             } catch (err) {
-                console.error("Bulk delete error:", err);
-                showToast("เกิดข้อผิดพลาดในการลบสคริปต์");
+                console.warn("Local server bulk delete notice:", err);
             }
         });
     }
@@ -377,27 +416,20 @@ document.addEventListener("DOMContentLoaded", () => {
             loadstring: code
         };
 
+        scripts.unshift(newScript);
+        saveScriptsData(scripts);
+        syncToCloudDb(scripts);
+
         try {
-            const res = await fetch("/api/scripts", {
+            await fetch("/api/scripts", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(newScript)
             });
-            if (res.ok) {
-                const data = await res.json();
-                if (data.script) {
-                    scripts.unshift(data.script);
-                } else {
-                    scripts.unshift(newScript);
-                }
-            } else {
-                scripts.unshift(newScript);
-            }
         } catch (err) {
-            scripts.unshift(newScript);
+            console.warn("Local server add notice:", err);
         }
 
-        saveScriptsData(scripts);
         addScriptForm.reset();
         renderTable();
         loadDbStats();
@@ -417,6 +449,7 @@ document.addEventListener("DOMContentLoaded", () => {
         scripts = scripts.filter(s => s.id !== id);
         selectedIds.delete(id);
         saveScriptsData(scripts);
+        syncToCloudDb(scripts);
         renderTable();
 
         try {
@@ -452,22 +485,21 @@ document.addEventListener("DOMContentLoaded", () => {
     // ล้างข้อมูลสคริปต์ทั้งหมดออกจาก Database
     if (btnClearAllDbBtn) {
         btnClearAllDbBtn.addEventListener("click", async () => {
-            const confirmMsg = "คำเตือน: คุณต้องการลบสคริปต์ 'ทั้งหมด' ออกจากฐานข้อมูล SQLite ใช่หรือไม่?\n\nการกระทำนี้จะล้างข้อมูลสคริปต์ทุกตัวในระบบทันที!";
+            const confirmMsg = "คำเตือน: คุณต้องการลบสคริปต์ 'ทั้งหมด' ออกจากฐานข้อมูล ใช่หรือไม่?\n\nการกระทำนี้จะล้างข้อมูลสคริปต์ทุกตัวในระบบทันที!";
             if (!confirm(confirmMsg)) return;
 
+            scripts = [];
+            selectedIds.clear();
+            saveScriptsData(scripts);
+            renderTable();
+            loadDbStats();
+            syncToCloudDb(scripts);
+            showToast("ล้างข้อมูลสคริปต์ทั้งหมดออกจากระบบเรียบร้อยแล้ว");
+
             try {
-                const res = await fetch("/api/db/clear", { method: "POST" });
-                if (res.ok) {
-                    scripts = [];
-                    selectedIds.clear();
-                    saveScriptsData(scripts);
-                    renderTable();
-                    loadDbStats();
-                    showToast("ล้างข้อมูลสคริปต์ทั้งหมดออกจากฐานข้อมูลเรียบร้อยแล้ว");
-                }
+                await fetch("/api/db/clear", { method: "POST" });
             } catch (err) {
-                console.error("Clear DB error:", err);
-                showToast("ไม่สามารถล้างฐานข้อมูลได้");
+                console.warn("Local server clear notice:", err);
             }
         });
     }
@@ -483,13 +515,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 const res = await fetch("/api/db/reset", { method: "POST" });
                 if (res.ok) {
                     await loadScriptsFromServer();
-                    loadDbStats();
-                    showToast("รีเซ็ตสคริปต์กลับสู่ค่าเริ่มต้นเรียบร้อยแล้ว!");
+                } else {
+                    scripts = (typeof INITIAL_SCRIPTS !== "undefined" && INITIAL_SCRIPTS.length > 0) ? INITIAL_SCRIPTS : [];
+                    saveScriptsData(scripts);
+                    syncToCloudDb(scripts);
+                    renderTable();
                 }
             } catch (err) {
-                console.error("Reset DB error:", err);
-                showToast("ไม่สามารถรีเซ็ตฐานข้อมูลได้");
+                scripts = (typeof INITIAL_SCRIPTS !== "undefined" && INITIAL_SCRIPTS.length > 0) ? INITIAL_SCRIPTS : [];
+                saveScriptsData(scripts);
+                syncToCloudDb(scripts);
+                renderTable();
             }
+            loadDbStats();
+            showToast("รีเซ็ตสคริปต์กลับสู่ค่าเริ่มต้นเรียบร้อยแล้ว!");
         });
     }
 

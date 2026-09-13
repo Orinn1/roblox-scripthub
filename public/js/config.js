@@ -4,11 +4,18 @@
  */
 const SITE_CONFIG = {
     // ข้อมูลทั่วไปของเว็บ
-    siteName: "RocketScriptz",
-    brandPrefix: "Rocket",
-    brandSuffix: "Scriptz",
+    siteName: "BlacklistScriptx",
+    brandPrefix: "Blacklist",
+    brandSuffix: "Scriptx",
     siteTagline: "ศูนย์รวมสคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
     logoIcon: "Logo.ico",
+    
+    // Cloud Database (JSONBin.io)
+    cloudDb: {
+        enabled: true,
+        binId: "6aa6a183ac6210605ac7dcf7",
+        masterKey: "$2a$10$IYkvYSXXCqfb9lO86OX8.ehEV.hMZwInw.esSiflJGjjaiYEs5eQ6"
+    },
     
     // ลิงก์สำหรับภารกิจปลดล็อค Sub2Unlock
     unlockTasks: {

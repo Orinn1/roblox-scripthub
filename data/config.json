@@ -3,6 +3,11 @@
   "brandPrefix": "Blacklist",
   "brandSuffix": "Scriptx",
   "siteTagline": "ศูนย์รวมสคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
+  "cloudDb": {
+    "enabled": true,
+    "binId": "6aa6a183ac6210605ac7dcf7",
+    "masterKey": "$2a$10$IYkvYSXXCqfb9lO86OX8.ehEV.hMZwInw.esSiflJGjjaiYEs5eQ6"
+  },
   "unlockTasks": {
     "youtubeChannelUrl": "https://www.youtube.com/@YOUR_CHANNEL?sub_confirmation=1",
     "youtubeChannelName": "ช่อง YouTube ของเรา",

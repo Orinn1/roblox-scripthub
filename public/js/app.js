@@ -153,6 +153,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function syncDataFromServer() {
         try {
+            // 1. Priority: JSONBin.io Cloud Database (Global 24/7 realtime sync for all visitors!)
+            if (SITE_CONFIG.cloudDb && SITE_CONFIG.cloudDb.enabled && SITE_CONFIG.cloudDb.binId) {
+                try {
+                    const binRes = await fetch(`https://api.jsonbin.io/v3/b/${SITE_CONFIG.cloudDb.binId}/latest?meta=false`);
+                    if (binRes.ok) {
+                        const binData = await binRes.json();
+                        const remoteScripts = Array.isArray(binData) ? binData : (binData.scripts || []);
+                        scripts = remoteScripts;
+                        localStorage.setItem("nova_scripts_db", JSON.stringify(scripts));
+                        renderHomeRecent();
+                        if (currentView === "feed") renderFeed();
+                        updateCategoryBadges();
+                        return;
+                    }
+                } catch (cloudErr) {
+                    console.warn("Cloud DB fetch notice:", cloudErr);
+                }
+            }
+
+            // 2. Fallback to local server / static file
             let [cfgRes, scpRes] = await Promise.all([
                 fetch('/api/config').catch(() => null),
                 fetch('/api/scripts').catch(() => null)
