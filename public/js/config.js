@@ -10,7 +10,18 @@ const SITE_CONFIG = {
     siteTagline: "ศูนย์รวมสคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
     logoIcon: "Logo.ico",
     
-    // Cloud Database (JSONBin.io)
+    // Firebase Cloud Firestore (50,000 Reads/วัน ฟรีตลอดชีพ)
+    firebaseConfig: {
+        apiKey: "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI",
+        authDomain: "blacklistscripts.firebaseapp.com",
+        projectId: "blacklistscripts",
+        storageBucket: "blacklistscripts.firebasestorage.app",
+        messagingSenderId: "337802433479",
+        appId: "1:337802433479:web:d0758311bfd6bd02983fe2",
+        measurementId: "G-KJVSN73QYR"
+    },
+
+    // Cloud Database Backup (JSONBin.io)
     cloudDb: {
         enabled: true,
         binId: "6aa6a183ac6210605ac7dcf7",
@@ -57,6 +68,8 @@ const SITE_CONFIG = {
                     parsed.socialLinks.youtube = "https://www.youtube.com/@Blacklistxyx";
                 }
             }
+            // อัปเดต firebaseConfig เสมอ
+            parsed.firebaseConfig = SITE_CONFIG.firebaseConfig;
             Object.assign(SITE_CONFIG, parsed);
             localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
         }

@@ -3,6 +3,15 @@
   "brandPrefix": "Blacklist",
   "brandSuffix": "Scriptx",
   "siteTagline": "ศูนย์รวมสคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
+  "firebaseConfig": {
+    "apiKey": "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI",
+    "authDomain": "blacklistscripts.firebaseapp.com",
+    "projectId": "blacklistscripts",
+    "storageBucket": "blacklistscripts.firebasestorage.app",
+    "messagingSenderId": "337802433479",
+    "appId": "1:337802433479:web:d0758311bfd6bd02983fe2",
+    "measurementId": "G-KJVSN73QYR"
+  },
   "cloudDb": {
     "enabled": true,
     "binId": "6aa6a183ac6210605ac7dcf7",

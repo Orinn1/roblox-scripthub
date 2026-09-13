@@ -155,7 +155,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function syncDataFromServer() {
         try {
-            // 1. Priority: JSONBin.io Cloud Database with Smart Caching (ประหยัดโควตา Request ไม่ให้หมดไว)
+            // 1. Top Priority: Firebase Cloud Firestore (50,000 Reads/วัน ฟรีตลอดชีพ)
+            if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
+                try {
+                    const fbScripts = await window.FirebaseDB.getScripts();
+                    if (Array.isArray(fbScripts) && fbScripts.length > 0) {
+                        scripts = fbScripts;
+                        renderHomeRecent();
+                        if (currentView === "feed") renderFeed();
+                        updateCategoryBadges();
+                        return;
+                    }
+                } catch (fbErr) {
+                    console.warn("Firebase fetch notice:", fbErr);
+                }
+            }
+
+            // 2. Secondary Priority: JSONBin.io Cloud Database with Smart Caching (ประหยัดโควตา Request ไม่ให้หมดไว)
             if (SITE_CONFIG.cloudDb && SITE_CONFIG.cloudDb.enabled && SITE_CONFIG.cloudDb.binId) {
                 const CACHE_KEY = "nova_scripts_db";
                 const TIME_KEY = "nova_scripts_cache_time";

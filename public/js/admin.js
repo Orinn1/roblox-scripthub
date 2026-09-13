@@ -122,8 +122,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // =========================================================================
     // 3. ตั้งค่าชื่อเว็บไซต์ (Site Name & Brand Config)
-    // =========================================================================
     async function loadSiteConfig() {
+        if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
+            try {
+                const fbConfig = await window.FirebaseDB.getConfig();
+                if (fbConfig) {
+                    Object.assign(SITE_CONFIG, fbConfig);
+                    localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
+                }
+            } catch (e) {
+                console.warn("Firebase config notice:", e);
+            }
+        }
         try {
             const res = await fetch("/api/config");
             if (res.ok) {
@@ -181,6 +191,15 @@ document.addEventListener("DOMContentLoaded", () => {
             console.warn("Failed to persist config to server:", err);
         }
 
+        // Persist to Firebase Firestore
+        if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
+            try {
+                await window.FirebaseDB.saveConfig(SITE_CONFIG);
+            } catch (fbErr) {
+                console.warn("Failed to persist config to Firebase:", fbErr);
+            }
+        }
+
         document.title = `${siteName} - Admin Panel`;
         adminHeaderSiteTitle.textContent = `${siteName} - ระบบจัดการหลังบ้าน & ฐานข้อมูล SQLite`;
         showToast("บันทึกชื่อเว็บไซต์และการตั้งค่าเรียบร้อยแล้ว!");
@@ -189,8 +208,19 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     // 4. จัดการสคริปต์ (Add, Single Delete, Bulk Delete)
     // =========================================================================
-    // Cloud Database (JSONBin) Realtime Sync
+    // Cloud Database (Firebase Firestore & JSONBin) Realtime Sync
     async function syncToCloudDb(scriptsToSave) {
+        // 1. Primary: Firebase Firestore (50,000 Reads/วัน ฟรีตลอดชีพ)
+        if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
+            try {
+                await window.FirebaseDB.saveScripts(scriptsToSave);
+                console.log("[Admin] Synced scripts to Firebase Firestore successfully!");
+            } catch (err) {
+                console.warn("[Admin] Failed to sync to Firebase Firestore:", err);
+            }
+        }
+
+        // 2. Secondary: JSONBin.io (Backup)
         if (SITE_CONFIG.cloudDb && SITE_CONFIG.cloudDb.enabled && SITE_CONFIG.cloudDb.binId && SITE_CONFIG.cloudDb.masterKey) {
             try {
                 await fetch(`https://api.jsonbin.io/v3/b/${SITE_CONFIG.cloudDb.binId}`, {
@@ -209,7 +239,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function loadScriptsFromServer() {
-        // 1. Try Cloud DB first for global sync
+        // 1. Try Firebase Firestore first
+        if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
+            try {
+                const fbScripts = await window.FirebaseDB.getScripts(true);
+                if (Array.isArray(fbScripts) && fbScripts.length > 0) {
+                    scripts = fbScripts;
+                    saveScriptsData(scripts);
+                    selectedIds.clear();
+                    updateSelectedUI();
+                    renderTable();
+                    return;
+                }
+            } catch (fbErr) {
+                console.warn("Admin Firebase fetch notice:", fbErr);
+            }
+        }
+
+        // 2. Try Cloud DB (JSONBin)
         if (SITE_CONFIG.cloudDb && SITE_CONFIG.cloudDb.enabled && SITE_CONFIG.cloudDb.binId) {
             try {
                 const binRes = await fetch(`https://api.jsonbin.io/v3/b/${SITE_CONFIG.cloudDb.binId}/latest?meta=false`);
@@ -589,6 +636,15 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         } catch (err) {
             console.warn("Failed to sync links to server:", err);
+        }
+
+        // Sync links to Firebase
+        if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
+            try {
+                await window.FirebaseDB.saveConfig(SITE_CONFIG);
+            } catch (fbErr) {
+                console.warn("Failed to sync links to Firebase:", fbErr);
+            }
         }
 
         showToast("บันทึกการตั้งค่าลิงก์สำเร็จแล้ว!");

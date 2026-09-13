@@ -231,9 +231,14 @@
             <div>
                 <h1 style="font-size: 20px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
                     <i data-lucide="database" style="width: 22px; height: 22px; color: var(--red);"></i>
-                    <span id="adminHeaderSiteTitle">ระบบจัดการหลังบ้าน & ฐานข้อมูล SQLite</span>
+                    <span id="adminHeaderSiteTitle">ระบบจัดการหลังบ้าน & Firebase Firestore</span>
                 </h1>
-                <p style="font-size: 13px; color: var(--text-muted);">แก้ไขชื่อเว็บ จัดการฐานข้อมูล ลบสคริปต์รายตัว/ลบทั้งหมด และตั้งค่าลิงก์</p>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px; flex-wrap: wrap;">
+                    <span class="badge" style="background: rgba(255, 153, 0, 0.15); color: #ffa000; border: 1px solid rgba(255, 153, 0, 0.35); padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                        <i data-lucide="flame" style="width: 12px; height: 12px;"></i> Firebase Firestore ออนไลน์ (ฟรี 50,000 Reads/วัน)
+                    </span>
+                    <span style="font-size: 12px; color: var(--text-muted);">บันทึกสคริปต์แบบ Realtime ทันที ไม่จำกัด</span>
+                </div>
             </div>
             <a href="index.html" class="sidebar-btn" style="text-decoration: none; color: #fff; background: var(--bg-surface); padding: 8px 16px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
                 <span>ดูหน้าเว็บจริง</span>
@@ -550,9 +555,14 @@
 
     <div class="toast-bar" id="adminToast">บันทึกเรียบร้อย!</div>
 
+    <!-- Firebase Cloud Firestore SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <!-- Scripts -->
     <script src="js/lucide.min.js"></script>
     <script src="js/config.js"></script>
+    <script src="js/firebase-db.js"></script>
     <script src="js/scripts-data.js"></script>
     <script src="js/admin.js"></script>
 </body>
