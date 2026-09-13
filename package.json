@@ -1,0 +1,13 @@
+{
+  "name": "roblox-scripthub",
+  "version": "1.0.0",
+  "description": "Roblox Script Hub with WEAO API & SQLite Database",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {}
+}

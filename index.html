@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RocketScriptz - Roblox Script Hub & Exploit Status</title>
+    <meta name="description" content="คลังสคริปต์ Roblox อัปเดตล่าสุด โค้ดฟรี ปลอดภัย พร้อมระบบเช็คสถานะตัวรันและ sUNC Score จาก WEAO API">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/sunc.css">
+    <!-- Favicon Logo.ico -->
+    <link rel="icon" type="image/x-icon" href="Logo.ico">
+    <link rel="shortcut icon" href="Logo.ico">
+</head>
+<body>
+
+    <!-- Backdrop สำหรับเมนูสไลด์บนมือถือ -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <div class="app-wrapper">
+        <!-- ===================================================================
+             SIDEBAR
+             =================================================================== -->
+        <aside class="app-sidebar" id="appSidebar">
+            <div class="sidebar-brand" id="brandLogo">
+                <div class="brand-icon" style="background: transparent;">
+                    <img src="Logo.ico" alt="Logo" style="width: 28px; height: 28px; object-fit: contain;">
+                </div>
+                <div class="brand-title" id="brandTitleText">Rocket<span>Scriptz</span></div>
+                <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="ปิดเมนู">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-scroll">
+                <div>
+                    <div class="sidebar-group-label">เมนูหลัก</div>
+                    <ul class="sidebar-menu" id="mainMenu">
+                        <li class="menu-item active" data-nav="home">
+                            <div class="menu-left"><i data-lucide="home"></i> หน้าหลัก</div>
+                        </li>
+                        <li class="menu-item" data-nav="feed" data-filter="all">
+                            <div class="menu-left"><i data-lucide="folder"></i> สคริปต์ทั้งหมด</div>
+                            <span class="menu-badge" id="totalCount">8</span>
+                        </li>
+                        <li class="menu-item" data-nav="feed" data-filter="keyless">
+                            <div class="menu-left"><i data-lucide="key"></i> ไร้คีย์ (Keyless)</div>
+                        </li>
+                        <li class="menu-item" data-nav="feed" data-filter="mobile">
+                            <div class="menu-left"><i data-lucide="smartphone"></i> รองรับมือถือ</div>
+                        </li>
+                        <!-- เมนู WEAO API: สถานะตัวรัน & sUNC -->
+                        <li class="menu-item" data-nav="exploits">
+                            <div class="menu-left"><i data-lucide="cpu"></i> สถานะตัวรัน & sUNC</div>
+                            <span class="menu-badge" style="background: rgba(34, 197, 94, 0.2); color: #4ade80;">WEAO</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <div class="sidebar-group-label">หมวดหมู่เกม</div>
+                    <ul class="sidebar-menu" id="gameMenu">
+                        <li class="menu-item" data-nav="feed" data-game="bloxfruits">
+                            <div class="menu-left"><i data-lucide="sword"></i> Blox Fruits</div>
+                            <span class="menu-badge">2</span>
+                        </li>
+                        <li class="menu-item" data-nav="feed" data-game="fisch">
+                            <div class="menu-left"><i data-lucide="fish"></i> Fisch</div>
+                            <span class="menu-badge">1</span>
+                        </li>
+                        <li class="menu-item" data-nav="feed" data-game="stealanegg">
+                            <div class="menu-left"><i data-lucide="egg"></i> Steal An Egg</div>
+                            <span class="menu-badge">1</span>
+                        </li>
+                        <li class="menu-item" data-nav="feed" data-game="bladeball">
+                            <div class="menu-left"><i data-lucide="shield"></i> Blade Ball</div>
+                            <span class="menu-badge">1</span>
+                        </li>
+                        <li class="menu-item" data-nav="feed" data-game="petsim99">
+                            <div class="menu-left"><i data-lucide="sparkles"></i> Pet Sim 99</div>
+                            <span class="menu-badge">1</span>
+                        </li>
+                        <li class="menu-item" data-nav="feed" data-game="animedefenders">
+                            <div class="menu-left"><i data-lucide="gem"></i> Anime Defenders</div>
+                            <span class="menu-badge">1</span>
+                        </li>
+                        <li class="menu-item" data-nav="feed" data-game="rivals">
+                            <div class="menu-left"><i data-lucide="crosshair"></i> Rivals</div>
+                            <span class="menu-badge">1</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- เมนูด้านล่าง -->
+            <div class="sidebar-footer">
+                <a href="https://www.youtube.com" target="_blank" class="sidebar-btn yt-btn" id="sideYtBtn">
+                    <i data-lucide="youtube"></i> ช่อง YouTube
+                </a>
+                <a href="https://discord.gg" target="_blank" class="sidebar-btn dc-btn" id="sideDcBtn">
+                    <i data-lucide="message-square"></i> เข้า Discord
+                </a>
+            </div>
+        </aside>
+
+        <!-- ===================================================================
+             MAIN AREA
+             =================================================================== -->
+        <div class="app-main">
+            <!-- Topbar บาร์ค้นหาด้านบน -->
+            <header class="app-topbar">
+                <div class="mobile-topbar-left">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="เปิดเมนู">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="mobile-brand">
+                        <img src="Logo.ico" alt="Logo" style="width: 24px; height: 24px; object-fit: contain;">
+                        <div class="brand-title" id="mobileBrandTitle">Rocket<span>Scriptz</span></div>
+                    </div>
+                </div>
+
+                <div class="topbar-search">
+                    <i data-lucide="search" style="color: var(--text-muted);"></i>
+                    <input type="text" id="globalSearch" placeholder="ค้นหาชื่อเกม, สคริปต์, หรือตัวรัน...">
+                </div>
+            </header>
+
+            <main class="content-body">
+                <!-- =======================================================
+                     VIEW 1: หน้าหลัก (HOME VIEW)
+                     ======================================================= -->
+                <div class="home-view" id="homeView">
+                    <!-- Spotlight Banner -->
+                    <section class="home-spotlight">
+                        <div class="spotlight-content">
+                            <span class="spotlight-badge">
+                                <i data-lucide="flame" style="width: 13px; height: 13px;"></i> สคริปต์ยอดนิยมอันดับ 1
+                            </span>
+                            <h2 class="spotlight-title">Blox Fruits - Redz Hub (Auto Farm 1-Max)</h2>
+                            <p class="spotlight-desc">สคริปต์ฟาร์มเลเวลที่เสถียรที่สุด ฟาร์มออโต้ เควสต์ ดาบคู่โซโร ผลตื่นครบทุกสาย ไม่หลุดง่าย รองรับทั้งมือถือและ PC</p>
+                            <div class="spotlight-actions">
+                                <button class="btn-spotlight" onclick="openLocker('blox-fruits-redz')">
+                                    <i data-lucide="unlock" style="width: 14px; height: 14px;"></i>
+                                    <span>รับสคริปต์นี้</span>
+                                </button>
+                                <button class="btn-spotlight-secondary" id="btnGoFeedAll">
+                                    <span>ดูสคริปต์ทั้งหมด</span>
+                                    <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- สคริปต์มาแรงล่าสุด -->
+                    <section>
+                        <div class="section-head">
+                            <h3><i data-lucide="zap"></i> สคริปต์มาแรงล่าสุด</h3>
+                            <button class="btn-view-all" id="btnSeeAllScripts">ดูทั้งหมด ➔</button>
+                        </div>
+                        <div class="scripts-feed" id="homeRecentScripts">
+                            <!-- โหลดจาก JS -->
+                        </div>
+                    </section>
+
+                    <!-- แนะนำตัวรัน (Executors Live from WEAO API) -->
+                    <section>
+                        <div class="section-head">
+                            <h3><i data-lucide="cpu"></i> สถานะตัวรันยอดนิยม & sUNC (Live WEAO)</h3>
+                            <button class="btn-view-all" id="btnSeeAllExploits">ดูตัวรันทั้งหมด 30+ ตัว ➔</button>
+                        </div>
+                        <div class="executors-grid" id="homeExecutorsGrid">
+                            <!-- โหลดอัตโนมัติจาก WEAO API -->
+                            <div style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--text-muted);">
+                                <i data-lucide="loader-2" class="spin"></i> กำลังโหลดข้อมูลสถานะตัวรันจาก WEAO API...
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- =======================================================
+                     VIEW 2: หน้ารายการสคริปต์ทั้งหมด (FEED VIEW)
+                     ======================================================= -->
+                <div class="feed-view" id="feedView">
+                    <div class="view-toolbar">
+                        <div class="view-title-group">
+                            <h2 id="currentViewTitle">สคริปต์ทั้งหมด</h2>
+                            <p id="currentViewDesc">เลือกสคริปต์ที่ต้องการเพื่อปลดล็อคโค้ด</p>
+                        </div>
+
+                        <div class="view-filter-chips">
+                            <span class="chip active" data-tag="all">ทั้งหมด</span>
+                            <span class="chip" data-tag="keyless"><i data-lucide="key"></i> ไร้คีย์</span>
+                            <span class="chip" data-tag="mobile"><i data-lucide="smartphone"></i> มือถือ</span>
+                        </div>
+                    </div>
+
+                    <div class="scripts-feed" id="scriptsFeed">
+                        <!-- โหลดรายการสคริปต์จาก JS -->
+                    </div>
+                </div>
+
+                <!-- =======================================================
+                     VIEW 3: หน้าระบบเช็คตัวรัน & sUNC Data (WEAO API VIEW)
+                     ======================================================= -->
+                <div class="feed-view" id="exploitsView" style="display: none;">
+                    <div class="view-toolbar">
+                        <div class="view-title-group">
+                            <h2><i data-lucide="cpu"></i> ตรวจสอบสถานะตัวรัน & ข้อมูล sUNC Data</h2>
+                            <p>ข้อมูลสดจาก WhatExpsAre.Online (WEAO API) เช็คความเข้ากันได้ของสคริปต์และตัวรัน</p>
+                        </div>
+
+                        <!-- ตัวกรอง Platform ของตัวรัน -->
+                        <div class="view-filter-chips" id="exploitPlatformFilter">
+                            <span class="chip active" data-plat="all">ทั้งหมด</span>
+                            <span class="chip" data-plat="Windows">Windows</span>
+                            <span class="chip" data-plat="Android">Android</span>
+                            <span class="chip" data-plat="Mac">Mac</span>
+                            <span class="chip" data-plat="iOS">iOS</span>
+                        </div>
+                    </div>
+
+                    <!-- ตารางการ์ดตัวรันทั้งหมด 30+ ตัวจาก API -->
+                    <div class="exploits-grid" id="exploitsGrid">
+                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+                            <i data-lucide="loader-2" class="spin"></i> กำลังดึงข้อมูลจาก WEAO API...
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- =======================================================================
+         MODAL รายละเอียด sUNC Test Data (เปิดเมื่อกดดูรายละเอียด sUNC)
+         ======================================================================= -->
+    <div class="modal-overlay" id="suncModal">
+        <div class="sunc-modal-box">
+            <button class="modal-close" id="closeSuncModalBtn">✕</button>
+
+            <div style="margin-bottom: 12px;">
+                <span class="tag-badge" style="color: #38bdf8; background: rgba(56, 189, 248, 0.1);">sUNC Benchmark Test</span>
+                <h3 id="suncModalTitle" style="font-size: 18px; color: #fff; margin-top: 4px;">Potassium - sUNC Data</h3>
+                <div id="suncModalMeta" style="font-size: 12px; color: var(--text-muted); display: flex; gap: 12px; margin-top: 4px;">
+                    <span>เวอร์ชั่น: <strong id="suncVersion">-</strong></span>
+                    <span>เวลาทดสอบ: <strong id="suncTime">-</strong></span>
+                    <span style="color: #4ade80;">ผ่าน: <strong id="suncPassedCount">0</strong></span>
+                    <span style="color: #f87171;">ไม่ผ่าน: <strong id="suncFailedCount">0</strong></span>
+                </div>
+            </div>
+
+            <!-- ช่องค้นหาฟังก์ชันใน sUNC -->
+            <div style="margin-bottom: 10px;">
+                <input type="text" id="searchSuncFunc" class="form-control" placeholder="ค้นหาฟังก์ชัน เช่น getrawmetatable, hookmetamethod..." style="font-size: 12px; padding: 8px 12px;">
+            </div>
+
+            <!-- รายการฟังก์ชันที่ทดสอบ -->
+            <div class="sunc-test-list" id="suncTestList">
+                <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+                    <i data-lucide="loader-2" class="spin"></i> กำลังโหลดผลการทดสอบฟังก์ชัน...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =======================================================================
+         MODAL ปลดล็อคสคริปต์ (Sub2Unlock)
+         ======================================================================= -->
+    <div class="modal-overlay" id="lockerModal">
+        <div class="locker-box">
+            <button class="modal-close" id="closeLockerBtn">✕</button>
+
+            <div class="indicator-dots">
+                <div class="i-dot active" id="dot1"></div>
+                <div class="i-dot" id="dot2"></div>
+                <div class="i-dot" id="dot3"></div>
+            </div>
+
+            <div class="locker-head-title">
+                <i data-lucide="lock"></i>
+                <span>ปลดล็อคสคริปต์</span>
+            </div>
+            <div class="locker-head-th">ทำภารกิจให้ครบเพื่อรับสคริปต์</div>
+            <div class="locker-head-en">Complete the actions to unlock</div>
+
+            <div class="actions-stack" id="tasksStack">
+                <button class="task-button primary-red" id="task1Btn">
+                    <i data-lucide="shopping-cart"></i> <span id="task1Text">กดดูโฆษณา 1 / Watch ads 1</span>
+                </button>
+                <button class="task-button" id="task2Btn">
+                    <i data-lucide="shopping-cart"></i> <span id="task2Text">กดดูโฆษณา 2 / Watch ads 2</span>
+                </button>
+                <button class="task-button" id="task3Btn">
+                    <i data-lucide="thumbs-up"></i> <span id="task3Text">กดไลค์และคอมเม้นต์ / Like & Comment</span>
+                </button>
+            </div>
+
+            <div class="locked-footer-label" id="lockedLabel">
+                สคริปต์ถูกล็อคอยู่...
+            </div>
+
+            <div class="unlocked-view" id="unlockedView">
+                <div class="success-badge">
+                    <i data-lucide="check-circle-2"></i> ปลดล็อคสำเร็จแล้ว!
+                </div>
+                <textarea class="script-code-box" id="scriptCodeBox" readonly></textarea>
+                <button class="btn-copy" id="btnCopyScript">
+                    <i data-lucide="copy"></i>
+                    <span>คัดลอกสคริปต์</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-bar" id="toastBar">คัดลอกสคริปต์แล้ว!</div>
+
+    <!-- Mobile Bottom Navigation Bar (แสดงเฉพาะบนมือถือ) -->
+    <nav class="mobile-bottom-nav" id="mobileBottomNav">
+        <button class="bottom-nav-item active" data-nav="home">
+            <i data-lucide="home"></i>
+            <span>หน้าแรก</span>
+        </button>
+        <button class="bottom-nav-item" data-nav="feed" data-filter="all">
+            <i data-lucide="folder"></i>
+            <span>สคริปต์</span>
+        </button>
+        <button class="bottom-nav-item" data-nav="exploits">
+            <i data-lucide="cpu"></i>
+            <span>ตัวรัน & sUNC</span>
+        </button>
+        <button class="bottom-nav-item" id="bottomNavMenuBtn">
+            <i data-lucide="grid"></i>
+            <span>หมวดหมู่</span>
+        </button>
+    </nav>
+
+    <!-- Scripts -->
+    <script src="js/lucide.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/scripts-data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

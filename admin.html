@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการหลังบ้าน - Admin Panel & Database Manager</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Favicon Logo.ico -->
+    <link rel="icon" type="image/x-icon" href="Logo.ico">
+    <link rel="shortcut icon" href="Logo.ico">
+    <style>
+        .admin-page {
+            max-width: 1040px;
+            margin: 40px auto;
+            padding: 0 20px;
+            width: 100%;
+        }
+        .admin-card {
+            background: #12141a;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .admin-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .admin-tab {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-tab:hover {
+            color: #fff;
+            background: var(--border);
+        }
+        .admin-tab.active {
+            background: var(--red);
+            border-color: var(--red);
+            color: #fff;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        .form-control {
+            width: 100%;
+            background: #090a0d;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: 0.15s;
+        }
+        .form-control:focus {
+            border-color: var(--red);
+        }
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            padding: 10px 0;
+            flex-wrap: wrap;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .btn-submit {
+            background: var(--red);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-submit:hover { background: var(--red-hover); }
+
+        .btn-del-bulk {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 7px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.15s;
+        }
+        .btn-del-bulk:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #374151;
+        }
+        .btn-del-bulk:not(:disabled):hover {
+            background: #dc2626;
+        }
+
+        .db-stat-box {
+            background: #090a0d;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .scripts-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .scripts-table th {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .scripts-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+            vertical-align: middle;
+        }
+        .btn-del {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.15s;
+        }
+        .btn-del:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .login-screen {
+            max-width: 380px;
+            margin: 100px auto;
+            text-align: center;
+            background: #12141a;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 34px 28px;
+        }
+    </style>
+</head>
+<body style="background: #08090c; display: block;">
+
+    <!-- หน้าจอ Login PIN -->
+    <div class="login-screen" id="loginScreen">
+        <div style="margin-bottom: 16px;">
+            <i data-lucide="shield" style="width: 44px; height: 44px; color: var(--red);"></i>
+        </div>
+        <h2 style="font-size: 20px; margin-bottom: 6px; color: #fff;">เข้าสู่ระบบหลังบ้าน</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 22px;">Admin & Database Management</p>
+        
+        <form id="loginForm">
+            <input type="password" id="pinInput" class="form-control" placeholder="ใส่รหัสผ่าน (ค่าเริ่มต้น: 1234)" style="text-align: center; letter-spacing: 4px; font-size: 16px; margin-bottom: 16px;" autofocus>
+            <button type="submit" class="btn-submit" style="width: 100%; justify-content: center;">เข้าสู่ระบบ</button>
+        </form>
+    </div>
+
+    <!-- หน้าจัดการ Admin Panel -->
+    <div class="admin-page" id="adminDashboard" style="display: none;">
+        <div class="admin-header">
+            <div>
+                <h1 style="font-size: 20px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="database" style="width: 22px; height: 22px; color: var(--red);"></i>
+                    <span id="adminHeaderSiteTitle">ระบบจัดการหลังบ้าน & ฐานข้อมูล SQLite</span>
+                </h1>
+                <p style="font-size: 13px; color: var(--text-muted);">แก้ไขชื่อเว็บ จัดการฐานข้อมูล ลบสคริปต์รายตัว/ลบทั้งหมด และตั้งค่าลิงก์</p>
+            </div>
+            <a href="index.html" class="sidebar-btn" style="text-decoration: none; color: #fff; background: var(--bg-surface); padding: 8px 16px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                <span>ดูหน้าเว็บจริง</span>
+                <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+            </a>
+        </div>
+
+        <!-- แท็บเมนู -->
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="site">
+                <i data-lucide="globe"></i>
+                <span>ตั้งค่าชื่อเว็บ & ทั่วไป</span>
+            </button>
+            <button class="admin-tab" data-tab="manage">
+                <i data-lucide="list"></i>
+                <span>จัดการสคริปต์ (<span id="countBadge">0</span>)</span>
+            </button>
+            <button class="admin-tab" data-tab="add">
+                <i data-lucide="plus-circle"></i>
+                <span>เพิ่มสคริปต์ใหม่</span>
+            </button>
+            <button class="admin-tab" data-tab="database">
+                <i data-lucide="hard-drive"></i>
+                <span>จัดการฐานข้อมูล (DB Tools)</span>
+            </button>
+            <button class="admin-tab" data-tab="links">
+                <i data-lucide="link"></i>
+                <span>ตั้งค่าลิงก์ Sub2Unlock</span>
+            </button>
+        </div>
+
+        <!-- TAB 1: ตั้งค่าชื่อเว็บและข้อมูลทั่วไป -->
+        <div class="admin-card" id="tabSite">
+            <h3 style="font-size: 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="globe" style="width: 18px; height: 18px; color: var(--red);"></i>
+                <span>แก้ไขชื่อเว็บไซต์ & ข้อมูลแบรนด์</span>
+            </h3>
+            <form id="adminSiteForm">
+                <div class="form-grid">
+                    <div class="full-width">
+                        <label class="form-label">ชื่อเว็บไซต์เต็ม (Website Full Name) *</label>
+                        <input type="text" id="siteNameInput" class="form-control" placeholder="เช่น RocketScriptz หรือ BloxHub" required>
+                        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">จะแสดงใน Title บาร์เบราว์เซอร์ และส่วนหัวของเว็บไซต์</p>
+                    </div>
+
+                    <div>
+                        <label class="form-label">คำนำหน้าโลโก้ (Brand Prefix) *</label>
+                        <input type="text" id="brandPrefixInput" class="form-control" placeholder="เช่น Rocket" required>
+                    </div>
+
+                    <div>
+                        <label class="form-label">คำต่อท้ายโลโก้ (Brand Suffix ไฮไลต์สีแดง) *</label>
+                        <input type="text" id="brandSuffixInput" class="form-control" placeholder="เช่น Scriptz" required>
+                    </div>
+
+                    <!-- แสดงตัวอย่าง Logo Preview สดๆ -->
+                    <div class="full-width" style="background: #090a0d; border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 16px;">
+                        <span style="font-size: 12px; color: var(--text-muted);">ตัวอย่างโลโก้บนเว็บ:</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <img src="Logo.ico" alt="Logo" style="width: 24px; height: 24px; object-fit: contain;">
+                            <div style="font-size: 18px; font-weight: 700; color: #fff;" id="previewBrandTitle">Rocket<span style="color: var(--red);">Scriptz</span></div>
+                        </div>
+                    </div>
+
+                    <div class="full-width">
+                        <label class="form-label">สโลแกน / คำอธิบายเว็บไซต์ (Site Tagline)</label>
+                        <input type="text" id="siteTaglineInput" class="form-control" placeholder="เช่น ศูนย์รวมสคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี">
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="btn-submit">
+                        <i data-lucide="save"></i>
+                        <span>บันทึกชื่อเว็บและการตั้งค่า</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TAB 2: ตารางจัดการและลบสคริปต์ -->
+        <div class="admin-card" id="tabManage" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                <h3 style="font-size: 16px; display: flex; align-items: center; gap: 8px; margin: 0;">
+                    <i data-lucide="list" style="width: 18px; height: 18px; color: var(--red);"></i>
+                    <span>รายการสคริปต์ในฐานข้อมูล</span>
+                </h3>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <!-- ปุ่มลบหลายรายการที่เลือกพร้อมกัน -->
+                    <button class="btn-del-bulk" id="btnDeleteSelected" type="button" disabled>
+                        <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                        <span>ลบรายการที่เลือก (<span id="selectedCount">0</span>)</span>
+                    </button>
+                    <button class="btn-submit" id="btnGoAddTab" type="button" style="padding: 7px 16px; font-size: 12px;">
+                        <i data-lucide="plus"></i> <span>เพิ่มสคริปต์ใหม่</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ช่องค้นหาสคริปต์ -->
+            <div style="margin-bottom: 14px;">
+                <input type="text" id="searchManageScripts" class="form-control" placeholder="ค้นหาสคริปต์ตามชื่อเกม หรือชื่อสคริปต์...">
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="scripts-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 36px; text-align: center;">
+                                <input type="checkbox" id="selectAllCheckbox" title="เลือกทั้งหมด" style="cursor: pointer;">
+                            </th>
+                            <th style="width: 50px;">รูป</th>
+                            <th>เกม</th>
+                            <th>ชื่อสคริปต์</th>
+                            <th>หมวดหมู่</th>
+                            <th>สถานะคีย์</th>
+                            <th style="text-align: right;">การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scriptsTableBody">
+                        <!-- โหลดจาก JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 3: เพิ่มสคริปต์ใหม่ -->
+        <div class="admin-card" id="tabAdd" style="display: none;">
+            <h3 style="font-size: 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="plus-circle" style="width: 18px; height: 18px; color: var(--red);"></i>
+                <span>เพิ่มสคริปต์ใหม่ลงในฐานข้อมูล</span>
+            </h3>
+            <form id="addScriptForm">
+                <div class="form-grid">
+                    <div>
+                        <label class="form-label">ชื่อสคริปต์ *</label>
+                        <input type="text" id="sTitle" class="form-control" placeholder="เช่น Blox Fruits - Maru Hub Auto Farm" required>
+                    </div>
+
+                    <div>
+                        <label class="form-label">ชื่อเกม *</label>
+                        <input type="text" id="sGame" class="form-control" placeholder="เช่น Blox Fruits" required>
+                    </div>
+
+                    <div>
+                        <label class="form-label">หมวดหมู่ระบบ (ภาษาอังกฤษพิมพ์เล็ก) *</label>
+                        <input type="text" id="sCategory" class="form-control" placeholder="เช่น bloxfruits, fisch, stealanegg" required>
+                    </div>
+
+                    <div>
+                        <label class="form-label">เวอร์ชั่น (Version)</label>
+                        <input type="text" id="sVersion" class="form-control" placeholder="เช่น v2.5 หรือ UPD 20" value="v1.0">
+                    </div>
+
+                    <div class="full-width">
+                        <label class="form-label">คำอธิบายฟังก์ชั่นสคริปต์ *</label>
+                        <input type="text" id="sDesc" class="form-control" placeholder="เช่น ออโต้ฟาร์มเลเวล 1-2600 ออโต้เควสต์ ล่าค่าหัว ออโต้เรดผลปีศาจ" required>
+                    </div>
+
+                    <div class="full-width">
+                        <label class="form-label">URL รูปภาพปกสคริปต์</label>
+                        <input type="url" id="sThumb" class="form-control" placeholder="https://images.unsplash.com/... หรือใส่รูปจากเน็ต" value="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80">
+                    </div>
+
+                    <div class="full-width">
+                        <label class="form-label">โค้ดสคริปต์ Lua (Loadstring) *</label>
+                        <textarea id="sCode" class="form-control" style="height: 110px; font-family: monospace;" placeholder='loadstring(game:HttpGet("https://raw.githubusercontent.com/..."))()' required></textarea>
+                    </div>
+
+                    <div class="full-width checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="sKeyless" checked> ไร้คีย์ (Keyless ไม่ต้องใส่คีย์)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="sMobile" checked> รองรับมือถือ (Delta / Codex / Hydrogen)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="sPC" checked> รองรับ PC
+                        </label>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="btn-submit">
+                        <i data-lucide="save"></i>
+                        <span>บันทึกลงฐานข้อมูลทันที</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TAB 4: จัดการฐานข้อมูล (DB Tools & Clear/Reset) -->
+        <div class="admin-card" id="tabDatabase" style="display: none;">
+            <h3 style="font-size: 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="hard-drive" style="width: 18px; height: 18px; color: var(--red);"></i>
+                <span>เครื่องมือจัดการฐานข้อมูล SQLite</span>
+            </h3>
+
+            <!-- ข้อมูลสถานะฐานข้อมูล -->
+            <div class="db-stat-box">
+                <div>
+                    <div style="font-size: 12px; color: var(--text-muted);">ชนิดฐานข้อมูล & ไฟล์จัดเก็บ</div>
+                    <div style="font-size: 15px; font-weight: 700; color: #fff; margin-top: 2px;">
+                        SQLite Database (<code style="color: #38bdf8; font-size: 13px;">data/database.sqlite</code>)
+                    </div>
+                    <div style="font-size: 12px; color: #4ade80; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                        <i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i> เชื่อมต่อและทำงานปกติ
+                    </div>
+                </div>
+                <div style="display: flex; gap: 20px; text-align: right;">
+                    <div>
+                        <div style="font-size: 11px; color: var(--text-muted);">จำนวนสคริปต์ทั้งหมด</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #fff;" id="dbStatTotal">0</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: var(--text-muted);">ขนาดไฟล์ฐานข้อมูล</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #38bdf8;" id="dbStatSize">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- กล่องคำสั่งลบและจัดการฐานข้อมูล -->
+            <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 20px;">
+                <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 18px;">
+                    <h4 style="color: #f87171; font-size: 15px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i> ล้างข้อมูลสคริปต์ทั้งหมดในฐานข้อมูล (Clear All)
+                    </h4>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+                        ลบสคริปต์ทุกตัวออกจากฐานข้อมูล SQLite ทันทีในคลิกเดียว เหมาะสำหรับตอนที่คุณต้องการเคลียร์ข้อมูลเก่าออกทั้งหมดเพื่อลงชุดใหม่
+                    </p>
+                    <button type="button" class="btn-del-bulk" id="btnClearAllDbBtn">
+                        <i data-lucide="trash-2"></i>
+                        <span>ล้างสคริปต์ทั้งหมดออกจาก Database</span>
+                    </button>
+                </div>
+
+                <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 18px;">
+                    <h4 style="color: #38bdf8; font-size: 15px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> รีเซ็ตฐานข้อมูลเป็นค่าเริ่มต้น (Reset Default)
+                    </h4>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+                        กู้คืนสคริปต์ตัวอย่างมาตรฐาน (Blox Fruits, Fisch, Steal An Egg, Blade Ball, Pet Sim 99 ฯลฯ) กลับคืนสู่ฐานข้อมูล
+                    </p>
+                    <button type="button" class="sidebar-btn" id="btnResetDefaultDbBtn" style="background: #0284c7; color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; border: none; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                        <i data-lucide="rotate-ccw"></i>
+                        <span>รีเซ็ตสคริปต์กลับค่าเริ่มต้น</span>
+                    </button>
+                </div>
+
+                <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px;">
+                    <h4 style="color: #fff; font-size: 15px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="download" style="width: 16px; height: 16px;"></i> ส่งออกข้อมูลสำรอง (Export JSON Backup)
+                    </h4>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+                        ดาวน์โหลดสำรองสคริปต์ทั้งหมดเป็นไฟล์ .json เก็บไว้ในเครื่องคอมพิวเตอร์ของคุณ
+                    </p>
+                    <button type="button" class="sidebar-btn" id="btnExportJsonBtn" style="background: var(--border); color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; border: none; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                        <i data-lucide="file-json"></i>
+                        <span>ดาวน์โหลดสำรองสคริปต์ JSON</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: ตั้งค่าลิงก์ Sub2Unlock -->
+        <div class="admin-card" id="tabLinks" style="display: none;">
+            <h3 style="font-size: 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="link" style="width: 18px; height: 18px; color: var(--red);"></i>
+                <span>ตั้งค่าลิงก์ในระบบปลดล็อค (Sub2Unlock)</span>
+            </h3>
+            <form id="adminLinksForm">
+                <div class="cfg-row" style="margin-bottom: 16px;">
+                    <label class="form-label">ลิงก์ปุ่มที่ 1 (YouTube ช่องของคุณ)</label>
+                    <input type="url" id="linkYt" class="form-control" placeholder="https://www.youtube.com/@ชื่อช่องคุณ">
+                </div>
+
+                <div class="cfg-row" style="margin-bottom: 16px;">
+                    <label class="form-label">ลิงก์ปุ่มที่ 2 (Shopee Affiliate หรือ LootLabs)</label>
+                    <input type="url" id="linkShopee" class="form-control" placeholder="https://shope.ee/xxxx หรือ ลิงก์ LootLabs">
+                </div>
+
+                <div class="cfg-row" style="margin-bottom: 16px;">
+                    <label class="form-label">ลิงก์ปุ่มที่ 3 (คลิป YouTube ล่าสุดที่อยากให้คนกดไลค์)</label>
+                    <input type="url" id="linkVideo" class="form-control" placeholder="https://www.youtube.com/watch?v=xxxx">
+                </div>
+
+                <div class="cfg-row" style="margin-bottom: 20px;">
+                    <label class="form-label">ลิงก์ Discord ของคุณ</label>
+                    <input type="url" id="linkDiscord" class="form-control" placeholder="https://discord.gg/xxxx">
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i data-lucide="save"></i>
+                    <span>บันทึกการเปลี่ยนแปลงลิงก์</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast-bar" id="adminToast">บันทึกเรียบร้อย!</div>
+
+    <!-- Scripts -->
+    <script src="js/lucide.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/scripts-data.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
