@@ -158,12 +158,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 fetch('/api/scripts').catch(() => null)
             ]);
 
-            // Fallback for static hosting (e.g. GitHub Pages)
+            // Fallback for static hosting (e.g. GitHub Pages or Vercel)
             if (!cfgRes || !cfgRes.ok) {
                 cfgRes = await fetch('data/config.json').catch(() => null);
             }
             if (!scpRes || !scpRes.ok) {
-                scpRes = await fetch('data/scripts.json').catch(() => null);
+                if (localStorage.getItem("nova_scripts_db") === null) {
+                    scpRes = await fetch('data/scripts.json').catch(() => null);
+                }
             }
 
             if (cfgRes && cfgRes.ok) {
@@ -175,12 +177,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (scpRes && scpRes.ok) {
                 const scp = await scpRes.json();
-                if (Array.isArray(scp) && scp.length > 0) {
-                    scripts = scp;
-                    localStorage.setItem("nova_scripts_db", JSON.stringify(scripts));
-                    renderHomeRecent();
-                    if (currentView === "feed") renderFeed();
-                    updateCategoryBadges();
+                if (Array.isArray(scp)) {
+                    const isFromApi = scpRes.url && scpRes.url.includes('/api/scripts');
+                    if (isFromApi || localStorage.getItem("nova_scripts_db") === null) {
+                        scripts = scp;
+                        localStorage.setItem("nova_scripts_db", JSON.stringify(scripts));
+                        renderHomeRecent();
+                        if (currentView === "feed") renderFeed();
+                        updateCategoryBadges();
+                    }
                 }
             }
         } catch (err) {
@@ -307,8 +312,40 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderHomeRecent() {
+        const homeSpotlight = document.querySelector(".home-spotlight");
+        const spotlightTitle = document.querySelector(".spotlight-title");
+        const spotlightDesc = document.querySelector(".spotlight-desc");
+        const btnSpotlight = document.querySelector(".btn-spotlight");
+
+        if (scripts.length === 0) {
+            if (homeSpotlight) homeSpotlight.style.display = "none";
+            if (homeRecentScripts) {
+                homeRecentScripts.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); background: var(--bg-card); border-radius: 12px; border: 1px dashed var(--border);">
+                        <i data-lucide="inbox" style="width: 32px; height: 32px; margin-bottom: 8px; opacity: 0.5;"></i>
+                        <p style="font-size: 14px; font-weight: 500;">ยังไม่มีสคริปต์ในระบบ</p>
+                        <p style="font-size: 12px; margin-top: 4px;">แอดมินสามารถเพิ่มสคริปต์ใหม่ได้ที่หน้าหลังบ้าน (Admin Panel)</p>
+                    </div>
+                `;
+            }
+            refreshIcons();
+            return;
+        }
+
+        if (homeSpotlight) {
+            homeSpotlight.style.display = "block";
+            const top = scripts[0];
+            if (spotlightTitle) spotlightTitle.textContent = top.title;
+            if (spotlightDesc) spotlightDesc.textContent = top.description || "";
+            if (btnSpotlight) {
+                btnSpotlight.onclick = () => openLocker(top.id);
+            }
+        }
+
         const top3 = scripts.slice(0, 3);
-        homeRecentScripts.innerHTML = top3.map(createScriptRow).join("");
+        if (homeRecentScripts) {
+            homeRecentScripts.innerHTML = top3.map(createScriptRow).join("");
+        }
         refreshIcons();
     }
 
