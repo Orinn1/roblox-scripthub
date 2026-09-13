@@ -153,15 +153,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function syncDataFromServer() {
         try {
-            // 1. Priority: JSONBin.io Cloud Database (Global 24/7 realtime sync for all visitors!)
+            // 1. Priority: JSONBin.io Cloud Database with Smart Caching (ประหยัดโควตา Request ไม่ให้หมดไว)
             if (SITE_CONFIG.cloudDb && SITE_CONFIG.cloudDb.enabled && SITE_CONFIG.cloudDb.binId) {
+                const CACHE_KEY = "nova_scripts_db";
+                const TIME_KEY = "nova_scripts_cache_time";
+                const CACHE_DURATION_MS = 60 * 1000; // แคชไว้ 60 วินาทีต่อผู้ใช้
+                const cachedTime = parseInt(sessionStorage.getItem(TIME_KEY) || "0", 10);
+                const hasCache = localStorage.getItem(CACHE_KEY);
+
+                if (hasCache && (Date.now() - cachedTime < CACHE_DURATION_MS)) {
+                    try {
+                        const parsed = JSON.parse(hasCache);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            scripts = parsed;
+                            renderHomeRecent();
+                            if (currentView === "feed") renderFeed();
+                            updateCategoryBadges();
+                            return;
+                        }
+                    } catch (e) {}
+                }
+
                 try {
                     const binRes = await fetch(`https://api.jsonbin.io/v3/b/${SITE_CONFIG.cloudDb.binId}/latest?meta=false`);
                     if (binRes.ok) {
                         const binData = await binRes.json();
                         const remoteScripts = Array.isArray(binData) ? binData : (binData.scripts || []);
                         scripts = remoteScripts;
-                        localStorage.setItem("nova_scripts_db", JSON.stringify(scripts));
+                        localStorage.setItem(CACHE_KEY, JSON.stringify(scripts));
+                        sessionStorage.setItem(TIME_KEY, Date.now().toString());
                         renderHomeRecent();
                         if (currentView === "feed") renderFeed();
                         updateCategoryBadges();
