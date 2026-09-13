@@ -153,10 +153,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function syncDataFromServer() {
         try {
-            const [cfgRes, scpRes] = await Promise.all([
+            let [cfgRes, scpRes] = await Promise.all([
                 fetch('/api/config').catch(() => null),
                 fetch('/api/scripts').catch(() => null)
             ]);
+
+            // Fallback for static hosting (e.g. GitHub Pages)
+            if (!cfgRes || !cfgRes.ok) {
+                cfgRes = await fetch('data/config.json').catch(() => null);
+            }
+            if (!scpRes || !scpRes.ok) {
+                scpRes = await fetch('data/scripts.json').catch(() => null);
+            }
 
             if (cfgRes && cfgRes.ok) {
                 const cfg = await cfgRes.json();
@@ -338,8 +346,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     async function fetchExploits() {
         try {
-            const res = await fetch("/api/exploits");
-            if (!res.ok) throw new Error("Status: " + res.status);
+            let res = await fetch("/api/exploits").catch(() => null);
+            if (!res || !res.ok) {
+                res = await fetch("https://weao.xyz/api/status/exploits").catch(() => null);
+            }
+            if (!res || !res.ok) throw new Error("Status: " + (res ? res.status : "failed"));
             const data = await res.json();
             if (Array.isArray(data)) {
                 allExploits = data;
@@ -537,8 +548,11 @@ document.addEventListener("DOMContentLoaded", () => {
         suncModal.classList.add("active");
 
         try {
-            const res = await fetch(`/api/sunc?scrap=${encodeURIComponent(scrap)}&key=${encodeURIComponent(key)}`);
-            if (!res.ok) throw new Error("Failed to load sUNC: " + res.status);
+            let res = await fetch(`/api/sunc?scrap=${encodeURIComponent(scrap)}&key=${encodeURIComponent(key)}`).catch(() => null);
+            if (!res || !res.ok) {
+                res = await fetch(`https://weao.xyz/api/sunc?scrap=${encodeURIComponent(scrap)}&key=${encodeURIComponent(key)}`).catch(() => null);
+            }
+            if (!res || !res.ok) throw new Error("Failed to load sUNC: " + (res ? res.status : "failed"));
             const data = await res.json();
             currentSuncData = data;
 
