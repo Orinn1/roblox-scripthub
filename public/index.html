@@ -262,49 +262,121 @@
     </div>
 
     <!-- =======================================================================
-         MODAL ปลดล็อคสคริปต์ (Sub2Unlock)
+         MODAL ปลดล็อคสคริปต์ (Sub2Unlock - Ultra Modern Gaming Locker)
          ======================================================================= -->
     <div class="modal-overlay" id="lockerModal">
         <div class="locker-box">
-            <button class="modal-close" id="closeLockerBtn">✕</button>
+            <button class="modal-close" id="closeLockerBtn" aria-label="ปิด">
+                <i data-lucide="x"></i>
+            </button>
 
-            <div class="indicator-dots">
-                <div class="i-dot active" id="dot1"></div>
-                <div class="i-dot" id="dot2"></div>
-                <div class="i-dot" id="dot3"></div>
-            </div>
-
-            <div class="locker-head-title">
-                <i data-lucide="lock"></i>
-                <span>ปลดล็อคสคริปต์</span>
-            </div>
-            <div class="locker-head-th">ทำภารกิจให้ครบเพื่อรับสคริปต์</div>
-            <div class="locker-head-en">Complete the actions to unlock</div>
-
-            <div class="actions-stack" id="tasksStack">
-                <button class="task-button primary-red" id="task1Btn">
-                    <i data-lucide="shopping-cart"></i> <span id="task1Text">กดดูโฆษณา 1 / Watch ads 1</span>
-                </button>
-                <button class="task-button" id="task2Btn">
-                    <i data-lucide="shopping-cart"></i> <span id="task2Text">กดดูโฆษณา 2 / Watch ads 2</span>
-                </button>
-                <button class="task-button" id="task3Btn">
-                    <i data-lucide="thumbs-up"></i> <span id="task3Text">กดไลค์และคอมเม้นต์ / Like & Comment</span>
-                </button>
-            </div>
-
-            <div class="locked-footer-label" id="lockedLabel">
-                สคริปต์ถูกล็อคอยู่...
-            </div>
-
-            <div class="unlocked-view" id="unlockedView">
-                <div class="success-badge">
-                    <i data-lucide="check-circle-2"></i> ปลดล็อคสำเร็จแล้ว!
+            <!-- Hero Emblem -->
+            <div class="locker-hero-badge">
+                <div class="locker-hero-icon">
+                    <i data-lucide="lock"></i>
                 </div>
-                <textarea class="script-code-box" id="scriptCodeBox" readonly></textarea>
-                <button class="btn-copy" id="btnCopyScript">
+            </div>
+
+            <h3 class="locker-title">ปลดล็อคโค้ดสคริปต์</h3>
+            <p class="locker-desc">ทำภารกิจสนับสนุน 3 ขั้นตอนด้านล่างเพื่อรับโค้ดสคริปต์ฟรี</p>
+
+            <!-- Step Progress Tracker -->
+            <div class="locker-steps-tracker">
+                <div class="tracker-step active" id="dot1">
+                    <div class="step-num">1</div>
+                    <span class="step-txt">ภารกิจ 1</span>
+                </div>
+                <div class="tracker-line" id="line1"></div>
+                <div class="tracker-step" id="dot2">
+                    <div class="step-num">2</div>
+                    <span class="step-txt">ภารกิจ 2</span>
+                </div>
+                <div class="tracker-line" id="line2"></div>
+                <div class="tracker-step" id="dot3">
+                    <div class="step-num">3</div>
+                    <span class="step-txt">ภารกิจ 3</span>
+                </div>
+            </div>
+
+            <!-- Action Cards -->
+            <div class="actions-stack" id="tasksStack">
+                <button class="btn-task primary-red" id="task1Btn">
+                    <div class="task-left">
+                        <div class="task-badge">01</div>
+                        <div class="task-icon-box"><i data-lucide="youtube"></i></div>
+                        <div class="task-meta">
+                            <span class="task-name" id="task1Text">กดติดตาม YouTube / Subscribe</span>
+                            <span class="task-hint">เปิดลิงก์และรอระบบยืนยัน 5 วินาที</span>
+                        </div>
+                    </div>
+                    <div class="task-status">
+                        <span class="status-pill active-pill">เริ่มทำ <i data-lucide="arrow-right"></i></span>
+                    </div>
+                </button>
+
+                <button class="btn-task" id="task2Btn">
+                    <div class="task-left">
+                        <div class="task-badge">02</div>
+                        <div class="task-icon-box"><i data-lucide="external-link"></i></div>
+                        <div class="task-meta">
+                            <span class="task-name" id="task2Text">กดดูสปอนเซอร์ / Sponsor</span>
+                            <span class="task-hint">เปิดลิงก์และรอระบบยืนยัน 5 วินาที</span>
+                        </div>
+                    </div>
+                    <div class="task-status">
+                        <span class="status-pill wait-pill"><i data-lucide="lock"></i> รอดำเนินการ</span>
+                    </div>
+                </button>
+
+                <button class="btn-task" id="task3Btn">
+                    <div class="task-left">
+                        <div class="task-badge">03</div>
+                        <div class="task-icon-box"><i data-lucide="thumbs-up"></i></div>
+                        <div class="task-meta">
+                            <span class="task-name" id="task3Text">กดไลค์ & คอมเมนต์ / Like & Comment</span>
+                            <span class="task-hint">เปิดคลิปและรอระบบยืนยัน 3 วินาที</span>
+                        </div>
+                    </div>
+                    <div class="task-status">
+                        <span class="status-pill wait-pill"><i data-lucide="lock"></i> รอดำเนินการ</span>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Footer Lock Notice -->
+            <div class="locked-footer-label" id="lockedLabel">
+                <i data-lucide="shield-alert"></i>
+                <span id="lockedStatusText">สคริปต์ถูกล็อคอยู่ • ทำภารกิจให้ครบเพื่อเปิดใช้งาน</span>
+            </div>
+
+            <!-- Unlocked View (Shows after all tasks complete) -->
+            <div class="unlocked-view" id="unlockedView">
+                <div class="unlocked-banner">
+                    <div class="unlocked-glow-ring">
+                        <i data-lucide="check-circle-2"></i>
+                    </div>
+                    <div class="unlocked-texts">
+                        <h4>ปลดล็อคสำเร็จแล้ว! 🎉</h4>
+                        <p>สามารถคัดลอกโค้ดสคริปต์ไปรันในเกมได้ทันที</p>
+                    </div>
+                </div>
+
+                <div class="code-terminal">
+                    <div class="terminal-bar">
+                        <div class="terminal-dots">
+                            <span class="t-dot red"></span>
+                            <span class="t-dot yellow"></span>
+                            <span class="t-dot green"></span>
+                        </div>
+                        <span class="terminal-title">LOADSTRING SCRIPT</span>
+                        <span class="terminal-tag">Lua</span>
+                    </div>
+                    <textarea class="script-code-box" id="scriptCodeBox" readonly spellcheck="false"></textarea>
+                </div>
+
+                <button class="btn-copy-script" id="btnCopyScript">
                     <i data-lucide="copy"></i>
-                    <span>คัดลอกสคริปต์</span>
+                    <span>คัดลอกสคริปต์ (Copy Code)</span>
                 </button>
             </div>
         </div>

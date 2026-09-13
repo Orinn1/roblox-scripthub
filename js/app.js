@@ -724,70 +724,155 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================================================
-    // Sub2Unlock Locker Logic (Faithful to reference design)
+    // Sub2Unlock Locker Logic (Ultra Modern Gaming Locker)
     // =========================================================================
     window.openLocker = function(id) {
         selectedScript = scripts.find(s => s.id === id);
         if (!selectedScript) return;
 
         tasks = { t1: false, t2: false, t3: false };
-        scriptCodeBox.value = selectedScript.loadstring;
+        scriptCodeBox.value = selectedScript.loadstring || "";
 
         tasksStack.style.display = "flex";
-        lockedLabel.style.display = "block";
+        lockedLabel.style.display = "flex";
         unlockedView.classList.remove("show");
 
-        resetTaskBtn(task1Btn, "shopping-cart", "กดดูโฆษณา 1 / Watch ads 1", "primary-red");
-        resetTaskBtn(task2Btn, "shopping-cart", "กดดูโฆษณา 2 / Watch ads 2", "");
-        resetTaskBtn(task3Btn, "thumbs-up", "กดไลค์และคอมเม้นต์ / Like & Comment", "");
+        resetTaskBtn(task1Btn, "01", "youtube", "กดติดตาม YouTube / Subscribe", "เปิดช่อง YouTube และรอตรวจสอบ 5 วินาที", "primary-red", true);
+        resetTaskBtn(task2Btn, "02", "external-link", "กดดูสปอนเซอร์ / Sponsor", "เปิดลิงก์และรอตรวจสอบ 5 วินาที", "", false);
+        resetTaskBtn(task3Btn, "03", "thumbs-up", "กดไลค์ & คอมเมนต์ / Like & Comment", "เปิดคลิปและรอตรวจสอบ 3 วินาที", "", false);
 
         updateDots();
         lockerModal.classList.add("active");
         refreshIcons();
     };
 
-    function resetTaskBtn(btn, icon, text, extraClass) {
+    function resetTaskBtn(btn, stepNum, icon, title, hint, extraClass, isReady) {
         btn.disabled = false;
-        btn.className = `btn-task ${extraClass}`;
-        btn.innerHTML = `<i data-lucide="${icon}"></i> <span>${text}</span>`;
+        btn.className = `btn-task ${extraClass}`.trim();
+        const statusHtml = isReady 
+            ? `<span class="status-pill active-pill">เริ่มทำ <i data-lucide="arrow-right"></i></span>`
+            : `<span class="status-pill wait-pill"><i data-lucide="lock"></i> รอดำเนินการ</span>`;
+            
+        btn.innerHTML = `
+            <div class="task-left">
+                <div class="task-badge">${stepNum}</div>
+                <div class="task-icon-box"><i data-lucide="${icon}"></i></div>
+                <div class="task-meta">
+                    <span class="task-name">${title}</span>
+                    <span class="task-hint">${hint}</span>
+                </div>
+            </div>
+            <div class="task-status">
+                ${statusHtml}
+            </div>
+        `;
     }
 
-    function setTaskDone(btn, text) {
+    function setTaskDone(btn, stepNum, title) {
         btn.disabled = true;
         btn.className = "btn-task done";
-        btn.innerHTML = `<i data-lucide="check"></i> <span>${text}</span>`;
+        btn.innerHTML = `
+            <div class="task-left">
+                <div class="task-badge done"><i data-lucide="check"></i></div>
+                <div class="task-icon-box done"><i data-lucide="check"></i></div>
+                <div class="task-meta">
+                    <span class="task-name">${title}</span>
+                    <span class="task-hint done-hint">ภารกิจเสร็จสิ้นแล้ว</span>
+                </div>
+            </div>
+            <div class="task-status">
+                <span class="status-pill done-pill"><i data-lucide="check"></i> สำเร็จ</span>
+            </div>
+        `;
         refreshIcons();
     }
 
     function updateDots() {
-        dot1.className = "i-dot" + (tasks.t1 ? " done" : " active");
-        dot2.className = "i-dot" + (tasks.t2 ? " done" : (tasks.t1 ? " active" : ""));
-        dot3.className = "i-dot" + (tasks.t3 ? " done" : (tasks.t2 ? " active" : ""));
+        const line1 = document.getElementById("line1");
+        const line2 = document.getElementById("line2");
+        const lockedStatusText = document.getElementById("lockedStatusText");
+
+        // Step 1
+        if (tasks.t1) {
+            dot1.className = "tracker-step done";
+            if (line1) line1.className = "tracker-line done";
+        } else {
+            dot1.className = "tracker-step active";
+            if (line1) line1.className = "tracker-line";
+        }
+
+        // Step 2
+        if (tasks.t2) {
+            dot2.className = "tracker-step done";
+            if (line2) line2.className = "tracker-line done";
+        } else if (tasks.t1) {
+            dot2.className = "tracker-step active";
+            if (line2) line2.className = "tracker-line";
+        } else {
+            dot2.className = "tracker-step";
+            if (line2) line2.className = "tracker-line";
+        }
+
+        // Step 3
+        if (tasks.t3) {
+            dot3.className = "tracker-step done";
+        } else if (tasks.t2) {
+            dot3.className = "tracker-step active";
+        } else {
+            dot3.className = "tracker-step";
+        }
+
+        // Update Remaining Count
+        if (lockedStatusText) {
+            const completedCount = (tasks.t1 ? 1 : 0) + (tasks.t2 ? 1 : 0) + (tasks.t3 ? 1 : 0);
+            const remaining = 3 - completedCount;
+            if (remaining > 0) {
+                lockedStatusText.textContent = `สคริปต์ถูกล็อคอยู่ • เหลืออีก ${remaining} ภารกิจเพื่อปลดล็อค`;
+            } else {
+                lockedStatusText.textContent = `ปลดล็อคเรียบร้อยแล้ว!`;
+            }
+        }
     }
 
-    function handleTaskClick(btn, link, waitSec, taskKey, doneText, nextBtnToActivate, nextExtraClass) {
+    function handleTaskClick(btn, link, waitSec, taskKey, stepNum, title, nextBtnToActivate, nextStepNum, nextIcon, nextTitle, nextHint) {
         if (tasks[taskKey]) return;
         window.open(link, "_blank");
 
         let sec = waitSec;
         btn.disabled = true;
-        btn.classList.add("loading");
-        btn.innerHTML = `<i data-lucide="loader-2" class="spin"></i> <span>กำลังตรวจสอบ... (${sec}วิ)</span>`;
+        btn.className = "btn-task loading";
+        btn.innerHTML = `
+            <div class="task-left">
+                <div class="task-badge loading">${stepNum}</div>
+                <div class="task-icon-box loading"><i data-lucide="loader-2" class="spin"></i></div>
+                <div class="task-meta">
+                    <span class="task-name">${title}</span>
+                    <span class="task-hint loading-hint">กำลังตรวจสอบภารกิจ... (${sec} วินาที)</span>
+                </div>
+            </div>
+            <div class="task-status">
+                <span class="status-pill loading-pill"><i data-lucide="loader-2" class="spin"></i> ${sec}s</span>
+            </div>
+        `;
         refreshIcons();
 
         const timer = setInterval(() => {
             sec--;
             if (sec > 0) {
-                btn.innerHTML = `<i data-lucide="loader-2" class="spin"></i> <span>กำลังตรวจสอบ... (${sec}วิ)</span>`;
+                const hintEl = btn.querySelector(".task-hint");
+                const pillEl = btn.querySelector(".status-pill");
+                if (hintEl) hintEl.textContent = `กำลังตรวจสอบภารกิจ... (${sec} วินาที)`;
+                if (pillEl) pillEl.innerHTML = `<i data-lucide="loader-2" class="spin"></i> ${sec}s`;
                 refreshIcons();
             } else {
                 clearInterval(timer);
                 tasks[taskKey] = true;
-                setTaskDone(btn, doneText);
+                setTaskDone(btn, stepNum, title);
                 updateDots();
 
-                if (nextBtnToActivate && nextExtraClass) {
-                    nextBtnToActivate.classList.add(nextExtraClass);
+                if (nextBtnToActivate) {
+                    resetTaskBtn(nextBtnToActivate, nextStepNum, nextIcon, nextTitle, nextHint, "primary-red", true);
+                    refreshIcons();
                 }
 
                 checkAllCompleted();
@@ -796,7 +881,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     task1Btn.addEventListener("click", () => {
-        handleTaskClick(task1Btn, SITE_CONFIG.unlockTasks.youtubeChannelUrl, 5, "t1", "สำเร็จแล้ว 1/3", task2Btn, "primary-red");
+        handleTaskClick(
+            task1Btn, 
+            SITE_CONFIG.unlockTasks.youtubeChannelUrl, 
+            5, 
+            "t1", 
+            "01", 
+            "กดติดตาม YouTube / Subscribe", 
+            task2Btn, 
+            "02", 
+            "external-link",
+            "กดดูสปอนเซอร์ / Sponsor", 
+            "เปิดลิงก์และรอตรวจสอบ 5 วินาที"
+        );
     });
 
     task2Btn.addEventListener("click", () => {
@@ -804,7 +901,19 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast("กรุณาทำภารกิจที่ 1 ให้เสร็จก่อนครับ");
             return;
         }
-        handleTaskClick(task2Btn, SITE_CONFIG.unlockTasks.affiliateUrl, 5, "t2", "สำเร็จแล้ว 2/3", task3Btn, "primary-red");
+        handleTaskClick(
+            task2Btn, 
+            SITE_CONFIG.unlockTasks.affiliateUrl, 
+            5, 
+            "t2", 
+            "02", 
+            "กดดูสปอนเซอร์ / Sponsor", 
+            task3Btn, 
+            "03", 
+            "thumbs-up",
+            "กดไลค์ & คอมเมนต์ / Like & Comment", 
+            "เปิดคลิปและรอตรวจสอบ 3 วินาที"
+        );
     });
 
     task3Btn.addEventListener("click", () => {
@@ -812,7 +921,19 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast("กรุณาทำภารกิจที่ 2 ให้เสร็จก่อนครับ");
             return;
         }
-        handleTaskClick(task3Btn, SITE_CONFIG.unlockTasks.latestVideoUrl, 3, "t3", "ปลดล็อคสำเร็จ!", null, null);
+        handleTaskClick(
+            task3Btn, 
+            SITE_CONFIG.unlockTasks.latestVideoUrl, 
+            3, 
+            "t3", 
+            "03", 
+            "กดไลค์ & คอมเมนต์ / Like & Comment", 
+            null, 
+            null, 
+            null,
+            null, 
+            null
+        );
     });
 
     function checkAllCompleted() {
@@ -830,11 +951,13 @@ document.addEventListener("DOMContentLoaded", () => {
     btnCopyScript.addEventListener("click", () => {
         scriptCodeBox.select();
         navigator.clipboard.writeText(scriptCodeBox.value).then(() => {
-            btnCopyScript.innerHTML = `<i data-lucide="check"></i> <span>คัดลอกสำเร็จ!</span>`;
+            btnCopyScript.className = "btn-copy-script copied";
+            btnCopyScript.innerHTML = `<i data-lucide="check"></i> <span>คัดลอกสำเร็จแล้ว!</span>`;
             refreshIcons();
             showToast("คัดลอกโค้ดสคริปต์เรียบร้อยแล้ว");
             setTimeout(() => {
-                btnCopyScript.innerHTML = `<i data-lucide="copy"></i> <span>คัดลอกสคริปต์</span>`;
+                btnCopyScript.className = "btn-copy-script";
+                btnCopyScript.innerHTML = `<i data-lucide="copy"></i> <span>คัดลอกสคริปต์ (Copy Code)</span>`;
                 refreshIcons();
             }, 2500);
         });
