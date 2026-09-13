@@ -42,7 +42,23 @@ const SITE_CONFIG = {
         const saved = localStorage.getItem("nova_site_config");
         if (saved) {
             const parsed = JSON.parse(saved);
+            // ล้างลิงก์ตัวอย่าง YOUR_CHANNEL ออกให้หมด และแทนที่ด้วยช่อง Blacklistxyx
+            if (parsed.unlockTasks) {
+                if (!parsed.unlockTasks.youtubeChannelUrl || parsed.unlockTasks.youtubeChannelUrl.includes("YOUR_CHANNEL")) {
+                    parsed.unlockTasks.youtubeChannelUrl = "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1";
+                }
+                if (!parsed.unlockTasks.latestVideoUrl || parsed.unlockTasks.latestVideoUrl.includes("YOUR_CHANNEL") || parsed.unlockTasks.latestVideoUrl.includes("dQw4w9WgXcQ")) {
+                    parsed.unlockTasks.latestVideoUrl = "https://www.youtube.com/@Blacklistxyx";
+                }
+                parsed.unlockTasks.youtubeChannelName = "ช่อง Blacklistxyx";
+            }
+            if (parsed.socialLinks) {
+                if (!parsed.socialLinks.youtube || parsed.socialLinks.youtube.includes("YOUR_CHANNEL")) {
+                    parsed.socialLinks.youtube = "https://www.youtube.com/@Blacklistxyx";
+                }
+            }
             Object.assign(SITE_CONFIG, parsed);
+            localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
         }
     } catch (e) {
         console.warn("Could not load custom config from localStorage", e);

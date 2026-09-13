@@ -556,7 +556,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!SITE_CONFIG.unlockTasks) SITE_CONFIG.unlockTasks = {};
         if (!SITE_CONFIG.socialLinks) SITE_CONFIG.socialLinks = {};
 
-        linkYt.value = SITE_CONFIG.unlockTasks.youtubeChannelUrl || "";
+        let ytUrl = SITE_CONFIG.unlockTasks.youtubeChannelUrl || "";
+        if (!ytUrl || ytUrl.includes("YOUR_CHANNEL")) {
+            ytUrl = "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1";
+            SITE_CONFIG.unlockTasks.youtubeChannelUrl = ytUrl;
+        }
+
+        linkYt.value = ytUrl;
         linkShopee.value = SITE_CONFIG.unlockTasks.affiliateUrl || "";
         linkVideo.value = SITE_CONFIG.unlockTasks.latestVideoUrl || "";
         linkDiscord.value = SITE_CONFIG.socialLinks.discord || "";

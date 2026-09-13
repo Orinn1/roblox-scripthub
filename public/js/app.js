@@ -130,8 +130,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (mobileBrandTitle) {
             mobileBrandTitle.innerHTML = `${escapeHtml(p)}<span>${escapeHtml(s)}</span>`;
         }
-        if (sideYtBtn && SITE_CONFIG.socialLinks && SITE_CONFIG.socialLinks.youtube) {
-            sideYtBtn.href = SITE_CONFIG.socialLinks.youtube;
+        if (sideYtBtn) {
+            let yt = (SITE_CONFIG.socialLinks && SITE_CONFIG.socialLinks.youtube) || "https://www.youtube.com/@Blacklistxyx";
+            if (yt.includes("YOUR_CHANNEL")) yt = "https://www.youtube.com/@Blacklistxyx";
+            sideYtBtn.href = yt;
         }
         if (sideDcBtn && SITE_CONFIG.socialLinks && SITE_CONFIG.socialLinks.discord) {
             sideDcBtn.href = SITE_CONFIG.socialLinks.discord;
@@ -901,9 +903,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     task1Btn.addEventListener("click", () => {
+        let ytUrl = (SITE_CONFIG.unlockTasks && SITE_CONFIG.unlockTasks.youtubeChannelUrl) || "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1";
+        if (ytUrl.includes("YOUR_CHANNEL")) ytUrl = "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1";
         handleTaskClick(
             task1Btn, 
-            SITE_CONFIG.unlockTasks.youtubeChannelUrl, 
+            ytUrl, 
             5, 
             "t1", 
             "01", 
