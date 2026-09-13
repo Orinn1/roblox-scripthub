@@ -345,9 +345,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     </td>
                     <td><span class="tag-badge" style="font-size:11px;">${escapeHtml(s.category || 'all')}</span></td>
                     <td>${s.isKeyless ? '<span style="color:#4ade80; font-weight:500;">ไร้คีย์</span>' : '<span style="color:#9ca3af;">มีคีย์</span>'}</td>
-                    <td style="text-align: right;">
+                    <td style="text-align: right; white-space: nowrap;">
+                        <button class="btn-edit" onclick="openEditModal('${escapeHtml(s.id)}')">
+                            <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
+                            <span>แก้ไข</span>
+                        </button>
                         <button class="btn-del" onclick="deleteScript('${escapeHtml(s.id)}', '${escapeHtml(s.title)}')">
-                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                            <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
                             <span>ลบ</span>
                         </button>
                     </td>
@@ -512,6 +516,109 @@ document.addEventListener("DOMContentLoaded", () => {
         loadDbStats();
         showToast(`ลบสคริปต์ "${title}" เรียบร้อยแล้ว`);
     };
+
+    // แก้ไขสคริปต์ (Edit Script Modal Logic)
+    window.openEditModal = function(id) {
+        const item = scripts.find(s => s.id === id);
+        if (!item) return;
+
+        document.getElementById("editScriptId").value = item.id;
+        document.getElementById("editTitle").value = item.title || "";
+        document.getElementById("editGame").value = item.game || "";
+        document.getElementById("editCategory").value = item.category || "";
+        document.getElementById("editVersion").value = item.version || "v1.0";
+        document.getElementById("editDesc").value = item.description || "";
+        document.getElementById("editThumb").value = item.thumbnail || "";
+        document.getElementById("editCode").value = item.loadstring || "";
+
+        document.getElementById("editKeyless").checked = item.isKeyless !== false && item.isKeyless !== 0;
+        document.getElementById("editMobile").checked = item.isMobile !== false && item.isMobile !== 0;
+        document.getElementById("editPC").checked = item.isPC !== false && item.isPC !== 0;
+
+        const editModal = document.getElementById("editScriptModal");
+        if (editModal) {
+            editModal.style.display = "flex";
+            refreshIcons();
+        }
+    };
+
+    function closeEditModal() {
+        const editModal = document.getElementById("editScriptModal");
+        if (editModal) editModal.style.display = "none";
+    }
+
+    const closeEditModalBtn = document.getElementById("closeEditModalBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+    const editScriptForm = document.getElementById("editScriptForm");
+
+    if (closeEditModalBtn) closeEditModalBtn.addEventListener("click", closeEditModal);
+    if (cancelEditBtn) cancelEditBtn.addEventListener("click", closeEditModal);
+
+    const editScriptModal = document.getElementById("editScriptModal");
+    if (editScriptModal) {
+        editScriptModal.addEventListener("click", (e) => {
+            if (e.target === editScriptModal) closeEditModal();
+        });
+    }
+
+    if (editScriptForm) {
+        editScriptForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const id = document.getElementById("editScriptId").value;
+            const index = scripts.findIndex(s => s.id === id);
+            if (index === -1) return;
+
+            const title = document.getElementById("editTitle").value.trim();
+            const game = document.getElementById("editGame").value.trim();
+            let category = document.getElementById("editCategory").value.trim().toLowerCase();
+            if (!category) {
+                category = game.toLowerCase().replace(/[^a-z0-9]/g, "") || "all";
+            }
+            const version = document.getElementById("editVersion").value.trim() || "v1.0";
+            const description = document.getElementById("editDesc").value.trim() || `สคริปต์ ${game} อัปเดตล่าสุด ฟังก์ชันครบ ใช้งานง่าย ปลอดภัย`;
+            const thumbnail = document.getElementById("editThumb").value.trim() || scripts[index].thumbnail || "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80";
+            const loadstring = document.getElementById("editCode").value.trim();
+            const isKeyless = document.getElementById("editKeyless").checked;
+            const isMobile = document.getElementById("editMobile").checked;
+            const isPC = document.getElementById("editPC").checked;
+
+            scripts[index] = {
+                ...scripts[index],
+                title,
+                game,
+                category,
+                version,
+                description,
+                thumbnail,
+                loadstring,
+                isKeyless,
+                isMobile,
+                isPC,
+                updated: "วันนี้"
+            };
+
+            saveScriptsData(scripts);
+            renderTable();
+            closeEditModal();
+            showToast(`แก้ไขสคริปต์ "${title}" เรียบร้อยแล้ว!`);
+
+            // Sync to Firebase & JSONBin
+            syncToCloudDb(scripts);
+
+            // Sync to local SQLite server if available
+            try {
+                await fetch("/api/scripts", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(scripts[index])
+                });
+            } catch (err) {
+                console.warn("Failed to sync edit to local server:", err);
+            }
+
+            loadDbStats();
+        });
+    }
 
     // =========================================================================
     // 5. จัดการฐานข้อมูล SQLite (Clear All, Reset Default, Export)
