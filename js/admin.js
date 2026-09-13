@@ -345,10 +345,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const title = document.getElementById("sTitle").value.trim();
         const game = document.getElementById("sGame").value.trim();
-        const category = document.getElementById("sCategory").value.trim().toLowerCase();
+        let category = document.getElementById("sCategory").value.trim().toLowerCase();
+        if (!category) {
+            category = game.toLowerCase().replace(/[^a-z0-9]/g, "") || "all";
+        }
         const version = document.getElementById("sVersion").value.trim() || "v1.0";
-        const desc = document.getElementById("sDesc").value.trim();
-        const thumb = document.getElementById("sThumb").value.trim() || "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80";
+        const desc = document.getElementById("sDesc").value.trim() || "สคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี";
+        const thumb = document.getElementById("sThumb").value.trim() || "Logo.png";
         const code = document.getElementById("sCode").value.trim();
 
         const isKeyless = document.getElementById("sKeyless").checked;
