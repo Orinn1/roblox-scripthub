@@ -71,8 +71,8 @@ document.addEventListener("DOMContentLoaded", () => {
             .replace(/"/g, "&quot;");
     }
 
-    // 1. ตรวจสอบรหัสผ่าน Login (Default PIN: 1234)
-    const ADMIN_PIN = "1234";
+    // 1. ตรวจสอบรหัสผ่าน Login
+    const ADMIN_PIN = "0927945086";
 
     loginForm.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
             initAdmin();
             showToast("เข้าสู่ระบบหลังบ้านสำเร็จ!");
         } else {
-            alert("รหัสผ่านไม่ถูกต้อง! (รหัสเริ่มต้นคือ 1234)");
+            alert("รหัสผ่านไม่ถูกต้อง! กรุณาลองใหม่อีกครั้ง");
             pinInput.value = "";
             pinInput.focus();
         }
