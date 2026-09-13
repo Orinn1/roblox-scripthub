@@ -346,13 +346,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     <td><span class="tag-badge" style="font-size:11px;">${escapeHtml(s.category || 'all')}</span></td>
                     <td>${s.isKeyless ? '<span style="color:#4ade80; font-weight:500;">ไร้คีย์</span>' : '<span style="color:#9ca3af;">มีคีย์</span>'}</td>
                     <td style="text-align: right; white-space: nowrap;">
-                        <button class="btn-edit" onclick="openEditModal('${escapeHtml(s.id)}')">
-                            <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
-                            <span>แก้ไข</span>
+                        <button type="button" class="btn-edit" data-id="${escapeHtml(s.id)}" onclick="openEditModal('${escapeHtml(s.id)}')">
+                            <i data-lucide="edit-3" style="width: 13px; height: 13px; pointer-events: none;"></i>
+                            <span style="pointer-events: none;">แก้ไข</span>
                         </button>
-                        <button class="btn-del" onclick="deleteScript('${escapeHtml(s.id)}', '${escapeHtml(s.title)}')">
-                            <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
-                            <span>ลบ</span>
+                        <button type="button" class="btn-del" onclick="deleteScript('${escapeHtml(s.id)}', '${escapeHtml(s.title)}')">
+                            <i data-lucide="trash-2" style="width: 13px; height: 13px; pointer-events: none;"></i>
+                            <span style="pointer-events: none;">ลบ</span>
                         </button>
                     </td>
                 </tr>
@@ -517,34 +517,75 @@ document.addEventListener("DOMContentLoaded", () => {
         showToast(`ลบสคริปต์ "${title}" เรียบร้อยแล้ว`);
     };
 
+    // จัดการ Event Delegation สำหรับปุ่มแก้ไขในตาราง
+    if (scriptsTableBody) {
+        scriptsTableBody.addEventListener("click", (e) => {
+            const editBtn = e.target.closest(".btn-edit");
+            if (editBtn) {
+                const id = editBtn.getAttribute("data-id");
+                if (id) {
+                    openEditModal(id);
+                }
+            }
+        });
+    }
+
     // แก้ไขสคริปต์ (Edit Script Modal Logic)
     window.openEditModal = function(id) {
-        const item = scripts.find(s => s.id === id);
-        if (!item) return;
+        if (!scripts || scripts.length === 0) {
+            scripts = getScriptsData();
+        }
+        const item = scripts.find(s => String(s.id) === String(id));
+        if (!item) {
+            console.warn("Script not found for ID:", id, "Available:", scripts);
+            alert(`ไม่พบข้อมูลสคริปต์ (ID: ${id})`);
+            return;
+        }
 
-        document.getElementById("editScriptId").value = item.id;
-        document.getElementById("editTitle").value = item.title || "";
-        document.getElementById("editGame").value = item.game || "";
-        document.getElementById("editCategory").value = item.category || "";
-        document.getElementById("editVersion").value = item.version || "v1.0";
-        document.getElementById("editDesc").value = item.description || "";
-        document.getElementById("editThumb").value = item.thumbnail || "";
-        document.getElementById("editCode").value = item.loadstring || "";
+        const editScriptId = document.getElementById("editScriptId");
+        const editTitle = document.getElementById("editTitle");
+        const editGame = document.getElementById("editGame");
+        const editCategory = document.getElementById("editCategory");
+        const editVersion = document.getElementById("editVersion");
+        const editDesc = document.getElementById("editDesc");
+        const editThumb = document.getElementById("editThumb");
+        const editCode = document.getElementById("editCode");
 
-        document.getElementById("editKeyless").checked = item.isKeyless !== false && item.isKeyless !== 0;
-        document.getElementById("editMobile").checked = item.isMobile !== false && item.isMobile !== 0;
-        document.getElementById("editPC").checked = item.isPC !== false && item.isPC !== 0;
+        if (editScriptId) editScriptId.value = item.id;
+        if (editTitle) editTitle.value = item.title || "";
+        if (editGame) editGame.value = item.game || "";
+        if (editCategory) editCategory.value = item.category || "";
+        if (editVersion) editVersion.value = item.version || "v1.0";
+        if (editDesc) editDesc.value = item.description || "";
+        if (editThumb) editThumb.value = item.thumbnail || "";
+        if (editCode) editCode.value = item.loadstring || "";
+
+        const editKeyless = document.getElementById("editKeyless");
+        const editMobile = document.getElementById("editMobile");
+        const editPC = document.getElementById("editPC");
+
+        if (editKeyless) editKeyless.checked = item.isKeyless !== false && item.isKeyless !== 0;
+        if (editMobile) editMobile.checked = item.isMobile !== false && item.isMobile !== 0;
+        if (editPC) editPC.checked = item.isPC !== false && item.isPC !== 0;
 
         const editModal = document.getElementById("editScriptModal");
         if (editModal) {
+            editModal.classList.add("active");
             editModal.style.display = "flex";
+            editModal.style.opacity = "1";
+            editModal.style.visibility = "visible";
             refreshIcons();
         }
     };
 
     function closeEditModal() {
         const editModal = document.getElementById("editScriptModal");
-        if (editModal) editModal.style.display = "none";
+        if (editModal) {
+            editModal.classList.remove("active");
+            editModal.style.display = "none";
+            editModal.style.opacity = "0";
+            editModal.style.visibility = "hidden";
+        }
     }
 
     const closeEditModalBtn = document.getElementById("closeEditModalBtn");
@@ -565,8 +606,11 @@ document.addEventListener("DOMContentLoaded", () => {
         editScriptForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const id = document.getElementById("editScriptId").value;
-            const index = scripts.findIndex(s => s.id === id);
-            if (index === -1) return;
+            const index = scripts.findIndex(s => String(s.id) === String(id));
+            if (index === -1) {
+                alert("ไม่พบสคริปต์ที่ต้องการแก้ไข");
+                return;
+            }
 
             const title = document.getElementById("editTitle").value.trim();
             const game = document.getElementById("editGame").value.trim();
@@ -578,9 +622,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const description = document.getElementById("editDesc").value.trim() || `สคริปต์ ${game} อัปเดตล่าสุด ฟังก์ชันครบ ใช้งานง่าย ปลอดภัย`;
             const thumbnail = document.getElementById("editThumb").value.trim() || scripts[index].thumbnail || "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80";
             const loadstring = document.getElementById("editCode").value.trim();
-            const isKeyless = document.getElementById("editKeyless").checked;
-            const isMobile = document.getElementById("editMobile").checked;
-            const isPC = document.getElementById("editPC").checked;
+            const isKeyless = document.getElementById("editKeyless") ? document.getElementById("editKeyless").checked : true;
+            const isMobile = document.getElementById("editMobile") ? document.getElementById("editMobile").checked : true;
+            const isPC = document.getElementById("editPC") ? document.getElementById("editPC").checked : true;
 
             scripts[index] = {
                 ...scripts[index],
