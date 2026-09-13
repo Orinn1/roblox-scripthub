@@ -180,16 +180,16 @@ const DEFAULT_CONFIG = {
     brandSuffix: "Scriptz",
     siteTagline: "ศูนย์รวมสคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
     unlockTasks: {
-        youtubeChannelUrl: "https://www.youtube.com/@YOUR_CHANNEL?sub_confirmation=1",
-        youtubeChannelName: "ช่อง YouTube ของเรา",
+        youtubeChannelUrl: "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1",
+        youtubeChannelName: "ช่อง Blacklistxyx",
         affiliateUrl: "https://shopee.co.th",
         affiliateTitle: "สนับสนุนช่อง / ดูสินค้าราคาพิเศษ",
-        latestVideoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        latestVideoUrl: "https://www.youtube.com/@Blacklistxyx",
         latestVideoTitle: "กดไลค์และคอมเมนต์คลิปแจกสคริปต์ล่าสุด",
         verificationSeconds: 5
     },
     socialLinks: {
-        youtube: "https://www.youtube.com/@YOUR_CHANNEL",
+        youtube: "https://www.youtube.com/@Blacklistxyx",
         discord: "https://discord.gg/YOUR_DISCORD",
         tiktok: "https://www.tiktok.com/@YOUR_TIKTOK"
     }
