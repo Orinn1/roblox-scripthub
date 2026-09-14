@@ -210,6 +210,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Helper: ตรวจสอบว่าเครื่องนี้มีสิทธิ์ผ่าน LootLabs หรือยัง
+    function isGateAuthorized() {
+        const gate = SITE_CONFIG.lootlabsGate;
+        if (!gate || !gate.enabled) return true;
+        const savedExpiry = localStorage.getItem("blacklist_lootlabs_auth_expiry");
+        if (savedExpiry && Date.now() < Number(savedExpiry)) return true;
+        if (sessionStorage.getItem("blacklist_lootlabs_auth") === "true") return true;
+        return false;
+    }
+
     // Helper: ตรวจสอบสถานะการยืนยัน Postback จากเซิร์ฟเวอร์
     async function verifyLootlabsSession(silent = false) {
         const puid = localStorage.getItem("blacklist_lootlabs_puid") || "";
@@ -440,6 +450,17 @@ document.addEventListener("DOMContentLoaded", () => {
             hideGateOverlay(false);
         }
     });
+
+    // ป้องกันการแอบ Inspect Element / DevTools ปิด Modal หน้าเว็บ
+    if (window.MutationObserver && lootlabsGateOverlay) {
+        const tamperObserver = new MutationObserver(() => {
+            if (!isGateAuthorized() && lootlabsGateOverlay.style.display === "none") {
+                lootlabsGateOverlay.style.display = "flex";
+                showToast("⚠️ ตรวจพบการพยายามบายพาส! ระบบทำการล็อคหน้าเว็บอัตโนมัติ");
+            }
+        });
+        tamperObserver.observe(lootlabsGateOverlay, { attributes: true, attributeFilter: ["style", "class"] });
+    }
 
     function updateCategoryBadges() {
         if (totalCount) totalCount.textContent = scripts.length;
@@ -1163,6 +1184,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Sub2Unlock Locker Logic (Ultra Modern Gaming Locker)
     // =========================================================================
     window.openLocker = function(id) {
+        if (!isGateAuthorized()) {
+            showToast("⚠️ สิทธิ์เข้าใช้งานถูกจำกัด! กรุณาผ่าน LootLabs ก่อนรับสคริปต์");
+            checkLootlabsGate();
+            return;
+        }
         if (currentTaskTimer) {
             clearInterval(currentTaskTimer);
             currentTaskTimer = null;

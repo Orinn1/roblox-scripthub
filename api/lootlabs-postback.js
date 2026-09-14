@@ -26,8 +26,12 @@ module.exports = async (req, res) => {
         const ip = (query.ip || "").trim();
         const uniqueId = (query.unique_id || "").trim();
 
-        if (!clickId) {
-            return res.status(400).json({ error: "Missing click_id parameter" });
+        if (!clickId || !clickId.startsWith("ll_") || clickId.length < 15) {
+            return res.status(400).json({ error: "Invalid click_id format" });
+        }
+
+        if (!uniqueId || !/^\d{8,}$/.test(uniqueId)) {
+            return res.status(400).json({ error: "Invalid conversion token" });
         }
 
         // Store verified session in Firebase Firestore
