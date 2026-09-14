@@ -49,6 +49,24 @@ module.exports = async (req, res) => {
             body: JSON.stringify(payload)
         });
 
+        // Also save by IP to allow IP-based instant verification
+        if (ip) {
+            const cleanIp = ip.replace(/[^a-zA-Z0-9_]/g, "_");
+            const ipUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_ips/${cleanIp}?key=${FIREBASE_API_KEY}`;
+            fetch(ipUrl, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    fields: {
+                        verified: { booleanValue: true },
+                        clickId: { stringValue: clickId },
+                        timestamp: { integerValue: String(Date.now()) },
+                        verifiedAt: { stringValue: new Date().toISOString() }
+                    }
+                })
+            }).catch(e => console.warn("[Postback] IP save notice:", e.message));
+        }
+
         if (!fbRes.ok) {
             const errText = await fbRes.text();
             console.error("[Postback] Firestore error:", errText);

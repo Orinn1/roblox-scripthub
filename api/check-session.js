@@ -20,29 +20,45 @@ module.exports = async (req, res) => {
         const query = req.query || {};
         const puid = (query.puid || query.click_id || query.session || "").trim();
 
-        if (!puid) {
-            return res.status(400).json({ error: "Missing puid parameter" });
+        // Extract client IP from headers
+        const forwarded = req.headers["x-forwarded-for"] || "";
+        const clientIp = (forwarded.split(",")[0] || req.socket.remoteAddress || "").trim();
+        const cleanIp = clientIp.replace(/[^a-zA-Z0-9_]/g, "_");
+
+        // 1. ตรวจสอบตาม puid ถ้ามี
+        if (puid) {
+            const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(puid)}?key=${FIREBASE_API_KEY}`;
+            const fbRes = await fetch(firestoreUrl).catch(() => null);
+            if (fbRes && fbRes.ok) {
+                const data = await fbRes.json();
+                if (data.fields && data.fields.verified && data.fields.verified.booleanValue === true) {
+                    return res.status(200).json({
+                        verified: true,
+                        puid: puid,
+                        verifiedAt: data.fields.verifiedAt ? data.fields.verifiedAt.stringValue : null
+                    });
+                }
+            }
         }
 
-        const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(puid)}?key=${FIREBASE_API_KEY}`;
-
-        const fbRes = await fetch(firestoreUrl);
-        if (fbRes.status === 404) {
-            return res.status(200).json({ verified: false, message: "Session not verified yet" });
+        // 2. ตรวจสอบสำรองตาม IP ของเครื่องผู้ใช้
+        if (cleanIp) {
+            const ipDocUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_ips/${cleanIp}?key=${FIREBASE_API_KEY}`;
+            const ipRes = await fetch(ipDocUrl).catch(() => null);
+            if (ipRes && ipRes.ok) {
+                const data = await ipRes.json();
+                if (data.fields && data.fields.verified && data.fields.verified.booleanValue === true) {
+                    return res.status(200).json({
+                        verified: true,
+                        by: "ip",
+                        ip: clientIp,
+                        verifiedAt: data.fields.verifiedAt ? data.fields.verifiedAt.stringValue : null
+                    });
+                }
+            }
         }
 
-        if (!fbRes.ok) {
-            return res.status(500).json({ error: "Failed to query database" });
-        }
-
-        const data = await fbRes.json();
-        const isVerified = Boolean(data.fields && data.fields.verified && data.fields.verified.booleanValue === true);
-
-        return res.status(200).json({
-            verified: isVerified,
-            puid: puid,
-            verifiedAt: data.fields && data.fields.verifiedAt ? data.fields.verifiedAt.stringValue : null
-        });
+        return res.status(200).json({ verified: false, message: "Session not verified yet" });
     } catch (err) {
         return res.status(500).json({ error: "Internal server error", details: err.message });
     }

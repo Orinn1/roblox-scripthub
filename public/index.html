@@ -407,9 +407,15 @@
                 <span>กดผ่าน LootLabs เพื่อปลดล็อคเข้าเว็บ</span>
             </a>
 
-            <button type="button" id="gateCheckStatusBtn" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); color: #cbd5e1; width: 100%; padding: 10px 16px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; transition: all 0.2s;">
+            <!-- กล่องแสดงสถานะตรวจจับอัตโนมัติ -->
+            <div id="gateAutoDetectBox" class="gate-auto-detect" style="display: none;">
+                <span class="gate-spinner"></span>
+                <span id="gateAutoDetectText">กำลังรอคุณทำ LootLabs... (ระบบจะปลดล็อคให้อัตโนมัติทันทีที่เสร็จ)</span>
+            </div>
+
+            <button type="button" id="gateCheckStatusBtn" class="btn-gate-check">
                 <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
-                <span>ตรวจสอบสถานะ (ทำ LootLabs เสร็จแล้วคลิก)</span>
+                <span>ตรวจสอบสถานะทันที</span>
             </button>
 
             <div class="gate-divider">

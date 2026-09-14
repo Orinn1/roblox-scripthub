@@ -99,6 +99,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const lootlabsGateOverlay = document.getElementById("lootlabsGateOverlay");
     const gateMessageText = document.getElementById("gateMessageText");
     const gateLootlabsBtn = document.getElementById("gateLootlabsBtn");
+    const gateAutoDetectBox = document.getElementById("gateAutoDetectBox");
+    const gateAutoDetectText = document.getElementById("gateAutoDetectText");
     const gateCheckStatusBtn = document.getElementById("gateCheckStatusBtn");
     const gateTokenInput = document.getElementById("gateTokenInput");
     const gateTokenSubmitBtn = document.getElementById("gateTokenSubmitBtn");
@@ -166,43 +168,104 @@ document.addEventListener("DOMContentLoaded", () => {
         return puid;
     }
 
+    let gatePollTimer = null;
+
+    // Helper: ซ่อนหน้าต่างล็อคอย่างนุ่มนวล (Fade Out)
+    function hideGateOverlay(withToast = false) {
+        if (!lootlabsGateOverlay) return;
+        stopGatePolling();
+        lootlabsGateOverlay.classList.add("gate-fade-out");
+        setTimeout(() => {
+            lootlabsGateOverlay.style.display = "none";
+            lootlabsGateOverlay.classList.remove("gate-fade-out");
+        }, 450);
+
+        if (withToast) {
+            const gate = SITE_CONFIG.lootlabsGate || {};
+            const durationHours = Number(gate.expiryHours || 24);
+            showToast(`🎉 ปลดล็อคสำเร็จ! จดจำเครื่องนี้ไว้ ${durationHours} ชั่วโมง`);
+        }
+    }
+
+    // Helper: วนลูปตรวจจับสถานะจาก LootLabs อัตโนมัติ (ไม่ต้องกดปุ่มเอง)
+    function startGatePolling(fast = false) {
+        if (gatePollTimer) clearInterval(gatePollTimer);
+        const intervalMs = fast ? 1500 : 2500;
+        gatePollTimer = setInterval(async () => {
+            if (!lootlabsGateOverlay || lootlabsGateOverlay.style.display === "none") {
+                stopGatePolling();
+                return;
+            }
+            const ok = await verifyLootlabsSession(true);
+            if (ok) {
+                stopGatePolling();
+            }
+        }, intervalMs);
+    }
+
+    function stopGatePolling() {
+        if (gatePollTimer) {
+            clearInterval(gatePollTimer);
+            gatePollTimer = null;
+        }
+    }
+
     // Helper: ตรวจสอบสถานะการยืนยัน Postback จากเซิร์ฟเวอร์
     async function verifyLootlabsSession(silent = false) {
-        const puid = localStorage.getItem("blacklist_lootlabs_puid");
-        if (!puid) return false;
-
+        const puid = localStorage.getItem("blacklist_lootlabs_puid") || "";
         const gate = SITE_CONFIG.lootlabsGate || {};
         const durationHours = Number(gate.expiryHours || 24);
 
         try {
-            // 1. ตรวจสอบผ่าน Endpoint /api/check-session
-            let res = await fetch(`/api/check-session?puid=${encodeURIComponent(puid)}`).catch(() => null);
+            // 1. ตรวจสอบผ่าน Endpoint /api/check-session (รองรับทั้ง puid และ IP)
+            const queryParam = puid ? `?puid=${encodeURIComponent(puid)}` : "";
+            let res = await fetch(`/api/check-session${queryParam}`).catch(() => null);
             if (res && res.ok) {
                 const data = await res.json();
                 if (data.verified) {
                     const expiryTimestamp = Date.now() + (durationHours * 60 * 60 * 1000);
                     localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
                     sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+                    localStorage.setItem("blacklist_lootlabs_unlocked_event", String(Date.now()));
                     localStorage.removeItem("blacklist_lootlabs_puid");
-                    if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
-                    showToast(`ยืนยันผ่าน LootLabs สำเร็จ! จดจำเครื่องนี้ไว้ ${durationHours} ชั่วโมง`);
+
+                    if (gateAutoDetectBox) {
+                        gateAutoDetectBox.style.display = "flex";
+                        gateAutoDetectBox.innerHTML = '<i data-lucide="check-circle" style="color: #4ade80; width: 16px; height: 16px;"></i> <span style="color: #4ade80; font-weight: 600;">ปลดล็อคสำเร็จ! กำลังเปิดหน้าเว็บ...</span>';
+                        refreshIcons();
+                    }
+
+                    setTimeout(() => {
+                        hideGateOverlay(true);
+                    }, 500);
                     return true;
                 }
             }
 
             // 2. ตรวจสอบสำรองตรงไปยัง Firebase Firestore
-            const fbUrl = `https://firestore.googleapis.com/v1/projects/blacklistscripts/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(puid)}?key=AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI`;
-            const fbRes = await fetch(fbUrl).catch(() => null);
-            if (fbRes && fbRes.ok) {
-                const data = await fbRes.json();
-                if (data.fields && data.fields.verified && data.fields.verified.booleanValue === true) {
-                    const expiryTimestamp = Date.now() + (durationHours * 60 * 60 * 1000);
-                    localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
-                    sessionStorage.setItem("blacklist_lootlabs_auth", "true");
-                    localStorage.removeItem("blacklist_lootlabs_puid");
-                    if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
-                    showToast(`ยืนยันผ่าน LootLabs สำเร็จ! จดจำเครื่องนี้ไว้ ${durationHours} ชั่วโมง`);
-                    return true;
+            if (puid) {
+                const fbUrl = `https://firestore.googleapis.com/v1/projects/blacklistscripts/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(puid)}?key=AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI`;
+                const fbRes = await fetch(fbUrl).catch(() => null);
+                if (fbRes && fbRes.ok) {
+                    const data = await fbRes.json();
+                    if (data.fields && data.fields.verified && data.fields.verified.booleanValue === true) {
+                        const expiryTimestamp = Date.now() + (durationHours * 60 * 60 * 1000);
+                        localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
+                        sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+                        localStorage.setItem("blacklist_lootlabs_unlocked_event", String(Date.now()));
+                        localStorage.removeItem("blacklist_lootlabs_puid");
+
+                        if (gateAutoDetectBox) {
+                            gateAutoDetectBox.style.display = "flex";
+                            gateAutoDetectBox.innerHTML = '<i data-lucide="check-circle" style="color: #4ade80; width: 16px; height: 16px;"></i> <span style="color: #4ade80; font-weight: 600;">ปลดล็อคสำเร็จ! กำลังเปิดหน้าเว็บ...</span>';
+                            refreshIcons();
+                        }
+
+                        setTimeout(() => {
+                            hideGateOverlay(true);
+                        }, 500);
+                        return true;
+                    }
                 }
             }
         } catch (err) {
@@ -222,6 +285,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const gate = SITE_CONFIG.lootlabsGate;
         if (!gate || !gate.enabled) {
             if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
+            stopGatePolling();
             return;
         }
 
@@ -238,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const expiryTimestamp = Date.now() + durationMs;
             localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
             sessionStorage.setItem("blacklist_lootlabs_auth", "true");
-            if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
+            hideGateOverlay(false);
         }
 
         // 1. Check URL parameters (?auth= or ?token= or ?key=) - Backdoor สำหรับแอดมิน
@@ -261,6 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!isNaN(expTime) && Date.now() < expTime) {
                 // Device is within 24-hour validity window!
                 if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
+                stopGatePolling();
                 return;
             } else {
                 // Expired after 24 hours! Remove and re-lock
@@ -272,6 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // 3. Check sessionStorage fallback
         if (sessionStorage.getItem("blacklist_lootlabs_auth") === "true") {
             if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
+            stopGatePolling();
             return;
         }
 
@@ -293,9 +359,23 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             refreshIcons();
 
-            // ตรวจสอบอัตโนมัติเผื่อสัญญาณ Postback ส่งมาถึงก่อนแล้ว
+            // เริ่มระบบตรวจจับอัตโนมัติเบื้องหลังทันที
+            startGatePolling(false);
             verifyLootlabsSession(true);
         }
+    }
+
+    // เมื่อคลิกปุ่มเปิด LootLabs ให้เปิดกล่องสถานะและเริ่มตรวจจับแบบถี่สูงทันที
+    if (gateLootlabsBtn) {
+        gateLootlabsBtn.addEventListener("click", () => {
+            if (gateAutoDetectBox) {
+                gateAutoDetectBox.style.display = "flex";
+                if (gateAutoDetectText) {
+                    gateAutoDetectText.textContent = "กำลังรอคุณทำ LootLabs... (ระบบจะปลดล็อคให้อัตโนมัติทันทีที่เสร็จ)";
+                }
+            }
+            startGatePolling(true);
+        });
     }
 
     if (gateTokenSubmitBtn && gateTokenInput) {
@@ -308,8 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const expiryTimestamp = Date.now() + (durationHours * 60 * 60 * 1000);
                 localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
                 sessionStorage.setItem("blacklist_lootlabs_auth", "true");
-                if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
-                showToast(`ยืนยันสำเร็จ! จดจำเครื่องนี้ไว้ ${durationHours} ชั่วโมง`);
+                hideGateOverlay(true);
             } else {
                 if (gateErrorMsg) {
                     gateErrorMsg.style.display = "block";
@@ -338,6 +417,13 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("focus", () => {
         if (lootlabsGateOverlay && lootlabsGateOverlay.style.display !== "none") {
             verifyLootlabsSession(true);
+        }
+    });
+
+    // ซิงก์การปลดล็อคข้ามแท็บอัตโนมัติ (ถ้าแท็บอื่นปลดล็อคแล้ว แท็บนี้จะหายไปทันที)
+    window.addEventListener("storage", (e) => {
+        if (e.key === "blacklist_lootlabs_auth_expiry" || e.key === "blacklist_lootlabs_unlocked_event") {
+            hideGateOverlay(false);
         }
     });
 
