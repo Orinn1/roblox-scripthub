@@ -307,6 +307,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // 1. Check URL parameters (?auth= or ?token= or ?key=) - Backdoor สำหรับแอดมิน
         const urlParams = new URLSearchParams(window.location.search);
+
+        // ทดสอบระบบ: หากใส่ ?lock=1 หรือ ?reset=1 จะรีเซ็ตเครื่องให้กลับมาล็อคเหมือนเครื่องใหม่ทันที
+        if (urlParams.has("lock") || urlParams.has("reset") || urlParams.has("relock")) {
+            localStorage.removeItem("blacklist_lootlabs_auth_expiry");
+            localStorage.removeItem("blacklist_lootlabs_puid");
+            localStorage.removeItem("blacklist_lootlabs_unlocked_event");
+            sessionStorage.removeItem("blacklist_lootlabs_auth");
+            try {
+                const cleanUrl = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            } catch (e) {}
+            showToast("รีเซ็ตสถานะเป็นเครื่องใหม่ (ล็อคหน้าเว็บ) เรียบร้อยแล้ว");
+        }
+
         const incomingToken = (urlParams.get("auth") || urlParams.get("token") || urlParams.get("key") || "").trim().toLowerCase();
 
         if (incomingToken && incomingToken === requiredToken) {
