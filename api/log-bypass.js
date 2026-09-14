@@ -3,7 +3,7 @@
  * Detects and logs bypass attempts, sending real-time Discord alerts with Action Ban Buttons
  */
 
-const DEFAULT_WEBHOOK_URL = "https://canary.discord.com/api/webhooks/1549026039294984232/M4fdAvl1SITFfzh2emyg0WBUGRDKhixswD3kqxPinKfdd-3W3G6koJ71mDxZn3PEApcQ";
+const DEFAULT_WEBHOOK_URL = "https://canary.discord.com/api/webhooks/1549039337230827700/GcVrBLjVPyJjryy2bnZh8-MVdm7DCBcVaGMuzn7cq4mQepP_TnUeBrBRi0KR5JvG_a5s";
 const ADMIN_TOKEN = "blacklist_vip";
 
 // In-memory simple rate-limiting cache (per Lambda instance)

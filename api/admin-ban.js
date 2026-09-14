@@ -6,7 +6,7 @@
 
 const FIREBASE_PROJECT_ID = "blacklistscripts";
 const FIREBASE_API_KEY = "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI";
-const DEFAULT_WEBHOOK_URL = "https://canary.discord.com/api/webhooks/1549026039294984232/M4fdAvl1SITFfzh2emyg0WBUGRDKhixswD3kqxPinKfdd-3W3G6koJ71mDxZn3PEApcQ";
+const DEFAULT_WEBHOOK_URL = "https://canary.discord.com/api/webhooks/1549039337230827700/GcVrBLjVPyJjryy2bnZh8-MVdm7DCBcVaGMuzn7cq4mQepP_TnUeBrBRi0KR5JvG_a5s";
 const ADMIN_TOKEN = "blacklist_vip";
 
 module.exports = async (req, res) => {
