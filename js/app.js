@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Task State for Locker
     let tasks = { t1: false, t2: false, t3: false };
+    let currentTaskTimer = null;
 
     // Views
     const homeView = document.getElementById("homeView");
@@ -94,12 +95,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const toastBar = document.getElementById("toastBar");
 
+    // LootLabs Gate Elements
+    const lootlabsGateOverlay = document.getElementById("lootlabsGateOverlay");
+    const gateMessageText = document.getElementById("gateMessageText");
+    const gateLootlabsBtn = document.getElementById("gateLootlabsBtn");
+    const gateTokenInput = document.getElementById("gateTokenInput");
+    const gateTokenSubmitBtn = document.getElementById("gateTokenSubmitBtn");
+    const gateErrorMsg = document.getElementById("gateErrorMsg");
+
     // Social Links
     const sideYtBtn = document.getElementById("sideYtBtn");
     const sideDcBtn = document.getElementById("sideDcBtn");
 
     // Helper: Refresh Lucide Icons
     function refreshIcons() {
+        if (window.lucide && window.lucide.icons && !window.lucide.icons.Youtube) {
+            window.lucide.icons.Youtube = [
+                ["path", { "d": "M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" }],
+                ["path", { "d": "m10 15 5-3-5-3z" }]
+            ];
+        }
         if (window.lucide && typeof lucide.createIcons === "function") {
             lucide.createIcons();
         }
@@ -140,6 +155,73 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // =========================================================================
+    // LootLabs Anti-Bypass Gate Logic
+    // =========================================================================
+    function checkLootlabsGate() {
+        const gate = SITE_CONFIG.lootlabsGate;
+        if (!gate || !gate.enabled) {
+            if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
+            return;
+        }
+
+        const requiredToken = (gate.token || "blacklist_vip").trim().toLowerCase();
+
+        // 1. Check URL parameters (?auth= or ?token= or ?key=)
+        const urlParams = new URLSearchParams(window.location.search);
+        const incomingToken = (urlParams.get("auth") || urlParams.get("token") || urlParams.get("key") || "").trim().toLowerCase();
+
+        if (incomingToken && incomingToken === requiredToken) {
+            sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+            try {
+                const cleanUrl = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            } catch (e) {}
+            if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
+            return;
+        }
+
+        // 2. Check if already authenticated in this session
+        if (sessionStorage.getItem("blacklist_lootlabs_auth") === "true") {
+            if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
+            return;
+        }
+
+        // 3. Otherwise show gate overlay
+        if (lootlabsGateOverlay) {
+            lootlabsGateOverlay.style.display = "flex";
+            if (gateLootlabsBtn) {
+                gateLootlabsBtn.href = gate.lootlabsUrl || "https://loot-link.com/s?example";
+            }
+            if (gateMessageText && gate.bypassMessage) {
+                gateMessageText.textContent = gate.bypassMessage;
+            }
+            refreshIcons();
+        }
+    }
+
+    if (gateTokenSubmitBtn && gateTokenInput) {
+        const verifyManualToken = () => {
+            const inputVal = gateTokenInput.value.trim().toLowerCase();
+            const gate = SITE_CONFIG.lootlabsGate || {};
+            const required = (gate.token || "blacklist_vip").trim().toLowerCase();
+            if (inputVal && inputVal === required) {
+                sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+                if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
+                showToast("ยืนยัน Token สำเร็จ! ปลดล็อคเข้าใช้งานแล้ว");
+            } else {
+                if (gateErrorMsg) {
+                    gateErrorMsg.style.display = "block";
+                    setTimeout(() => { if (gateErrorMsg) gateErrorMsg.style.display = "none"; }, 3000);
+                }
+            }
+        };
+        gateTokenSubmitBtn.addEventListener("click", verifyManualToken);
+        gateTokenInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") verifyManualToken();
+        });
+    }
+
     function updateCategoryBadges() {
         if (totalCount) totalCount.textContent = scripts.length;
         if (!gameMenu) return;
@@ -158,7 +240,16 @@ document.addEventListener("DOMContentLoaded", () => {
             // 1. Top Priority: Firebase Cloud Firestore (50,000 Reads/วัน ฟรีตลอดชีพ)
             if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
                 try {
-                    const fbScripts = await window.FirebaseDB.getScripts();
+                    const [fbScripts, fbConfig] = await Promise.all([
+                        window.FirebaseDB.getScripts(),
+                        window.FirebaseDB.getConfig().catch(() => null)
+                    ]);
+                    if (fbConfig) {
+                        Object.assign(SITE_CONFIG, fbConfig);
+                        localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
+                        applySiteConfig();
+                        checkLootlabsGate();
+                    }
                     if (Array.isArray(fbScripts) && fbScripts.length > 0) {
                         scripts = fbScripts;
                         renderHomeRecent();
@@ -231,6 +322,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 Object.assign(SITE_CONFIG, cfg);
                 localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
                 applySiteConfig();
+                checkLootlabsGate();
             }
 
             if (scpRes && scpRes.ok) {
@@ -765,6 +857,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Sub2Unlock Locker Logic (Ultra Modern Gaming Locker)
     // =========================================================================
     window.openLocker = function(id) {
+        if (currentTaskTimer) {
+            clearInterval(currentTaskTimer);
+            currentTaskTimer = null;
+        }
         selectedScript = scripts.find(s => s.id === id);
         if (!selectedScript) return;
 
@@ -874,6 +970,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function handleTaskClick(btn, link, waitSec, taskKey, stepNum, title, nextBtnToActivate, nextStepNum, nextIcon, nextTitle, nextHint) {
         if (tasks[taskKey]) return;
+        if (currentTaskTimer) {
+            clearInterval(currentTaskTimer);
+            currentTaskTimer = null;
+        }
         window.open(link, "_blank");
 
         let sec = waitSec;
@@ -894,7 +994,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         refreshIcons();
 
-        const timer = setInterval(() => {
+        currentTaskTimer = setInterval(() => {
             sec--;
             if (sec > 0) {
                 const hintEl = btn.querySelector(".task-hint");
@@ -903,7 +1003,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (pillEl) pillEl.innerHTML = `<i data-lucide="loader-2" class="spin"></i> ${sec}s`;
                 refreshIcons();
             } else {
-                clearInterval(timer);
+                clearInterval(currentTaskTimer);
+                currentTaskTimer = null;
                 tasks[taskKey] = true;
                 setTaskDone(btn, stepNum, title);
                 updateDots();
@@ -990,7 +1091,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     btnCopyScript.addEventListener("click", () => {
         scriptCodeBox.select();
-        navigator.clipboard.writeText(scriptCodeBox.value).then(() => {
+        const copySuccess = () => {
             btnCopyScript.className = "btn-copy-script copied";
             btnCopyScript.innerHTML = `<i data-lucide="check"></i> <span>คัดลอกสำเร็จแล้ว!</span>`;
             refreshIcons();
@@ -1000,12 +1101,34 @@ document.addEventListener("DOMContentLoaded", () => {
                 btnCopyScript.innerHTML = `<i data-lucide="copy"></i> <span>คัดลอกสคริปต์ (Copy Code)</span>`;
                 refreshIcons();
             }, 2500);
-        });
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(scriptCodeBox.value).then(copySuccess).catch(() => {
+                document.execCommand("copy");
+                copySuccess();
+            });
+        } else {
+            document.execCommand("copy");
+            copySuccess();
+        }
     });
 
-    closeLockerBtn.addEventListener("click", () => lockerModal.classList.remove("active"));
+    closeLockerBtn.addEventListener("click", () => {
+        if (currentTaskTimer) {
+            clearInterval(currentTaskTimer);
+            currentTaskTimer = null;
+        }
+        lockerModal.classList.remove("active");
+    });
     lockerModal.addEventListener("click", (e) => {
-        if (e.target === lockerModal) lockerModal.classList.remove("active");
+        if (e.target === lockerModal) {
+            if (currentTaskTimer) {
+                clearInterval(currentTaskTimer);
+                currentTaskTimer = null;
+            }
+            lockerModal.classList.remove("active");
+        }
     });
 
     // Close modals with Escape key
@@ -1182,6 +1305,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialize App
     applySiteConfig();
+    checkLootlabsGate();
     updateCategoryBadges();
     switchView("home");
     fetchExploits();

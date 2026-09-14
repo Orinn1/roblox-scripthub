@@ -44,6 +44,14 @@ const SITE_CONFIG = {
         youtube: "https://www.youtube.com/@Blacklistxyx",
         discord: "https://discord.gg/YOUR_DISCORD",
         tiktok: "https://www.tiktok.com/@YOUR_TIKTOK"
+    },
+
+    // ระบบป้องกัน Bypass ด้วย LootLabs Token Gate
+    lootlabsGate: {
+        enabled: true,
+        token: "blacklist_vip",
+        lootlabsUrl: "https://loot-link.com/s?example",
+        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
     }
 };
 

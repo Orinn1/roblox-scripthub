@@ -54,9 +54,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const linkVideo = document.getElementById("linkVideo");
     const linkDiscord = document.getElementById("linkDiscord");
 
+    // LootLabs Gate Elements
+    const gateEnableCheckbox = document.getElementById("gateEnableCheckbox");
+    const adminGateToken = document.getElementById("adminGateToken");
+    const adminGateUrl = document.getElementById("adminGateUrl");
+    const lootlabsTargetUrlHelper = document.getElementById("lootlabsTargetUrlHelper");
+    const btnCopyLootlabsHelper = document.getElementById("btnCopyLootlabsHelper");
+
     const adminToast = document.getElementById("adminToast");
 
     function refreshIcons() {
+        if (window.lucide && window.lucide.icons && !window.lucide.icons.Youtube) {
+            window.lucide.icons.Youtube = [
+                ["path", { "d": "M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" }],
+                ["path", { "d": "m10 15 5-3-5-3z" }]
+            ];
+        }
         if (window.lucide && typeof lucide.createIcons === "function") {
             lucide.createIcons();
         }
@@ -750,9 +763,41 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     // 6. ลิงก์ Sub2Unlock
     // =========================================================================
+    function updateGateHelperUrl() {
+        if (!lootlabsTargetUrlHelper) return;
+        const token = (adminGateToken && adminGateToken.value.trim()) || "blacklist_vip";
+        const origin = window.location.origin || "https://yoursite.vercel.app";
+        lootlabsTargetUrlHelper.value = `${origin}/?auth=${encodeURIComponent(token)}`;
+    }
+
+    if (adminGateToken) {
+        adminGateToken.addEventListener("input", updateGateHelperUrl);
+    }
+
+    if (btnCopyLootlabsHelper) {
+        btnCopyLootlabsHelper.addEventListener("click", () => {
+            if (!lootlabsTargetUrlHelper) return;
+            lootlabsTargetUrlHelper.select();
+            navigator.clipboard.writeText(lootlabsTargetUrlHelper.value).then(() => {
+                showToast("คัดลอกลิงก์ปลายทาง LootLabs เรียบร้อยแล้ว!");
+            }).catch(() => {
+                document.execCommand("copy");
+                showToast("คัดลอกลิงก์เรียบร้อยแล้ว!");
+            });
+        });
+    }
+
     function loadLinks() {
         if (!SITE_CONFIG.unlockTasks) SITE_CONFIG.unlockTasks = {};
         if (!SITE_CONFIG.socialLinks) SITE_CONFIG.socialLinks = {};
+        if (!SITE_CONFIG.lootlabsGate) {
+            SITE_CONFIG.lootlabsGate = {
+                enabled: true,
+                token: "blacklist_vip",
+                lootlabsUrl: "",
+                bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+            };
+        }
 
         let ytUrl = SITE_CONFIG.unlockTasks.youtubeChannelUrl || "";
         if (!ytUrl || ytUrl.includes("YOUR_CHANNEL")) {
@@ -764,6 +809,12 @@ document.addEventListener("DOMContentLoaded", () => {
         linkShopee.value = SITE_CONFIG.unlockTasks.affiliateUrl || "";
         linkVideo.value = SITE_CONFIG.unlockTasks.latestVideoUrl || "";
         linkDiscord.value = SITE_CONFIG.socialLinks.discord || "";
+
+        // Populate LootLabs Gate settings
+        if (gateEnableCheckbox) gateEnableCheckbox.checked = Boolean(SITE_CONFIG.lootlabsGate.enabled);
+        if (adminGateToken) adminGateToken.value = SITE_CONFIG.lootlabsGate.token || "blacklist_vip";
+        if (adminGateUrl) adminGateUrl.value = SITE_CONFIG.lootlabsGate.lootlabsUrl || "";
+        updateGateHelperUrl();
     }
 
     adminLinksForm.addEventListener("submit", async (e) => {
@@ -774,6 +825,15 @@ document.addEventListener("DOMContentLoaded", () => {
         SITE_CONFIG.unlockTasks.latestVideoUrl = linkVideo.value.trim();
         SITE_CONFIG.socialLinks.discord = linkDiscord.value.trim();
 
+        if (gateEnableCheckbox) {
+            SITE_CONFIG.lootlabsGate = {
+                enabled: gateEnableCheckbox.checked,
+                token: (adminGateToken ? adminGateToken.value.trim() : "blacklist_vip") || "blacklist_vip",
+                lootlabsUrl: adminGateUrl ? adminGateUrl.value.trim() : "",
+                bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+            };
+        }
+
         localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
 
         try {
@@ -782,7 +842,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     unlockTasks: SITE_CONFIG.unlockTasks,
-                    socialLinks: SITE_CONFIG.socialLinks
+                    socialLinks: SITE_CONFIG.socialLinks,
+                    lootlabsGate: SITE_CONFIG.lootlabsGate
                 })
             });
         } catch (err) {
@@ -798,7 +859,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        showToast("บันทึกการตั้งค่าลิงก์สำเร็จแล้ว!");
+        showToast("บันทึกการตั้งค่าลิงก์และระบบกัน Bypass สำเร็จแล้ว!");
     });
 
     function showToast(msg) {

@@ -384,6 +384,46 @@
 
     <div class="toast-bar" id="toastBar">คัดลอกสคริปต์แล้ว!</div>
 
+    <!-- =======================================================================
+         MODAL ล็อคป้องกันการ Bypass (LootLabs Anti-Bypass Security Gate)
+         ======================================================================= -->
+    <div class="lootlabs-gate-overlay" id="lootlabsGateOverlay" style="display: none;">
+        <div class="lootlabs-gate-box">
+            <div class="lootlabs-gate-badge">
+                <i data-lucide="shield-alert"></i> <span>SECURITY ACCESS GATE</span>
+            </div>
+            
+            <div class="lootlabs-gate-icon">
+                <i data-lucide="lock"></i>
+            </div>
+
+            <h2 class="lootlabs-gate-title">สิทธิ์เข้าใช้งานถูกจำกัด</h2>
+            <p class="lootlabs-gate-desc" id="gateMessageText">
+                กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าชมเว็บไซต์และรับสคริปต์ฟรี
+            </p>
+
+            <a href="#" class="btn-gate-lootlabs" id="gateLootlabsBtn" target="_blank" rel="noopener noreferrer">
+                <i data-lucide="external-link"></i>
+                <span>กดผ่าน LootLabs เพื่อปลดล็อคเข้าเว็บ</span>
+            </a>
+
+            <div class="gate-divider">
+                <span>หรือยืนยันด้วย ACCESS TOKEN</span>
+            </div>
+
+            <div class="gate-token-form">
+                <input type="text" id="gateTokenInput" class="gate-token-input" placeholder="กรอก Token เช่น blacklist_vip">
+                <button type="button" id="gateTokenSubmitBtn" class="btn-gate-token">ปลดล็อค</button>
+            </div>
+            <div class="gate-error-msg" id="gateErrorMsg" style="display: none;">Token ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</div>
+
+            <div class="gate-footer-hint">
+                <i data-lucide="info"></i>
+                <span>เมื่อทำภารกิจ LootLabs ครบ ระบบจะพาท่านกลับมาที่หน้านี้และปลดล็อคให้อัตโนมัติ</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Mobile Bottom Navigation Bar (แสดงเฉพาะบนมือถือ) -->
     <nav class="mobile-bottom-nav" id="mobileBottomNav">
         <button class="bottom-nav-item active" data-nav="home">

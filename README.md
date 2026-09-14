@@ -1,4 +1,4 @@
-# ⚡ RocketScriptz - Roblox Script Hub & Admin System
+# ⚡ BlacklistScriptx - Roblox Script Hub & Admin System
 
 เว็บไซต์คลังแจกสคริปต์ Roblox สไตล์ Gaming Dashboard (แบบเดียวกับ ScriptBlox / Steam) พร้อมระบบ **Sub2Unlock** และ **ระบบจัดการหลังบ้าน (Admin Panel)** สำหรับเพิ่มสคริปต์ ลบสคริปต์ และเปลี่ยนลิงก์
 
@@ -8,7 +8,6 @@
 
 * **หน้าเว็บหลักสำหรับคนดู:** [http://localhost:3000/](http://localhost:3000/)
 * **หน้าจัดการหลังบ้าน (Admin):** [http://localhost:3000/admin.html](http://localhost:3000/admin.html)
-  * **รหัสผ่านเข้าหลังบ้าน (PIN):** `0927945086`
 
 ---
 

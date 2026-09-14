@@ -175,9 +175,9 @@ const DEFAULT_SCRIPTS = [
 ];
 
 const DEFAULT_CONFIG = {
-    siteName: "RocketScriptz",
-    brandPrefix: "Rocket",
-    brandSuffix: "Scriptz",
+    siteName: "BlacklistScriptx",
+    brandPrefix: "Blacklist",
+    brandSuffix: "Scriptx",
     siteTagline: "ศูนย์รวมสคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
     unlockTasks: {
         youtubeChannelUrl: "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1",
@@ -192,6 +192,12 @@ const DEFAULT_CONFIG = {
         youtube: "https://www.youtube.com/@Blacklistxyx",
         discord: "https://discord.gg/YOUR_DISCORD",
         tiktok: "https://www.tiktok.com/@YOUR_TIKTOK"
+    },
+    lootlabsGate: {
+        enabled: true,
+        token: "blacklist_vip",
+        lootlabsUrl: "https://loot-link.com/s?example",
+        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
     }
 };
 

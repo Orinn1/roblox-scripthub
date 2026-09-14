@@ -582,9 +582,54 @@
                     <input type="url" id="linkDiscord" class="form-control" placeholder="https://discord.gg/xxxx">
                 </div>
 
+                <!-- ระบบป้องกัน Bypass (LootLabs Gate) -->
+                <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border);">
+                    <h4 style="font-size: 15px; margin-bottom: 8px; color: #c084fc; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="shield-alert" style="width: 18px; height: 18px; color: #a855f7;"></i>
+                        <span>ระบบป้องกัน Bypass (LootLabs Security Gate)</span>
+                    </h4>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+                        ล็อคหน้าเว็บทั้งหมด ต้องเข้าผ่านลิงก์ LootLabs ที่มี Token หรือกรอกรหัสถูกต้องเท่านั้นถึงจะเปิดเว็บได้
+                    </p>
+
+                    <div style="margin-bottom: 16px;">
+                        <label class="checkbox-label" style="font-weight: 500; color: #fff;">
+                            <input type="checkbox" id="gateEnableCheckbox"> 
+                            <span>เปิดใช้งานระบบล็อคหน้าเว็บ (LootLabs Anti-Bypass Gate)</span>
+                        </label>
+                    </div>
+
+                    <div class="form-grid" style="margin-bottom: 16px;">
+                        <div>
+                            <label class="form-label">Access Token ประจำเว็บ (คีย์ลับ)</label>
+                            <input type="text" id="adminGateToken" class="form-control" placeholder="เช่น blacklist_vip">
+                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">รหัสลับสำหรับผ่านการตรวจสอบ</span>
+                        </div>
+
+                        <div>
+                            <label class="form-label">ลิงก์ LootLabs Anti-Bypass (สำหรับให้ผู้ใช้กด)</label>
+                            <input type="url" id="adminGateUrl" class="form-control" placeholder="https://loot-link.com/s?xxxx">
+                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">ลิงก์ที่สร้างจากช่อง Redirect Link ใน LootLabs</span>
+                        </div>
+                    </div>
+
+                    <!-- ช่องแสดง URL สำหรับนำไปใส่ใน LootLabs -->
+                    <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px;">
+                        <label style="font-size: 12px; color: #c084fc; font-weight: 600; display: block; margin-bottom: 6px;">
+                            📋 ลิงก์ที่ต้องนำไปใส่ในช่อง "Place redirect url here" บน LootLabs:
+                        </label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="lootlabsTargetUrlHelper" class="form-control" readonly style="background: #08090d; color: #a78bfa; font-family: monospace; font-size: 12px;">
+                            <button type="button" id="btnCopyLootlabsHelper" style="background: #7c3aed; color: #fff; border: none; padding: 0 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="copy"></i> <span>คัดลอก</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <button type="submit" class="btn-submit">
                     <i data-lucide="save"></i>
-                    <span>บันทึกการเปลี่ยนแปลงลิงก์</span>
+                    <span>บันทึกการเปลี่ยนแปลงลิงก์และระบบกัน Bypass</span>
                 </button>
             </form>
         </div>
