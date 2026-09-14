@@ -50,7 +50,7 @@ const SITE_CONFIG = {
     lootlabsGate: {
         enabled: true,
         token: "blacklist_vip",
-        lootlabsUrl: "https://loot-link.com/s?example",
+        lootlabsUrl: "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
         expiryHours: 24, // จดจำเครื่องไว้ 24 ชั่วโมง
         bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
     }
@@ -75,6 +75,12 @@ const SITE_CONFIG = {
             if (parsed.socialLinks) {
                 if (!parsed.socialLinks.youtube || parsed.socialLinks.youtube.includes("YOUR_CHANNEL")) {
                     parsed.socialLinks.youtube = "https://www.youtube.com/@Blacklistxyx";
+                }
+            }
+            // ล้างลิงก์ LootLabs เก่าที่เป็นตัวอย่างออก
+            if (parsed.lootlabsGate) {
+                if (!parsed.lootlabsGate.lootlabsUrl || parsed.lootlabsGate.lootlabsUrl.includes("s?example")) {
+                    parsed.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh";
                 }
             }
             // อัปเดต firebaseConfig เสมอ

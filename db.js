@@ -196,7 +196,7 @@ const DEFAULT_CONFIG = {
     lootlabsGate: {
         enabled: true,
         token: "blacklist_vip",
-        lootlabsUrl: "https://loot-link.com/s?example",
+        lootlabsUrl: "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
         expiryHours: 24,
         bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
     }
