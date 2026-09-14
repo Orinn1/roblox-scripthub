@@ -185,11 +185,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // Helper: ซ่อนหน้าต่างล็อคอย่างนุ่มนวล (Fade Out)
     function hideGateOverlay(withToast = false) {
         if (!lootlabsGateOverlay) return;
+        isGateActivelyEnforced = false;
+        isInternalGateChange = true;
         stopGatePolling();
         lootlabsGateOverlay.classList.add("gate-fade-out");
         setTimeout(() => {
             lootlabsGateOverlay.style.display = "none";
             lootlabsGateOverlay.classList.remove("gate-fade-out");
+            isInternalGateChange = false;
         }, 450);
 
         if (withToast) {
@@ -303,10 +306,20 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     // Real-time Anti-Bypass Logger & Discord Alert Sender
     // =========================================================================
+    let pageReadyForTamperCheck = false;
+    let isInternalGateChange = false;
+    let isGateActivelyEnforced = false;
     let lastBypassReport = 0;
+
+    // Grace period on initial load: do not report bypass attempts during initial 4 seconds of page loading
+    setTimeout(() => {
+        pageReadyForTamperCheck = true;
+    }, 4000);
+
     function reportBypassAttempt(reason, details = "") {
+        if (!pageReadyForTamperCheck) return; // Prevent any false positives during initial boot & CSS animations
         const now = Date.now();
-        if (now - lastBypassReport < 20000) return; // 20s debounce
+        if (now - lastBypassReport < 25000) return; // 25s debounce
         lastBypassReport = now;
 
         const payload = {
@@ -330,12 +343,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     function showBannedScreen(banData) {
         isCurrentlyBanned = true;
+        isGateActivelyEnforced = false;
+        isInternalGateChange = true;
         if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
         stopGatePolling();
 
         if (bannedScreenOverlay) {
             bannedScreenOverlay.style.display = "flex";
         }
+        setTimeout(() => { isInternalGateChange = false; }, 300);
         if (bannedReasonText && banData.reason) {
             bannedReasonText.textContent = banData.reason;
         }
@@ -380,6 +396,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function hideBannedScreen() {
         isCurrentlyBanned = false;
+        isInternalGateChange = true;
         if (bannedCountdownInterval) {
             clearInterval(bannedCountdownInterval);
             bannedCountdownInterval = null;
@@ -387,6 +404,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (bannedScreenOverlay) {
             bannedScreenOverlay.style.display = "none";
         }
+        setTimeout(() => { isInternalGateChange = false; }, 300);
         checkLootlabsGate();
     }
 
@@ -416,18 +434,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const gate = SITE_CONFIG.lootlabsGate;
         if (!gate || !gate.enabled) {
+            isGateActivelyEnforced = false;
+            isInternalGateChange = true;
             if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
             stopGatePolling();
+            setTimeout(() => { isInternalGateChange = false; }, 200);
             return;
         }
 
-        // ตรวจสอบ Referrer ดักจับพวก bypass.vip หรือเครื่องมือ Bypass
-        if (document.referrer) {
-            const refLower = document.referrer.toLowerCase();
-            if (refLower.includes("bypass.vip") || refLower.includes("bypasser") || refLower.includes("adlinkfly") || refLower.includes("thebypasser")) {
-                reportBypassAttempt("เปิดเว็บไซต์ผ่านเครื่องมือ Bypass อัตโนมัติ", `Referrer: ${document.referrer}`);
-                showToast("⚠️ ตรวจพบการใช้เครื่องมือ Bypass! กรุณาทำภารกิจผ่าน LootLabs อย่างถูกต้อง");
-            }
+        // ตรวจสอบ Referrer ดักจับพวก bypass.vip หรือเครื่องมือ Bypass (เฉพาะโดเมน bypass จริงๆ และเช็คเพียงครั้งเดียวต่อ session)
+        if (document.referrer && !sessionStorage.getItem("blacklist_bypass_ref_logged")) {
+            try {
+                const refUrl = new URL(document.referrer);
+                const host = refUrl.hostname.toLowerCase();
+                const knownBypassHosts = ["bypass.vip", "thebypasser.com", "linkvertisebypasser.com", "adlinkfly.com"];
+                const isBypass = knownBypassHosts.some(d => host === d || host.endsWith("." + d));
+                if (isBypass) {
+                    sessionStorage.setItem("blacklist_bypass_ref_logged", "true");
+                    reportBypassAttempt("เปิดเว็บไซต์ผ่านเครื่องมือ Bypass อัตโนมัติ", `Referrer Host: ${host}`);
+                    showToast("⚠️ ตรวจพบการเปิดผ่านเครื่องมือ Bypass กรุณาทำภารกิจผ่าน LootLabs อย่างถูกต้อง");
+                }
+            } catch (e) {}
         }
 
         const requiredToken = (gate.token || "blacklist_vip").trim().toLowerCase();
@@ -474,8 +501,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const expTime = Number(savedExpiry);
             if (!isNaN(expTime) && Date.now() < expTime) {
                 // Device is within 24-hour validity window!
+                isGateActivelyEnforced = false;
+                isInternalGateChange = true;
                 if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
                 stopGatePolling();
+                setTimeout(() => { isInternalGateChange = false; }, 200);
                 return;
             } else {
                 // Expired after 24 hours! Remove and re-lock
@@ -486,14 +516,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // 3. Check sessionStorage fallback
         if (sessionStorage.getItem("blacklist_lootlabs_auth") === "true") {
+            isGateActivelyEnforced = false;
+            isInternalGateChange = true;
             if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
             stopGatePolling();
+            setTimeout(() => { isInternalGateChange = false; }, 200);
             return;
         }
 
         // 4. Otherwise show gate overlay and setup LootLabs dynamic link
         if (lootlabsGateOverlay) {
+            isInternalGateChange = true;
             lootlabsGateOverlay.style.display = "flex";
+            lootlabsGateOverlay.style.visibility = "visible";
+            lootlabsGateOverlay.style.opacity = "1";
+            setTimeout(() => {
+                isInternalGateChange = false;
+                if (!isGateAuthorized() && !isCurrentlyBanned) {
+                    isGateActivelyEnforced = true;
+                }
+            }, 600);
+
             const puid = getOrCreateLootlabsPuid();
 
             if (gateLootlabsBtn) {
@@ -581,33 +624,52 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.MutationObserver) {
         if (lootlabsGateOverlay) {
             const tamperObserver = new MutationObserver(() => {
-                if (!isGateAuthorized() && !isCurrentlyBanned) {
-                    const style = window.getComputedStyle(lootlabsGateOverlay);
-                    if (lootlabsGateOverlay.style.display === "none" || style.display === "none" || style.visibility === "hidden" || parseFloat(style.opacity) < 0.1) {
-                        lootlabsGateOverlay.style.display = "flex";
-                        lootlabsGateOverlay.style.visibility = "visible";
-                        lootlabsGateOverlay.style.opacity = "1";
-                        reportBypassAttempt("พยายามลบ/ซ่อนกล่อง LootLabs Gate ผ่าน DevTools", "ตรวจพบการดัดแปลง CSS/DOM บน #lootlabsGateOverlay");
-                        showToast("⚠️ ตรวจพบการพยายามบายพาส! ระบบทำการล็อคหน้าเว็บและส่งบันทึก");
-                    }
+                if (!pageReadyForTamperCheck || isInternalGateChange || !isGateActivelyEnforced) return;
+                if (isGateAuthorized() || isCurrentlyBanned) return;
+
+                const style = window.getComputedStyle(lootlabsGateOverlay);
+                const isHidden = lootlabsGateOverlay.style.display === "none" ||
+                                 style.display === "none" ||
+                                 style.visibility === "hidden" ||
+                                 lootlabsGateOverlay.hidden;
+
+                if (isHidden || lootlabsGateOverlay.style.opacity === "0") {
+                    isInternalGateChange = true;
+                    lootlabsGateOverlay.style.display = "flex";
+                    lootlabsGateOverlay.style.visibility = "visible";
+                    lootlabsGateOverlay.style.opacity = "1";
+                    lootlabsGateOverlay.hidden = false;
+                    setTimeout(() => { isInternalGateChange = false; }, 300);
+
+                    reportBypassAttempt("พยายามลบ/ซ่อนกล่อง LootLabs Gate ผ่าน DevTools", "ตรวจพบการซ่อน #lootlabsGateOverlay");
+                    showToast("⚠️ ตรวจพบการพยายามบายพาส! ระบบทำการล็อคหน้าเว็บและส่งบันทึก");
                 }
             });
-            tamperObserver.observe(lootlabsGateOverlay, { attributes: true, attributeFilter: ["style", "class"] });
+            tamperObserver.observe(lootlabsGateOverlay, { attributes: true, attributeFilter: ["style", "class", "hidden"] });
         }
 
         if (bannedScreenOverlay) {
             const banTamperObserver = new MutationObserver(() => {
-                if (isCurrentlyBanned) {
-                    const style = window.getComputedStyle(bannedScreenOverlay);
-                    if (bannedScreenOverlay.style.display === "none" || style.display === "none" || style.visibility === "hidden" || parseFloat(style.opacity) < 0.1) {
-                        bannedScreenOverlay.style.display = "flex";
-                        bannedScreenOverlay.style.visibility = "visible";
-                        bannedScreenOverlay.style.opacity = "1";
-                        reportBypassAttempt("พยายามลบ/ซ่อนหน้าต่าง Banned Screen ผ่าน DevTools", "ตรวจพบการดัดแปลง CSS/DOM บน #bannedScreenOverlay");
-                    }
+                if (!pageReadyForTamperCheck || isInternalGateChange || !isCurrentlyBanned) return;
+
+                const style = window.getComputedStyle(bannedScreenOverlay);
+                const isHidden = bannedScreenOverlay.style.display === "none" ||
+                                 style.display === "none" ||
+                                 style.visibility === "hidden" ||
+                                 bannedScreenOverlay.hidden;
+
+                if (isHidden || bannedScreenOverlay.style.opacity === "0") {
+                    isInternalGateChange = true;
+                    bannedScreenOverlay.style.display = "flex";
+                    bannedScreenOverlay.style.visibility = "visible";
+                    bannedScreenOverlay.style.opacity = "1";
+                    bannedScreenOverlay.hidden = false;
+                    setTimeout(() => { isInternalGateChange = false; }, 300);
+
+                    reportBypassAttempt("พยายามลบ/ซ่อนหน้าต่าง Banned Screen ผ่าน DevTools", "ตรวจพบการซ่อน #bannedScreenOverlay");
                 }
             });
-            banTamperObserver.observe(bannedScreenOverlay, { attributes: true, attributeFilter: ["style", "class"] });
+            banTamperObserver.observe(bannedScreenOverlay, { attributes: true, attributeFilter: ["style", "class", "hidden"] });
         }
     }
 
