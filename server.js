@@ -238,6 +238,30 @@ const server = http.createServer(async (req, res) => {
                 })
             }).catch(e => console.warn('[Server Postback] Firebase sync notice:', e.message));
 
+            // Send Discord notification
+            fetch('https://canary.discord.com/api/webhooks/1549026039294984232/M4fdAvl1SITFfzh2emyg0WBUGRDKhixswD3kqxPinKfdd-3W3G6koJ71mDxZn3PEApcQ', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: 'BlacklistScriptx Security',
+                    avatar_url: 'https://blacklistscripty.vercel.app/Logo.png',
+                    embeds: [{
+                        title: '🎉 ปลดล็อคผ่าน LootLabs สำเร็จ!',
+                        description: 'มีผู้ใช้งานทำภารกิจสนับสนุนบน LootLabs เสร็จสิ้น และได้รับสิทธิ์เข้าใช้งานเว็บไซต์',
+                        color: 0x22c55e,
+                        fields: [
+                            { name: '🆔 Conversion ID', value: `\`${uniqueId || 'N/A'}\``, inline: true },
+                            { name: '🌐 IP เครื่อง', value: `\`${ip || 'Unknown'}\``, inline: true },
+                            { name: '🔑 Session (PUID)', value: `\`${clickId || 'N/A'}\``, inline: false },
+                            { name: '⏰ วันที่และเวลา', value: `${new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })} (เวลาไทย)`, inline: true },
+                            { name: '⏳ ระยะเวลาจดจำ', value: '24 ชั่วโมง', inline: true }
+                        ],
+                        footer: { text: 'BlacklistScriptx • LootLabs Security Gate', icon_url: 'https://blacklistscripty.vercel.app/Logo.png' },
+                        timestamp: new Date().toISOString()
+                    }]
+                })
+            }).catch(e => console.warn('[Server Postback] Discord notice:', e.message));
+
             res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
             res.end(JSON.stringify({ success: true, message: 'Postback verified', click_id: clickId }));
         } catch (err) {

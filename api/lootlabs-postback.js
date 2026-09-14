@@ -73,6 +73,9 @@ module.exports = async (req, res) => {
             return res.status(500).json({ error: "Failed to persist verification", details: errText });
         }
 
+        // Send notification to Discord Webhook
+        await sendDiscordLog({ clickId, ip, uniqueId });
+
         console.log(`[Postback] Verified session click_id: ${clickId} (IP: ${ip})`);
         return res.status(200).json({
             success: true,
@@ -84,3 +87,60 @@ module.exports = async (req, res) => {
         return res.status(500).json({ error: "Internal server error", details: err.message });
     }
 };
+
+const DISCORD_WEBHOOK_URL = "https://canary.discord.com/api/webhooks/1549026039294984232/M4fdAvl1SITFfzh2emyg0WBUGRDKhixswD3kqxPinKfdd-3W3G6koJ71mDxZn3PEApcQ";
+
+async function sendDiscordLog({ clickId, ip, uniqueId }) {
+    try {
+        const thaiTime = new Date().toLocaleString("th-TH", { timeZone: "Asia/Bangkok" });
+        const embed = {
+            title: "🎉 ปลดล็อคผ่าน LootLabs สำเร็จ!",
+            description: "มีผู้ใช้งานทำภารกิจสนับสนุนบน LootLabs เสร็จสิ้น และได้รับสิทธิ์เข้าใช้งานเว็บไซต์",
+            color: 0x22c55e, // Emerald Green
+            fields: [
+                {
+                    name: "🆔 Conversion ID",
+                    value: `\`${uniqueId || "N/A"}\``,
+                    inline: true
+                },
+                {
+                    name: "🌐 IP เครื่อง",
+                    value: `\`${ip || "Unknown"}\``,
+                    inline: true
+                },
+                {
+                    name: "🔑 Session (PUID)",
+                    value: `\`${clickId || "N/A"}\``,
+                    inline: false
+                },
+                {
+                    name: "⏰ วันที่และเวลา",
+                    value: `${thaiTime} (เวลาไทย)`,
+                    inline: true
+                },
+                {
+                    name: "⏳ ระยะเวลาจดจำ",
+                    value: "24 ชั่วโมง",
+                    inline: true
+                }
+            ],
+            footer: {
+                text: "BlacklistScriptx • LootLabs Security Gate",
+                icon_url: "https://blacklistscripty.vercel.app/Logo.png"
+            },
+            timestamp: new Date().toISOString()
+        };
+
+        await fetch(DISCORD_WEBHOOK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username: "BlacklistScriptx Security",
+                avatar_url: "https://blacklistscripty.vercel.app/Logo.png",
+                embeds: [embed]
+            })
+        });
+    } catch (err) {
+        console.warn("[Postback] Discord webhook notice:", err.message);
+    }
+}
