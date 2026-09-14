@@ -157,6 +157,98 @@
             return savedSuccessfully;
         },
 
+        // เพิ่มยอดการดูสคริปต์ (View Counter)
+        incrementView: async function (scriptId) {
+            if (!scriptId) return;
+            try {
+                let cached = [];
+                const localSaved = localStorage.getItem(CACHE_KEY);
+                if (localSaved) {
+                    try { cached = JSON.parse(localSaved); } catch (e) {}
+                }
+                const target = cached.find(s => String(s.id) === String(scriptId));
+                if (target) {
+                    target.views = (Number(target.views) || 0) + 1;
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(cached));
+                }
+
+                const db = getFirestore();
+                if (db) {
+                    const docRef = db.collection("hub").doc("database");
+                    await db.runTransaction(async (transaction) => {
+                        const doc = await transaction.get(docRef);
+                        if (!doc.exists) return;
+                        const data = doc.data();
+                        let currentScripts = [];
+                        if (Array.isArray(data.scripts)) currentScripts = data.scripts;
+                        else if (typeof data.scriptsJson === "string") currentScripts = JSON.parse(data.scriptsJson);
+
+                        const item = currentScripts.find(s => String(s.id) === String(scriptId));
+                        if (item) {
+                            item.views = (Number(item.views) || 0) + 1;
+                            transaction.update(docRef, {
+                                scripts: currentScripts,
+                                scriptsJson: JSON.stringify(currentScripts)
+                            });
+                        }
+                    });
+                    return;
+                }
+
+                if (this.isAvailable() && cached.length > 0) {
+                    await this.saveScripts(cached);
+                }
+            } catch (err) {
+                console.warn("[Firebase] incrementView error:", err);
+            }
+        },
+
+        // เพิ่ม/ลด ยอดถูกใจสคริปต์ (Like Counter)
+        incrementLike: async function (scriptId, delta = 1) {
+            if (!scriptId) return;
+            try {
+                let cached = [];
+                const localSaved = localStorage.getItem(CACHE_KEY);
+                if (localSaved) {
+                    try { cached = JSON.parse(localSaved); } catch (e) {}
+                }
+                const target = cached.find(s => String(s.id) === String(scriptId));
+                if (target) {
+                    target.likes = Math.max(0, (Number(target.likes) || 0) + delta);
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(cached));
+                }
+
+                const db = getFirestore();
+                if (db) {
+                    const docRef = db.collection("hub").doc("database");
+                    await db.runTransaction(async (transaction) => {
+                        const doc = await transaction.get(docRef);
+                        if (!doc.exists) return;
+                        const data = doc.data();
+                        let currentScripts = [];
+                        if (Array.isArray(data.scripts)) currentScripts = data.scripts;
+                        else if (typeof data.scriptsJson === "string") currentScripts = JSON.parse(data.scriptsJson);
+
+                        const item = currentScripts.find(s => String(s.id) === String(scriptId));
+                        if (item) {
+                            item.likes = Math.max(0, (Number(item.likes) || 0) + delta);
+                            transaction.update(docRef, {
+                                scripts: currentScripts,
+                                scriptsJson: JSON.stringify(currentScripts)
+                            });
+                        }
+                    });
+                    return;
+                }
+
+                if (this.isAvailable() && cached.length > 0) {
+                    await this.saveScripts(cached);
+                }
+            } catch (err) {
+                console.warn("[Firebase] incrementLike error:", err);
+            }
+        },
+
         // โหลดการตั้งค่าเว็บไซต์ (Site Config) จาก Firestore
         getConfig: async function () {
             const db = getFirestore();

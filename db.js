@@ -337,6 +337,28 @@ function addScript(s) {
     return getScriptById(id);
 }
 
+function incrementView(id) {
+    const stmt = db.prepare("UPDATE scripts SET views = views + 1 WHERE id = ?");
+    const info = stmt.run(id);
+    syncJsonBackup();
+    return info.changes > 0;
+}
+
+function incrementLike(id, delta = 1) {
+    const safeDelta = Number(delta) || 1;
+    const stmt = db.prepare("UPDATE scripts SET likes = MAX(0, likes + ?) WHERE id = ?");
+    const info = stmt.run(safeDelta, id);
+    syncJsonBackup();
+    return info.changes > 0;
+}
+
+function updateScript(id, updates) {
+    const existing = getScriptById(id);
+    if (!existing) return null;
+    const merged = { ...existing, ...updates };
+    return addScript(merged);
+}
+
 function deleteScript(id) {
     const stmt = db.prepare("DELETE FROM scripts WHERE id = ?");
     const info = stmt.run(id);
@@ -448,6 +470,9 @@ module.exports = {
     getAllScripts,
     getScriptById,
     addScript,
+    updateScript,
+    incrementView,
+    incrementLike,
     deleteScript,
     deleteMultipleScripts,
     clearAllScripts,

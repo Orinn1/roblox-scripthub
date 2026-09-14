@@ -169,6 +169,46 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    // API: Increment Script Views
+    if (pathname === '/api/scripts/view' && req.method === 'POST') {
+        try {
+            const { id } = await readJsonBody(req);
+            if (!id) {
+                res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ error: 'Missing script id' }));
+                return;
+            }
+            db.incrementView(id);
+            const script = db.getScriptById(id);
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ success: true, id, views: script ? script.views : 0 }));
+        } catch (err) {
+            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: 'Failed to increment view', details: err.message }));
+        }
+        return;
+    }
+
+    // API: Increment/Toggle Script Likes
+    if (pathname === '/api/scripts/like' && req.method === 'POST') {
+        try {
+            const { id, delta } = await readJsonBody(req);
+            if (!id) {
+                res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ error: 'Missing script id' }));
+                return;
+            }
+            db.incrementLike(id, delta !== undefined ? delta : 1);
+            const script = db.getScriptById(id);
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ success: true, id, likes: script ? script.likes : 0 }));
+        } catch (err) {
+            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: 'Failed to update like', details: err.message }));
+        }
+        return;
+    }
+
     // =========================================================================
     // API: GET /api/exploits (Proxy to WEAO Exploits API)
     // =========================================================================

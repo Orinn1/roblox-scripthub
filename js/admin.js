@@ -355,7 +355,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     <td style="color:#fff; font-weight:600;">${escapeHtml(s.game)}</td>
                     <td style="color:var(--text-primary); font-weight:500;">
                         ${escapeHtml(s.title)}
-                        <div style="font-size:11px; color:var(--text-muted); font-family:monospace; margin-top:2px;">${escapeHtml(s.version || 'v1.0')}</div>
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                            ${escapeHtml(s.version || 'v1.0')} • 👁 ${(s.views || 0).toLocaleString()} ครั้ง • 👍 ${(s.likes || 0).toLocaleString()} ถูกใจ
+                        </div>
                     </td>
                     <td><span class="tag-badge" style="font-size:11px;">${escapeHtml(s.category || 'all')}</span></td>
                     <td>${s.isKeyless ? '<span style="color:#4ade80; font-weight:500;">ไร้คีย์</span>' : '<span style="color:#9ca3af;">มีคีย์</span>'}</td>
@@ -462,6 +464,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const isMobile = document.getElementById("sMobile").checked;
         const isPC = document.getElementById("sPC").checked;
 
+        const sViewsInput = document.getElementById("sViews");
+        const sLikesInput = document.getElementById("sLikes");
+        const initialViews = sViewsInput ? (parseInt(sViewsInput.value, 10) || 0) : 1250;
+        const initialLikes = sLikesInput ? (parseInt(sLikesInput.value, 10) || 0) : 95;
+
         const newScript = {
             id: "script-" + Date.now(),
             title: title,
@@ -469,8 +476,8 @@ document.addEventListener("DOMContentLoaded", () => {
             category: category,
             version: version,
             updated: "วันนี้",
-            views: 1,
-            likes: 0,
+            views: initialViews,
+            likes: initialLikes,
             isKeyless: isKeyless,
             isMobile: isMobile,
             isPC: isPC,
@@ -574,6 +581,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (editThumb) editThumb.value = item.thumbnail || "";
         if (editCode) editCode.value = item.loadstring || "";
 
+        const editViews = document.getElementById("editViews");
+        const editLikes = document.getElementById("editLikes");
+        if (editViews) editViews.value = item.views !== undefined ? item.views : 0;
+        if (editLikes) editLikes.value = item.likes !== undefined ? item.likes : 0;
+
         const editKeyless = document.getElementById("editKeyless");
         const editMobile = document.getElementById("editMobile");
         const editPC = document.getElementById("editPC");
@@ -640,6 +652,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const isMobile = document.getElementById("editMobile") ? document.getElementById("editMobile").checked : true;
             const isPC = document.getElementById("editPC") ? document.getElementById("editPC").checked : true;
 
+            const editViews = document.getElementById("editViews");
+            const editLikes = document.getElementById("editLikes");
+            const views = editViews ? (parseInt(editViews.value, 10) || 0) : (scripts[index].views || 0);
+            const likes = editLikes ? (parseInt(editLikes.value, 10) || 0) : (scripts[index].likes || 0);
+
             scripts[index] = {
                 ...scripts[index],
                 title,
@@ -652,6 +669,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 isKeyless,
                 isMobile,
                 isPC,
+                views,
+                likes,
                 updated: "วันนี้"
             };
 
