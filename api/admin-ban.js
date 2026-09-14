@@ -611,6 +611,18 @@ function renderHtmlLayout(title, contentHtml) {
         .btn-danger:hover { background: #ef4444; }
         .btn-unban { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
         .btn-unban:hover { background: rgba(34, 197, 94, 0.25); color: #fff; }
+
+        @media (max-width: 480px) {
+            body { padding: 14px 10px; }
+            .card { padding: 22px 14px; border-radius: 16px; }
+            h2 { font-size: 19px; }
+            .chips-grid { grid-template-columns: repeat(2, 1fr); }
+            .chip-custom { grid-column: span 2; }
+            .chips-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+            .preset-btn { width: 100%; text-align: center; }
+            .actions-row { flex-direction: column; width: 100%; gap: 8px; }
+            .btn { width: 100%; justify-content: center; }
+        }
     </style>
 </head>
 <body>
