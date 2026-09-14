@@ -99,6 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const lootlabsGateOverlay = document.getElementById("lootlabsGateOverlay");
     const gateMessageText = document.getElementById("gateMessageText");
     const gateLootlabsBtn = document.getElementById("gateLootlabsBtn");
+    const gateCheckStatusBtn = document.getElementById("gateCheckStatusBtn");
     const gateTokenInput = document.getElementById("gateTokenInput");
     const gateTokenSubmitBtn = document.getElementById("gateTokenSubmitBtn");
     const gateErrorMsg = document.getElementById("gateErrorMsg");
@@ -155,14 +156,78 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Helper: สร้างหรือดึง Device PUID สำหรับส่งให้ LootLabs
+    function getOrCreateLootlabsPuid() {
+        let puid = localStorage.getItem("blacklist_lootlabs_puid");
+        if (!puid || !puid.startsWith("ll_")) {
+            puid = "ll_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9);
+            localStorage.setItem("blacklist_lootlabs_puid", puid);
+        }
+        return puid;
+    }
+
+    // Helper: ตรวจสอบสถานะการยืนยัน Postback จากเซิร์ฟเวอร์
+    async function verifyLootlabsSession(silent = false) {
+        const puid = localStorage.getItem("blacklist_lootlabs_puid");
+        if (!puid) return false;
+
+        const gate = SITE_CONFIG.lootlabsGate || {};
+        const durationHours = Number(gate.expiryHours || 24);
+
+        try {
+            // 1. ตรวจสอบผ่าน Endpoint /api/check-session
+            let res = await fetch(`/api/check-session?puid=${encodeURIComponent(puid)}`).catch(() => null);
+            if (res && res.ok) {
+                const data = await res.json();
+                if (data.verified) {
+                    const expiryTimestamp = Date.now() + (durationHours * 60 * 60 * 1000);
+                    localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
+                    sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+                    localStorage.removeItem("blacklist_lootlabs_puid");
+                    if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
+                    showToast(`ยืนยันผ่าน LootLabs สำเร็จ! จดจำเครื่องนี้ไว้ ${durationHours} ชั่วโมง`);
+                    return true;
+                }
+            }
+
+            // 2. ตรวจสอบสำรองตรงไปยัง Firebase Firestore
+            const fbUrl = `https://firestore.googleapis.com/v1/projects/blacklistscripts/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(puid)}?key=AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI`;
+            const fbRes = await fetch(fbUrl).catch(() => null);
+            if (fbRes && fbRes.ok) {
+                const data = await fbRes.json();
+                if (data.fields && data.fields.verified && data.fields.verified.booleanValue === true) {
+                    const expiryTimestamp = Date.now() + (durationHours * 60 * 60 * 1000);
+                    localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
+                    sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+                    localStorage.removeItem("blacklist_lootlabs_puid");
+                    if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
+                    showToast(`ยืนยันผ่าน LootLabs สำเร็จ! จดจำเครื่องนี้ไว้ ${durationHours} ชั่วโมง`);
+                    return true;
+                }
+            }
+        } catch (err) {
+            console.warn("Session check notice:", err);
+        }
+
+        if (!silent) {
+            showToast("ยังไม่พบการยืนยันจาก LootLabs กรุณาทำภารกิจให้ครบ");
+        }
+        return false;
+    }
+
     // =========================================================================
-    // LootLabs Anti-Bypass Gate Logic (Remember device for 24 hours)
+    // LootLabs Anti-Bypass Gate Logic (Remember device for 24 hours + Postback)
     // =========================================================================
     function checkLootlabsGate() {
         const gate = SITE_CONFIG.lootlabsGate;
         if (!gate || !gate.enabled) {
             if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
             return;
+        }
+
+        // ตรวจสอบ Referrer ดักจับพวก bypass.vip
+        if (document.referrer && document.referrer.toLowerCase().includes("bypass.vip")) {
+            showToast("ตรวจพบการใช้ bypass.vip! กรุณาทำภารกิจผ่าน LootLabs อย่างถูกต้อง");
         }
 
         const requiredToken = (gate.token || "blacklist_vip").trim().toLowerCase();
@@ -176,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
         }
 
-        // 1. Check URL parameters (?auth= or ?token= or ?key=)
+        // 1. Check URL parameters (?auth= or ?token= or ?key=) - Backdoor สำหรับแอดมิน
         const urlParams = new URLSearchParams(window.location.search);
         const incomingToken = (urlParams.get("auth") || urlParams.get("token") || urlParams.get("key") || "").trim().toLowerCase();
 
@@ -210,16 +275,26 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // 4. Otherwise show gate overlay
+        // 4. Otherwise show gate overlay and setup LootLabs dynamic link
         if (lootlabsGateOverlay) {
             lootlabsGateOverlay.style.display = "flex";
+            const puid = getOrCreateLootlabsPuid();
+
             if (gateLootlabsBtn) {
-                gateLootlabsBtn.href = gate.lootlabsUrl || "https://loot-link.com/s?example";
+                let baseLink = (gate.lootlabsUrl || "https://loot-link.com/s?example").trim();
+                // ลบ puid เดิมออกถ้ามี แล้วแปะ puid ของเครื่องนี้เข้าไปใหม่
+                baseLink = baseLink.replace(/[?&]puid=[^&]+/, '');
+                const separator = baseLink.includes("?") ? "&" : "?";
+                gateLootlabsBtn.href = `${baseLink}${separator}puid=${encodeURIComponent(puid)}`;
             }
+
             if (gateMessageText && gate.bypassMessage) {
                 gateMessageText.textContent = gate.bypassMessage;
             }
             refreshIcons();
+
+            // ตรวจสอบอัตโนมัติเผื่อสัญญาณ Postback ส่งมาถึงก่อนแล้ว
+            verifyLootlabsSession(true);
         }
     }
 
@@ -247,6 +322,24 @@ document.addEventListener("DOMContentLoaded", () => {
             if (e.key === "Enter") verifyManualToken();
         });
     }
+
+    // ปุ่มกดตรวจสถานะการทำภารกิจ LootLabs ด้วยตนเอง
+    if (gateCheckStatusBtn) {
+        gateCheckStatusBtn.addEventListener("click", () => {
+            const icon = gateCheckStatusBtn.querySelector("i");
+            if (icon) icon.style.animation = "spin 0.8s linear infinite";
+            verifyLootlabsSession(false).finally(() => {
+                if (icon) icon.style.animation = "";
+            });
+        });
+    }
+
+    // ตรวจสอบอัตโนมัติเมื่อผู้ใช้สลับแท็บกลับมาจากหน้า LootLabs
+    window.addEventListener("focus", () => {
+        if (lootlabsGateOverlay && lootlabsGateOverlay.style.display !== "none") {
+            verifyLootlabsSession(true);
+        }
+    });
 
     function updateCategoryBadges() {
         if (totalCount) totalCount.textContent = scripts.length;

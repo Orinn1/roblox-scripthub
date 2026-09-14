@@ -209,6 +209,76 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    // API: LootLabs Postback Webhook
+    if (pathname === '/api/lootlabs-postback') {
+        const query = parsedUrl.query || {};
+        const clickId = (query.click_id || query.puid || query.session || '').trim();
+        const ip = (query.ip || '').trim();
+        const uniqueId = (query.unique_id || '').trim();
+
+        if (!clickId) {
+            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: 'Missing click_id parameter' }));
+            return;
+        }
+
+        try {
+            // Also sync to Firebase
+            const fbUrl = `https://firestore.googleapis.com/v1/projects/blacklistscripts/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(clickId)}?key=AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI`;
+            await fetch(fbUrl, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fields: {
+                        verified: { booleanValue: true },
+                        ip: { stringValue: ip },
+                        uniqueId: { stringValue: uniqueId },
+                        verifiedAt: { stringValue: new Date().toISOString() }
+                    }
+                })
+            }).catch(e => console.warn('[Server Postback] Firebase sync notice:', e.message));
+
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ success: true, message: 'Postback verified', click_id: clickId }));
+        } catch (err) {
+            res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: err.message }));
+        }
+        return;
+    }
+
+    // API: Check LootLabs Session Status
+    if (pathname === '/api/check-session') {
+        const query = parsedUrl.query || {};
+        const puid = (query.puid || query.click_id || query.session || '').trim();
+
+        if (!puid) {
+            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: 'Missing puid parameter' }));
+            return;
+        }
+
+        try {
+            const fbUrl = `https://firestore.googleapis.com/v1/projects/blacklistscripts/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(puid)}?key=AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI`;
+            const fbRes = await fetch(fbUrl);
+
+            if (fbRes.status === 404) {
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ verified: false }));
+                return;
+            }
+
+            const data = await fbRes.json();
+            const isVerified = Boolean(data.fields && data.fields.verified && data.fields.verified.booleanValue);
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ verified: isVerified, puid }));
+        } catch (err) {
+            res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: err.message }));
+        }
+        return;
+    }
+
     // =========================================================================
     // API: GET /api/exploits (Proxy to WEAO Exploits API)
     // =========================================================================

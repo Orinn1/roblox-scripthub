@@ -61,6 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const adminGateExpiryHours = document.getElementById("adminGateExpiryHours");
     const lootlabsTargetUrlHelper = document.getElementById("lootlabsTargetUrlHelper");
     const btnCopyLootlabsHelper = document.getElementById("btnCopyLootlabsHelper");
+    const lootlabsPostbackUrlHelper = document.getElementById("lootlabsPostbackUrlHelper");
+    const btnCopyPostbackHelper = document.getElementById("btnCopyPostbackHelper");
 
     const adminToast = document.getElementById("adminToast");
 
@@ -784,14 +786,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // 6. ลิงก์ Sub2Unlock
     // =========================================================================
     function updateGateHelperUrl() {
-        if (!lootlabsTargetUrlHelper) return;
-        const token = (adminGateToken && adminGateToken.value.trim()) || "blacklist_vip";
-        const origin = window.location.origin || "https://yoursite.vercel.app";
-        lootlabsTargetUrlHelper.value = `${origin}/?auth=${encodeURIComponent(token)}`;
-    }
-
-    if (adminGateToken) {
-        adminGateToken.addEventListener("input", updateGateHelperUrl);
+        const origin = window.location.origin || "https://blacklistscripty.vercel.app";
+        if (lootlabsTargetUrlHelper) {
+            lootlabsTargetUrlHelper.value = `${origin}/`;
+        }
+        if (lootlabsPostbackUrlHelper) {
+            lootlabsPostbackUrlHelper.value = `${origin}/api/lootlabs-postback?click_id={CLICK_ID}&ip={IP}&unique_id={UNIQUE_ID}`;
+        }
     }
 
     if (btnCopyLootlabsHelper) {
@@ -799,7 +800,20 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!lootlabsTargetUrlHelper) return;
             lootlabsTargetUrlHelper.select();
             navigator.clipboard.writeText(lootlabsTargetUrlHelper.value).then(() => {
-                showToast("คัดลอกลิงก์ปลายทาง LootLabs เรียบร้อยแล้ว!");
+                showToast("คัดลอกลิงก์ Redirect URL เรียบร้อยแล้ว!");
+            }).catch(() => {
+                document.execCommand("copy");
+                showToast("คัดลอกลิงก์เรียบร้อยแล้ว!");
+            });
+        });
+    }
+
+    if (btnCopyPostbackHelper) {
+        btnCopyPostbackHelper.addEventListener("click", () => {
+            if (!lootlabsPostbackUrlHelper) return;
+            lootlabsPostbackUrlHelper.select();
+            navigator.clipboard.writeText(lootlabsPostbackUrlHelper.value).then(() => {
+                showToast("คัดลอกลิงก์ Postback Webhook เรียบร้อยแล้ว!");
             }).catch(() => {
                 document.execCommand("copy");
                 showToast("คัดลอกลิงก์เรียบร้อยแล้ว!");
