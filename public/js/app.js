@@ -1418,7 +1418,7 @@ document.addEventListener("DOMContentLoaded", () => {
         unlockedView.classList.remove("show");
 
         resetTaskBtn(task1Btn, "01", "youtube", "กดติดตาม YouTube / Subscribe", "เปิดช่อง YouTube และรอตรวจสอบ 5 วินาที", "primary-red", true);
-        resetTaskBtn(task2Btn, "02", "external-link", "กดดูสปอนเซอร์ / Sponsor", "เปิดลิงก์และรอตรวจสอบ 5 วินาที", "", false);
+        resetTaskBtn(task2Btn, "02", "message-square", "เข้าร่วม Discord / Join Discord", "เปิดลิงก์และรอตรวจสอบ 5 วินาที", "", false);
         resetTaskBtn(task3Btn, "03", "thumbs-up", "กดไลค์ & คอมเมนต์ / Like & Comment", "เปิดคลิปและรอตรวจสอบ 3 วินาที", "", false);
 
         updateDots();
@@ -1577,8 +1577,8 @@ document.addEventListener("DOMContentLoaded", () => {
             "กดติดตาม YouTube / Subscribe", 
             task2Btn, 
             "02", 
-            "external-link",
-            "กดดูสปอนเซอร์ / Sponsor", 
+            "message-square",
+            "เข้าร่วม Discord / Join Discord", 
             "เปิดลิงก์และรอตรวจสอบ 5 วินาที"
         );
     });
@@ -1588,13 +1588,17 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast("กรุณาทำภารกิจที่ 1 ให้เสร็จก่อนครับ");
             return;
         }
+        let discordUrl = (SITE_CONFIG.unlockTasks && SITE_CONFIG.unlockTasks.affiliateUrl) || "";
+        if (!discordUrl || discordUrl.includes("shopee.co.th")) {
+            discordUrl = (SITE_CONFIG.socialLinks && SITE_CONFIG.socialLinks.discord) || "https://discord.gg/your-discord";
+        }
         handleTaskClick(
             task2Btn, 
-            SITE_CONFIG.unlockTasks.affiliateUrl, 
+            discordUrl, 
             5, 
             "t2", 
             "02", 
-            "กดดูสปอนเซอร์ / Sponsor", 
+            "เข้าร่วม Discord / Join Discord", 
             task3Btn, 
             "03", 
             "thumbs-up",

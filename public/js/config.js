@@ -32,8 +32,8 @@ const SITE_CONFIG = {
     unlockTasks: {
         youtubeChannelUrl: "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1",
         youtubeChannelName: "ช่อง Blacklistxyx",
-        affiliateUrl: "https://shopee.co.th",
-        affiliateTitle: "สนับสนุนช่อง / ดูสินค้าราคาพิเศษ",
+        affiliateUrl: "",
+        affiliateTitle: "เข้าร่วม Discord / คอมมูนิตี้",
         latestVideoUrl: "https://www.youtube.com/@Blacklistxyx",
         latestVideoTitle: "กดไลค์และคอมเมนต์คลิปแจกสคริปต์ล่าสุด",
         verificationSeconds: 5
