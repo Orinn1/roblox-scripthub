@@ -435,6 +435,68 @@
         </div>
     </div>
 
+    <!-- =======================================================================
+         MODAL ระงับสิทธิ์การใช้งาน (BANNED SCREEN OVERLAY)
+         ======================================================================= -->
+    <div class="banned-screen-overlay" id="bannedScreenOverlay" style="display: none;">
+        <div class="banned-screen-box">
+            <div class="banned-badge">
+                <i data-lucide="shield-x"></i> <span>SECURITY ENFORCEMENT</span>
+            </div>
+            <div class="banned-icon-pulse">
+                <i data-lucide="ban"></i>
+            </div>
+            <h2 class="banned-title">⛔ คุณถูกระงับสิทธิ์การเข้าใช้งาน</h2>
+            <p class="banned-subtitle" id="bannedReasonText">
+                ตรวจพบพฤติกรรมพยายาม Bypass ระบบความปลอดภัย หรือถูกระงับโดยผู้ดูแลระบบ
+            </p>
+
+            <!-- กล่องแสดงเวลานับถอยหลัง Real-time -->
+            <div class="banned-countdown-box">
+                <div class="countdown-label">
+                    <i data-lucide="clock"></i>
+                    <span>เหลือเวลาระงับการใช้งานอีก:</span>
+                </div>
+                <div class="countdown-timer" id="bannedCountdownTimer">
+                    <div class="countdown-item">
+                        <span class="countdown-num" id="bannedHours">00</span>
+                        <span class="countdown-sub">ชั่วโมง</span>
+                    </div>
+                    <span class="countdown-sep">:</span>
+                    <div class="countdown-item">
+                        <span class="countdown-num" id="bannedMinutes">00</span>
+                        <span class="countdown-sub">นาที</span>
+                    </div>
+                    <span class="countdown-sep">:</span>
+                    <div class="countdown-item">
+                        <span class="countdown-num" id="bannedSeconds">00</span>
+                        <span class="countdown-sub">วินาที</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ข้อมูลทางเทคนิค -->
+            <div class="banned-info-card">
+                <div class="banned-info-row">
+                    <span>🌐 IP เครื่องของคุณ:</span>
+                    <code id="bannedClientIp">กำลังตรวจสอบ...</code>
+                </div>
+                <div class="banned-info-row">
+                    <span>⏳ ระยะเวลาที่ระงับ:</span>
+                    <span id="bannedDurationText">-- ชั่วโมง</span>
+                </div>
+                <div class="banned-info-row">
+                    <span>⏰ ปลดล็อคเมื่อ:</span>
+                    <span id="bannedExpireTimeText" class="text-amber">--:--</span>
+                </div>
+            </div>
+
+            <p class="banned-footer-notice">
+                ระบบรักษาความปลอดภัยจะทำการปลดล็อคหน้าเว็บให้อัตโนมัติเมื่อหมดเวลาที่กำหนด กรุณาอย่าพยายามปิดหน้าต่างนี้
+            </p>
+        </div>
+    </div>
+
     <!-- Mobile Bottom Navigation Bar (แสดงเฉพาะบนมือถือ) -->
     <nav class="mobile-bottom-nav" id="mobileBottomNav">
         <button class="bottom-nav-item active" data-nav="home">

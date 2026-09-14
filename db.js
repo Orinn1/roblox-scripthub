@@ -42,6 +42,15 @@ CREATE TABLE IF NOT EXISTS config (
     key TEXT PRIMARY KEY,
     value TEXT
 );
+
+CREATE TABLE IF NOT EXISTS banned_ips (
+    ip TEXT PRIMARY KEY,
+    banned_until INTEGER NOT NULL,
+    duration_hours INTEGER NOT NULL,
+    banned_at INTEGER NOT NULL,
+    reason TEXT,
+    active INTEGER DEFAULT 1
+);
 `);
 
 // Default Initial Scripts Seed Data
@@ -464,6 +473,75 @@ function getDatabaseStats() {
     };
 }
 
+function banIp(ip, hours = 24, reason = "พยายาม Bypass ระบบความปลอดภัย") {
+    const now = Date.now();
+    const durationHours = Math.max(1, Math.min(720, Number(hours) || 24));
+    const bannedUntil = now + (durationHours * 3600 * 1000);
+
+    const stmt = db.prepare(`
+        INSERT INTO banned_ips (ip, banned_until, duration_hours, banned_at, reason, active)
+        VALUES (?, ?, ?, ?, ?, 1)
+        ON CONFLICT(ip) DO UPDATE SET
+            banned_until = excluded.banned_until,
+            duration_hours = excluded.duration_hours,
+            banned_at = excluded.banned_at,
+            reason = excluded.reason,
+            active = 1
+    `);
+    stmt.run(ip, bannedUntil, durationHours, now, reason);
+
+    return {
+        ip,
+        banned: true,
+        bannedUntil,
+        durationHours,
+        bannedAt: now,
+        reason
+    };
+}
+
+function unbanIp(ip) {
+    const stmt = db.prepare("UPDATE banned_ips SET active = 0 WHERE ip = ?");
+    stmt.run(ip);
+    return { ip, unbanned: true };
+}
+
+function isIpBanned(ip) {
+    if (!ip) return { banned: false };
+    const now = Date.now();
+    const row = db.prepare("SELECT * FROM banned_ips WHERE ip = ? AND active = 1").get(ip);
+    if (!row) return { banned: false };
+
+    if (now >= row.banned_until) {
+        // Expired
+        db.prepare("UPDATE banned_ips SET active = 0 WHERE ip = ?").run(ip);
+        return { banned: false };
+    }
+
+    return {
+        banned: true,
+        ip: row.ip,
+        bannedUntil: row.banned_until,
+        remainingMs: row.banned_until - now,
+        durationHours: row.duration_hours,
+        bannedAt: row.banned_at,
+        reason: row.reason
+    };
+}
+
+function getBannedIps() {
+    const now = Date.now();
+    const rows = db.prepare("SELECT * FROM banned_ips WHERE active = 1 AND banned_until > ? ORDER BY banned_at DESC").all(now);
+    return rows.map(r => ({
+        ip: r.ip,
+        bannedUntil: r.banned_until,
+        remainingMs: r.banned_until - now,
+        durationHours: r.duration_hours,
+        bannedAt: r.banned_at,
+        reason: r.reason
+    }));
+}
+
 module.exports = {
     db,
     DB_PATH,
@@ -479,5 +557,10 @@ module.exports = {
     resetDefaultScripts,
     getConfig,
     saveConfig,
-    getDatabaseStats
+    getDatabaseStats,
+    banIp,
+    unbanIp,
+    isIpBanned,
+    getBannedIps
 };
+

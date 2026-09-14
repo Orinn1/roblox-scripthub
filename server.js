@@ -37,6 +37,45 @@ function readJsonBody(req) {
     });
 }
 
+async function executeServerless(handlerPath, req, res, parsedUrl) {
+    try {
+        let body = {};
+        if (req.method === 'POST') {
+            try {
+                body = await readJsonBody(req);
+            } catch (e) {
+                body = {};
+            }
+        }
+        req.query = parsedUrl.query || {};
+        req.body = body;
+
+        res.status = function (code) {
+            res.statusCode = code;
+            return res;
+        };
+        res.json = function (obj) {
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify(obj));
+            return res;
+        };
+        res.send = function (content) {
+            if (typeof content === 'string' && content.trim().startsWith('<!DOCTYPE html')) {
+                res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            }
+            res.end(content);
+            return res;
+        };
+
+        const handler = require(handlerPath);
+        await handler(req, res);
+    } catch (err) {
+        console.error(`[Server API Error] ${handlerPath}:`, err);
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: err.message }));
+    }
+}
+
 const server = http.createServer(async (req, res) => {
     const parsedUrl = url.parse(req.url, true);
     const pathname = parsedUrl.pathname;
@@ -300,6 +339,29 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
             res.end(JSON.stringify({ error: err.message }));
         }
+        return;
+    }
+
+    // =========================================================================
+    // API: Security, Bypass Logging, and Ban Controls
+    // =========================================================================
+    if (pathname === '/api/log-bypass') {
+        await executeServerless('./api/log-bypass.js', req, res, parsedUrl);
+        return;
+    }
+
+    if (pathname === '/api/admin-ban') {
+        await executeServerless('./api/admin-ban.js', req, res, parsedUrl);
+        return;
+    }
+
+    if (pathname === '/api/check-ban') {
+        await executeServerless('./api/check-ban.js', req, res, parsedUrl);
+        return;
+    }
+
+    if (pathname === '/api/banned-ips') {
+        await executeServerless('./api/banned-ips.js', req, res, parsedUrl);
         return;
     }
 

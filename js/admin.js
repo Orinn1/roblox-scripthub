@@ -898,11 +898,145 @@ document.addEventListener("DOMContentLoaded", () => {
         showToast("บันทึกการตั้งค่าลิงก์และระบบกัน Bypass สำเร็จแล้ว!");
     });
 
+    // =========================================================================
+    // Banned IPs & Anti-Bypass Management in Admin Panel
+    // =========================================================================
+    const bannedIpsTableBody = document.getElementById("bannedIpsTableBody");
+    const btnRefreshBans = document.getElementById("btnRefreshBans");
+    const manualBanForm = document.getElementById("manualBanForm");
+    const manualBanIp = document.getElementById("manualBanIp");
+    const manualBanHours = document.getElementById("manualBanHours");
+    const manualBanReason = document.getElementById("manualBanReason");
+
+    async function loadBannedIps() {
+        if (!bannedIpsTableBody) return;
+        bannedIpsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);"><span class="table-spinner"></span> กำลังโหลดข้อมูล...</td></tr>`;
+
+        try {
+            const res = await fetch("/api/banned-ips?token=blacklist_vip");
+            if (!res.ok) throw new Error("Failed to load banned list");
+            const data = await res.json();
+            const list = data.bans || [];
+
+            if (list.length === 0) {
+                bannedIpsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);"><i data-lucide="check-circle" style="width: 18px; height: 18px; color: #22c55e; vertical-align: middle; margin-right: 6px;"></i> ไม่มี IP ที่ถูกระงับการใช้งานในขณะนี้</td></tr>`;
+                refreshIcons();
+                return;
+            }
+
+            bannedIpsTableBody.innerHTML = list.map(item => {
+                const remainingSec = Math.max(0, Math.floor((item.remainingMs || (item.bannedUntil - Date.now())) / 1000));
+                const hrs = Math.floor(remainingSec / 3600);
+                const mins = Math.floor((remainingSec % 3600) / 60);
+                const timeStr = `${hrs} ชม. ${mins} นาที`;
+
+                return `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 12px;"><code style="background: #000; color: #f87171; padding: 3px 8px; border-radius: 6px; font-size: 12px; border: 1px solid rgba(239, 68, 68, 0.3); font-family: monospace;">${escapeHtml(item.ip)}</code></td>
+                        <td style="padding: 12px;"><span style="font-weight: 600; color: #fff;">${item.durationHours || 24} ชั่วโมง</span></td>
+                        <td style="padding: 12px;"><span style="color: #fbbf24; font-weight: 500;">${timeStr}</span></td>
+                        <td style="padding: 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted);">${escapeHtml(item.reason || "-")}</td>
+                        <td style="padding: 12px; text-align: right;">
+                            <button type="button" class="btn-unban-action" data-ip="${escapeHtml(item.ip)}" style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                                🔓 ปลดแบน
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+            // Attach unban listeners
+            bannedIpsTableBody.querySelectorAll(".btn-unban-action").forEach(btn => {
+                btn.addEventListener("click", async () => {
+                    const targetIp = btn.dataset.ip;
+                    if (!confirm(`ยืนยันการปลดบล็อก IP: ${targetIp} หรือไม่?`)) return;
+
+                    btn.disabled = true;
+                    btn.textContent = "กำลังปลด...";
+
+                    try {
+                        const res = await fetch("/api/banned-ips", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ token: "blacklist_vip", ip: targetIp, action: "unban" })
+                        });
+                        const result = await res.json();
+                        if (result.success) {
+                            showToast(`ปลดบล็อก IP ${targetIp} เรียบร้อยแล้ว!`);
+                            loadBannedIps();
+                        } else {
+                            showToast("เกิดข้อผิดพลาดในการปลดบล็อก");
+                            btn.disabled = false;
+                            btn.textContent = "🔓 ปลดแบน";
+                        }
+                    } catch (e) {
+                        showToast("เกิดข้อผิดพลาด: " + e.message);
+                        btn.disabled = false;
+                        btn.textContent = "🔓 ปลดแบน";
+                    }
+                });
+            });
+
+            refreshIcons();
+        } catch (e) {
+            bannedIpsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 24px; color: #ef4444;">โหลดข้อมูลไม่สำเร็จ: ${escapeHtml(e.message)}</td></tr>`;
+        }
+    }
+
+    if (btnRefreshBans) {
+        btnRefreshBans.addEventListener("click", () => {
+            const icon = btnRefreshBans.querySelector("i");
+            if (icon) icon.style.animation = "spin 0.8s linear infinite";
+            loadBannedIps().finally(() => {
+                if (icon) icon.style.animation = "";
+            });
+        });
+    }
+
+    if (manualBanForm) {
+        manualBanForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const ip = manualBanIp.value.trim();
+            const hours = Number(manualBanHours.value || 24);
+            const reason = manualBanReason.value.trim();
+
+            if (!ip) {
+                showToast("กรุณากรอก IP Address");
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/banned-ips", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        token: "blacklist_vip",
+                        ip,
+                        hours,
+                        reason,
+                        action: "ban"
+                    })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast(`สั่งบล็อก IP ${ip} เป็นเวลา ${hours} ชม. สำเร็จ!`);
+                    manualBanIp.value = "";
+                    loadBannedIps();
+                } else {
+                    showToast("ไม่สามารถสั่งบล็อกได้: " + (result.error || "เกิดข้อผิดพลาด"));
+                }
+            } catch (err) {
+                showToast("เกิดข้อผิดพลาด: " + err.message);
+            }
+        });
+    }
+
     function showToast(msg) {
         adminToast.textContent = msg;
         adminToast.classList.add("active");
         setTimeout(() => adminToast.classList.remove("active"), 2500);
     }
 
+    loadBannedIps();
     refreshIcons();
 });

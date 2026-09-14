@@ -663,6 +663,71 @@
                 </button>
             </form>
         </div>
+
+        <!-- Card: จัดการรายการแบน IP (Banned IPs Management) -->
+        <div class="card" id="bannedIpsCard" style="margin-top: 24px;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 class="card-title" style="display: flex; align-items: center; gap: 8px; color: #f87171; margin: 0;">
+                    <i data-lucide="shield-alert" style="width: 20px; height: 20px; color: #ef4444;"></i>
+                    <span>จัดการรายการแบน IP (Banned IPs & Anti-Bypass)</span>
+                </h3>
+                <button type="button" id="btnRefreshBans" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #cbd5e1; padding: 6px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> <span>รีเฟรชรายการ</span>
+                </button>
+            </div>
+
+            <!-- ฟอร์มสั่งแบน IP ด้วยตนเอง -->
+            <form id="manualBanForm" style="background: rgba(239, 68, 68, 0.04); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 18px; margin-bottom: 20px;">
+                <div style="font-size: 13px; font-weight: 600; color: #f87171; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i> สั่งบล็อก IP ด้วยตนเอง (1-24 ชั่วโมง)
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 140px 1.5fr auto; gap: 10px; align-items: end;">
+                    <div>
+                        <label class="form-label">IP Address</label>
+                        <input type="text" id="manualBanIp" class="form-control" placeholder="เช่น 123.45.67.89" required>
+                    </div>
+                    <div>
+                        <label class="form-label">ระยะเวลา (ชม.)</label>
+                        <select id="manualBanHours" class="form-control">
+                            <option value="1">1 ชั่วโมง</option>
+                            <option value="3">3 ชั่วโมง</option>
+                            <option value="6" selected>6 ชั่วโมง</option>
+                            <option value="12">12 ชั่วโมง</option>
+                            <option value="24">24 ชั่วโมง</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">สาเหตุการบล็อก</label>
+                        <input type="text" id="manualBanReason" class="form-control" value="ตรวจพบการพยายาม Bypass ระบบความปลอดภัย">
+                    </div>
+                    <button type="submit" style="background: #dc2626; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; height: 42px; white-space: nowrap;">
+                        <i data-lucide="ban"></i> สั่งบล็อก IP
+                    </button>
+                </div>
+            </form>
+
+            <!-- ตารางแสดงรายการ IP ที่กำลังติดแบน -->
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border); color: var(--text-muted);">
+                            <th style="padding: 10px 12px;">🌐 IP เครื่อง</th>
+                            <th style="padding: 10px 12px;">⏳ ระยะเวลา</th>
+                            <th style="padding: 10px 12px;">🕒 เวลาที่เหลือ</th>
+                            <th style="padding: 10px 12px;">⚠️ สาเหตุ</th>
+                            <th style="padding: 10px 12px; text-align: right;">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bannedIpsTableBody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">
+                                กำลังโหลดข้อมูล...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL แก้ไขสคริปต์ (Edit Script Modal) -->
