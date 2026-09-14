@@ -611,6 +611,12 @@
                             <input type="url" id="adminGateUrl" class="form-control" placeholder="https://loot-link.com/s?xxxx">
                             <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">ลิงก์ที่สร้างจากช่อง Redirect Link ใน LootLabs</span>
                         </div>
+
+                        <div class="full-width">
+                            <label class="form-label">ระยะเวลาจำเครื่อง (ชั่วโมง)</label>
+                            <input type="number" id="adminGateExpiryHours" class="form-control" value="24" min="1" max="720" placeholder="24">
+                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">ระยะเวลาที่จะไม่ถาม LootLabs ซ้ำบนเครื่องเดิม (ค่าเริ่มต้น 24 ชั่วโมง)</span>
+                        </div>
                     </div>
 
                     <!-- ช่องแสดง URL สำหรับนำไปใส่ใน LootLabs -->

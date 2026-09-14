@@ -35,6 +35,7 @@
     "enabled": true,
     "token": "blacklist_vip",
     "lootlabsUrl": "https://loot-link.com/s?example",
-    "bypassMessage": "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+    "bypassMessage": "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์",
+    "expiryHours": 24
   }
 }

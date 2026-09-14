@@ -51,6 +51,7 @@ const SITE_CONFIG = {
         enabled: true,
         token: "blacklist_vip",
         lootlabsUrl: "https://loot-link.com/s?example",
+        expiryHours: 24, // จดจำเครื่องไว้ 24 ชั่วโมง
         bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
     }
 };

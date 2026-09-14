@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const gateEnableCheckbox = document.getElementById("gateEnableCheckbox");
     const adminGateToken = document.getElementById("adminGateToken");
     const adminGateUrl = document.getElementById("adminGateUrl");
+    const adminGateExpiryHours = document.getElementById("adminGateExpiryHours");
     const lootlabsTargetUrlHelper = document.getElementById("lootlabsTargetUrlHelper");
     const btnCopyLootlabsHelper = document.getElementById("btnCopyLootlabsHelper");
 
@@ -814,6 +815,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (gateEnableCheckbox) gateEnableCheckbox.checked = Boolean(SITE_CONFIG.lootlabsGate.enabled);
         if (adminGateToken) adminGateToken.value = SITE_CONFIG.lootlabsGate.token || "blacklist_vip";
         if (adminGateUrl) adminGateUrl.value = SITE_CONFIG.lootlabsGate.lootlabsUrl || "";
+        if (adminGateExpiryHours) adminGateExpiryHours.value = SITE_CONFIG.lootlabsGate.expiryHours || 24;
         updateGateHelperUrl();
     }
 
@@ -830,6 +832,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 enabled: gateEnableCheckbox.checked,
                 token: (adminGateToken ? adminGateToken.value.trim() : "blacklist_vip") || "blacklist_vip",
                 lootlabsUrl: adminGateUrl ? adminGateUrl.value.trim() : "",
+                expiryHours: adminGateExpiryHours ? (Number(adminGateExpiryHours.value) || 24) : 24,
                 bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
             };
         }

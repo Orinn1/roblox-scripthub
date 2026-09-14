@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================================================
-    // LootLabs Anti-Bypass Gate Logic
+    // LootLabs Anti-Bypass Gate Logic (Remember device for 24 hours)
     // =========================================================================
     function checkLootlabsGate() {
         const gate = SITE_CONFIG.lootlabsGate;
@@ -166,28 +166,51 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const requiredToken = (gate.token || "blacklist_vip").trim().toLowerCase();
+        const durationHours = Number(gate.expiryHours || 24);
+        const durationMs = durationHours * 60 * 60 * 1000;
+
+        function grantDeviceAccess() {
+            const expiryTimestamp = Date.now() + durationMs;
+            localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
+            sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+            if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
+        }
 
         // 1. Check URL parameters (?auth= or ?token= or ?key=)
         const urlParams = new URLSearchParams(window.location.search);
         const incomingToken = (urlParams.get("auth") || urlParams.get("token") || urlParams.get("key") || "").trim().toLowerCase();
 
         if (incomingToken && incomingToken === requiredToken) {
-            sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+            grantDeviceAccess();
             try {
                 const cleanUrl = window.location.origin + window.location.pathname;
                 window.history.replaceState({}, document.title, cleanUrl);
             } catch (e) {}
-            if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
             return;
         }
 
-        // 2. Check if already authenticated in this session
+        // 2. Check 24-Hour Device Remember in localStorage
+        const savedExpiry = localStorage.getItem("blacklist_lootlabs_auth_expiry");
+        if (savedExpiry) {
+            const expTime = Number(savedExpiry);
+            if (!isNaN(expTime) && Date.now() < expTime) {
+                // Device is within 24-hour validity window!
+                if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
+                return;
+            } else {
+                // Expired after 24 hours! Remove and re-lock
+                localStorage.removeItem("blacklist_lootlabs_auth_expiry");
+                sessionStorage.removeItem("blacklist_lootlabs_auth");
+            }
+        }
+
+        // 3. Check sessionStorage fallback
         if (sessionStorage.getItem("blacklist_lootlabs_auth") === "true") {
             if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
             return;
         }
 
-        // 3. Otherwise show gate overlay
+        // 4. Otherwise show gate overlay
         if (lootlabsGateOverlay) {
             lootlabsGateOverlay.style.display = "flex";
             if (gateLootlabsBtn) {
@@ -205,10 +228,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const inputVal = gateTokenInput.value.trim().toLowerCase();
             const gate = SITE_CONFIG.lootlabsGate || {};
             const required = (gate.token || "blacklist_vip").trim().toLowerCase();
+            const durationHours = Number(gate.expiryHours || 24);
             if (inputVal && inputVal === required) {
+                const expiryTimestamp = Date.now() + (durationHours * 60 * 60 * 1000);
+                localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
                 sessionStorage.setItem("blacklist_lootlabs_auth", "true");
                 if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
-                showToast("ยืนยัน Token สำเร็จ! ปลดล็อคเข้าใช้งานแล้ว");
+                showToast(`ยืนยันสำเร็จ! จดจำเครื่องนี้ไว้ ${durationHours} ชั่วโมง`);
             } else {
                 if (gateErrorMsg) {
                     gateErrorMsg.style.display = "block";
