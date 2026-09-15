@@ -1,5 +1,5 @@
 /**
- * SQLite Database Manager for RocketScriptz
+ * SQLite Database Manager for BlacklistScriptx
  * Uses Node.js v24 native node:sqlite DatabaseSync (No external packages needed)
  * File: data/database.sqlite
  */

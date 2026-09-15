@@ -1,5 +1,5 @@
 /**
- * RocketScriptz App Logic
+ * BlacklistScriptx App Logic
  * Layout: Dashboard with Home, Feed, & Exploits / sUNC Views
  * Features: Dynamic Site Name, Script Sync, Sub2Unlock Locker, WEAO API Live Exploits & sUNC Data
  * Icons: Lucide Vector Icons (Strictly No Emojis)

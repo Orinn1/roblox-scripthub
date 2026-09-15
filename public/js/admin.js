@@ -1,5 +1,5 @@
 /**
- * RocketScriptz - Admin Backend Logic
+ * BlacklistScriptx - Admin Backend Logic
  * Features: Edit Website Name, Add/Delete Scripts, Bulk Delete, SQLite DB Tools, Configure Links
  * Icons: Lucide Vector Icons (No Emojis)
  */
