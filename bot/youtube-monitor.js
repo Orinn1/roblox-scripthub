@@ -1,7 +1,7 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const botConfig = require('./config.js');
 let db = null;
-try { db = require('../db.js'); } catch (e) {}
+try { db = require('../db.js'); } catch (e) { }
 
 const YOUTUBE_RSS_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${botConfig.youtubeChannelId || 'UCOAGxYeICyBbSjxJkul3HXA'}`;
 const CHECK_INTERVAL_MS = 60 * 1000; // Check every 1 minute
@@ -17,7 +17,7 @@ try {
     if (Array.isArray(saved)) {
         saved.forEach(id => notifiedVideoIds.add(id));
     }
-} catch (e) {}
+} catch (e) { }
 
 function persistNotifiedIds() {
     try {
@@ -26,7 +26,7 @@ function persistNotifiedIds() {
                 notified_youtube_video_ids: Array.from(notifiedVideoIds).slice(-50) // keep last 50
             });
         }
-    } catch (e) {}
+    } catch (e) { }
 }
 
 /**
