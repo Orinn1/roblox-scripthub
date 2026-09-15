@@ -46,6 +46,7 @@ function updateBotPresence() {
 }
 
 const { deployCommands } = require('./deploy-commands.js');
+const { startYouTubeMonitor } = require('./youtube-monitor.js');
 
 client.once(Events.ClientReady, async (readyClient) => {
     console.log(`🤖 Discord Bot ออนไลน์แล้วในชื่อ: ${readyClient.user.tag}`);
@@ -55,6 +56,9 @@ client.once(Events.ClientReady, async (readyClient) => {
 
     // Auto deploy slash commands on startup
     await deployCommands();
+
+    // Start YouTube Upload Monitor (Channel ID: 1549408423068573807)
+    startYouTubeMonitor(client);
 });
 
 // Interaction Handling
