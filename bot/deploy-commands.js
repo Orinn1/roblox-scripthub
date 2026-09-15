@@ -17,42 +17,46 @@ for (const file of commandFiles) {
     }
 }
 
-if (!botConfig.token) {
-    console.error('❌ ข้อผิดพลาด: ไม่พบ DISCORD_TOKEN ในไฟล์ .env');
-    console.error('กรุณาเปิดไฟล์ .env และใส่ DISCORD_TOKEN ก่อนรันสคริปต์นี้');
-    process.exit(1);
-}
+async function deployCommands() {
+    if (!botConfig.token || !botConfig.clientId) {
+        console.warn('⚠️ [Deploy Commands] ไม่พบ DISCORD_TOKEN หรือ DISCORD_CLIENT_ID ข้ามการลงทะเบียนคำสั่ง');
+        return false;
+    }
 
-if (!botConfig.clientId) {
-    console.error('❌ ข้อผิดพลาด: ไม่พบ DISCORD_CLIENT_ID ในไฟล์ .env');
-    console.error('กรุณาเปิดไฟล์ .env และใส่ DISCORD_CLIENT_ID (Application ID) ก่อนรันสคริปต์นี้');
-    process.exit(1);
-}
-
-const rest = new REST().setToken(botConfig.token);
-
-(async () => {
+    const rest = new REST().setToken(botConfig.token);
     try {
         console.log(`⏳ กำลังเริ่มลงทะเบียน Slash Commands ทั้งหมด ${commands.length} คำสั่ง...`);
 
         if (botConfig.guildId) {
-            // Guild-specific registration (Instant updates for testing server)
-            console.log(`📍 กำลังลงทะเบียนใน Guild ID: ${botConfig.guildId} (อัปเดตทันที)`);
             const data = await rest.put(
                 Routes.applicationGuildCommands(botConfig.clientId, botConfig.guildId),
                 { body: commands },
             );
-            console.log(`✅ สำเร็จ! ลงทะเบียนเรียบร้อยแล้ว ${data.length} คำสั่งในเซิร์ฟเวอร์ทดสอบ`);
+            console.log(`✅ สำเร็จ! ลงทะเบียนเรียบร้อยแล้ว ${data.length} คำสั่งใน Guild: ${botConfig.guildId}`);
         } else {
-            // Global registration (Available across all servers, can take up to 1 hour to propagate globally)
-            console.log('🌐 กำลังลงทะเบียนแบบ Global (ทุกเซิร์ฟเวอร์)...');
             const data = await rest.put(
                 Routes.applicationCommands(botConfig.clientId),
                 { body: commands },
             );
             console.log(`✅ สำเร็จ! ลงทะเบียนเรียบร้อยแล้ว ${data.length} คำสั่งแบบ Global`);
         }
+        return true;
     } catch (error) {
-        console.error('❌ เกิดข้อผิดพลาดขณะลงทะเบียนคำสั่ง:', error);
+        console.error('❌ เกิดข้อผิดพลาดขณะลงทะเบียนคำสั่ง:', error.message);
+        return false;
     }
-})();
+}
+
+if (require.main === module) {
+    if (!botConfig.token) {
+        console.error('❌ ข้อผิดพลาด: ไม่พบ DISCORD_TOKEN ในไฟล์ .env');
+        process.exit(1);
+    }
+    if (!botConfig.clientId) {
+        console.error('❌ ข้อผิดพลาด: ไม่พบ DISCORD_CLIENT_ID ในไฟล์ .env');
+        process.exit(1);
+    }
+    deployCommands();
+}
+
+module.exports = { deployCommands, commands };

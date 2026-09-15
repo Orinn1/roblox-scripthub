@@ -2,12 +2,14 @@
   "name": "roblox-scripthub",
   "version": "1.0.0",
   "description": "Roblox Script Hub with WEAO API & SQLite Database",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node index.js",
+    "web": "node server.js",
     "bot": "node bot/index.js",
     "bot:deploy": "node bot/deploy-commands.js",
-    "build": "node build.js"
+    "build": "node build.js",
+    "zip:discloud": "powershell -NoProfile -Command \"Compress-Archive -Path 'index.js', 'discloud.config', 'package.json', 'package-lock.json', 'db.js', '.env', 'bot', 'data' -DestinationPath 'discloud-bot.zip' -Force\""
   },
   "engines": {
     "node": ">=22.0.0"

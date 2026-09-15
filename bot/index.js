@@ -45,11 +45,16 @@ function updateBotPresence() {
     } catch (e) {}
 }
 
-client.once(Events.ClientReady, (readyClient) => {
+const { deployCommands } = require('./deploy-commands.js');
+
+client.once(Events.ClientReady, async (readyClient) => {
     console.log(`🤖 Discord Bot ออนไลน์แล้วในชื่อ: ${readyClient.user.tag}`);
     console.log(`🌐 บอทเชื่อมต่อกับฐานข้อมูล SQLite (${db.getAllScripts().length} สคริปต์)`);
     updateBotPresence();
     setInterval(updateBotPresence, 5 * 60 * 1000); // ทุก 5 นาที
+
+    // Auto deploy slash commands on startup
+    await deployCommands();
 });
 
 // Interaction Handling
