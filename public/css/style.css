@@ -6,18 +6,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-    --bg-base: #0a0b0e;
-    --bg-sidebar: #101217;
-    --bg-surface: #14171f;
-    --bg-card: #181c26;
-    --bg-card-hover: #1f2432;
-    --bg-input: #0f1117;
+    --bg-base: #06080e;
+    --bg-sidebar: #090d16;
+    --bg-surface: #0d1320;
+    --bg-card: #111a2d;
+    --bg-card-hover: #16223b;
+    --bg-input: #090e18;
     
-    --border: #232734;
-    --border-light: #2d3242;
+    --border: #1c273e;
+    --border-light: #253453;
 
-    --red: #ef4444;
-    --red-hover: #dc2626;
+    --red: #0ea5e9; /* Blacklist Blue Primary Accent */
+    --red-hover: #0284c7;
+    --primary: #0ea5e9;
+    --primary-hover: #0284c7;
+    --primary-glow: rgba(14, 165, 233, 0.4);
     --green: #22c55e;
     --green-bg: rgba(34, 197, 94, 0.12);
     --blue: #38bdf8;
@@ -110,7 +113,7 @@ body {
     width: 32px;
     height: 32px;
     border-radius: 8px;
-    background: #ef4444;
+    background: #0ea5e9;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -759,14 +762,14 @@ body {
 .locker-box {
     width: 100%;
     max-width: 470px;
-    background: linear-gradient(180deg, #15161e 0%, #0c0d12 100%);
-    border: 1px solid rgba(239, 68, 68, 0.35);
+    background: linear-gradient(180deg, #0d1322 0%, #06080e 100%);
+    border: 1px solid rgba(14, 165, 233, 0.35);
     border-radius: 24px;
     padding: 28px 22px 22px;
     position: relative;
     box-shadow: 
         0 25px 60px -15px rgba(0, 0, 0, 0.9),
-        0 0 40px rgba(239, 68, 68, 0.2),
+        0 0 40px rgba(14, 165, 233, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
     text-align: center;
     overflow: hidden;
@@ -778,7 +781,7 @@ body {
     transform: scale(1) translateY(0);
 }
 
-/* Ambient Red Top Glow Line */
+/* Ambient Blue Top Glow Line */
 .locker-box::before {
     content: '';
     position: absolute;
@@ -786,8 +789,8 @@ body {
     left: 15%;
     right: 15%;
     height: 2px;
-    background: linear-gradient(90deg, transparent, #ef4444, #f87171, #ef4444, transparent);
-    box-shadow: 0 0 16px #ef4444;
+    background: linear-gradient(90deg, transparent, #0284c7, #38bdf8, #0284c7, transparent);
+    box-shadow: 0 0 16px #0ea5e9;
 }
 
 /* Close Button */
@@ -816,8 +819,8 @@ body {
 }
 
 .modal-close:hover {
-    background: rgba(239, 68, 68, 0.2);
-    border-color: rgba(239, 68, 68, 0.4);
+    background: rgba(14, 165, 233, 0.2);
+    border-color: rgba(14, 165, 233, 0.4);
     color: #fff;
     transform: rotate(90deg);
 }
@@ -833,13 +836,13 @@ body {
     width: 52px;
     height: 52px;
     border-radius: 16px;
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(185, 28, 28, 0.05) 100%);
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    box-shadow: 0 0 25px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.25) 0%, rgba(2, 132, 199, 0.08) 100%);
+    border: 1px solid rgba(14, 165, 233, 0.45);
+    box-shadow: 0 0 25px rgba(14, 165, 233, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ef4444;
+    color: #38bdf8;
 }
 
 .locker-hero-icon svg {
@@ -904,10 +907,10 @@ body {
 }
 
 .tracker-step.active .step-num {
-    background: #ef4444;
-    border-color: #f87171;
+    background: #0ea5e9;
+    border-color: #38bdf8;
     color: #fff;
-    box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+    box-shadow: 0 0 12px rgba(14, 165, 233, 0.5);
 }
 
 .tracker-step.active .step-txt {
@@ -1060,36 +1063,36 @@ body {
 }
 
 .active-pill {
-    background: #ef4444;
+    background: #0ea5e9;
     color: #fff;
-    box-shadow: 0 2px 10px rgba(239, 68, 68, 0.5);
+    box-shadow: 0 2px 10px rgba(14, 165, 233, 0.5);
 }
 
-/* Primary Active Red Card */
+/* Primary Active Blue Card */
 .btn-task.primary-red, .task-button.primary-red {
     opacity: 1;
     cursor: pointer;
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(185, 28, 28, 0.28) 100%);
-    border: 1px solid rgba(239, 68, 68, 0.6);
-    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(2, 132, 199, 0.3) 100%);
+    border: 1px solid rgba(14, 165, 233, 0.6);
+    box-shadow: 0 4px 20px rgba(14, 165, 233, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     color: #ffffff;
 }
 
 .btn-task.primary-red:hover, .task-button.primary-red:hover {
     transform: translateY(-2px);
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.28) 0%, rgba(185, 28, 28, 0.42) 100%);
-    border-color: #ef4444;
-    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.3) 0%, rgba(2, 132, 199, 0.45) 100%);
+    border-color: #0ea5e9;
+    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.4);
 }
 
 .btn-task.primary-red .task-badge {
-    background: rgba(239, 68, 68, 0.25);
-    border-color: rgba(239, 68, 68, 0.5);
-    color: #fca5a5;
+    background: rgba(14, 165, 233, 0.25);
+    border-color: rgba(14, 165, 233, 0.5);
+    color: #bae6fd;
 }
 
 .btn-task.primary-red .task-icon-box {
-    background: rgba(239, 68, 68, 0.3);
+    background: rgba(14, 165, 233, 0.3);
     color: #ffffff;
 }
 
@@ -1312,7 +1315,7 @@ body {
 .btn-copy-script, .btn-copy {
     width: 100%;
     padding: 14px;
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
     color: #ffffff;
     border: none;
     border-radius: 14px;
@@ -1324,14 +1327,14 @@ body {
     justify-content: center;
     gap: 8px;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 20px rgba(14, 165, 233, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-copy-script:hover, .btn-copy:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5);
-    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.5);
+    background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
 }
 
 .btn-copy-script.copied, .btn-copy.copied {
@@ -1766,7 +1769,7 @@ body {
     position: relative;
     box-shadow:
         0 30px 80px -15px rgba(0, 0, 0, 0.95),
-        0 0 50px rgba(139, 92, 246, 0.22),
+        0 0 50px rgba(14, 165, 233, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     overflow: hidden;
 }
@@ -1778,8 +1781,8 @@ body {
     left: 18%;
     right: 18%;
     height: 3px;
-    background: linear-gradient(90deg, transparent, #8b5cf6, #ec4899, #8b5cf6, transparent);
-    box-shadow: 0 0 20px #8b5cf6;
+    background: linear-gradient(90deg, transparent, #0284c7, #38bdf8, #0284c7, transparent);
+    box-shadow: 0 0 20px #0ea5e9;
 }
 
 .lootlabs-gate-badge {
@@ -1788,9 +1791,9 @@ body {
     gap: 6px;
     padding: 5px 14px;
     border-radius: 999px;
-    background: rgba(139, 92, 246, 0.15);
-    border: 1px solid rgba(139, 92, 246, 0.4);
-    color: #c084fc;
+    background: rgba(14, 165, 233, 0.15);
+    border: 1px solid rgba(14, 165, 233, 0.4);
+    color: #38bdf8;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.8px;
@@ -1802,18 +1805,18 @@ body {
     height: 64px;
     margin: 0 auto 16px;
     border-radius: 18px;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(236, 72, 153, 0.15));
-    border: 1px solid rgba(139, 92, 246, 0.45);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(2, 132, 199, 0.15));
+    border: 1px solid rgba(14, 165, 233, 0.45);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 10px 25px rgba(139, 92, 246, 0.25);
+    box-shadow: 0 10px 25px rgba(14, 165, 233, 0.25);
 }
 
 .lootlabs-gate-icon i, .lootlabs-gate-icon svg {
     width: 32px;
     height: 32px;
-    color: #c084fc;
+    color: #38bdf8;
 }
 
 .lootlabs-gate-title {
@@ -1837,7 +1840,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%);
+    background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #38bdf8 100%);
     color: #fff;
     font-size: 14.5px;
     font-weight: 600;
@@ -1845,14 +1848,14 @@ body {
     border-radius: 12px;
     text-decoration: none;
     cursor: pointer;
-    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
+    box-shadow: 0 8px 24px rgba(14, 165, 233, 0.4);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
     border: none;
 }
 
 .btn-gate-lootlabs:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(124, 58, 237, 0.5);
+    box-shadow: 0 12px 30px rgba(14, 165, 233, 0.6);
     color: #fff;
 }
 
@@ -1894,7 +1897,7 @@ body {
 }
 
 .gate-token-input:focus {
-    border-color: #8b5cf6;
+    border-color: #0ea5e9;
 }
 
 .btn-gate-token {
@@ -1911,8 +1914,8 @@ body {
 }
 
 .btn-gate-token:hover {
-    background: #8b5cf6;
-    border-color: #8b5cf6;
+    background: #0ea5e9;
+    border-color: #0ea5e9;
 }
 
 .gate-error-msg {
