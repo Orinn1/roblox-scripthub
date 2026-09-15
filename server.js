@@ -1,3 +1,4 @@
+require('dotenv').config();
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -5,6 +6,18 @@ const url = require('url');
 
 // SQLite Database Module
 const db = require('./db.js');
+
+// Discord Bot Integration
+let notifyNewScript = null;
+try {
+    const notifyModule = require('./bot/notify.js');
+    notifyNewScript = notifyModule.notifyNewScript;
+    if (process.env.DISCORD_TOKEN) {
+        require('./bot/index.js');
+    }
+} catch (e) {
+    // Bot module optional if dependencies are not loaded
+}
 
 const PORT = 3000;
 const MIME_TYPES = {
@@ -25,6 +38,7 @@ const suncCache = new Map();
 function readJsonBody(req) {
     return new Promise((resolve, reject) => {
         let body = '';
+        req.setEncoding('utf8');
         req.on('data', chunk => { body += chunk; });
         req.on('end', () => {
             try {
@@ -92,26 +106,16 @@ const server = http.createServer(async (req, res) => {
     }
 
     // =========================================================================
-    // API: Config (Site Name & Settings)
+    // API: Config (Site Name & Settings) - Synced with Firebase Firestore & SQLite
     // =========================================================================
     if (pathname === '/api/config') {
-        if (req.method === 'GET') {
-            const config = db.getConfig();
-            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-            res.end(JSON.stringify(config));
-            return;
-        } else if (req.method === 'POST') {
+        await executeServerless('./api/config.js', req, res, parsedUrl);
+        if (req.method === 'POST' && req.body) {
             try {
-                const body = await readJsonBody(req);
-                const updated = db.saveConfig(body);
-                res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-                res.end(JSON.stringify({ success: true, config: updated }));
-            } catch (err) {
-                res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-                res.end(JSON.stringify({ error: 'Invalid config payload', details: err.message }));
-            }
-            return;
+                db.saveConfig(req.body);
+            } catch (e) {}
         }
+        return;
     }
 
     // =========================================================================
@@ -158,6 +162,12 @@ const server = http.createServer(async (req, res) => {
 
                 const saved = db.addScript(newScript);
                 const all = db.getAllScripts();
+
+                // Send Discord announcement asynchronously if configured
+                if (typeof notifyNewScript === 'function') {
+                    notifyNewScript(saved).catch(err => console.warn('[Server] Discord notify error:', err.message));
+                }
+
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
                 res.end(JSON.stringify({ success: true, script: saved, total: all.length }));
             } catch (err) {

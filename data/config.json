@@ -4,23 +4,23 @@
   "brandSuffix": "Scriptx",
   "siteTagline": "ศูนย์รวมสคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
   "unlockTasks": {
-    "youtubeChannelUrl": "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1",
+    "youtubeChannelUrl": "https://www.youtube.com/@Blacklistxyx",
     "youtubeChannelName": "ช่อง Blacklistxyx",
-    "affiliateUrl": "",
+    "affiliateUrl": "https://discord.gg/6x67MrtfbX",
     "affiliateTitle": "เข้าร่วม Discord / คอมมูนิตี้",
-    "latestVideoUrl": "https://www.youtube.com/@Blacklistxyx",
+    "latestVideoUrl": "https://youtu.be/j62DJ0UwHaM?si=u3uO0-HbASt35N4w",
     "latestVideoTitle": "กดไลค์และคอมเมนต์คลิปแจกสคริปต์ล่าสุด",
     "verificationSeconds": 5
   },
   "socialLinks": {
     "youtube": "https://www.youtube.com/@Blacklistxyx",
-    "discord": "https://discord.gg/YOUR_DISCORD",
+    "discord": "https://discord.gg/6x67MrtfbX",
     "tiktok": "https://www.tiktok.com/@YOUR_TIKTOK"
   },
   "lootlabsGate": {
     "enabled": true,
-    "token": "blacklist_vip",
-    "lootlabsUrl": "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
+    "token": "Niggapro",
+    "lootlabsUrl": "https://loot-link.com/s?gqupbmHb",
     "bypassMessage": "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์",
     "expiryHours": 24
   },

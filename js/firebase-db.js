@@ -251,33 +251,114 @@
 
         // โหลดการตั้งค่าเว็บไซต์ (Site Config) จาก Firestore
         getConfig: async function () {
+            // 1. ลองโหลดผ่าน Firebase SDK
             const db = getFirestore();
             if (db) {
                 try {
                     const docSnap = await db.collection("hub").doc("config").get();
                     if (docSnap.exists) {
-                        return docSnap.data();
+                        const data = docSnap.data();
+                        let result = {};
+                        if (data.configJson && typeof data.configJson === "string") {
+                            try {
+                                result = JSON.parse(data.configJson);
+                            } catch (e) {}
+                        }
+                        result = { ...result, ...data };
+                        delete result.configJson;
+                        console.log("[Firebase] Successfully loaded config via SDK");
+                        return result;
                     }
                 } catch (e) {
-                    console.warn("[Firebase] Failed to load config via SDK:", e);
+                    console.warn("[Firebase] Failed to load config via SDK, trying REST API fallback:", e);
                 }
             }
+
+            // 2. Fallback: Firebase REST API (กรณี SDK ไม่โหลดหรือโดน adblock บล็อก)
+            if (this.isAvailable()) {
+                try {
+                    const { projectId, apiKey } = window.SITE_CONFIG.firebaseConfig;
+                    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/hub/config?key=${apiKey}`;
+                    const res = await fetch(url);
+                    if (res.ok) {
+                        const json = await res.json();
+                        let result = {};
+                        if (json.fields && json.fields.configJson && json.fields.configJson.stringValue) {
+                            try {
+                                result = JSON.parse(json.fields.configJson.stringValue);
+                            } catch (e) {}
+                        }
+                        console.log("[Firebase] Successfully loaded config via REST API fallback");
+                        return result;
+                    }
+                } catch (restErr) {
+                    console.warn("[Firebase] REST fetch config warning:", restErr);
+                }
+            }
+
             return null;
         },
 
         // บันทึกการตั้งค่าเว็บไซต์ขึ้น Firestore
         saveConfig: async function (configData) {
+            if (!configData || typeof configData !== "object") return false;
+
+            let savedSuccessfully = false;
+            let clean = {};
+            try {
+                clean = JSON.parse(JSON.stringify(configData));
+                delete clean.configJson;
+            } catch (e) {
+                clean = { ...configData };
+                delete clean.configJson;
+            }
+
+            // 1. ลองบันทึกผ่าน Firebase SDK
             const db = getFirestore();
             if (db) {
                 try {
-                    await db.collection("hub").doc("config").set(configData, { merge: true });
-                    console.log("[Firebase] Saved config to Firestore");
-                    return true;
+                    const payload = {
+                        ...clean,
+                        configJson: JSON.stringify(clean)
+                    };
+                    if (typeof firebase !== "undefined" && firebase.firestore && firebase.firestore.FieldValue) {
+                        payload.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+                    } else {
+                        payload.updatedAt = new Date().toISOString();
+                    }
+                    await db.collection("hub").doc("config").set(payload, { merge: true });
+                    console.log("[Firebase] Successfully saved config to Firestore via SDK");
+                    savedSuccessfully = true;
                 } catch (e) {
-                    console.warn("[Firebase] Failed to save config to Firestore:", e);
+                    console.warn("[Firebase] Failed to save config via SDK, trying REST API fallback:", e);
                 }
             }
-            return false;
+
+            // 2. Fallback: Firebase REST API
+            if (!savedSuccessfully && this.isAvailable()) {
+                try {
+                    const { projectId, apiKey } = window.SITE_CONFIG.firebaseConfig;
+                    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/hub/config?key=${apiKey}`;
+                    const res = await fetch(url, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            fields: {
+                                configJson: { stringValue: JSON.stringify(clean) },
+                                updatedAt: { stringValue: new Date().toISOString() }
+                            }
+                        })
+                    });
+                    if (res.ok) {
+                        console.log("[Firebase] Successfully saved config to Firestore via REST API fallback");
+                        savedSuccessfully = true;
+                    }
+                } catch (restErr) {
+                    console.warn("[Firebase] REST save config warning:", restErr);
+                }
+            }
+
+            return savedSuccessfully;
         }
     };
 

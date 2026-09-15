@@ -138,13 +138,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // =========================================================================
     // 3. ตั้งค่าชื่อเว็บไซต์ (Site Name & Brand Config)
+    // 3. ตั้งค่าชื่อเว็บไซต์ (Site Name & Brand Config)
     async function loadSiteConfig() {
+        let loadedFromFirebase = false;
         if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
             try {
                 const fbConfig = await window.FirebaseDB.getConfig();
-                if (fbConfig) {
-                    Object.assign(SITE_CONFIG, fbConfig);
+                if (fbConfig && Object.keys(fbConfig).length > 0) {
+                    if (window.mergeSiteConfig) window.mergeSiteConfig(fbConfig);
+                    else Object.assign(SITE_CONFIG, fbConfig);
                     localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
+                    loadedFromFirebase = true;
                 }
             } catch (e) {
                 console.warn("Firebase config notice:", e);
@@ -154,16 +158,19 @@ document.addEventListener("DOMContentLoaded", () => {
             const res = await fetch("/api/config");
             if (res.ok) {
                 const config = await res.json();
-                Object.assign(SITE_CONFIG, config);
-                localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
+                if (!loadedFromFirebase) {
+                    if (window.mergeSiteConfig) window.mergeSiteConfig(config);
+                    else Object.assign(SITE_CONFIG, config);
+                    localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
+                }
             }
         } catch (e) {
             console.warn("Using local SITE_CONFIG:", e);
         }
 
-        siteNameInput.value = SITE_CONFIG.siteName || "RocketScriptz";
-        brandPrefixInput.value = SITE_CONFIG.brandPrefix || "Rocket";
-        brandSuffixInput.value = SITE_CONFIG.brandSuffix || "Scriptz";
+        siteNameInput.value = SITE_CONFIG.siteName || "BlacklistScriptx";
+        brandPrefixInput.value = SITE_CONFIG.brandPrefix || "Blacklist";
+        brandSuffixInput.value = SITE_CONFIG.brandSuffix || "Scriptx";
         siteTaglineInput.value = SITE_CONFIG.siteTagline || "";
 
         updateBrandPreview();
@@ -171,8 +178,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateBrandPreview() {
-        const p = brandPrefixInput.value.trim() || "Rocket";
-        const s = brandSuffixInput.value.trim() || "Scriptz";
+        const p = brandPrefixInput.value.trim() || "Blacklist";
+        const s = brandSuffixInput.value.trim() || "Scriptx";
         previewBrandTitle.innerHTML = `${escapeHtml(p)}<span style="color: var(--red);">${escapeHtml(s)}</span>`;
     }
 
@@ -194,7 +201,8 @@ document.addEventListener("DOMContentLoaded", () => {
             siteTagline
         };
 
-        Object.assign(SITE_CONFIG, updates);
+        if (window.mergeSiteConfig) window.mergeSiteConfig(updates);
+        else Object.assign(SITE_CONFIG, updates);
         localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
 
         try {
@@ -862,25 +870,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (gateEnableCheckbox) {
             SITE_CONFIG.lootlabsGate = {
+                ...SITE_CONFIG.lootlabsGate,
                 enabled: gateEnableCheckbox.checked,
                 token: (adminGateToken ? adminGateToken.value.trim() : "blacklist_vip") || "blacklist_vip",
                 lootlabsUrl: adminGateUrl ? adminGateUrl.value.trim() : "",
                 expiryHours: adminGateExpiryHours ? (Number(adminGateExpiryHours.value) || 24) : 24,
-                bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+                bypassMessage: (SITE_CONFIG.lootlabsGate && SITE_CONFIG.lootlabsGate.bypassMessage) || "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
             };
         }
 
         localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
 
+        const updates = {
+            unlockTasks: SITE_CONFIG.unlockTasks,
+            socialLinks: SITE_CONFIG.socialLinks,
+            lootlabsGate: SITE_CONFIG.lootlabsGate
+        };
+
         try {
             await fetch("/api/config", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    unlockTasks: SITE_CONFIG.unlockTasks,
-                    socialLinks: SITE_CONFIG.socialLinks,
-                    lootlabsGate: SITE_CONFIG.lootlabsGate
-                })
+                body: JSON.stringify(updates)
             });
         } catch (err) {
             console.warn("Failed to sync links to server:", err);

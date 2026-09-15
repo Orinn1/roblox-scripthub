@@ -1,10 +1,48 @@
 /**
- * Vercel Serverless Function: GET/POST /api/config
- * Persists and retrieves site configuration from Firebase Firestore
+ * Vercel & Node Serverless Function: GET/POST /api/config
+ * Persists and retrieves site configuration from Firebase Firestore & local backup
  */
+
+const fs = require('fs');
+const path = require('path');
 
 const FIREBASE_PROJECT_ID = "blacklistscripts";
 const FIREBASE_API_KEY = "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI";
+
+function deepMerge(target, source) {
+    if (!source || typeof source !== "object") return target;
+    for (const key of Object.keys(source)) {
+        if (key === "configJson") {
+            if (typeof source[key] === "string") {
+                try {
+                    const unpacked = JSON.parse(source[key]);
+                    deepMerge(target, unpacked);
+                } catch (e) {}
+            }
+            continue;
+        }
+        const val = source[key];
+        if (val && typeof val === "object" && !Array.isArray(val)) {
+            if (!target[key] || typeof target[key] !== "object") {
+                target[key] = {};
+            }
+            deepMerge(target[key], val);
+        } else if (val !== undefined && val !== null) {
+            target[key] = val;
+        }
+    }
+    return target;
+}
+
+function getLocalConfigBackup() {
+    try {
+        const localPath = path.join(__dirname, '../data/config.json');
+        if (fs.existsSync(localPath)) {
+            return JSON.parse(fs.readFileSync(localPath, 'utf8'));
+        }
+    } catch (e) {}
+    return null;
+}
 
 module.exports = async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -27,14 +65,23 @@ module.exports = async (req, res) => {
                     return res.status(200).json(parsed);
                 }
             }
-        } catch (e) {}
+        } catch (e) {
+            console.warn("[api/config] Failed to fetch from Firestore:", e.message);
+        }
+
+        // Fallback to local config file if Firestore fetch failed
+        const localBackup = getLocalConfigBackup();
+        if (localBackup) {
+            return res.status(200).json(localBackup);
+        }
 
         return res.status(200).json({
             lootlabsGate: {
                 enabled: true,
                 token: "blacklist_vip",
                 lootlabsUrl: "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
-                expiryHours: 24
+                expiryHours: 24,
+                bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
             }
         });
     }
@@ -45,8 +92,11 @@ module.exports = async (req, res) => {
             if (typeof body === "string") {
                 try { body = JSON.parse(body); } catch (e) {}
             }
+            if (!body || typeof body !== "object") {
+                return res.status(400).json({ error: "Invalid JSON body" });
+            }
 
-            // Fetch existing config first to merge
+            // Fetch existing config first to deep merge
             let current = {};
             try {
                 const getRes = await fetch(firestoreUrl);
@@ -58,11 +108,17 @@ module.exports = async (req, res) => {
                 }
             } catch (e) {}
 
-            const merged = { ...current, ...body };
+            if (Object.keys(current).length === 0) {
+                const localBackup = getLocalConfigBackup();
+                if (localBackup) current = localBackup;
+            }
+
+            const merged = deepMerge({ ...current }, body);
+            delete merged.configJson;
 
             const fbRes = await fetch(firestoreUrl, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json; charset=utf-8" },
                 body: JSON.stringify({
                     fields: {
                         configJson: { stringValue: JSON.stringify(merged) },
@@ -73,11 +129,18 @@ module.exports = async (req, res) => {
 
             if (!fbRes.ok) {
                 const errText = await fbRes.text();
-                return res.status(500).json({ error: "Failed to persist to Firestore", details: errText });
+                console.warn("[api/config] Failed to patch Firestore:", errText);
             }
+
+            // Also update local data/config.json if running in Node environment
+            try {
+                const localPath = path.join(__dirname, '../data/config.json');
+                fs.writeFileSync(localPath, JSON.stringify(merged, null, 2), 'utf8');
+            } catch (e) {}
 
             return res.status(200).json({ success: true, config: merged });
         } catch (err) {
+            console.error("[api/config] Error processing POST:", err);
             return res.status(500).json({ error: err.message });
         }
     }

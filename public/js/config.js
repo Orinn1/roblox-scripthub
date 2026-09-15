@@ -56,12 +56,56 @@ const SITE_CONFIG = {
     }
 };
 
+// Make SITE_CONFIG globally available on window
+window.SITE_CONFIG = SITE_CONFIG;
+
+// Deep merge helper function to prevent shallow overwrite of nested objects
+function deepMergeConfig(target, source) {
+    if (!source || typeof source !== "object") return target;
+    
+    // If source has a serialized configJson string from Firestore, unpack and merge it first
+    if (typeof source.configJson === "string") {
+        try {
+            const unpacked = JSON.parse(source.configJson);
+            deepMergeConfig(target, unpacked);
+        } catch (e) {}
+    }
+
+    for (const key of Object.keys(source)) {
+        if (key === "configJson") continue;
+        const val = source[key];
+        if (val && typeof val === "object" && !Array.isArray(val)) {
+            if (!target[key] || typeof target[key] !== "object") {
+                target[key] = {};
+            }
+            deepMergeConfig(target[key], val);
+        } else if (val !== undefined && val !== null) {
+            target[key] = val;
+        }
+    }
+    return target;
+}
+
+window.mergeSiteConfig = function (source) {
+    deepMergeConfig(SITE_CONFIG, source);
+    return SITE_CONFIG;
+};
+
 // ตรวจสอบว่าเคยบันทึกการตั้งค่าไว้ใน LocalStorage หรือไม่
 (function loadSavedConfig() {
     try {
         const saved = localStorage.getItem("nova_site_config");
         if (saved) {
             const parsed = JSON.parse(saved);
+            // คลาย configJson เก่าที่อาจจะค้างอยู่ใน localStorage
+            if (parsed.configJson && typeof parsed.configJson === "string") {
+                try {
+                    const unpacked = JSON.parse(parsed.configJson);
+                    deepMergeConfig(parsed, unpacked);
+                } catch (e) {}
+                delete parsed.configJson;
+            }
+
             // ล้างลิงก์ตัวอย่าง YOUR_CHANNEL ออกให้หมด และแทนที่ด้วยช่อง Blacklistxyx
             if (parsed.unlockTasks) {
                 if (!parsed.unlockTasks.youtubeChannelUrl || parsed.unlockTasks.youtubeChannelUrl.includes("YOUR_CHANNEL")) {
@@ -85,10 +129,11 @@ const SITE_CONFIG = {
             }
             // อัปเดต firebaseConfig เสมอ
             parsed.firebaseConfig = SITE_CONFIG.firebaseConfig;
-            Object.assign(SITE_CONFIG, parsed);
+            deepMergeConfig(SITE_CONFIG, parsed);
             localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
         }
     } catch (e) {
         console.warn("Could not load custom config from localStorage", e);
     }
 })();
+

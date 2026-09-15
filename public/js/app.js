@@ -572,23 +572,70 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (gateTokenSubmitBtn && gateTokenInput) {
-        const verifyManualToken = () => {
+        const verifyManualToken = async () => {
             const inputVal = gateTokenInput.value.trim().toLowerCase();
+            if (!inputVal) return;
+
             const gate = SITE_CONFIG.lootlabsGate || {};
             const required = (gate.token || "blacklist_vip").trim().toLowerCase();
             const durationHours = Number(gate.expiryHours || 24);
-            if (inputVal && inputVal === required) {
+
+            // 1. ตรวจสอบกับ token ในหน่วยความจำทันที (เร็วที่สุด)
+            if (inputVal === required) {
                 const expiryTimestamp = Date.now() + (durationHours * 60 * 60 * 1000);
                 localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
                 sessionStorage.setItem("blacklist_lootlabs_auth", "true");
                 hideGateOverlay(true);
-            } else {
-                if (gateErrorMsg) {
-                    gateErrorMsg.style.display = "block";
-                    setTimeout(() => { if (gateErrorMsg) gateErrorMsg.style.display = "none"; }, 3000);
+                return;
+            }
+
+            // 2. หากไม่ตรง ให้ลองดึงคีย์ล่าสุดจาก Firebase / Server มาตรวจสอบทันที (ป้องกันกรณีแอดมินเพิ่งแก้ หรือเครื่องยังไม่ได้ซิงก์)
+            const originalBtnHtml = gateTokenSubmitBtn.innerHTML;
+            gateTokenSubmitBtn.disabled = true;
+            gateTokenSubmitBtn.innerHTML = `<span>กำลังตรวจสอบ...</span>`;
+
+            try {
+                let latestConfig = null;
+                if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
+                    latestConfig = await window.FirebaseDB.getConfig().catch(() => null);
                 }
+                if (!latestConfig) {
+                    const res = await fetch("/api/config").catch(() => null);
+                    if (res && res.ok) latestConfig = await res.json().catch(() => null);
+                }
+
+                if (latestConfig) {
+                    if (window.mergeSiteConfig) window.mergeSiteConfig(latestConfig);
+                    else Object.assign(SITE_CONFIG, latestConfig);
+                    localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
+
+                    const refreshedGate = SITE_CONFIG.lootlabsGate || {};
+                    const refreshedRequired = (refreshedGate.token || "blacklist_vip").trim().toLowerCase();
+                    const refreshedHours = Number(refreshedGate.expiryHours || 24);
+
+                    if (inputVal === refreshedRequired) {
+                        const expiryTimestamp = Date.now() + (refreshedHours * 60 * 60 * 1000);
+                        localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
+                        sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+                        hideGateOverlay(true);
+                        return;
+                    }
+                }
+            } catch (liveErr) {
+                console.warn("Live token verification notice:", liveErr);
+            } finally {
+                gateTokenSubmitBtn.disabled = false;
+                gateTokenSubmitBtn.innerHTML = originalBtnHtml;
+                if (window.lucide && lucide.createIcons) lucide.createIcons();
+            }
+
+            // 3. แสดงข้อความแจ้งเตือนเมื่อไม่ถูกต้องจริงๆ
+            if (gateErrorMsg) {
+                gateErrorMsg.style.display = "block";
+                setTimeout(() => { if (gateErrorMsg) gateErrorMsg.style.display = "none"; }, 3000);
             }
         };
+
         gateTokenSubmitBtn.addEventListener("click", verifyManualToken);
         gateTokenInput.addEventListener("keydown", (e) => {
             if (e.key === "Enter") verifyManualToken();
@@ -696,7 +743,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         window.FirebaseDB.getConfig().catch(() => null)
                     ]);
                     if (fbConfig) {
-                        Object.assign(SITE_CONFIG, fbConfig);
+                        if (window.mergeSiteConfig) window.mergeSiteConfig(fbConfig);
+                        else Object.assign(SITE_CONFIG, fbConfig);
                         localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
                         applySiteConfig();
                         checkLootlabsGate();
@@ -770,7 +818,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (cfgRes && cfgRes.ok) {
                 const cfg = await cfgRes.json();
-                Object.assign(SITE_CONFIG, cfg);
+                if (window.mergeSiteConfig) window.mergeSiteConfig(cfg);
+                else Object.assign(SITE_CONFIG, cfg);
                 localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
                 applySiteConfig();
                 checkLootlabsGate();
@@ -798,8 +847,11 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("storage", (e) => {
         if (e.key === "nova_site_config") {
             try {
-                Object.assign(SITE_CONFIG, JSON.parse(e.newValue));
+                const parsedConfig = JSON.parse(e.newValue);
+                if (window.mergeSiteConfig) window.mergeSiteConfig(parsedConfig);
+                else Object.assign(SITE_CONFIG, parsedConfig);
                 applySiteConfig();
+                checkLootlabsGate();
             } catch (err) {}
         }
         if (e.key === "nova_scripts_db") {
