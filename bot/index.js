@@ -47,6 +47,7 @@ function updateBotPresence() {
 
 const { deployCommands } = require('./deploy-commands.js');
 const { startYouTubeMonitor } = require('./youtube-monitor.js');
+const { startRobloxMonitor } = require('./roblox-monitor.js');
 
 client.once(Events.ClientReady, async (readyClient) => {
     console.log(`🤖 Discord Bot ออนไลน์แล้วในชื่อ: ${readyClient.user.tag}`);
@@ -59,6 +60,9 @@ client.once(Events.ClientReady, async (readyClient) => {
 
     // Start YouTube Upload Monitor (Channel ID: 1549408423068573807)
     startYouTubeMonitor(client);
+
+    // Start Roblox Update & Banwave Monitor (Channel ID: 1549456641379012709)
+    startRobloxMonitor(client);
 });
 
 // Interaction Handling
