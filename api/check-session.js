@@ -41,8 +41,9 @@ module.exports = async (req, res) => {
             }
         }
 
-        // 2. ตรวจสอบสำรองตาม IP ของเครื่องผู้ใช้
-        if (cleanIp) {
+        // 2. ตรวจสอบสำรองตาม IP ของเครื่องผู้ใช้ (ยกเว้นตอนแอดมินหรือผู้ใช้สั่งเทสระบบ)
+        const skipIp = query.skip_ip === "1" || query.test === "1";
+        if (cleanIp && !skipIp) {
             const ipDocUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_ips/${cleanIp}?key=${FIREBASE_API_KEY}`;
             const ipRes = await fetch(ipDocUrl).catch(() => null);
             if (ipRes && ipRes.ok) {

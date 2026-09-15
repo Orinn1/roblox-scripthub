@@ -472,11 +472,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const urlParams = new URLSearchParams(window.location.search);
 
         // ทดสอบระบบ: หากใส่ ?lock=1 หรือ ?reset=1 จะรีเซ็ตเครื่องให้กลับมาล็อคเหมือนเครื่องใหม่ทันที
-        if (urlParams.has("lock") || urlParams.has("reset") || urlParams.has("relock")) {
+        if (urlParams.has("lock") || urlParams.has("reset") || urlParams.has("relock") || urlParams.has("test")) {
             localStorage.removeItem("blacklist_lootlabs_auth_expiry");
             localStorage.removeItem("blacklist_lootlabs_puid");
             localStorage.removeItem("blacklist_lootlabs_unlocked_event");
             sessionStorage.removeItem("blacklist_lootlabs_auth");
+            
+            // ลบสถานะการยืนยัน IP บนเซิร์ฟเวอร์ทันที เพื่อให้จำลองเป็นเครื่องใหม่ 100%
+            fetch("/api/reset-device-test").catch(() => null);
+
             try {
                 const cleanUrl = window.location.origin + window.location.pathname;
                 window.history.replaceState({}, document.title, cleanUrl);
@@ -666,6 +670,16 @@ document.addEventListener("DOMContentLoaded", () => {
             hideGateOverlay(false);
         }
     });
+
+    // Global Helper สำหรับทดสอบระบบ: ล้างการจำเครื่องและล็อคหน้าเว็บใหม่ทันที
+    window.resetDeviceLock = async function() {
+        localStorage.removeItem("blacklist_lootlabs_auth_expiry");
+        localStorage.removeItem("blacklist_lootlabs_puid");
+        localStorage.removeItem("blacklist_lootlabs_unlocked_event");
+        sessionStorage.removeItem("blacklist_lootlabs_auth");
+        await fetch("/api/reset-device-test").catch(() => null);
+        window.location.href = window.location.origin + window.location.pathname + "?lock=1";
+    };
 
     // ป้องกันการแอบ Inspect Element / DevTools ปิด Modal หน้าเว็บ
     if (window.MutationObserver) {

@@ -762,6 +762,23 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- เครื่องมือทดสอบระบบ: เลิกจำคอมเครื่องนี้ -->
+                    <div style="background: rgba(239, 68, 68, 0.08); border: 1px dashed rgba(239, 68, 68, 0.4); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 13px; color: #f87171; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="rotate-ccw" style="width: 16px; height: 16px;"></i>
+                                <span>เครื่องมือทดสอบระบบ: เลิกจำคอมเครื่องนี้ (Reset Lock)</span>
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
+                                ล้างการจำเครื่อง (24 ชม.) และล้างประวัติ IP ในระบบ เพื่อให้หน้าเว็บกลับมาล็อคเหมือนคนเข้าเว็บครั้งแรก
+                            </div>
+                        </div>
+                        <button type="button" id="btnResetDeviceLock" style="background: #ef4444; color: #fff; border: none; padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35); transition: 0.15s;">
+                            <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
+                            <span>ล้างการจำเครื่อง & ไปหน้าล็อคทันที</span>
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn-submit">

@@ -841,6 +841,34 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // ปุ่มล้างการจำเครื่องเพื่อทดสอบระบบ LootLabs
+    const btnResetDeviceLock = document.getElementById("btnResetDeviceLock");
+    if (btnResetDeviceLock) {
+        btnResetDeviceLock.addEventListener("click", async () => {
+            btnResetDeviceLock.disabled = true;
+            btnResetDeviceLock.innerHTML = `<i data-lucide="loader-2" class="spin" style="width: 14px; height: 14px;"></i> <span>กำลังล้างสถานะ...</span>`;
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+            // 1. ลบจาก LocalStorage และ SessionStorage
+            localStorage.removeItem("blacklist_lootlabs_auth_expiry");
+            localStorage.removeItem("blacklist_lootlabs_puid");
+            localStorage.removeItem("blacklist_lootlabs_unlocked_event");
+            sessionStorage.removeItem("blacklist_lootlabs_auth");
+
+            // 2. เรียก API ลบ IP จากฐานข้อมูล Server
+            try {
+                await fetch("/api/reset-device-test");
+            } catch (e) {
+                console.warn("Reset device API call:", e);
+            }
+
+            showToast("ล้างการจำเครื่องเรียบร้อยแล้ว! กำลังนำไปหน้าล็อค...");
+            setTimeout(() => {
+                window.location.href = "index.html?lock=1";
+            }, 800);
+        });
+    }
+
     function loadLinks() {
         if (!SITE_CONFIG.unlockTasks) SITE_CONFIG.unlockTasks = {};
         if (!SITE_CONFIG.socialLinks) SITE_CONFIG.socialLinks = {};

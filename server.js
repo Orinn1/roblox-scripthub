@@ -352,6 +352,12 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    // API: Reset Device Test Status
+    if (pathname === '/api/reset-device-test') {
+        await executeServerless('./api/reset-device-test.js', req, res, parsedUrl);
+        return;
+    }
+
     // =========================================================================
     // API: Security, Bypass Logging, and Ban Controls
     // =========================================================================
