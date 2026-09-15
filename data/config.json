@@ -37,5 +37,16 @@
     "enabled": true,
     "binId": "6aa6a183ac6210605ac7dcf7",
     "masterKey": "$2a$10$IYkvYSXXCqfb9lO86OX8.ehEV.hMZwInw.esSiflJGjjaiYEs5eQ6"
-  }
+  },
+  "notified_youtube_video_ids": [
+    "P4gzUvf1l1M",
+    "b4vTQbsyebE",
+    "VsVw-zX3-AM",
+    "8XzBS6CcPjo",
+    "GxIir9fMRDU",
+    "j62DJ0UwHaM",
+    "l0GAwnTVhqQ",
+    "cQroA4kPW4o",
+    "VsI796ml-rE"
+  ]
 }

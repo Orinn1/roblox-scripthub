@@ -6,50 +6,83 @@ try { db = require('../db.js'); } catch (e) {}
 const YOUTUBE_RSS_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${botConfig.youtubeChannelId || 'UCOAGxYeICyBbSjxJkul3HXA'}`;
 const CHECK_INTERVAL_MS = 60 * 1000; // Check every 1 minute
 
+// In-memory set of already notified video IDs (prevents duplicate spam even across CDN flips)
+const notifiedVideoIds = new Set();
+let isInitialized = false;
+
+// Load persisted notified IDs from database / config
+try {
+    const currentConfig = db && db.getConfig ? db.getConfig() : {};
+    const saved = currentConfig.notified_youtube_video_ids;
+    if (Array.isArray(saved)) {
+        saved.forEach(id => notifiedVideoIds.add(id));
+    }
+} catch (e) {}
+
+function persistNotifiedIds() {
+    try {
+        if (db && db.saveConfig) {
+            db.saveConfig({
+                notified_youtube_video_ids: Array.from(notifiedVideoIds).slice(-50) // keep last 50
+            });
+        }
+    } catch (e) {}
+}
+
 /**
- * Fetch latest video data from YouTube RSS Feed
+ * Fetch recent videos from YouTube RSS Feed
  */
-async function fetchLatestVideo() {
+async function fetchRecentVideos() {
     try {
         const resp = await fetch(YOUTUBE_RSS_URL, {
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
             signal: AbortSignal.timeout(8000)
         });
 
-        if (!resp.ok) return null;
+        if (!resp.ok) return [];
         const xml = await resp.text();
 
-        const entryMatch = xml.match(/<entry>([\s\S]*?)<\/entry>/);
-        if (!entryMatch) return null;
+        const entries = xml.match(/<entry>[\s\S]*?<\/entry>/g) || [];
+        const videos = [];
 
-        const entry = entryMatch[1];
-        const videoIdMatch = entry.match(/<yt:videoId>(.*?)<\/yt:videoId>/);
-        const titleMatch = entry.match(/<title>(.*?)<\/title>/);
-        const publishedMatch = entry.match(/<published>(.*?)<\/published>/);
-        const authorMatch = entry.match(/<author>[\s\S]*?<name>(.*?)<\/name>/);
+        for (const entry of entries) {
+            const videoIdMatch = entry.match(/<yt:videoId>(.*?)<\/yt:videoId>/);
+            const titleMatch = entry.match(/<title>(.*?)<\/title>/);
+            const publishedMatch = entry.match(/<published>(.*?)<\/published>/);
+            const authorMatch = entry.match(/<author>[\s\S]*?<name>(.*?)<\/name>/);
 
-        if (!videoIdMatch || !titleMatch) return null;
+            if (videoIdMatch && titleMatch) {
+                const videoId = videoIdMatch[1].trim();
+                const title = titleMatch[1].trim()
+                    .replace(/&amp;/g, '&')
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#39;/g, "'");
 
-        const videoId = videoIdMatch[1].trim();
-        const title = titleMatch[1].trim()
-            .replace(/&amp;/g, '&')
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .replace(/&quot;/g, '"')
-            .replace(/&#39;/g, "'");
-
-        return {
-            videoId,
-            title,
-            url: `https://www.youtube.com/watch?v=${videoId}`,
-            thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-            author: authorMatch ? authorMatch[1].trim() : 'BlacklistScriptx',
-            published: publishedMatch ? publishedMatch[1].trim() : new Date().toISOString()
-        };
+                videos.push({
+                    videoId,
+                    title,
+                    url: `https://www.youtube.com/watch?v=${videoId}`,
+                    thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+                    author: authorMatch ? authorMatch[1].trim() : 'BlacklistScriptx',
+                    published: publishedMatch ? publishedMatch[1].trim() : new Date().toISOString()
+                });
+            }
+        }
+        return videos;
     } catch (e) {
         console.error('[YouTube Monitor Error]:', e.message);
-        return null;
+        return [];
     }
+}
+
+/**
+ * Fetch latest single video (for testing)
+ */
+async function fetchLatestVideo() {
+    const videos = await fetchRecentVideos();
+    return videos.length > 0 ? videos[0] : null;
 }
 
 /**
@@ -121,27 +154,34 @@ function startYouTubeMonitor(client) {
         isChecking = true;
 
         try {
-            const video = await fetchLatestVideo();
-            if (!video) {
+            const videos = await fetchRecentVideos();
+            if (!videos || videos.length === 0) {
                 isChecking = false;
                 return;
             }
 
-            const currentConfig = db && db.getConfig ? db.getConfig() : {};
-            const lastVideoId = currentConfig.last_youtube_video_id || '';
+            // On first startup: seed existing videos so we never spam past videos
+            if (!isInitialized && notifiedVideoIds.size === 0) {
+                videos.forEach(v => notifiedVideoIds.add(v.videoId));
+                persistNotifiedIds();
+                isInitialized = true;
+                console.log(`[YouTube Monitor] บันทึกคลิปเริ่มต้นที่มีอยู่แล้ว ${notifiedVideoIds.size} คลิป (ป้องกันการส่งซ้ำ)`);
+                isChecking = false;
+                return;
+            }
 
-            if (!lastVideoId) {
-                // First time running: save the latest video ID so we don't spam past videos
-                console.log(`[YouTube Monitor] บันทึกคลิปล่าสุดเริ่มต้น: [${video.videoId}] "${video.title}"`);
-                if (db && db.saveConfig) {
-                    db.saveConfig({ last_youtube_video_id: video.videoId });
-                }
-            } else if (lastVideoId !== video.videoId) {
-                // New video detected!
-                console.log(`[YouTube Monitor] 🚀 พบคลิปใหม่! [${video.videoId}] "${video.title}"`);
-                const sent = await sendVideoNotification(client, video);
-                if (sent && db && db.saveConfig) {
-                    db.saveConfig({ last_youtube_video_id: video.videoId });
+            isInitialized = true;
+
+            // Check if any video has NOT been notified yet
+            for (const video of videos) {
+                if (!notifiedVideoIds.has(video.videoId)) {
+                    // Mark as notified immediately in memory before sending to prevent race conditions
+                    notifiedVideoIds.add(video.videoId);
+                    persistNotifiedIds();
+
+                    console.log(`[YouTube Monitor] 🚀 พบคลิปใหม่ที่ยังไม่เคยแจ้งเตือน: [${video.videoId}] "${video.title}"`);
+                    await sendVideoNotification(client, video);
+                    break; // notify at most 1 per cycle
                 }
             }
         } catch (e) {
@@ -151,7 +191,7 @@ function startYouTubeMonitor(client) {
         }
     }
 
-    // Run first check after 10 seconds, then every 2 minutes
+    // Run first check after 10 seconds, then every 1 minute
     setTimeout(checkNow, 10000);
     setInterval(checkNow, CHECK_INTERVAL_MS);
     console.log(`📺 [YouTube Monitor] เริ่มระบบเฝ้าติดตามช่อง YouTube (ห้องแจ้งเตือน: ${botConfig.youtubeNotifyChannelId || '1549408423068573807'})`);
@@ -159,6 +199,7 @@ function startYouTubeMonitor(client) {
 
 module.exports = {
     startYouTubeMonitor,
+    fetchRecentVideos,
     fetchLatestVideo,
     sendVideoNotification
 };
