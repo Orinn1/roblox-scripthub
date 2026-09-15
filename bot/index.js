@@ -38,8 +38,8 @@ function updateBotPresence() {
         const scriptCount = scripts ? scripts.length : 0;
         if (client.user) {
             client.user.setActivity({
-                name: `สคริปต์ ${scriptCount} ตัวบนเว็บ ⚡`,
-                type: ActivityType.Watching
+                name: `Roblox | /script ⚡ (${scriptCount} สคริปต์)`,
+                type: ActivityType.Playing
             });
         }
     } catch (e) {}

@@ -119,6 +119,6 @@ module.exports = {
                 .setEmoji('⚡')
         );
 
-        return interaction.reply({ embeds: [embed], components: [row] });
+        return interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
     }
 };
