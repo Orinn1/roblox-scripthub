@@ -731,15 +731,23 @@
                     <!-- ช่องแสดง URL สำหรับนำไปใส่ใน LootLabs -->
                     <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 16px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 14px;">
                         <div>
-                            <label style="font-size: 12px; color: #c084fc; font-weight: 600; display: block; margin-bottom: 6px;">
-                                📋 1. ลิงก์สำหรับใส่ในช่อง "Place redirect url here" บน LootLabs:
-                            </label>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <label style="font-size: 12px; color: #c084fc; font-weight: 600;">
+                                    📋 1. ลิงก์สำหรับใส่ในช่อง "Place redirect url here" บน LootLabs:
+                                </label>
+                                <button type="button" id="btnRandomizeTargetUrl" style="background: rgba(192, 132, 252, 0.15); border: 1px solid rgba(192, 132, 252, 0.3); color: #c084fc; padding: 3px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                    <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> <span>สุ่ม URL ใหม่ (แก้ปัญหาได้ลิงก์เดิม)</span>
+                                </button>
+                            </div>
                             <div style="display: flex; gap: 8px;">
                                 <input type="text" id="lootlabsTargetUrlHelper" class="form-control" readonly style="background: #08090d; color: #a78bfa; font-family: monospace; font-size: 12px;">
                                 <button type="button" id="btnCopyLootlabsHelper" style="background: #7c3aed; color: #fff; border: none; padding: 0 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
                                     <i data-lucide="copy"></i> <span>คัดลอก</span>
                                 </button>
                             </div>
+                            <span style="font-size: 11px; color: #a78bfa; margin-top: 4px; display: block;">
+                                💡 หาก LootLabs ออกลิงก์ย่อเดิมซ้ำ: ให้กดปุ่ม <b>"สุ่ม URL ใหม่"</b> ด้านบน เพื่อให้ LootLabs ยอมสร้างลิงก์ย่อใหม่ทันที
+                            </span>
                         </div>
 
                         <div>

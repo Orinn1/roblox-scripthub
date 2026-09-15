@@ -793,14 +793,26 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     // 6. ลิงก์ Sub2Unlock
     // =========================================================================
+    const btnRandomizeTargetUrl = document.getElementById("btnRandomizeTargetUrl");
+    let currentRandomParam = "";
+
     function updateGateHelperUrl() {
         const origin = window.location.origin || "https://blacklistscripty.vercel.app";
         if (lootlabsTargetUrlHelper) {
-            lootlabsTargetUrlHelper.value = `${origin}/`;
+            lootlabsTargetUrlHelper.value = `${origin}/${currentRandomParam}`;
         }
         if (lootlabsPostbackUrlHelper) {
             lootlabsPostbackUrlHelper.value = `${origin}/api/lootlabs-postback?click_id={CLICK_ID}&ip={IP}&unique_id={UNIQUE_ID}`;
         }
+    }
+
+    if (btnRandomizeTargetUrl) {
+        btnRandomizeTargetUrl.addEventListener("click", () => {
+            const randomVal = Math.floor(Math.random() * 9000 + 1000);
+            currentRandomParam = `?v=${randomVal}`;
+            updateGateHelperUrl();
+            showToast(`สุ่ม URL สำเร็จ: ?v=${randomVal} (คัดลอกไปสร้างใน LootLabs ได้เลย)`);
+        });
     }
 
     if (btnCopyLootlabsHelper) {
