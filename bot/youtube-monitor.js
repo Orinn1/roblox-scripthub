@@ -4,7 +4,7 @@ let db = null;
 try { db = require('../db.js'); } catch (e) {}
 
 const YOUTUBE_RSS_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${botConfig.youtubeChannelId || 'UCOAGxYeICyBbSjxJkul3HXA'}`;
-const CHECK_INTERVAL_MS = 2 * 60 * 1000; // Check every 2 minutes
+const CHECK_INTERVAL_MS = 60 * 1000; // Check every 1 minute
 
 /**
  * Fetch latest video data from YouTube RSS Feed
@@ -92,7 +92,7 @@ async function sendVideoNotification(client, video, isTest = false) {
 
         const mentionText = isTest
             ? '🧪 **[ทดสอบระบบแจ้งเตือน YouTube]** บอทเชื่อมต่อห้องนี้สำเร็จเรียบร้อย!'
-            : '📢 **[ประกาศคลิปใหม่]** @everyone มีคลิปใหม่ลงแล้ว อย่าลืมกดไลค์และกดติดตาม!';
+            : '📢 **[ประกาศคลิปใหม่]** มีคลิปใหม่ลงแล้ว อย่าลืมกดไลค์และกดติดตาม! ⚡';
 
         await channel.send({
             content: mentionText,
