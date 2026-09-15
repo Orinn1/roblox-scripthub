@@ -33,7 +33,8 @@ const itemsToCopy = [
     'assets',
     'Logo.ico',
     'Logo.png',
-    'Banner.png'
+    'Banner.png',
+    'popup.png'
 ];
 
 for (const item of itemsToCopy) {

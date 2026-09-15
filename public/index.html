@@ -401,6 +401,34 @@
     <div class="toast-bar" id="toastBar">คัดลอกสคริปต์แล้ว!</div>
 
     <!-- =======================================================================
+         MODAL POPUP: ประกาศ / ติดต่อ Discord เมื่อพบปัญหา (Discord Support Popup)
+         ======================================================================= -->
+    <div class="site-popup-overlay" id="siteNoticePopup" style="display: none;">
+        <div class="site-popup-box">
+            <!-- ปุ่มปิด X มุมบนขวา -->
+            <button type="button" class="site-popup-close" id="sitePopupCloseBtn" aria-label="ปิดหน้าต่าง">
+                <i data-lucide="x"></i>
+            </button>
+            
+            <!-- รูปภาพคลิกได้ ลิงก์ตรงเข้า Discord -->
+            <a href="https://discord.gg/6x67MrtfbX" target="_blank" rel="noopener noreferrer" class="site-popup-img-wrap" id="sitePopupLink">
+                <img src="popup.png" alt="พบปัญหา? สคริป หรือเว็บไซต์ ติดต่อผ่าน Discord ได้เลย!" class="site-popup-img">
+            </a>
+
+            <!-- แถบปุ่มด้านล่าง พร้อมปุ่มไม่แสดงอีก 24 ชั่วโมง -->
+            <div class="site-popup-footer">
+                <button type="button" class="btn-popup-dismiss-24h" id="sitePopupDismiss24hBtn">
+                    <i data-lucide="clock"></i>
+                    <span>ไม่ต้องแสดงอีก 24 ชั่วโมง</span>
+                </button>
+                <button type="button" class="btn-popup-close-now" id="sitePopupCloseNowBtn">
+                    <span>ปิดหน้าต่าง</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =======================================================================
          MODAL ล็อคป้องกันการ Bypass (LootLabs Anti-Bypass Security Gate)
          ======================================================================= -->
     <div class="lootlabs-gate-overlay" id="lootlabsGateOverlay" style="display: none;">

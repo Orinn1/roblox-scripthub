@@ -1919,6 +1919,101 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => toastBar.classList.remove("active"), 2500);
     }
 
+    // =========================================================================
+    // Discord Support & Notice Popup (popup.png Modal with 24h dismissal)
+    // =========================================================================
+    function initSiteNoticePopup() {
+        const popup = document.getElementById("siteNoticePopup");
+        const closeBtn = document.getElementById("sitePopupCloseBtn");
+        const closeNowBtn = document.getElementById("sitePopupCloseNowBtn");
+        const dismiss24hBtn = document.getElementById("sitePopupDismiss24hBtn");
+        const popupLink = document.getElementById("sitePopupLink");
+
+        if (!popup) return;
+
+        // Set Discord link dynamically from config if available
+        if (popupLink) {
+            const dcLink = (SITE_CONFIG.socialLinks && SITE_CONFIG.socialLinks.discord) ||
+                           (SITE_CONFIG.unlockTasks && SITE_CONFIG.unlockTasks.affiliateUrl) ||
+                           "https://discord.gg/6x67MrtfbX";
+            popupLink.href = dcLink;
+        }
+
+        // ตรวจสอบ URL query: หากใส่ ?reset_popup=1 หรือ ?reset=1 หรือ ?relock=1 ให้ล้างการจำ 24 ชม. ของป๊อปอัปด้วย
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has("reset_popup") || urlParams.has("reset") || urlParams.has("relock")) {
+            localStorage.removeItem("blacklist_popup_dismissed_until");
+        }
+
+        // ตรวจสอบว่าผู้ใช้เคยกด "ไม่ต้องแสดงอีก 24 ชั่วโมง" หรือไม่
+        const dismissedUntil = localStorage.getItem("blacklist_popup_dismissed_until");
+        if (dismissedUntil) {
+            const exp = Number(dismissedUntil);
+            if (!isNaN(exp) && Date.now() < exp) {
+                // ยังอยู่ในช่วงเวลา 24 ชั่วโมงที่ไม่ต้องแสดง
+                return;
+            } else {
+                localStorage.removeItem("blacklist_popup_dismissed_until");
+            }
+        }
+
+        function showPopup() {
+            if (isCurrentlyBanned) return;
+            popup.style.display = "flex";
+            requestAnimationFrame(() => {
+                popup.classList.add("active");
+            });
+            refreshIcons();
+        }
+
+        function hidePopup(is24h = false) {
+            popup.classList.remove("active");
+            setTimeout(() => {
+                popup.style.display = "none";
+            }, 250);
+
+            if (is24h) {
+                const next24h = Date.now() + (24 * 60 * 60 * 1000);
+                localStorage.setItem("blacklist_popup_dismissed_until", String(next24h));
+                showToast("บันทึกแล้ว: จะไม่แสดงป๊อปอัปนี้อีกใน 24 ชั่วโมง");
+            }
+        }
+
+        // ถ้าหน้าเว็บติดหน้าต่างล็อค LootLabs อยู่ ให้รอจนกว่าจะปลดล็อคก่อนจึงค่อยเด้งขึ้นมา
+        const gateOverlay = document.getElementById("lootlabsGateOverlay");
+        if (gateOverlay && gateOverlay.style.display !== "none" && !isGateAuthorized()) {
+            const gateObserver = new MutationObserver(() => {
+                if (gateOverlay.style.display === "none") {
+                    gateObserver.disconnect();
+                    setTimeout(showPopup, 600);
+                }
+            });
+            gateObserver.observe(gateOverlay, { attributes: true, attributeFilter: ["style"] });
+        } else {
+            // หน่วงเวลาเล็กน้อยให้หน้าเว็บโหลดสมูท 700ms แล้วแสดง
+            setTimeout(showPopup, 700);
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => hidePopup(false));
+        }
+
+        if (closeNowBtn) {
+            closeNowBtn.addEventListener("click", () => hidePopup(false));
+        }
+
+        if (dismiss24hBtn) {
+            dismiss24hBtn.addEventListener("click", () => hidePopup(true));
+        }
+
+        // คลิกพื้นที่ว่างภายนอกกล่องเพื่อปิด
+        popup.addEventListener("click", (e) => {
+            if (e.target === popup) {
+                hidePopup(false);
+            }
+        });
+    }
+
     // Initialize App
     applySiteConfig();
     checkBanStatus();
@@ -1927,6 +2022,7 @@ document.addEventListener("DOMContentLoaded", () => {
     switchView("home");
     fetchExploits();
     syncDataFromServer();
+    initSiteNoticePopup();
     refreshIcons();
 
     // Check ban status periodically (every 45s)
