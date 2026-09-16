@@ -155,6 +155,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 content: `📋 **โค้ด Loadstring สำหรับ [${script.title}]:**\n\`\`\`lua\n${script.loadstring || '-- ไม่พบโค้ด'}\n\`\`\`\n*(ข้อความนี้แสดงเฉพาะคุณ สามารถกดคัดลอกไปวางในตัวรันได้ทันที)*`,
                 ephemeral: true
             });
+        }
+
         if (customId === 'stock_refresh') {
             const stockCmd = client.commands.get('stock');
             if (stockCmd) {
