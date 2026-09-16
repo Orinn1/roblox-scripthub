@@ -1,7 +1,4 @@
-/**
- * Blox Fruits Live Stock Fetcher & Parser
- * ดึงข้อมูลผลปีศาจจากร้านค้า Blox Fruit Dealer (Normal) & Mirage Island Dealer แบบเรียลไทม์
- */
+const { EmbedBuilder } = require('discord.js');
 
 let cachedStock = null;
 let lastFetchTime = 0;
@@ -173,9 +170,84 @@ function getRarityColor(rarity) {
     return RARITY_COLORS[rarity] || 0x38bdf8;
 }
 
+function createStockEmbed(stock, { isLive = false, dealer = 'all' } = {}) {
+    const normalResetUnix = Math.floor(stock.normal.resetsAt / 1000);
+    const mirageResetUnix = Math.floor(stock.mirage.resetsAt / 1000);
+
+    const highTierNormal = stock.normal.fruits.filter(f => f.rarity === 'Legendary' || f.rarity === 'Mythical');
+    const highTierMirage = stock.mirage.fruits.filter(f => f.rarity === 'Legendary' || f.rarity === 'Mythical');
+
+    let embedColor = 0x38bdf8;
+    if (highTierNormal.length > 0 || highTierMirage.length > 0) {
+        embedColor = 0xa855f7; // ม่วงเข้มเมื่อมีผลแรร์
+    }
+
+    const title = isLive 
+        ? '🍇 [กระดานสด 24 ชม.] ร้านค้าผลปีศาจ Blox Fruits (Live Stock)' 
+        : '🍇 ตรวจสอบผลปีศาจในร้านค้า Blox Fruits (Live Stock)';
+
+    const description = isLive
+        ? `🟢 **กระดานอัปเดตอัตโนมัติ 24 ชม.** *(ข้อความนี้จะแก้ไขและอัปเดตข้อมูลสดให้ตลอดโดยไม่ต้องพิมพ์ใหม่)*\n` +
+          (highTierNormal.length > 0 || highTierMirage.length > 0
+            ? `🔥 **ผลยอดฮิตเข้าแล้ว:** ${[...highTierNormal, ...highTierMirage].map(f => `**${f.name}**`).join(', ')}`
+            : `💡 ข้อมูลจะรีเซ็ตอัตโนมัติตามเวลาร้านค้าในเกม`)
+        : `ข้อมูลสต็อกผลปีศาจแบบเรียลไทม์จากระบบร้านค้า Blox Fruits\n` +
+          (highTierNormal.length > 0 || highTierMirage.length > 0
+            ? `🔥 **ผลยอดฮิตเข้าแล้ว:** ${[...highTierNormal, ...highTierMirage].map(f => `**${f.name}**`).join(', ')}`
+            : `💡 *Tip: ผลจะหมุนเวียนอัตโนมัติเมื่อถึงเวลารีเซ็ต*`);
+
+    const embed = new EmbedBuilder()
+        .setColor(embedColor)
+        .setTitle(title)
+        .setDescription(description)
+        .setThumbnail('https://i.postimg.cc/cHdrRJVP/Rocket.png')
+        .setFooter({ 
+            text: isLive 
+                ? 'BlacklistScriptx • กระดานสดอัปเดตอัตโนมัติ 24 ชม. | อัปเดตล่าสุด' 
+                : 'BlacklistScriptx • ระบบติดตามผลปีศาจ Blox Fruits อัตโนมัติ' 
+        })
+        .setTimestamp();
+
+    if (dealer === 'all' || dealer === 'normal') {
+        const normalList = stock.normal.fruits.map(f => {
+            const icon = getRarityIcon(f.rarity);
+            const beli = typeof f.beliPrice === 'number' ? `$${f.beliPrice.toLocaleString()}` : '-';
+            const robux = typeof f.robuxPrice === 'number' ? `R$ ${f.robuxPrice}` : '-';
+            const tag = (f.rarity === 'Mythical' || f.rarity === 'Legendary') ? ' ⭐' : '';
+            return `${icon} **${f.name}**${tag} \`[${f.rarity}]\` — 💵 ${beli} | 🪙 ${robux}`;
+        }).join('\n');
+
+        embed.addFields({
+            name: `🏪 พ่อค้าปกติ (Normal Dealer) — รีเซ็ตใน: <t:${normalResetUnix}:R> (<t:${normalResetUnix}:T>)`,
+            value: normalList || 'ไม่มีผลวางจำหน่ายในขณะนี้',
+            inline: false
+        });
+    }
+
+    if (dealer === 'all' || dealer === 'mirage') {
+        const mirageList = stock.mirage.fruits.map(f => {
+            const icon = getRarityIcon(f.rarity);
+            const beli = typeof f.beliPrice === 'number' ? `$${f.beliPrice.toLocaleString()}` : '-';
+            const robux = typeof f.robuxPrice === 'number' ? `R$ ${f.robuxPrice}` : '-';
+            const tag = (f.rarity === 'Mythical' || f.rarity === 'Legendary') ? ' ⭐' : '';
+            return `${icon} **${f.name}**${tag} \`[${f.rarity}]\` — 💵 ${beli} | 🪙 ${robux}`;
+        }).join('\n');
+
+        embed.addFields({
+            name: `🏝️ พ่อค้าเกาะมายา (Mirage Dealer) — รีเซ็ตใน: <t:${mirageResetUnix}:R> (<t:${mirageResetUnix}:T>)`,
+            value: mirageList || 'ไม่มีผลวางจำหน่ายในขณะนี้',
+            inline: false
+        });
+    }
+
+    return embed;
+}
+
 module.exports = {
     getBloxFruitsStock,
     getRarityIcon,
     getRarityColor,
+    createStockEmbed,
     RARITY_ICONS
 };
+

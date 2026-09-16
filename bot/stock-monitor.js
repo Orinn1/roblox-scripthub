@@ -1,11 +1,13 @@
 /**
  * Blox Fruits Stock Monitor & Auto Notifier
- * ตรวจจับการหมุนเวียนของผลปีศาจในเกม Blox Fruits (ทุก 4 ชม.) และส่งแจ้งเตือนเข้าห้อง Discord
+ * 1. ตรวจจับการหมุนเวียนของผลปีศาจในเกม Blox Fruits (ทุก 4 ชม.) และส่งแจ้งเตือนเข้าห้อง Discord
+ * 2. อัปเดตกระดานผลสด 24 ชม. (Live Auto-Updating Panel) ทุก 60 วินาที โดยผู้ใช้ไม่ต้องพิมพ์ซ้ำ
  */
 
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { getBloxFruitsStock, getRarityIcon } = require('./bloxfruits-stock.js');
+const { getBloxFruitsStock, getRarityIcon, createStockEmbed } = require('./bloxfruits-stock.js');
 const botConfig = require('./config.js');
+const db = require('../db.js');
 
 let lastAnnouncedNormalStartedAt = 0;
 let isFirstCheck = true;
@@ -22,18 +24,66 @@ async function checkStockRotation(client) {
             lastAnnouncedNormalStartedAt = currentStartedAt;
             isFirstCheck = false;
             console.log(`🍇 [Stock Monitor] เริ่มต้นระบบเฝ้าระวังผล Blox Fruits (รอบปัจจุบันเริ่มเมื่อ: ${new Date(currentStartedAt).toLocaleTimeString()})`);
-            return;
-        }
-
-        // ตรวจจับว่ามีการหมุนเวียนรอบใหม่หรือไม่ (startedAt เปลี่ยน)
-        if (currentStartedAt && currentStartedAt !== lastAnnouncedNormalStartedAt) {
+        } else if (currentStartedAt && currentStartedAt !== lastAnnouncedNormalStartedAt) {
+            // ตรวจจับว่ามีการหมุนเวียนรอบใหม่หรือไม่ (startedAt เปลี่ยน)
             console.log('🚨 [Stock Monitor] ตรวจพบการหมุนเวียนผลปีศาจรอบใหม่! กำลังส่งแจ้งเตือนเข้า Discord...');
             lastAnnouncedNormalStartedAt = currentStartedAt;
 
             await sendStockNotification(client, stock);
         }
+
+        // อัปเดตข้อความกระดานผลสด 24 ชม. ที่เคยตั้งไว้ (Auto-Updating Panels)
+        await updateLivePanels(client, stock);
     } catch (err) {
         console.error('[Stock Monitor Check Error]:', err.message);
+    }
+}
+
+/**
+ * อัปเดตข้อความกระดานผลสดที่แอดมินหรือผู้ใช้สั่งพิมพ์ไว้ (/stock mode:live)
+ * แก้ไขข้อความเดิมในห้องแบบเรียลไทม์ โดยไม่ต้องพิมพ์ใหม่
+ */
+async function updateLivePanels(client, stock) {
+    try {
+        const config = db.getConfig();
+        const panels = config.stock_live_panels;
+        if (!Array.isArray(panels) || panels.length === 0) return;
+
+        const activePanels = [];
+
+        for (const panel of panels) {
+            try {
+                const channel = await client.channels.fetch(panel.channelId).catch(() => null);
+                if (!channel) continue;
+
+                const message = await channel.messages.fetch(panel.messageId).catch(() => null);
+                if (!message) continue;
+
+                const embed = createStockEmbed(stock, { isLive: true, dealer: panel.dealer || 'all' });
+                const row = new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setLabel('🌐 เว็บไซต์สคริปต์ฮับ')
+                        .setStyle(ButtonStyle.Link)
+                        .setURL(botConfig.websiteUrl || 'https://blacklistscripty.vercel.app'),
+                    new ButtonBuilder()
+                        .setCustomId('stock_refresh')
+                        .setLabel('🔄 รีเฟรชข้อมูล')
+                        .setStyle(ButtonStyle.Secondary)
+                );
+
+                await message.edit({ embeds: [embed], components: [row] }).catch(() => null);
+                activePanels.push(panel);
+            } catch (panelErr) {
+                // หากข้อความถูกลบให้ตัดออกจากลิสต์
+            }
+        }
+
+        // หากมีการลบข้อความในดิสคอร์ด ให้อัปเดตรายการที่เหลือ
+        if (activePanels.length !== panels.length) {
+            db.saveConfig({ stock_live_panels: activePanels });
+        }
+    } catch (err) {
+        console.error('[Stock Monitor updateLivePanels Error]:', err.message);
     }
 }
 
@@ -101,16 +151,17 @@ function startStockMonitor(client) {
     // รันครั้งแรกทันที
     checkStockRotation(client);
 
-    // ตรวจสอบความเปลี่ยนแปลงทุก 60 วินาที
+    // ตรวจสอบความเปลี่ยนแปลงและอัปเดตกระดานสดทุก 60 วินาที
     setInterval(() => {
         checkStockRotation(client);
     }, 60 * 1000);
 
-    console.log('🚀 [Stock Monitor] มอนิเตอร์แจ้งเตือนผลปีศาจ Blox Fruits เปิดทำงานแล้ว');
+    console.log('🚀 [Stock Monitor] มอนิเตอร์แจ้งเตือนและกระดานสด Blox Fruits เปิดทำงานแล้ว');
 }
 
 module.exports = {
     startStockMonitor,
     checkStockRotation,
+    updateLivePanels,
     sendStockNotification
 };
