@@ -12,7 +12,8 @@ if (!botConfig.token) {
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
     ]
 });
 
@@ -48,6 +49,7 @@ function updateBotPresence() {
 const { deployCommands } = require('./deploy-commands.js');
 const { startYouTubeMonitor } = require('./youtube-monitor.js');
 const { startRobloxMonitor } = require('./roblox-monitor.js');
+const { handleBypassMessage } = require('./bypass-helper.js');
 
 client.once(Events.ClientReady, async (readyClient) => {
     console.log(`🤖 Discord Bot ออนไลน์แล้วในชื่อ: ${readyClient.user.tag}`);
@@ -88,6 +90,31 @@ client.on(Events.InteractionCreate, async (interaction) => {
             return;
         }
 
+        // ตรวจสอบสิทธิ์เฉพาะยศที่กำหนด (Role ID: 1549727990542508083)
+        const requiredRoleId = botConfig.requiredRoleId || '1549727990542508083';
+        const member = interaction.member;
+        let hasPermission = false;
+
+        if (member) {
+            if (member.roles && member.roles.cache) {
+                hasPermission = member.roles.cache.has(requiredRoleId);
+            } else if (Array.isArray(member.roles)) {
+                hasPermission = member.roles.includes(requiredRoleId);
+            }
+
+            // อนุญาตให้ Administrator หรือเจ้าของเซิร์ฟเวอร์ด้วย
+            if (!hasPermission && interaction.memberPermissions && interaction.memberPermissions.has('Administrator')) {
+                hasPermission = true;
+            }
+        }
+
+        if (!hasPermission) {
+            return interaction.reply({
+                content: `⛔ **คุณไม่มีสิทธิ์ใช้งานคำสั่งนี้!**\nเฉพาะผู้ที่มียศ <@&${requiredRoleId}> เท่านั้นที่สามารถใช้คำสั่งของบอทได้ครับ`,
+                ephemeral: true
+            });
+        }
+
         try {
             await command.execute(interaction);
         } catch (error) {
@@ -125,6 +152,21 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 ephemeral: true
             });
         }
+    }
+});
+
+// Auto-Bypass Handler (ทำงานเฉพาะห้องที่กำหนด)
+client.on(Events.MessageCreate, async (message) => {
+    try {
+        if (message.author.bot) return;
+
+        // ตรวจสอบว่าส่งในห้องที่กำหนดไว้หรือไม่ (ค่าเริ่มต้น: 1549758071734140958)
+        const allowedChannelId = botConfig.bypassChannelId || '1549758071734140958';
+        if (message.channelId !== allowedChannelId) return;
+
+        await handleBypassMessage(message);
+    } catch (err) {
+        console.error('[MessageCreate Bypass Error]:', err);
     }
 });
 
