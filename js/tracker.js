@@ -10,7 +10,7 @@ const PLACE_IDS = {
     3: '7449423635'  // Sea 3
 };
 
-// ภาพประกอบและข้อมูลอีเวนต์ Blox Fruits
+// ภาพประกอบและข้อมูลอีเวนต์ Blox Fruits ของแท้จาก Blox Fruits Wiki
 const EVENT_PRESETS = [
     // Mirage Island
     {
@@ -18,9 +18,9 @@ const EVENT_PRESETS = [
         categoryName: 'Mirage Island',
         tagClass: 'tag-mirage',
         title: 'Mirage Island',
-        subtitles: ['Island is up', 'Mystic Island Spawned', 'Active in Deep Sea'],
+        subtitles: ['Island is up', 'Mystic Island Spawned'],
         sea: 3,
-        image: 'https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=600&auto=format&fit=crop&q=80',
+        image: 'assets/tracker/mirage.png',
         details: 'เกาะมิราจปรากฏขึ้นแล้ว เหมาะสำหรับตามหาเฟือง (Blue Gear) เพื่อปลดล็อคเผ่า V4 ส่องกระจกที่จุดสูงสุดของเกาะ'
     },
     // Full Moon
@@ -29,9 +29,9 @@ const EVENT_PRESETS = [
         categoryName: 'Full Moon',
         tagClass: 'tag-fullmoon',
         title: 'Full Moon',
-        subtitles: ['Moon is 100% Full', 'Lunar Eclipse Active', 'Trials Ready'],
+        subtitles: ['Moon is 100% Full', 'Lunar Eclipse Active'],
         sea: 3,
-        image: 'https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=600&auto=format&fit=crop&q=80',
+        image: 'assets/tracker/fullmoon.png',
         details: 'พระจันทร์เต็มดวง 100% สำหรับลงดันเจี้ยนทำเผ่า V4 ที่วิหารแห่งกาลเวลา (Temple of Time)'
     },
     // Prehistoric Island
@@ -40,9 +40,9 @@ const EVENT_PRESETS = [
         categoryName: 'Prehistoric Island',
         tagClass: 'tag-prehistoric',
         title: 'Prehistoric Island',
-        subtitles: ['Ancient Island is up', 'Volcano Erupting', 'Fossil Active'],
+        subtitles: ['Ancient Island is up', 'Volcano Erupting'],
         sea: 3,
-        image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&auto=format&fit=crop&q=80',
+        image: 'assets/tracker/prehistoric.png',
         details: 'เกาะดึกดำบรรพ์ปรากฏขึ้นแล้วสำหรับเควสฟาร์มแมกม่าและทรัพยากรโบราณ'
     },
     // Raid Bosses
@@ -51,9 +51,14 @@ const EVENT_PRESETS = [
         categoryName: 'Boss',
         tagClass: 'tag-boss',
         title: 'Boss',
-        subtitles: ['Dough King', 'Soul Reaper', 'rip_Indra True Form', 'Cake Prince', 'Darkbeard'],
+        subtitles: ['Dough King', 'Soul Reaper', 'rip_Indra True Form'],
         sea: 3,
-        image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80',
+        bossImages: {
+            'Dough King': 'assets/tracker/dough_king.png',
+            'Soul Reaper': 'assets/tracker/soul_reaper.png',
+            'rip_Indra True Form': 'assets/tracker/rip_indra.png'
+        },
+        image: 'assets/tracker/dough_king.png',
         details: 'บอสระดับโลกกำลังเกิดอยู่ในเซิร์ฟเวอร์ พร้อมสำหรับลงตีดรอปไอเทมระดับ Mythical'
     },
     // Haki Colors
@@ -62,9 +67,9 @@ const EVENT_PRESETS = [
         categoryName: 'SHOP',
         tagClass: 'tag-shop',
         title: 'Haki Color',
-        subtitles: ['Snow White', 'Pure Red', 'Winter Sky', 'Rainbow Savior'],
+        subtitles: ['Snow White', 'Pure Red', 'Winter Sky'],
         sea: 3,
-        image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600&auto=format&fit=crop&q=80',
+        image: 'assets/tracker/master_auras.png',
         details: 'Master of Auras กำลังเปิดขายฮาคิสีหายาก ใช้เงิน Fragments ซื้อเพื่อเปิดใช้งานเควสอินดรา'
     },
     // Legendary Swords
@@ -73,9 +78,9 @@ const EVENT_PRESETS = [
         categoryName: 'Legendary Sword',
         tagClass: 'tag-sword',
         title: 'Legendary Sword',
-        subtitles: ['Shisui (Saishi)', 'Wando', 'Saddi'],
+        subtitles: ['Saishi (Shisui)', 'Wando', 'Saddi'],
         sea: 2,
-        image: 'https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=600&auto=format&fit=crop&q=80',
+        image: 'assets/tracker/sword_dealer.png',
         details: 'คนขาย 3 ดาบในตำนาน (Legendary Sword Dealer) สุ่มเกิดแล้ว ซื้อเพื่อรวมเป็นดาบ True Triple Katana'
     }
 ];
@@ -113,6 +118,11 @@ function initServers(count = 80) {
         const players = Math.floor(Math.random() * 6) + 7; // 7 to 12
         const expiresInSeconds = Math.floor(Math.random() * 900) + 15; // 15s to 15m
 
+        let image = preset.image;
+        if (preset.bossImages && preset.bossImages[subtitle]) {
+            image = preset.bossImages[subtitle];
+        }
+
         servers.push({
             id: `srv-${i + 1}`,
             category: preset.category,
@@ -125,7 +135,7 @@ function initServers(count = 80) {
             jobId: generateJobId(),
             players: players,
             maxPlayers: maxPlayers,
-            image: preset.image,
+            image: image,
             details: preset.details,
             expiresInSeconds: expiresInSeconds
         });
@@ -370,6 +380,11 @@ function startCountdownTimer() {
                 server.jobId = generateJobId();
                 server.players = Math.floor(Math.random() * 6) + 7;
                 server.expiresInSeconds = Math.floor(Math.random() * 900) + 60;
+                let image = preset.image;
+                if (preset.bossImages && preset.bossImages[server.subtitle]) {
+                    image = preset.bossImages[server.subtitle];
+                }
+                server.image = image;
                 needsRerender = true;
             }
         });
