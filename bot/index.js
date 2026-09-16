@@ -49,6 +49,7 @@ function updateBotPresence() {
 const { deployCommands } = require('./deploy-commands.js');
 const { startYouTubeMonitor } = require('./youtube-monitor.js');
 const { startRobloxMonitor } = require('./roblox-monitor.js');
+const { startStockMonitor } = require('./stock-monitor.js');
 const { handleBypassMessage } = require('./bypass-helper.js');
 
 client.once(Events.ClientReady, async (readyClient) => {
@@ -65,6 +66,9 @@ client.once(Events.ClientReady, async (readyClient) => {
 
     // Start Roblox Update & Banwave Monitor (Channel ID: 1549456641379012709)
     startRobloxMonitor(client);
+
+    // Start Blox Fruits Stock Monitor (Auto Stock Alert)
+    startStockMonitor(client);
 });
 
 // Interaction Handling
@@ -151,6 +155,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 content: `📋 **โค้ด Loadstring สำหรับ [${script.title}]:**\n\`\`\`lua\n${script.loadstring || '-- ไม่พบโค้ด'}\n\`\`\`\n*(ข้อความนี้แสดงเฉพาะคุณ สามารถกดคัดลอกไปวางในตัวรันได้ทันที)*`,
                 ephemeral: true
             });
+        if (customId === 'stock_refresh') {
+            const stockCmd = client.commands.get('stock');
+            if (stockCmd) {
+                return stockCmd.execute(interaction);
+            }
         }
     }
 });

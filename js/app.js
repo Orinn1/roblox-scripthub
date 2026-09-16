@@ -1169,13 +1169,49 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Render 4 top executors on Homepage
+    // =========================================================================
+    // รายชื่อตัวรันยอดนิยมระดับท็อป (Famous / Prominent Executors Whitelist)
+    // =========================================================================
+    const FAMOUS_EXPLOITS_MAP = {
+        "delta": { name: "Delta", priority: 1, officialUrl: "https://deltaexploits.gg/", desc: "ตัวรันมือถือยอดนิยมอันดับ 1 เสถียรสูง" },
+        "codex": { name: "Codex", priority: 2, officialUrl: "https://codex.lol/", desc: "ตัวรันมือถือระดับท็อป รองรับหลายสคริปต์" },
+        "solara": { name: "Solara", priority: 3, officialUrl: "https://getsolara.dev/", desc: "ตัวรัน Windows ฟรีที่นิยมที่สุด ปลอดภัย" },
+        "wave": { name: "Wave", priority: 4, officialUrl: "https://getwave.gg/", desc: "ตัวรัน Windows ประสิทธิภาพสูง sUNC 100%" },
+        "synapse z": { name: "Synapse Z", priority: 5, officialUrl: "https://z.synapse.do/", desc: "ตัวรัน Windows พรีเมียม ทายาท Synapse" },
+        "vega x": { name: "Vega X", priority: 6, officialUrl: "https://www.vegax.gg/", desc: "ตัวรันมือถือชื่อดัง เมนูใช้งานง่าย" },
+        "xeno": { name: "Xeno", priority: 7, officialUrl: "https://www.xeno.now/", desc: "ตัวรัน Windows ฟรี ฟังก์ชันครบครัน" },
+        "macsploit": { name: "MacSploit", priority: 8, officialUrl: "https://www.raptor.fun/", desc: "ตัวรันสำหรับ macOS ที่ดีที่สุดและเสถียรสุด" },
+        "arceus": { name: "Arceus X", priority: 9, officialUrl: "https://spdmteam.com/", desc: "ตัวรันมือถือยอดนิยมระดับตำนาน" },
+        "fluxus": { name: "Fluxus", priority: 10, officialUrl: "https://fluxteam.net/", desc: "ตัวรันยอดนิยม" },
+        "krnl": { name: "KRNL", priority: 11, officialUrl: "https://krnl.place/", desc: "ตัวรัน Windows ยอดนิยม" }
+    };
+
+    function getFamousInfo(exp) {
+        if (!exp) return null;
+        const title = (exp.title || "").toLowerCase().trim();
+        for (const [key, info] of Object.entries(FAMOUS_EXPLOITS_MAP)) {
+            if (title.includes(key)) {
+                return info;
+            }
+        }
+        return null;
+    }
+
+    // Render 4 top executors on Homepage (เฉพาะตัวรันยอดนิยม)
     function renderHomeExecutors() {
         if (!homeExecutorsGrid) return;
         if (allExploits.length === 0) return;
 
-        const top4 = allExploits.slice(0, 4);
-        homeExecutorsGrid.innerHTML = top4.map(exp => {
+        // ดึงเฉพาะตัวรันยอดนิยมและเรียงตามลำดับ Priority
+        const famousList = allExploits.filter(exp => getFamousInfo(exp));
+        famousList.sort((a, b) => {
+            const pA = getFamousInfo(a)?.priority || 99;
+            const pB = getFamousInfo(b)?.priority || 99;
+            return pA - pB;
+        });
+
+        const topExecutors = famousList.length > 0 ? famousList.slice(0, 4) : allExploits.slice(0, 4);
+        homeExecutorsGrid.innerHTML = topExecutors.map(exp => {
             const isOnline = !!exp.updateStatus;
             const statusClass = isOnline ? "status-working" : "status-outdated";
             const statusText = isOnline ? "พร้อมใช้งาน" : "รออัปเดต";
@@ -1188,6 +1224,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="executor-info">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <h4>${escapeHtml(exp.title)}</h4>
+                            <span class="badge-popular"><i data-lucide="star" style="width: 10px; height: 10px;"></i> ยอดนิยม</span>
                             <span class="exploit-status-badge ${statusClass}" style="font-size: 10px; padding: 1px 6px;">${statusText}</span>
                         </div>
                         <p style="margin-top: 4px; display: flex; gap: 8px; font-size: 11px;">
@@ -1205,7 +1242,7 @@ document.addEventListener("DOMContentLoaded", () => {
         refreshIcons();
     }
 
-    // Render full list in Exploits View
+    // Render full list in Exploits View (คัดกรองเฉพาะตัวรันยอดนิยมที่มีชื่อเสียง)
     function renderExploits() {
         if (!exploitsGrid) return;
         if (allExploits.length === 0) {
@@ -1219,6 +1256,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const filtered = allExploits.filter(exp => {
+            // คัดกรองเหลือเฉพาะตัวรันที่มีชื่อเสียง
+            const famous = getFamousInfo(exp);
+            if (!famous) return false;
+
             if (activeExploitPlatform !== "all" && exp.platform && exp.platform.toLowerCase() !== activeExploitPlatform.toLowerCase()) {
                 return false;
             }
@@ -1232,10 +1273,17 @@ document.addEventListener("DOMContentLoaded", () => {
             return true;
         });
 
+        // จัดเรียงลำดับความนิยม
+        filtered.sort((a, b) => {
+            const pA = getFamousInfo(a)?.priority || 99;
+            const pB = getFamousInfo(b)?.priority || 99;
+            return pA - pB;
+        });
+
         if (filtered.length === 0) {
             exploitsGrid.innerHTML = `
                 <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
-                    ไม่พบตัวรันตามเงื่อนไขที่เลือก
+                    ไม่พบตัวรันยอดนิยมสำหรับอุปกรณ์ที่เลือกในขณะนี้
                 </div>
             `;
             return;
@@ -1250,13 +1298,18 @@ document.addEventListener("DOMContentLoaded", () => {
             const suncFillClass = suncScore !== null && suncScore < 70 ? "low" : (suncScore !== null && suncScore < 90 ? "medium" : "");
             const price = exp.free ? "ฟรี" : (exp.cost || "มีค่าบริการ");
             const hasSuncData = exp.sunc && exp.sunc.suncScrap && exp.sunc.suncKey;
+            const famousInfo = getFamousInfo(exp);
+            const officialUrl = famousInfo?.officialUrl || exp.websitelink || "#";
 
             return `
                 <div class="exploit-card">
                     <div>
                         <div class="exploit-head">
                             <div>
-                                <div class="exploit-name">${escapeHtml(exp.title)}</div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <div class="exploit-name">${escapeHtml(exp.title)}</div>
+                                    <span class="badge-popular"><i data-lucide="star" style="width: 10px; height: 10px;"></i> ยอดนิยม</span>
+                                </div>
                                 <div class="exploit-platform">
                                     <i data-lucide="monitor" style="width: 12px; height: 12px;"></i> ${escapeHtml(exp.platform || 'Multi')} • v${escapeHtml(exp.version || 'ล่าสุด')}
                                 </div>
@@ -1296,7 +1349,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         ` : ''}
                     </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+                        ${officialUrl && officialUrl !== '#' ? `
+                            <a href="${escapeHtml(officialUrl)}" target="_blank" rel="noopener noreferrer" class="btn-download-executor">
+                                <i data-lucide="download"></i> เว็บไซต์หลัก / ดาวน์โหลด
+                            </a>
+                        ` : ''}
                         ${hasSuncData ? `
                             <button class="btn-view-sunc" onclick="openSuncDetails('${escapeHtml(exp.title)}', '${escapeHtml(exp.version || '')}', '${escapeHtml(exp.sunc.suncScrap)}', '${escapeHtml(exp.sunc.suncKey)}')">
                                 <i data-lucide="bar-chart-2"></i> ดูผลทดสอบ sUNC
@@ -1306,11 +1364,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <i data-lucide="info"></i> ไม่มีผลทดสอบ sUNC
                             </button>
                         `}
-                        ${exp.websitelink ? `
-                            <a href="${escapeHtml(exp.websitelink)}" target="_blank" rel="noopener" class="btn-view-sunc" style="text-decoration: none; font-size: 11px; padding: 6px;">
-                                <i data-lucide="external-link"></i> เว็บไซต์หลัก
-                            </a>
-                        ` : ''}
                     </div>
                 </div>
             `;
