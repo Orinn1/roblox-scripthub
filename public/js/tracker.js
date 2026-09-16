@@ -1,8 +1,8 @@
 /**
- * BlacklistScriptx - Blox Fruits Live Server Tracker
+ * BlacklistScriptx - Blox Fruits Live Server Tracker (Pro Edition)
  * Real-time Server Hop & Event Teleport Engine
  * Calibrated strictly according to Blox Fruits Lore & Mechanics:
- * - Sea 1: 0 (No high-level raid / hopping events)
+ * - Sea 1: 0 (No world raid / hopping events)
  * - Sea 2: 24 (Legendary Sword Dealer [17], Master of Auras [4], Sea 2 Bosses: Darkbeard & Cursed Captain [3])
  * - Sea 3: 66 (Mirage Island [12], Full Moon [13], Prehistoric Island [15], Sea 3 Bosses: Dough King, rip_Indra, Soul Reaper [17], Master of Auras [9])
  */
@@ -14,7 +14,7 @@ const PLACE_IDS = {
     3: '7449423635'  // Sea 3 (Third Sea)
 };
 
-// รายการกำหนดค่าอีเวนต์และบอสตามโลกของแท้ 100% จาก Blox Fruits Fandom Wiki
+// ข้อมูลและคำอธิบายเจาะลึกตรงตาม Blox Fruits Fandom Wiki
 const DEFINITIONS = {
     mirage: {
         category: 'mirage',
@@ -22,6 +22,7 @@ const DEFINITIONS = {
         tagClass: 'tag-mirage',
         title: 'Mirage Island',
         subtitles: ['Island is up', 'Mystic Island Spawned'],
+        location: 'ทะเลลึก Danger 4-6 (หา Blue Gear)',
         sea: 3,
         image: 'assets/tracker/mirage.png',
         details: 'เกาะมิราจ (Mirage Island) เกิดกลางทะเลโลก 3 ส่องกระจกเงา (Mirror Fractal) ที่จุดสูงสุดของเกาะในคืนพระจันทร์เต็มดวงเพื่อหาเฟืองฟ้า (Blue Gear) ปลดล็อคเผ่า V4'
@@ -32,6 +33,7 @@ const DEFINITIONS = {
         tagClass: 'tag-fullmoon',
         title: 'Full Moon',
         subtitles: ['Moon is 100% Full', 'Lunar Eclipse Active'],
+        location: 'วิหารกาลเวลา (Temple of Time) & Kitsune',
         sea: 3,
         image: 'assets/tracker/fullmoon.png',
         details: 'พระจันทร์เต็มดวง 100% สำหรับลงดันเจี้ยนทำเควสเผ่า V4 ที่วิหารแห่งกาลเวลา (Temple of Time) หรือสะสมหางิ้งจอกที่เกาะ Kitsune'
@@ -42,6 +44,7 @@ const DEFINITIONS = {
         tagClass: 'tag-prehistoric',
         title: 'Prehistoric Island',
         subtitles: ['Ancient Island is up', 'Volcano Erupting'],
+        location: 'โซนลาวา Danger 6 (ฟาร์มแมกม่า)',
         sea: 3,
         image: 'assets/tracker/prehistoric.png',
         details: 'เกาะดึกดำบรรพ์ (Prehistoric Island) ปรากฏขึ้นแล้วในเขตทะเลลึกอันตรายระดับ 6 สำหรับเควสฟาร์มแมกม่าและทรัพยากรโบราณ'
@@ -52,7 +55,8 @@ const DEFINITIONS = {
         tagClass: 'tag-sword',
         title: 'Legendary Sword',
         subtitles: ['Saishi (Shisui)', 'Wando', 'Saddi'],
-        sea: 2, // ดาบ 3 เล่มในตำนานเกิดเฉพาะใน Sea 2 เท่านั้น!
+        location: 'Colosseum / Green Zone / Graveyard',
+        sea: 2, // คนขาย 3 ดาบสุ่มเกิดเฉพาะใน Sea 2 เท่านั้น!
         image: 'assets/tracker/sword_dealer.png',
         details: 'คนขาย 3 ดาบในตำนาน (Legendary Sword Dealer) สุ่มเกิดแล้วในโลกที่ 2 ซื้อดาบเล่มละ 2,000,000 Beli เพื่อนำไปรวมเป็นสุดยอดดาบสามเล่ม True Triple Katana (TTK)'
     },
@@ -62,6 +66,7 @@ const DEFINITIONS = {
         tagClass: 'tag-shop',
         title: 'Haki Color',
         subtitles: ['Snow White', 'Pure Red', 'Winter Sky'],
+        location: 'Master of Auras (ใช้ 1,500 Frags)',
         image: 'assets/tracker/master_auras.png',
         details: 'ช่างทำสีฮาคิ (Master of Auras) กำลังสุ่มขายสีฮาคิระดับตำนาน ใช้ 1,500 Fragments เพื่อซื้อสีสำหรับเปิดเสาเควสอัญเชิญ rip_Indra'
     },
@@ -74,11 +79,13 @@ const DEFINITIONS = {
         bosses: [
             {
                 name: 'Darkbeard',
+                location: 'Dark Arena (ใช้ Fist of Darkness)',
                 image: 'assets/tracker/darkbeard.png',
                 details: 'เรดบอสหนวดดำ (Darkbeard Lv. 1000) เกิดที่ลานประลองมืด (Dark Arena, โลก 2) ต้องใช้ Fist of Darkness ในการอัญเชิญ ดรอปผ้าคลุมหนวดดำ Dark Coat และ Dark Fragment'
             },
             {
                 name: 'Cursed Captain',
+                location: 'Cursed Ship ชั้น 2 (สุ่มเกิดตอนกลางคืน)',
                 image: 'assets/tracker/cursed_captain.png',
                 details: 'เรดบอสกัปตันต้องสาป (Cursed Captain Lv. 1325) เกิดบนเรือต้องสาป (Cursed Ship, โลก 2) ชั้น 2 สุ่มเกิดตอนกลางคืน ดรอปคบเพลิง Hellfire Torch สำหรับทำเผ่ากูล (Ghoul)'
             }
@@ -93,16 +100,19 @@ const DEFINITIONS = {
         bosses: [
             {
                 name: 'Dough King',
+                location: 'Cake Island (Mirror Fractal / Dough V2)',
                 image: 'assets/tracker/dough_king.png',
                 details: 'ราชาน้ำตาลดึกดำบรรพ์/บอสโมจิ (Dough King Lv. 2300, โลก 3) เกิดที่เกาะเค้ก ดรอป Mirror Fractal สำหรับเปิดประตูดันเจี้ยน V4 และชิปตื่นผลโมจิ'
             },
             {
                 name: 'rip_Indra True Form',
+                location: 'Castle on the Sea (God\'s Chalice & 3 Colors)',
                 image: 'assets/tracker/rip_indra.png',
                 details: 'เรดบอสอินดราร่างแท้ (rip_Indra Lv. 5000, โลก 3) ปรากฏตัวที่ปราสาทกลางทะเล (Castle on the Sea) ใช้ถ้วย Chalice อัญเชิญ ดรอปหมวก Valkyrie Helm'
             },
             {
                 name: 'Soul Reaper',
+                location: 'Haunted Castle (Hallow Essence / เควส CDK)',
                 image: 'assets/tracker/soul_reaper.png',
                 details: 'เรดบอสเก็บวิญญาณ (Soul Reaper Lv. 2100, โลก 3) เกิดที่ปราสาทผีสิง (Haunted Castle) ใช้คบเพลิง Hallow Essence ดรอปเคียว Holy Scythe และเควสดาบคู่ CDK'
             }
@@ -132,6 +142,7 @@ function createServerItem(idNumber, type, forcedSea = null) {
     let tagClass = '';
     let title = '';
     let subtitle = '';
+    let location = '';
     let sea = forcedSea;
     let image = '';
     let details = '';
@@ -143,6 +154,7 @@ function createServerItem(idNumber, type, forcedSea = null) {
         tagClass = def.tagClass;
         title = def.title;
         subtitle = def.subtitles[Math.floor(Math.random() * def.subtitles.length)];
+        location = def.location;
         sea = 3;
         image = def.image;
         details = def.details;
@@ -153,6 +165,7 @@ function createServerItem(idNumber, type, forcedSea = null) {
         tagClass = def.tagClass;
         title = def.title;
         subtitle = def.subtitles[Math.floor(Math.random() * def.subtitles.length)];
+        location = def.location;
         sea = 3;
         image = def.image;
         details = def.details;
@@ -163,6 +176,7 @@ function createServerItem(idNumber, type, forcedSea = null) {
         tagClass = def.tagClass;
         title = def.title;
         subtitle = def.subtitles[Math.floor(Math.random() * def.subtitles.length)];
+        location = def.location;
         sea = 3;
         image = def.image;
         details = def.details;
@@ -173,6 +187,7 @@ function createServerItem(idNumber, type, forcedSea = null) {
         tagClass = def.tagClass;
         title = def.title;
         subtitle = def.subtitles[Math.floor(Math.random() * def.subtitles.length)];
+        location = def.location;
         sea = 2; // Sword dealer is Sea 2 only
         image = def.image;
         details = def.details;
@@ -183,6 +198,7 @@ function createServerItem(idNumber, type, forcedSea = null) {
         tagClass = def.tagClass;
         title = def.title;
         subtitle = def.subtitles[Math.floor(Math.random() * def.subtitles.length)];
+        location = def.location;
         sea = forcedSea || (Math.random() > 0.6 ? 2 : 3);
         image = def.image;
         details = def.details;
@@ -194,6 +210,7 @@ function createServerItem(idNumber, type, forcedSea = null) {
         tagClass = def.tagClass;
         title = def.title;
         subtitle = b.name;
+        location = b.location;
         sea = 2; // Sea 2 Bosses: Darkbeard or Cursed Captain
         image = b.image;
         details = b.details;
@@ -205,6 +222,7 @@ function createServerItem(idNumber, type, forcedSea = null) {
         tagClass = def.tagClass;
         title = def.title;
         subtitle = b.name;
+        location = b.location;
         sea = 3; // Sea 3 Bosses: Dough King, rip_Indra, Soul Reaper
         image = b.image;
         details = b.details;
@@ -212,7 +230,7 @@ function createServerItem(idNumber, type, forcedSea = null) {
 
     const maxPlayers = 12;
     const players = Math.floor(Math.random() * 6) + 7; // 7 to 12
-    const expiresInSeconds = Math.floor(Math.random() * 900) + 15; // 15s to 15m
+    const expiresInSeconds = Math.floor(Math.random() * 900) + 20; // 20s to 15m
 
     return {
         id: `srv-${idNumber}`,
@@ -222,6 +240,7 @@ function createServerItem(idNumber, type, forcedSea = null) {
         tagClass: tagClass,
         title: title,
         subtitle: subtitle,
+        location: location,
         sea: sea,
         placeId: PLACE_IDS[sea] || PLACE_IDS[3],
         jobId: generateJobId(),
@@ -234,7 +253,7 @@ function createServerItem(idNumber, type, forcedSea = null) {
 }
 
 /**
- * สร้างชุดข้อมูลเซิร์ฟเวอร์ 90 ห้องตามการกระจายที่เป็นมาตรฐานของ BlacklistTrack:
+ * สร้างชุดข้อมูลเซิร์ฟเวอร์ 90 ห้องตามการกระจายแท้จริง:
  * - Mirage Island: 12 ห้อง (Sea 3)
  * - Full Moon: 13 ห้อง (Sea 3)
  * - Prehistoric Island: 15 ห้อง (Sea 3)
@@ -287,7 +306,7 @@ function initServers() {
         servers.push(createServerItem(counter++, 'sword', 2));
     }
 
-    // Shuffle เพื่อให้แสดงผลแบบสุ่มน่าสนใจ ไม่เรียงเป็นบล็อก
+    // Shuffle เพื่อให้เซิร์ฟเวอร์กระจายสลับไปมาอย่างสมจริง
     servers.sort(() => Math.random() - 0.5);
 }
 
@@ -305,40 +324,153 @@ function getTimerColorClass(seconds) {
     return 'timer-green';
 }
 
-// อัปเดตตัวเลข Badge บนเมนู Sidebar
+/**
+ * อัปเดตตัวเลข Badge บนเมนู Sidebar แบบ Reactive ตาม Sea ที่เลือกอยู่!
+ * - ถ้าเลือก Sea 2: ตรง EVENTS จะเปลี่ยนตัวเลขตามเซิร์ฟเวอร์ใน Sea 2 เท่านั้น (เช่น บอส = 3, ดาบ = 17, มิราจ = 0)
+ * - ถ้าเลือก Sea 3: ตรง EVENTS จะเปลี่ยนตัวเลขตามเซิร์ฟเวอร์ใน Sea 3 (เช่น บอส = 17, มิราจ = 12, ดาบ = 0)
+ * - ถ้าเลือก All: แสดงผลรวมทั้งหมด
+ */
 function updateSidebarCounts() {
-    const counts = {
-        all: servers.length,
-        mirage: servers.filter(s => s.category === 'mirage').length,
-        fullmoon: servers.filter(s => s.category === 'fullmoon').length,
-        prehistoric: servers.filter(s => s.category === 'prehistoric').length,
-        boss: servers.filter(s => s.category === 'boss').length,
-        haki: servers.filter(s => s.category === 'haki').length,
-        sword: servers.filter(s => s.category === 'sword').length,
+    // เซิร์ฟเวอร์ใน Sea ที่กำลังเลือกอยู่
+    const visibleInSea = servers.filter(s => activeSeaFilter === 'all' || s.sea.toString() === activeSeaFilter);
+
+    // คำนวณตัวเลขอีเวนต์ตาม Sea ที่กำลังเลือก
+    const eventCounts = {
+        all: visibleInSea.length,
+        mirage: visibleInSea.filter(s => s.category === 'mirage').length,
+        fullmoon: visibleInSea.filter(s => s.category === 'fullmoon').length,
+        prehistoric: visibleInSea.filter(s => s.category === 'prehistoric').length,
+        boss: visibleInSea.filter(s => s.category === 'boss').length,
+        haki: visibleInSea.filter(s => s.category === 'haki').length,
+        sword: visibleInSea.filter(s => s.category === 'sword').length
+    };
+
+    // อัปเดตตัวเลข Badge ฝั่ง EVENTS
+    for (const [category, count] of Object.entries(eventCounts)) {
+        const badgeEl = document.getElementById(`count-${category}`);
+        if (badgeEl) {
+            badgeEl.textContent = count;
+        }
+
+        // เพิ่ม class disabled-event หากหมวดหมู่นั้นไม่มีในโลกปัจจุบัน (count === 0)
+        const navItem = document.getElementById(`nav-event-${category}`);
+        if (navItem && category !== 'all') {
+            if (count === 0) {
+                navItem.classList.add('disabled-event');
+                navItem.title = `ไม่มีอีเวนต์นี้ใน ${activeSeaFilter === '2' ? 'Sea 2 (มีเฉพาะใน Sea 3)' : activeSeaFilter === '3' ? 'Sea 3 (มีเฉพาะใน Sea 2)' : 'โลกนี้'}`;
+            } else {
+                navItem.classList.remove('disabled-event');
+                navItem.removeAttribute('title');
+            }
+        }
+    }
+
+    // อัปเดตตัวเลข Badge ฝั่ง SEAS (คงจำนวนเซิร์ฟเวอร์ของแต่ละโลก)
+    const seaCounts = {
         seaAll: servers.length,
         sea1: servers.filter(s => s.sea === 1).length,
         sea2: servers.filter(s => s.sea === 2).length,
-        sea3: servers.filter(s => s.sea === 3).length,
+        sea3: servers.filter(s => s.sea === 3).length
     };
 
-    const countEls = {
-        'count-all': counts.all,
-        'count-mirage': counts.mirage,
-        'count-fullmoon': counts.fullmoon,
-        'count-prehistoric': counts.prehistoric,
-        'count-boss': counts.boss,
-        'count-haki': counts.haki,
-        'count-sword': counts.sword,
-        'count-sea-all': counts.seaAll,
-        'count-sea-1': counts.sea1,
-        'count-sea-2': counts.sea2,
-        'count-sea-3': counts.sea3
+    const seaEls = {
+        'count-sea-all': seaCounts.seaAll,
+        'count-sea-1': seaCounts.sea1,
+        'count-sea-2': seaCounts.sea2,
+        'count-sea-3': seaCounts.sea3
     };
 
-    for (const [id, val] of Object.entries(countEls)) {
+    for (const [id, val] of Object.entries(seaEls)) {
         const el = document.getElementById(id);
         if (el) el.textContent = val;
     }
+
+    // อัปเดตป้ายแจ้งเตือนด้านบน EVENTS
+    const hintEl = document.getElementById('seaEventHint');
+    if (hintEl) {
+        if (activeSeaFilter === 'all') {
+            hintEl.textContent = 'All Seas (90)';
+        } else {
+            hintEl.textContent = `Filtered in Sea ${activeSeaFilter} (${visibleInSea.length})`;
+        }
+    }
+}
+
+// อัปเดตชิปตัวกรองด้านบนของ Grid (Filter Chips Bar)
+function renderFilterChips() {
+    const container = document.getElementById('filterChipsContainer');
+    const statText = document.getElementById('trackerStatText');
+    if (!container) return;
+
+    const filtered = getFilteredServers();
+
+    let html = '';
+
+    // Chip Sea
+    let seaLabel = 'ทุกโลก (All seas)';
+    if (activeSeaFilter === '2') seaLabel = '🚢 Sea 2';
+    if (activeSeaFilter === '3') seaLabel = '⚓ Sea 3';
+    if (activeSeaFilter === '1') seaLabel = '⛵ Sea 1';
+
+    html += `<span class="filter-chip active-chip">🌊 โลก: <strong>${seaLabel}</strong></span>`;
+
+    // Chip Event
+    if (activeEventFilter !== 'all') {
+        const eventNames = {
+            mirage: '🏝️ Mirage Island',
+            fullmoon: '🌕 Full Moon',
+            prehistoric: '🌋 Prehistoric Island',
+            boss: '👹 Raid Boss',
+            haki: '🎨 Haki Color',
+            sword: '⚔️ Legendary Sword'
+        };
+        html += `<span class="filter-chip active-chip">🎯 อีเวนต์: <strong>${eventNames[activeEventFilter] || activeEventFilter}</strong></span>`;
+    }
+
+    // Chip Search
+    if (searchQuery) {
+        html += `<span class="filter-chip active-chip">🔍 ค้นหา: <strong>"${searchQuery}"</strong></span>`;
+    }
+
+    // Chip Total Count
+    html += `<span class="filter-chip">ห้องที่พบ: <strong>${filtered.length}</strong></span>`;
+
+    // ปุ่ม Reset หากมีการกรอง
+    if (activeSeaFilter !== 'all' || activeEventFilter !== 'all' || searchQuery) {
+        html += `<button class="btn-reset-filters" onclick="resetAllFilters()">✕ ล้างตัวกรองทั้งหมด</button>`;
+    }
+
+    container.innerHTML = html;
+
+    if (statText) {
+        statText.textContent = `${filtered.length} SERVERS MATCHED`;
+    }
+}
+
+// รีเซ็ตตัวกรองทั้งหมดเป็นค่าเริ่มต้น
+function resetAllFilters() {
+    activeSeaFilter = 'all';
+    activeEventFilter = 'all';
+    searchQuery = '';
+
+    const searchInput = document.getElementById('trackerSearch');
+    if (searchInput) searchInput.value = '';
+
+    const clearBtn = document.getElementById('searchClearBtn');
+    if (clearBtn) clearBtn.style.display = 'none';
+
+    // อัปเดต active บน UI
+    document.querySelectorAll('.nav-item[data-event]').forEach(i => i.classList.remove('active'));
+    const defEvent = document.getElementById('nav-event-all');
+    if (defEvent) defEvent.classList.add('active');
+
+    document.querySelectorAll('.nav-item[data-sea]').forEach(i => i.classList.remove('active'));
+    const defSea = document.getElementById('nav-sea-all');
+    if (defSea) defSea.classList.add('active');
+
+    updateSidebarCounts();
+    renderFilterChips();
+    renderServerCards();
 }
 
 // กรองและจัดเรียงข้อมูลเซิร์ฟเวอร์
@@ -357,8 +489,9 @@ function getFilteredServers() {
             const q = searchQuery.toLowerCase();
             const matchTitle = server.title.toLowerCase().includes(q);
             const matchSubtitle = server.subtitle.toLowerCase().includes(q);
+            const matchLocation = (server.location || '').toLowerCase().includes(q);
             const matchSea = `sea ${server.sea}`.includes(q);
-            if (!matchTitle && !matchSubtitle && !matchSea) return false;
+            if (!matchTitle && !matchSubtitle && !matchLocation && !matchSea) return false;
         }
         return true;
     }).sort((a, b) => {
@@ -378,14 +511,40 @@ function renderServerCards() {
     const grid = document.getElementById('serverGrid');
     if (!grid) return;
 
+    renderFilterChips();
+
     const filtered = getFilteredServers();
 
     if (filtered.length === 0) {
+        // Smart Empty State ป้องกันหน้าเว็บว่างเปล่าและให้คำแนะนำผู้ใช้
+        let emptyTitle = 'ไม่พบห้องเซิร์ฟเวอร์ที่ตรงกับเงื่อนไข';
+        let emptyDesc = 'ลองเปลี่ยนหมวดหมู่อีเวนต์ หรือสลับไปยังโลก (Sea) อื่นที่มีอีเวนต์นี้';
+        let switchButton = '';
+
+        if (activeSeaFilter === '2' && ['mirage', 'fullmoon', 'prehistoric'].includes(activeEventFilter)) {
+            const eventTh = activeEventFilter === 'mirage' ? 'เกาะมิราจ (Mirage Island)' :
+                            activeEventFilter === 'fullmoon' ? 'พระจันทร์เต็มดวง (Full Moon)' : 'เกาะดึกดำบรรพ์ (Prehistoric Island)';
+            emptyTitle = `${eventTh} มีเฉพาะใน Sea 3`;
+            emptyDesc = `ในเกม Blox Fruits อีเวนต์ ${eventTh} จะไม่เกิดในโลกที่ 2 เลย คุณสามารถสลับไปดูใน Sea 3 ได้ทันทีครับ`;
+            switchButton = `<button class="btn-empty-switch" onclick="switchSea('3')">⚓ สลับไปดูใน Sea 3 ทันที</button>`;
+        } else if (activeSeaFilter === '3' && activeEventFilter === 'sword') {
+            emptyTitle = 'คนขาย 3 ดาบ (Sword Dealer) มีเฉพาะใน Sea 2';
+            emptyDesc = 'ในเกม Blox Fruits คนขาย 3 ดาบในตำนาน (Shisui, Wando, Saddi) จะเกิดเฉพาะในโลกที่ 2 เท่านั้น';
+            switchButton = `<button class="btn-empty-switch" onclick="switchSea('2')">🚢 สลับไปดูใน Sea 2 ทันที (17 ห้อง)</button>`;
+        } else if (searchQuery) {
+            emptyTitle = `ไม่พบข้อมูลสำหรับ "${searchQuery}"`;
+            emptyDesc = 'ลองพิมพ์ค้นหาด้วยชื่อบอส เช่น Darkbeard, Dough King, Shisui หรือเคลียร์คำค้นหาดูครับ';
+        }
+
         grid.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-dim);">
-                <div style="font-size: 3rem; margin-bottom: 12px;">🔍</div>
-                <h3 style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 8px;">ไม่พบห้องเซิร์ฟเวอร์ที่ตรงกับเงื่อนไข</h3>
-                <p style="font-size: 0.9rem;">ลองเปลี่ยนหมวดหมู่ตัวกรอง หรือค้นหาด้วยคำอื่นดูครับ</p>
+            <div class="empty-state-card">
+                <div class="empty-icon-radar">📡</div>
+                <h3 class="empty-title">${emptyTitle}</h3>
+                <p class="empty-desc">${emptyDesc}</p>
+                <div class="empty-actions">
+                    ${switchButton}
+                    <button class="btn-empty-reset" onclick="resetAllFilters()">🔄 ดูห้องทั้งหมด (Show All)</button>
+                </div>
             </div>
         `;
         return;
@@ -395,11 +554,18 @@ function renderServerCards() {
         const timerClass = getTimerColorClass(server.expiresInSeconds);
         const timeStr = formatTime(server.expiresInSeconds);
         const isFull = server.players >= server.maxPlayers;
-        const playerBadgeClass = isFull ? 'player-count-badge full' : 'player-count-badge';
-        const playerText = isFull ? `${server.players}/${server.maxPlayers} full` : `${server.players}/${server.maxPlayers}`;
+        
+        // เปอร์เซ็นต์ผู้เล่นในห้อง
+        const occupancyPercent = Math.min(100, Math.round((server.players / server.maxPlayers) * 100));
+        const fillClass = server.players >= 12 ? 'fill-high' : server.players >= 10 ? 'fill-medium' : 'fill-low';
+        const playerText = isFull ? `${server.players}/${server.maxPlayers} FULL` : `${server.players}/${server.maxPlayers}`;
+
+        const seaChipClass = server.sea === 2 ? 'sea-2' : 'sea-3';
+        const seaLabel = server.sea === 2 ? '🚢 Sea 2' : '⚓ Sea 3';
 
         return `
             <div class="server-card" data-id="${server.id}">
+                <!-- Top Ribbon -->
                 <div class="card-header">
                     <button class="card-details-btn" onclick="openDetailsModal('${server.id}')">
                         <span>ℹ️</span> Details
@@ -410,23 +576,32 @@ function renderServerCards() {
                     </div>
                 </div>
                 
+                <!-- Media / Banner with vignette -->
                 <div class="card-media">
                     <img src="${server.image}" alt="${server.title}" loading="lazy">
+                    <div class="card-media-fade"></div>
                     <span class="card-category-tag ${server.tagClass}">${server.categoryName}</span>
+                    <span class="card-sea-chip ${seaChipClass}">${seaLabel}</span>
                 </div>
 
+                <!-- Body Content -->
                 <div class="card-body">
-                    <div class="card-title">${server.title}</div>
+                    <div class="card-title-row">
+                        <span class="card-category-label">${server.title}</span>
+                    </div>
                     <div class="card-subtitle">${server.subtitle}</div>
+                    <div class="card-location-snippet">📍 ${server.location || 'กำลังสปอว์น'}</div>
                     
-                    <div class="card-footer-meta">
-                        <div class="meta-sea">
-                            <span>🌊 Sea ${server.sea}</span>
+                    <!-- Occupancy Bar -->
+                    <div class="card-occupancy-row">
+                        <div class="occupancy-track">
+                            <div class="occupancy-fill ${fillClass}" style="width: ${occupancyPercent}%;"></div>
                         </div>
-                        <span class="${playerBadgeClass}">${playerText}</span>
+                        <span class="player-count-text ${isFull ? 'is-full' : ''}">${playerText}</span>
                     </div>
                 </div>
 
+                <!-- Action Button -->
                 <div class="card-action">
                     <button class="btn-teleport" onclick="copyTeleportScript('${server.placeId}', '${server.jobId}', this)">
                         <span>⚡</span> Tap to copy Teleport
@@ -435,6 +610,18 @@ function renderServerCards() {
             </div>
         `;
     }).join('');
+}
+
+// สลับโลกอย่างรวดเร็ว (สำหรับ Empty State Action)
+function switchSea(targetSea) {
+    activeSeaFilter = targetSea;
+    
+    document.querySelectorAll('.nav-item[data-sea]').forEach(i => i.classList.remove('active'));
+    const targetEl = document.getElementById(`nav-sea-${targetSea}`);
+    if (targetEl) targetEl.classList.add('active');
+
+    updateSidebarCounts();
+    renderServerCards();
 }
 
 // คัดลอกสคริปต์วาร์ปเข้าห้อง
@@ -447,7 +634,7 @@ function copyTeleportScript(placeId, jobId, buttonEl) {
         if (buttonEl) {
             const originalText = buttonEl.innerHTML;
             buttonEl.classList.add('copied');
-            buttonEl.innerHTML = '<span>✅</span> Copied Teleport!';
+            buttonEl.innerHTML = '<span>✅</span> COPIED TO CLIPBOARD!';
             setTimeout(() => {
                 buttonEl.classList.remove('copied');
                 buttonEl.innerHTML = originalText;
@@ -484,23 +671,47 @@ function showToast(message) {
 }
 
 // เปิดหน้าต่าง Modal ดูรายละเอียดเต็ม
+let currentModalServer = null;
+
 function openDetailsModal(serverId) {
     const server = servers.find(s => s.id === serverId);
     if (!server) return;
+
+    currentModalServer = server;
 
     const modal = document.getElementById('detailsModal');
     if (!modal) return;
 
     document.getElementById('modalTitle').textContent = `${server.title} - ${server.subtitle}`;
-    document.getElementById('modalCategory').textContent = server.categoryName;
+    
+    const tagEl = document.getElementById('modalCategoryTag');
+    if (tagEl) {
+        tagEl.textContent = server.categoryName;
+        tagEl.className = `modal-header-tag ${server.tagClass}`;
+    }
+
     document.getElementById('modalSea').textContent = `Sea ${server.sea}`;
     document.getElementById('modalPlayers').textContent = `${server.players}/${server.maxPlayers}`;
     document.getElementById('modalPlaceId').textContent = server.placeId;
-    document.getElementById('modalJobId').textContent = server.jobId;
     document.getElementById('modalTeleportScript').textContent = `game:GetService("TeleportService"):TeleportToPlaceInstance(${server.placeId}, "${server.jobId}", game.Players.LocalPlayer)`;
     document.getElementById('modalDetailsText').textContent = server.details;
 
+    const hopBtn = document.getElementById('btnModalHop');
+    if (hopBtn) {
+        hopBtn.onclick = () => {
+            copyTeleportScript(server.placeId, server.jobId, hopBtn);
+        };
+    }
+
     modal.classList.add('active');
+}
+
+function copyModalScript() {
+    if (!currentModalServer) return;
+    const luaScript = `game:GetService("TeleportService"):TeleportToPlaceInstance(${currentModalServer.placeId}, "${currentModalServer.jobId}", game.Players.LocalPlayer)`;
+    navigator.clipboard.writeText(luaScript).then(() => {
+        showToast('📋 คัดลอก Teleport Script เรียบร้อย!');
+    });
 }
 
 function closeDetailsModal() {
@@ -520,6 +731,7 @@ function startCountdownTimer() {
                 // หมดเวลา -> เกิดใหม่เป็นอีเวนต์สุ่มที่ยังคงอยู่ในขอบเขตประเภทและ Sea เดิมอย่างถูกต้อง
                 const fresh = createServerItem(server.id.replace('srv-', ''), server.type, server.sea);
                 server.subtitle = fresh.subtitle;
+                server.location = fresh.location;
                 server.image = fresh.image;
                 server.details = fresh.details;
                 server.jobId = fresh.jobId;
@@ -555,9 +767,24 @@ function setupEventListeners() {
     // 1. Event Filters (Sidebar)
     document.querySelectorAll('.nav-item[data-event]').forEach(item => {
         item.addEventListener('click', () => {
+            const eventKey = item.getAttribute('data-event');
+            
+            // ตรวจสอบว่าในโลกปัจจุบันมีอีเวนต์นี้หรือไม่
+            const visibleInSea = servers.filter(s => activeSeaFilter === 'all' || s.sea.toString() === activeSeaFilter);
+            const countInSea = eventKey === 'all' ? visibleInSea.length : visibleInSea.filter(s => s.category === eventKey).length;
+
+            if (countInSea === 0 && eventKey !== 'all') {
+                // มี 0 ห้องใน Sea นี้ -> แนะนำหรือสลับโลกให้อัตโนมัติ
+                if (activeSeaFilter === '2') {
+                    showToast(`💡 ${item.querySelector('.nav-item-left span:last-child').textContent} มีเฉพาะใน Sea 3 (โลก 3) เท่านั้น`);
+                } else if (activeSeaFilter === '3') {
+                    showToast(`💡 ${item.querySelector('.nav-item-left span:last-child').textContent} มีเฉพาะใน Sea 2 (โลก 2) เท่านั้น`);
+                }
+            }
+
             document.querySelectorAll('.nav-item[data-event]').forEach(i => i.classList.remove('active'));
             item.classList.add('active');
-            activeEventFilter = item.getAttribute('data-event');
+            activeEventFilter = eventKey;
             renderServerCards();
         });
     });
@@ -565,19 +792,58 @@ function setupEventListeners() {
     // 2. Sea Filters (Sidebar)
     document.querySelectorAll('.nav-item[data-sea]').forEach(item => {
         item.addEventListener('click', () => {
+            const selectedSea = item.getAttribute('data-sea');
+            
+            // Sea 1 ไม่มีบอสหรืออีเวนต์ฟาร์ม
+            if (selectedSea === '1') {
+                showToast('⛵ Sea 1 ไม่มีบอสโลกหรืออีเวนต์สำหรับฮ็อปเซิร์ฟเวอร์ครับ');
+                return;
+            }
+
             document.querySelectorAll('.nav-item[data-sea]').forEach(i => i.classList.remove('active'));
             item.classList.add('active');
-            activeSeaFilter = item.getAttribute('data-sea');
+            activeSeaFilter = selectedSea;
+
+            // SMART SWITCH: หากอีเวนต์เดิมที่เลือกไว้ ไม่มีใน Sea ใหม่ (เช่น กำลังเลือก Mirage แล้วกดเลือก Sea 2)
+            // ให้สลับ activeEventFilter เป็น 'all' โดยอัตโนมัติ เพื่อไม่ให้ผู้ใช้เจอกริดว่างเปล่า!
+            const visibleInNewSea = servers.filter(s => activeSeaFilter === 'all' || s.sea.toString() === activeSeaFilter);
+            if (activeEventFilter !== 'all') {
+                const countForEvent = visibleInNewSea.filter(s => s.category === activeEventFilter).length;
+                if (countForEvent === 0) {
+                    activeEventFilter = 'all';
+                    document.querySelectorAll('.nav-item[data-event]').forEach(i => i.classList.remove('active'));
+                    const allEventEl = document.getElementById('nav-event-all');
+                    if (allEventEl) allEventEl.classList.add('active');
+                }
+            }
+
+            // อัปเดตตัวเลขใน EVENTS ให้ตรงตาม Sea ที่กดเลือกทันที!
+            updateSidebarCounts();
             renderServerCards();
         });
     });
 
     // 3. Search Bar
     const searchInput = document.getElementById('trackerSearch');
+    const clearBtn = document.getElementById('searchClearBtn');
+
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             searchQuery = e.target.value.trim();
+            if (clearBtn) {
+                clearBtn.style.display = searchQuery ? 'block' : 'none';
+            }
             renderServerCards();
+        });
+    }
+
+    if (clearBtn && searchInput) {
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            searchQuery = '';
+            clearBtn.style.display = 'none';
+            renderServerCards();
+            searchInput.focus();
         });
     }
 
@@ -599,7 +865,6 @@ function setupEventListeners() {
             sidebar.classList.toggle('active');
         });
 
-        // ปิดเมื่อคลิกนอก Sidebar บนมือถือ
         document.addEventListener('click', (e) => {
             if (window.innerWidth <= 900 && 
                 !sidebar.contains(e.target) && 

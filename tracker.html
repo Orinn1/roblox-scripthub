@@ -13,10 +13,10 @@
     <meta property="og:image" content="Banner.png">
     <meta name="theme-color" content="#00f3ff">
 
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Outfit (Cyber/Gamer headings) & Kanit (Clean Thai & UI) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
     <!-- Icons & Favicon -->
     <link rel="icon" type="image/x-icon" href="Logo.ico">
@@ -36,64 +36,103 @@
                     <div class="brand-icon">
                         <img src="Logo.ico" alt="BlacklistScriptx Logo">
                     </div>
-                    <div class="brand-name">Blacklist<span>Track</span></div>
+                    <div class="brand-info">
+                        <div class="brand-name">Blacklist<span>Track</span></div>
+                        <div class="brand-tag">RADAR PRO</div>
+                    </div>
                 </a>
             </div>
 
             <div class="sidebar-scroll">
                 <!-- EVENTS FILTER -->
-                <div>
-                    <div class="nav-section-title">EVENTS</div>
+                <div class="nav-group">
+                    <div class="nav-section-title">
+                        <span>EVENTS</span>
+                        <span class="nav-hint" id="seaEventHint">Filtered by Sea</span>
+                    </div>
                     <ul class="nav-menu">
-                        <li class="nav-item active" data-event="all">
-                            <div class="nav-item-left">🌐 All</div>
+                        <li class="nav-item active" data-event="all" id="nav-event-all">
+                            <div class="nav-item-left">
+                                <span class="nav-icon-box box-all">🌐</span>
+                                <span>All Events</span>
+                            </div>
                             <span class="nav-badge" id="count-all">0</span>
                         </li>
-                        <li class="nav-item" data-event="mirage">
-                            <div class="nav-item-left">🏝️ Mirage</div>
+                        <li class="nav-item" data-event="mirage" id="nav-event-mirage">
+                            <div class="nav-item-left">
+                                <span class="nav-icon-box box-mirage">🏝️</span>
+                                <span>Mirage</span>
+                            </div>
                             <span class="nav-badge" id="count-mirage">0</span>
                         </li>
-                        <li class="nav-item" data-event="fullmoon">
-                            <div class="nav-item-left">🌕 Full Moon</div>
+                        <li class="nav-item" data-event="fullmoon" id="nav-event-fullmoon">
+                            <div class="nav-item-left">
+                                <span class="nav-icon-box box-fullmoon">🌕</span>
+                                <span>Full Moon</span>
+                            </div>
                             <span class="nav-badge" id="count-fullmoon">0</span>
                         </li>
-                        <li class="nav-item" data-event="prehistoric">
-                            <div class="nav-item-left">🌋 Prehistoric</div>
+                        <li class="nav-item" data-event="prehistoric" id="nav-event-prehistoric">
+                            <div class="nav-item-left">
+                                <span class="nav-icon-box box-prehistoric">🌋</span>
+                                <span>Prehistoric</span>
+                            </div>
                             <span class="nav-badge" id="count-prehistoric">0</span>
                         </li>
-                        <li class="nav-item" data-event="boss">
-                            <div class="nav-item-left">👹 Boss</div>
+                        <li class="nav-item" data-event="boss" id="nav-event-boss">
+                            <div class="nav-item-left">
+                                <span class="nav-icon-box box-boss">👹</span>
+                                <span>Boss</span>
+                            </div>
                             <span class="nav-badge" id="count-boss">0</span>
                         </li>
-                        <li class="nav-item" data-event="haki">
-                            <div class="nav-item-left">🎨 Haki Color</div>
+                        <li class="nav-item" data-event="haki" id="nav-event-haki">
+                            <div class="nav-item-left">
+                                <span class="nav-icon-box box-haki">🎨</span>
+                                <span>Haki Color</span>
+                            </div>
                             <span class="nav-badge" id="count-haki">0</span>
                         </li>
-                        <li class="nav-item" data-event="sword">
-                            <div class="nav-item-left">⚔️ Sword</div>
+                        <li class="nav-item" data-event="sword" id="nav-event-sword">
+                            <div class="nav-item-left">
+                                <span class="nav-icon-box box-sword">⚔️</span>
+                                <span>Sword</span>
+                            </div>
                             <span class="nav-badge" id="count-sword">0</span>
                         </li>
                     </ul>
                 </div>
 
                 <!-- SEAS FILTER -->
-                <div>
+                <div class="nav-group">
                     <div class="nav-section-title">SEAS</div>
                     <ul class="nav-menu">
-                        <li class="nav-item active" data-sea="all">
-                            <div class="nav-item-left">🌊 All seas</div>
+                        <li class="nav-item active" data-sea="all" id="nav-sea-all">
+                            <div class="nav-item-left">
+                                <span class="nav-icon-box box-sea-all">🌊</span>
+                                <span>All seas</span>
+                            </div>
                             <span class="nav-badge" id="count-sea-all">0</span>
                         </li>
-                        <li class="nav-item" data-sea="1">
-                            <div class="nav-item-left">⛵ Sea 1</div>
+                        <li class="nav-item disabled-sea" data-sea="1" id="nav-sea-1">
+                            <div class="nav-item-left">
+                                <span class="nav-icon-box box-sea-1">⛵</span>
+                                <span>Sea 1</span>
+                            </div>
                             <span class="nav-badge" id="count-sea-1">0</span>
                         </li>
-                        <li class="nav-item" data-sea="2">
-                            <div class="nav-item-left">🚢 Sea 2</div>
+                        <li class="nav-item" data-sea="2" id="nav-sea-2">
+                            <div class="nav-item-left">
+                                <span class="nav-icon-box box-sea-2">🚢</span>
+                                <span>Sea 2</span>
+                            </div>
                             <span class="nav-badge" id="count-sea-2">0</span>
                         </li>
-                        <li class="nav-item" data-sea="3">
-                            <div class="nav-item-left">⚓ Sea 3</div>
+                        <li class="nav-item" data-sea="3" id="nav-sea-3">
+                            <div class="nav-item-left">
+                                <span class="nav-icon-box box-sea-3">⚓</span>
+                                <span>Sea 3</span>
+                            </div>
                             <span class="nav-badge" id="count-sea-3">0</span>
                         </li>
                     </ul>
@@ -128,25 +167,46 @@
                             <line x1="3" y1="18" x2="21" y2="18"></line>
                         </svg>
                     </button>
-                    <h1 class="page-title">
-                        <span>Blacklist Track Server</span>
-                        <span class="live-dot" title="Live Connection"></span>
-                    </h1>
+                    <div class="page-title-group">
+                        <h1 class="page-title">
+                            <span>Blacklist Track Server</span>
+                            <span class="live-dot" title="Live Connection"></span>
+                        </h1>
+                        <span class="page-subtitle">Blox Fruits Live Hop Radar & Instant Teleport</span>
+                    </div>
                 </div>
 
                 <div class="topbar-right">
                     <div class="search-box">
                         <span class="search-icon">🔍</span>
-                        <input type="text" id="trackerSearch" placeholder="Search a colour, sword or boss...">
+                        <input type="text" id="trackerSearch" placeholder="ค้นหา เช่น Darkbeard, Mirage, Shisui..." autocomplete="off">
+                        <button class="search-clear-btn" id="searchClearBtn" style="display: none;" title="ล้างการค้นหา">&times;</button>
                     </div>
 
                     <div class="sort-group">
-                        <button class="sort-btn active" data-sort="ending">Ending soonest</button>
-                        <button class="sort-btn" data-sort="recent">Just found</button>
-                        <button class="sort-btn" data-sort="space">Most space</button>
+                        <button class="sort-btn active" data-sort="ending">
+                            <span>⏱️</span> Ending soonest
+                        </button>
+                        <button class="sort-btn" data-sort="recent">
+                            <span>✨</span> Just found
+                        </button>
+                        <button class="sort-btn" data-sort="space">
+                            <span>👥</span> Most space
+                        </button>
                     </div>
                 </div>
             </header>
+
+            <!-- Active Filters & Stats Strip -->
+            <div class="tracker-filter-bar">
+                <div class="filter-chips-container" id="filterChipsContainer">
+                    <!-- Dynamic chips generated by tracker.js -->
+                </div>
+                <div class="tracker-live-stat">
+                    <span class="radar-ping"></span>
+                    <span id="trackerStatText">90 SERVERS SYNCED</span>
+                </div>
+            </div>
 
             <!-- Server Cards Grid -->
             <section class="tracker-content">
@@ -163,41 +223,53 @@
     <div class="modal-overlay" id="detailsModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">Server Details</h3>
+                <div class="modal-header-left">
+                    <span class="modal-header-tag" id="modalCategoryTag">BOSS</span>
+                    <h3 class="modal-title" id="modalTitle">Server Details</h3>
+                </div>
                 <button class="modal-close-btn" onclick="closeDetailsModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="modal-row">
-                    <span class="modal-label">หมวดหมู่อีเวนต์:</span>
-                    <span class="modal-val" id="modalCategory">-</span>
+                <div class="modal-meta-grid">
+                    <div class="modal-meta-card">
+                        <span class="meta-card-label">โลก (Sea)</span>
+                        <span class="meta-card-val text-cyan" id="modalSea">Sea 2</span>
+                    </div>
+                    <div class="modal-meta-card">
+                        <span class="meta-card-label">ผู้เล่นในห้อง</span>
+                        <span class="meta-card-val" id="modalPlayers">9/12</span>
+                    </div>
+                    <div class="modal-meta-card">
+                        <span class="meta-card-label">Place ID</span>
+                        <span class="meta-card-val mono" id="modalPlaceId">4442272183</span>
+                    </div>
                 </div>
-                <div class="modal-row">
-                    <span class="modal-label">โลก (Sea):</span>
-                    <span class="modal-val" id="modalSea">-</span>
+
+                <div class="modal-details-box">
+                    <div class="modal-box-title">📖 ข้อมูลและการสปอว์น</div>
+                    <p class="modal-desc" id="modalDetailsText">-</p>
                 </div>
-                <div class="modal-row">
-                    <span class="modal-label">ผู้เล่นในห้อง:</span>
-                    <span class="modal-val" id="modalPlayers">-</span>
+
+                <div class="modal-code-box">
+                    <div class="modal-code-header">
+                        <span>⚡ Roblox Lua Teleport Script</span>
+                        <button class="btn-copy-code" onclick="copyModalScript()">คัดลอกสคริปต์</button>
+                    </div>
+                    <pre><code id="modalTeleportScript">game:GetService("TeleportService"):TeleportToPlaceInstance(...)</code></pre>
                 </div>
-                <div class="modal-row">
-                    <span class="modal-label">Place ID:</span>
-                    <span class="modal-val" id="modalPlaceId">-</span>
-                </div>
-                <div class="modal-row" style="flex-direction: column; gap: 6px;">
-                    <span class="modal-label">Job ID:</span>
-                    <div class="code-box" id="modalJobId">-</div>
-                </div>
-                <div class="modal-row" style="flex-direction: column; gap: 6px;">
-                    <span class="modal-label">Teleport Script (นำไปรันในตัวรันเพื่อวาร์ป):</span>
-                    <div class="code-box" id="modalTeleportScript">-</div>
-                </div>
-                <div class="modal-row" style="flex-direction: column; gap: 4px;">
-                    <span class="modal-label">รายละเอียด:</span>
-                    <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;" id="modalDetailsText">-</p>
+
+                <div class="modal-actions">
+                    <button class="btn-modal-primary" id="btnModalHop">
+                        <span>⚡</span> คัดลอกและเปิดตัวรัน
+                    </button>
+                    <button class="btn-modal-secondary" onclick="closeDetailsModal()">ปิดหน้าต่าง</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <script src="js/tracker.js"></script>
 </body>
