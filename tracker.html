@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blacklist Track Server - Blox Fruits Live Server Hopper</title>
+    <meta name="description" content="ระบบค้นหาและติดตามห้องเซิร์ฟเวอร์สด Blox Fruits: เกาะมิราจ (Mirage Island), พระจันทร์เต็มดวง (Full Moon), บอสใหญ่ (Boss), ฮาคิสี และคนขายดาบในตำนาน วาร์ปเข้าห้องได้ทันที">
+
+    <!-- Open Graph / Meta -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Blacklist Track Server - Blox Fruits Live Tracker">
+    <meta property="og:description" content="ส่องห้องเซิร์ฟเวอร์สด Blox Fruits เกาะมิราจ ฟูลมูน บอสเค้ก ดาบโซโล พร้อมคำสั่งวาร์ป">
+    <meta property="og:image" content="Banner.png">
+    <meta name="theme-color" content="#00f3ff">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Icons & Favicon -->
+    <link rel="icon" type="image/x-icon" href="Logo.ico">
+    <link rel="shortcut icon" href="Logo.ico">
+
+    <link rel="stylesheet" href="css/tracker.css">
+</head>
+<body>
+
+    <div class="tracker-wrapper">
+        <!-- ===================================================================
+             SIDEBAR FILTER
+             =================================================================== -->
+        <aside class="tracker-sidebar" id="trackerSidebar">
+            <div class="sidebar-header">
+                <a href="index.html" class="brand-link">
+                    <div class="brand-icon">
+                        <img src="Logo.ico" alt="BlacklistScriptx Logo">
+                    </div>
+                    <div class="brand-name">Blacklist<span>Track</span></div>
+                </a>
+            </div>
+
+            <div class="sidebar-scroll">
+                <!-- EVENTS FILTER -->
+                <div>
+                    <div class="nav-section-title">EVENTS</div>
+                    <ul class="nav-menu">
+                        <li class="nav-item active" data-event="all">
+                            <div class="nav-item-left">🌐 All</div>
+                            <span class="nav-badge" id="count-all">0</span>
+                        </li>
+                        <li class="nav-item" data-event="mirage">
+                            <div class="nav-item-left">🏝️ Mirage</div>
+                            <span class="nav-badge" id="count-mirage">0</span>
+                        </li>
+                        <li class="nav-item" data-event="fullmoon">
+                            <div class="nav-item-left">🌕 Full Moon</div>
+                            <span class="nav-badge" id="count-fullmoon">0</span>
+                        </li>
+                        <li class="nav-item" data-event="prehistoric">
+                            <div class="nav-item-left">🌋 Prehistoric</div>
+                            <span class="nav-badge" id="count-prehistoric">0</span>
+                        </li>
+                        <li class="nav-item" data-event="boss">
+                            <div class="nav-item-left">👹 Boss</div>
+                            <span class="nav-badge" id="count-boss">0</span>
+                        </li>
+                        <li class="nav-item" data-event="haki">
+                            <div class="nav-item-left">🎨 Haki Color</div>
+                            <span class="nav-badge" id="count-haki">0</span>
+                        </li>
+                        <li class="nav-item" data-event="sword">
+                            <div class="nav-item-left">⚔️ Sword</div>
+                            <span class="nav-badge" id="count-sword">0</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- SEAS FILTER -->
+                <div>
+                    <div class="nav-section-title">SEAS</div>
+                    <ul class="nav-menu">
+                        <li class="nav-item active" data-sea="all">
+                            <div class="nav-item-left">🌊 All seas</div>
+                            <span class="nav-badge" id="count-sea-all">0</span>
+                        </li>
+                        <li class="nav-item" data-sea="1">
+                            <div class="nav-item-left">⛵ Sea 1</div>
+                            <span class="nav-badge" id="count-sea-1">0</span>
+                        </li>
+                        <li class="nav-item" data-sea="2">
+                            <div class="nav-item-left">🚢 Sea 2</div>
+                            <span class="nav-badge" id="count-sea-2">0</span>
+                        </li>
+                        <li class="nav-item" data-sea="3">
+                            <div class="nav-item-left">⚓ Sea 3</div>
+                            <span class="nav-badge" id="count-sea-3">0</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- SIDEBAR FOOTER -->
+            <div class="sidebar-footer">
+                <a href="https://discord.com" target="_blank" class="btn-discord" id="discordInviteLink">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                    </svg>
+                    <span>Join Discord</span>
+                </a>
+                <a href="index.html" class="btn-back-home">
+                    <span>← กลับหน้าสคริปต์ฮับ</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ===================================================================
+             MAIN CONTENT
+             =================================================================== -->
+        <main class="tracker-main">
+            <!-- Topbar -->
+            <header class="tracker-topbar">
+                <div class="topbar-left">
+                    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <h1 class="page-title">
+                        <span>Blacklist Track Server</span>
+                        <span class="live-dot" title="Live Connection"></span>
+                    </h1>
+                </div>
+
+                <div class="topbar-right">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="trackerSearch" placeholder="Search a colour, sword or boss...">
+                    </div>
+
+                    <div class="sort-group">
+                        <button class="sort-btn active" data-sort="ending">Ending soonest</button>
+                        <button class="sort-btn" data-sort="recent">Just found</button>
+                        <button class="sort-btn" data-sort="space">Most space</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Server Cards Grid -->
+            <section class="tracker-content">
+                <div class="server-grid" id="serverGrid">
+                    <!-- Cards will be dynamically rendered by js/tracker.js -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ===================================================================
+         DETAILS MODAL
+         =================================================================== -->
+    <div class="modal-overlay" id="detailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Server Details</h3>
+                <button class="modal-close-btn" onclick="closeDetailsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-row">
+                    <span class="modal-label">หมวดหมู่อีเวนต์:</span>
+                    <span class="modal-val" id="modalCategory">-</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">โลก (Sea):</span>
+                    <span class="modal-val" id="modalSea">-</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">ผู้เล่นในห้อง:</span>
+                    <span class="modal-val" id="modalPlayers">-</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Place ID:</span>
+                    <span class="modal-val" id="modalPlaceId">-</span>
+                </div>
+                <div class="modal-row" style="flex-direction: column; gap: 6px;">
+                    <span class="modal-label">Job ID:</span>
+                    <div class="code-box" id="modalJobId">-</div>
+                </div>
+                <div class="modal-row" style="flex-direction: column; gap: 6px;">
+                    <span class="modal-label">Teleport Script (นำไปรันในตัวรันเพื่อวาร์ป):</span>
+                    <div class="code-box" id="modalTeleportScript">-</div>
+                </div>
+                <div class="modal-row" style="flex-direction: column; gap: 4px;">
+                    <span class="modal-label">รายละเอียด:</span>
+                    <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;" id="modalDetailsText">-</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/tracker.js"></script>
+</body>
+</html>
