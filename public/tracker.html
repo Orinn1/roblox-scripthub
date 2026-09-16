@@ -13,10 +13,10 @@
     <meta property="og:image" content="Banner.png">
     <meta name="theme-color" content="#00f3ff">
 
-    <!-- Google Fonts: Outfit (Cyber/Gamer headings) & Kanit (Clean Thai & UI) -->
+    <!-- Google Fonts: Outfit & Kanit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Icons & Favicon -->
     <link rel="icon" type="image/x-icon" href="Logo.ico">
@@ -36,103 +36,64 @@
                     <div class="brand-icon">
                         <img src="Logo.ico" alt="BlacklistScriptx Logo">
                     </div>
-                    <div class="brand-info">
-                        <div class="brand-name">Blacklist<span>Track</span></div>
-                        <div class="brand-tag">RADAR PRO</div>
-                    </div>
+                    <div class="brand-name">Blacklist<span>Track</span></div>
                 </a>
             </div>
 
             <div class="sidebar-scroll">
                 <!-- EVENTS FILTER -->
-                <div class="nav-group">
-                    <div class="nav-section-title">
-                        <span>EVENTS</span>
-                        <span class="nav-hint" id="seaEventHint">Filtered by Sea</span>
-                    </div>
+                <div>
+                    <div class="nav-section-title">EVENTS</div>
                     <ul class="nav-menu">
                         <li class="nav-item active" data-event="all" id="nav-event-all">
-                            <div class="nav-item-left">
-                                <span class="nav-icon-box box-all">🌐</span>
-                                <span>All Events</span>
-                            </div>
+                            <div class="nav-item-left">🌐 All</div>
                             <span class="nav-badge" id="count-all">0</span>
                         </li>
                         <li class="nav-item" data-event="mirage" id="nav-event-mirage">
-                            <div class="nav-item-left">
-                                <span class="nav-icon-box box-mirage">🏝️</span>
-                                <span>Mirage</span>
-                            </div>
+                            <div class="nav-item-left">🏝️ Mirage</div>
                             <span class="nav-badge" id="count-mirage">0</span>
                         </li>
                         <li class="nav-item" data-event="fullmoon" id="nav-event-fullmoon">
-                            <div class="nav-item-left">
-                                <span class="nav-icon-box box-fullmoon">🌕</span>
-                                <span>Full Moon</span>
-                            </div>
+                            <div class="nav-item-left">🌕 Full Moon</div>
                             <span class="nav-badge" id="count-fullmoon">0</span>
                         </li>
                         <li class="nav-item" data-event="prehistoric" id="nav-event-prehistoric">
-                            <div class="nav-item-left">
-                                <span class="nav-icon-box box-prehistoric">🌋</span>
-                                <span>Prehistoric</span>
-                            </div>
+                            <div class="nav-item-left">🌋 Prehistoric</div>
                             <span class="nav-badge" id="count-prehistoric">0</span>
                         </li>
                         <li class="nav-item" data-event="boss" id="nav-event-boss">
-                            <div class="nav-item-left">
-                                <span class="nav-icon-box box-boss">👹</span>
-                                <span>Boss</span>
-                            </div>
+                            <div class="nav-item-left">👹 Boss</div>
                             <span class="nav-badge" id="count-boss">0</span>
                         </li>
                         <li class="nav-item" data-event="haki" id="nav-event-haki">
-                            <div class="nav-item-left">
-                                <span class="nav-icon-box box-haki">🎨</span>
-                                <span>Haki Color</span>
-                            </div>
+                            <div class="nav-item-left">🎨 Haki Color</div>
                             <span class="nav-badge" id="count-haki">0</span>
                         </li>
                         <li class="nav-item" data-event="sword" id="nav-event-sword">
-                            <div class="nav-item-left">
-                                <span class="nav-icon-box box-sword">⚔️</span>
-                                <span>Sword</span>
-                            </div>
+                            <div class="nav-item-left">⚔️ Sword</div>
                             <span class="nav-badge" id="count-sword">0</span>
                         </li>
                     </ul>
                 </div>
 
                 <!-- SEAS FILTER -->
-                <div class="nav-group">
+                <div>
                     <div class="nav-section-title">SEAS</div>
                     <ul class="nav-menu">
                         <li class="nav-item active" data-sea="all" id="nav-sea-all">
-                            <div class="nav-item-left">
-                                <span class="nav-icon-box box-sea-all">🌊</span>
-                                <span>All seas</span>
-                            </div>
+                            <div class="nav-item-left">🌊 All seas</div>
                             <span class="nav-badge" id="count-sea-all">0</span>
                         </li>
-                        <li class="nav-item disabled-sea" data-sea="1" id="nav-sea-1">
-                            <div class="nav-item-left">
-                                <span class="nav-icon-box box-sea-1">⛵</span>
-                                <span>Sea 1</span>
-                            </div>
+                        <li class="nav-item" data-sea="1" id="nav-sea-1">
+                            <div class="nav-item-left">⛵ Sea 1</div>
                             <span class="nav-badge" id="count-sea-1">0</span>
                         </li>
                         <li class="nav-item" data-sea="2" id="nav-sea-2">
-                            <div class="nav-item-left">
-                                <span class="nav-icon-box box-sea-2">🚢</span>
-                                <span>Sea 2</span>
-                            </div>
+                            <div class="nav-item-left">🚢 Sea 2</div>
                             <span class="nav-badge" id="count-sea-2">0</span>
                         </li>
                         <li class="nav-item" data-sea="3" id="nav-sea-3">
-                            <div class="nav-item-left">
-                                <span class="nav-icon-box box-sea-3">⚓</span>
-                                <span>Sea 3</span>
-                            </div>
+                            <div class="nav-item-left">⚓ Sea 3</div>
                             <span class="nav-badge" id="count-sea-3">0</span>
                         </li>
                     </ul>
@@ -167,46 +128,26 @@
                             <line x1="3" y1="18" x2="21" y2="18"></line>
                         </svg>
                     </button>
-                    <div class="page-title-group">
-                        <h1 class="page-title">
-                            <span>Blacklist Track Server</span>
-                            <span class="live-dot" title="Live Connection"></span>
-                        </h1>
-                        <span class="page-subtitle">Blox Fruits Live Hop Radar & Instant Teleport</span>
-                    </div>
+                    <h1 class="page-title">
+                        <span>Blacklist Track Server</span>
+                        <span class="live-dot" title="Live Connection"></span>
+                    </h1>
                 </div>
 
                 <div class="topbar-right">
                     <div class="search-box">
                         <span class="search-icon">🔍</span>
-                        <input type="text" id="trackerSearch" placeholder="ค้นหา เช่น Darkbeard, Mirage, Shisui..." autocomplete="off">
+                        <input type="text" id="trackerSearch" placeholder="Search a colour, sword or boss..." autocomplete="off">
                         <button class="search-clear-btn" id="searchClearBtn" style="display: none;" title="ล้างการค้นหา">&times;</button>
                     </div>
 
                     <div class="sort-group">
-                        <button class="sort-btn active" data-sort="ending">
-                            <span>⏱️</span> Ending soonest
-                        </button>
-                        <button class="sort-btn" data-sort="recent">
-                            <span>✨</span> Just found
-                        </button>
-                        <button class="sort-btn" data-sort="space">
-                            <span>👥</span> Most space
-                        </button>
+                        <button class="sort-btn active" data-sort="ending">Ending soonest</button>
+                        <button class="sort-btn" data-sort="recent">Just found</button>
+                        <button class="sort-btn" data-sort="space">Most space</button>
                     </div>
                 </div>
             </header>
-
-            <!-- Active Filters & Stats Strip -->
-            <div class="tracker-filter-bar">
-                <div class="filter-chips-container" id="filterChipsContainer">
-                    <!-- Dynamic chips generated by tracker.js -->
-                </div>
-                <div class="tracker-live-stat">
-                    <span class="radar-ping"></span>
-                    <span id="trackerStatText">90 SERVERS SYNCED</span>
-                </div>
-            </div>
 
             <!-- Server Cards Grid -->
             <section class="tracker-content">
@@ -214,6 +155,11 @@
                     <!-- Cards will be dynamically rendered by js/tracker.js -->
                 </div>
             </section>
+
+            <!-- Clean Footer -->
+            <footer class="tracker-footer">
+                <span>© 2026 Blacklist Track. Created by BlacklistScriptx. All rights reserved.</span>
+            </footer>
         </main>
     </div>
 
