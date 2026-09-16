@@ -1178,19 +1178,24 @@ document.addEventListener("DOMContentLoaded", () => {
         "solara": { name: "Solara", priority: 3, officialUrl: "https://getsolara.dev/", desc: "ตัวรัน Windows ฟรีที่นิยมที่สุด ปลอดภัย" },
         "wave": { name: "Wave", priority: 4, officialUrl: "https://getwave.gg/", desc: "ตัวรัน Windows ประสิทธิภาพสูง sUNC 100%" },
         "synapse z": { name: "Synapse Z", priority: 5, officialUrl: "https://z.synapse.do/", desc: "ตัวรัน Windows พรีเมียม ทายาท Synapse" },
-        "vega x": { name: "Vega X", priority: 6, officialUrl: "https://www.vegax.gg/", desc: "ตัวรันมือถือชื่อดัง เมนูใช้งานง่าย" },
-        "xeno": { name: "Xeno", priority: 7, officialUrl: "https://www.xeno.now/", desc: "ตัวรัน Windows ฟรี ฟังก์ชันครบครัน" },
-        "macsploit": { name: "MacSploit", priority: 8, officialUrl: "https://www.raptor.fun/", desc: "ตัวรันสำหรับ macOS ที่ดีที่สุดและเสถียรสุด" },
-        "arceus": { name: "Arceus X", priority: 9, officialUrl: "https://spdmteam.com/", desc: "ตัวรันมือถือยอดนิยมระดับตำนาน" },
-        "fluxus": { name: "Fluxus", priority: 10, officialUrl: "https://fluxteam.net/", desc: "ตัวรันยอดนิยม" },
-        "krnl": { name: "KRNL", priority: 11, officialUrl: "https://krnl.place/", desc: "ตัวรัน Windows ยอดนิยม" }
+        "volt": { name: "Volt", priority: 6, officialUrl: "https://voltbz.net/", desc: "ตัวรัน Windows ระดับพรีเมียม sUNC 100%" },
+        "potassium": { name: "Potassium", priority: 7, officialUrl: "https://www.potassium.pro/", desc: "ตัวรัน Windows sUNC 100%" },
+        "real": { name: "Real", priority: 8, officialUrl: "https://realest.gg", desc: "ตัวรัน Windows ฟรี sUNC 100%" },
+        "vega x": { name: "Vega X", priority: 9, officialUrl: "https://www.vegax.gg/", desc: "ตัวรันมือถือชื่อดัง เมนูใช้งานง่าย" },
+        "xeno": { name: "Xeno", priority: 10, officialUrl: "https://www.xeno.now/", desc: "ตัวรัน Windows ฟรี ฟังก์ชันครบครัน" },
+        "macsploit": { name: "MacSploit", priority: 11, officialUrl: "https://www.raptor.fun/", desc: "ตัวรันสำหรับ macOS ที่ดีที่สุดและเสถียรสุด" },
+        "arceus": { name: "Arceus X", priority: 12, officialUrl: "https://spdmteam.com/", desc: "ตัวรันมือถือยอดนิยมระดับตำนาน" },
+        "fluxus": { name: "Fluxus", priority: 13, officialUrl: "https://fluxteam.net/", desc: "ตัวรันยอดนิยม" },
+        "krnl": { name: "KRNL", priority: 14, officialUrl: "https://krnl.place/", desc: "ตัวรัน Windows ยอดนิยม" }
     };
 
     function getFamousInfo(exp) {
         if (!exp) return null;
         const title = (exp.title || "").toLowerCase().trim();
         for (const [key, info] of Object.entries(FAMOUS_EXPLOITS_MAP)) {
-            if (title.includes(key)) {
+            if (key === "real") {
+                if (title === "real" || title.startsWith("real ")) return info;
+            } else if (title.includes(key)) {
                 return info;
             }
         }
