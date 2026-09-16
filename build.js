@@ -27,7 +27,6 @@ function copyRecursiveSync(src, dest) {
 const itemsToCopy = [
     'index.html',
     'admin.html',
-    'tracker.html',
     'css',
     'js',
     'data',
