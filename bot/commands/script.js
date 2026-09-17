@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const { getScripts } = require('../scripts-helper.js');
 const botConfig = require('../config.js');
 let db = null;
@@ -51,7 +51,7 @@ module.exports = {
         if (!script) {
             return interaction.reply({
                 content: `❌ ไม่พบสคริปต์ที่ตรงกับคำค้นหา: **"${query}"**\nลองใช้คำสั่ง \`/latest\` เพื่อดูสคริปต์ล่าสุด หรือค้นหาด้วยชื่อเกมสั้นๆ เช่น Blox Fruits, Rivals`,
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -119,6 +119,6 @@ module.exports = {
                 .setEmoji('⚡')
         );
 
-        return interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
+        return interaction.reply({ embeds: [embed], components: [row], flags: MessageFlags.Ephemeral });
     }
 };

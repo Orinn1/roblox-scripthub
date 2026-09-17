@@ -550,6 +550,129 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // =========================================================================
+    // Roblox Game Auto-Fetch Helper (Add & Edit Script Forms)
+    // =========================================================================
+    const robloxPlaceInput = document.getElementById("robloxPlaceInput");
+    const btnFetchRobloxGame = document.getElementById("btnFetchRobloxGame");
+    const robloxFetchStatus = document.getElementById("robloxFetchStatus");
+
+    async function handleRobloxAutoFetch(inputEl, btnEl, statusEl, targets) {
+        const rawVal = inputEl ? inputEl.value.trim() : "";
+        if (!rawVal) {
+            if (statusEl) {
+                statusEl.style.display = "block";
+                statusEl.style.background = "rgba(239, 68, 68, 0.12)";
+                statusEl.style.border = "1px solid rgba(239, 68, 68, 0.3)";
+                statusEl.style.color = "#f87171";
+                statusEl.innerHTML = "⚠️ กรุณากรอก Place ID หรือวางลิงก์เกม Roblox ก่อนกดดึงข้อมูล";
+            }
+            if (inputEl) inputEl.focus();
+            return;
+        }
+
+        const originalBtnHtml = btnEl ? btnEl.innerHTML : "";
+        if (btnEl) {
+            btnEl.disabled = true;
+            btnEl.innerHTML = `<i data-lucide="loader-2" class="spin" style="width: 14px; height: 14px;"></i> <span>กำลังดึงข้อมูล...</span>`;
+            refreshIcons();
+        }
+        if (statusEl) {
+            statusEl.style.display = "block";
+            statusEl.style.background = "rgba(14, 165, 233, 0.1)";
+            statusEl.style.border = "1px solid rgba(14, 165, 233, 0.25)";
+            statusEl.style.color = "#38bdf8";
+            statusEl.innerHTML = `<span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="loader-2" class="spin" style="width: 13px; height: 13px;"></i> กำลังเชื่อมต่อเซิร์ฟเวอร์ Roblox เพื่อดึงข้อมูล...</span>`;
+            refreshIcons();
+        }
+
+        try {
+            const resp = await fetch(`/api/roblox-game?input=${encodeURIComponent(rawVal)}`);
+            const data = await resp.json();
+
+            if (!resp.ok || !data.success) {
+                throw new Error(data.error || "ไม่สามารถดึงข้อมูลเกมจาก Roblox ได้");
+            }
+
+            // Auto-fill target fields
+            if (targets.gameInput) {
+                targets.gameInput.value = data.cleanName || data.name;
+            }
+            if (targets.categoryInput && (!targets.categoryInput.value.trim() || targets.categoryInput.value === "all")) {
+                targets.categoryInput.value = data.category || "";
+            }
+            if (targets.titleInput && !targets.titleInput.value.trim()) {
+                targets.titleInput.value = `${data.cleanName || data.name} - Script`;
+            }
+            if (targets.thumbInput) {
+                targets.thumbInput.value = data.thumbnail || data.iconUrl || "";
+                targets.thumbInput.dispatchEvent(new Event("input"));
+            }
+            if (targets.descInput && !targets.descInput.value.trim()) {
+                const playingFmt = Number(data.playing).toLocaleString();
+                targets.descInput.value = `สคริปต์ ${data.cleanName || data.name} (คนเล่นปัจจุบัน ~${playingFmt} คน) อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี`;
+            }
+
+            // Show Success Status
+            const playingCount = Number(data.playing).toLocaleString();
+            if (statusEl) {
+                statusEl.style.display = "block";
+                statusEl.style.background = "rgba(34, 197, 94, 0.12)";
+                statusEl.style.border = "1px solid rgba(34, 197, 94, 0.3)";
+                statusEl.style.color = "#4ade80";
+                statusEl.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                        <span>✓ ดึงข้อมูลสำเร็จ: <b>${escapeHtml(data.name)}</b> (ผู้เล่นสด: <b>${playingCount}</b> คน)</span>
+                        <span style="font-size: 11px; opacity: 0.85;">โดย ${escapeHtml(data.creator.name)}</span>
+                    </div>
+                `;
+            }
+            showToast(`ดึงข้อมูลเกม "${data.cleanName || data.name}" สำเร็จ!`);
+        } catch (err) {
+            console.error("Roblox auto-fetch failed:", err);
+            if (statusEl) {
+                statusEl.style.display = "block";
+                statusEl.style.background = "rgba(239, 68, 68, 0.12)";
+                statusEl.style.border = "1px solid rgba(239, 68, 68, 0.3)";
+                statusEl.style.color = "#f87171";
+                statusEl.innerHTML = `❌ ไม่สามารถดึงข้อมูลได้: ${escapeHtml(err.message)}`;
+            }
+            showToast(err.message, "error");
+        } finally {
+            if (btnEl) {
+                btnEl.disabled = false;
+                btnEl.innerHTML = originalBtnHtml;
+                refreshIcons();
+            }
+        }
+    }
+
+    if (btnFetchRobloxGame) {
+        btnFetchRobloxGame.addEventListener("click", () => {
+            handleRobloxAutoFetch(
+                robloxPlaceInput,
+                btnFetchRobloxGame,
+                robloxFetchStatus,
+                {
+                    gameInput: document.getElementById("sGame"),
+                    categoryInput: document.getElementById("sCategory"),
+                    titleInput: document.getElementById("sTitle"),
+                    thumbInput: document.getElementById("sThumb"),
+                    descInput: document.getElementById("sDesc")
+                }
+            );
+        });
+    }
+
+    if (robloxPlaceInput) {
+        robloxPlaceInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                if (btnFetchRobloxGame) btnFetchRobloxGame.click();
+            }
+        });
+    }
+
     // เพิ่มสคริปต์ใหม่
     addScriptForm.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -608,6 +731,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         addScriptForm.reset();
+        if (robloxPlaceInput) robloxPlaceInput.value = "";
+        if (robloxFetchStatus) robloxFetchStatus.style.display = "none";
         if (sThumbPreviewBox) sThumbPreviewBox.style.display = "none";
         if (sThumbFile) sThumbFile.value = "";
         renderTable();
@@ -738,6 +863,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const editThumbFile = document.getElementById("editThumbFile");
         if (editThumbFile) editThumbFile.value = "";
+        const editRobloxPlaceInput = document.getElementById("editRobloxPlaceInput");
+        if (editRobloxPlaceInput) editRobloxPlaceInput.value = "";
+        const editRobloxFetchStatus = document.getElementById("editRobloxFetchStatus");
+        if (editRobloxFetchStatus) editRobloxFetchStatus.style.display = "none";
     }
 
     const closeEditModalBtn = document.getElementById("closeEditModalBtn");
@@ -797,6 +926,37 @@ document.addEventListener("DOMContentLoaded", () => {
             if (editThumb) editThumb.value = "";
             if (editThumbFile) editThumbFile.value = "";
             if (editThumbPreviewBox) editThumbPreviewBox.style.display = "none";
+        });
+    }
+
+    // Roblox Game Auto-Fetch for Edit Modal
+    const editRobloxPlaceInput = document.getElementById("editRobloxPlaceInput");
+    const btnEditFetchRobloxGame = document.getElementById("btnEditFetchRobloxGame");
+    const editRobloxFetchStatus = document.getElementById("editRobloxFetchStatus");
+
+    if (btnEditFetchRobloxGame) {
+        btnEditFetchRobloxGame.addEventListener("click", () => {
+            handleRobloxAutoFetch(
+                editRobloxPlaceInput,
+                btnEditFetchRobloxGame,
+                editRobloxFetchStatus,
+                {
+                    gameInput: document.getElementById("editGame"),
+                    categoryInput: document.getElementById("editCategory"),
+                    titleInput: null,
+                    thumbInput: document.getElementById("editThumb"),
+                    descInput: null
+                }
+            );
+        });
+    }
+
+    if (editRobloxPlaceInput) {
+        editRobloxPlaceInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                if (btnEditFetchRobloxGame) btnEditFetchRobloxGame.click();
+            }
         });
     }
 

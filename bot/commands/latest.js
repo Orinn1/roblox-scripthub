@@ -1,17 +1,16 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const { getScripts } = require('../scripts-helper.js');
 const botConfig = require('../config.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('latest')
-        .setDescription('⚡ ดูรายการสคริปต์ที่เพิ่งอัปเดตลงเว็บล่าสุด')
+        .setDescription('⚡ ดูสคริปต์ที่เพิ่งอัปเดตล่าสุดในเว็บ BlacklistScriptx')
         .addIntegerOption(option =>
             option.setName('count')
-                .setDescription('จำนวนสคริปต์ที่ต้องการดู (1 - 10, ค่าเริ่มต้น: 5)')
+                .setDescription('จำนวนสคริปต์ที่ต้องการดู (ค่าเริ่มต้น 5, สูงสุด 10)')
                 .setMinValue(1)
                 .setMaxValue(10)
-                .setRequired(false)
         ),
 
     async execute(interaction) {
@@ -22,7 +21,7 @@ module.exports = {
         if (latestScripts.length === 0) {
             return interaction.reply({
                 content: '⚠️ ยังไม่มีสคริปต์ในฐานข้อมูลขณะนี้',
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -49,6 +48,6 @@ module.exports = {
                 .setURL(botConfig.websiteUrl)
         );
 
-        return interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
+        return interaction.reply({ embeds: [embed], components: [row], flags: MessageFlags.Ephemeral });
     }
 };

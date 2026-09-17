@@ -1,29 +1,93 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 const botConfig = require('./config.js');
+
 let db = null;
 try { db = require('../db.js'); } catch (e) { }
 
 const YOUTUBE_RSS_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${botConfig.youtubeChannelId || 'UCOAGxYeICyBbSjxJkul3HXA'}`;
 const CHECK_INTERVAL_MS = 60 * 1000; // Check every 1 minute
+const CACHE_FILE_PATH = path.join(__dirname, '..', 'data', 'youtube-cache.json');
 
-// In-memory set of already notified video IDs (prevents duplicate spam even across CDN flips)
+// In-memory set of already notified video IDs
 const notifiedVideoIds = new Set();
+let lastNotifiedPublishedTime = 0;
 let isInitialized = false;
+let isChecking = false;
 
-// Load persisted notified IDs from database / config
-try {
-    const currentConfig = db && db.getConfig ? db.getConfig() : {};
-    const saved = currentConfig.notified_youtube_video_ids;
-    if (Array.isArray(saved)) {
-        saved.forEach(id => notifiedVideoIds.add(id));
-    }
-} catch (e) { }
+/**
+ * 1. Load initial cache from multiple persistent sources
+ * (Dedicated cache file, SQLite config table, and config.json)
+ */
+function loadInitialCache() {
+    // A. Dedicated youtube-cache.json
+    try {
+        if (fs.existsSync(CACHE_FILE_PATH)) {
+            const raw = JSON.parse(fs.readFileSync(CACHE_FILE_PATH, 'utf8'));
+            if (Array.isArray(raw.notifiedIds)) {
+                raw.notifiedIds.forEach(id => {
+                    if (id) notifiedVideoIds.add(String(id).trim());
+                });
+            }
+            if (raw.lastNotifiedPublishedTime) {
+                lastNotifiedPublishedTime = Math.max(lastNotifiedPublishedTime, Number(raw.lastNotifiedPublishedTime) || 0);
+            }
+        }
+    } catch (e) { }
 
+    // B. SQLite DB config
+    try {
+        const currentConfig = db && db.getConfig ? db.getConfig() : {};
+        if (Array.isArray(currentConfig.notified_youtube_video_ids)) {
+            currentConfig.notified_youtube_video_ids.forEach(id => {
+                if (id) notifiedVideoIds.add(String(id).trim());
+            });
+        }
+        if (currentConfig.youtube_last_published_time) {
+            lastNotifiedPublishedTime = Math.max(lastNotifiedPublishedTime, Number(currentConfig.youtube_last_published_time) || 0);
+        }
+    } catch (e) { }
+
+    // C. data/config.json fallback
+    try {
+        const cfgJsonPath = path.join(__dirname, '..', 'data', 'config.json');
+        if (fs.existsSync(cfgJsonPath)) {
+            const cfg = JSON.parse(fs.readFileSync(cfgJsonPath, 'utf8'));
+            if (Array.isArray(cfg.notified_youtube_video_ids)) {
+                cfg.notified_youtube_video_ids.forEach(id => {
+                    if (id) notifiedVideoIds.add(String(id).trim());
+                });
+            }
+        }
+    } catch (e) { }
+}
+
+loadInitialCache();
+
+/**
+ * 2. Persist notified IDs & latest published timestamp to all storage targets
+ */
 function persistNotifiedIds() {
+    const idsArray = Array.from(notifiedVideoIds).slice(-100); // keep last 100
+
+    // Save to dedicated youtube-cache.json
+    try {
+        const cacheDir = path.dirname(CACHE_FILE_PATH);
+        if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
+        fs.writeFileSync(CACHE_FILE_PATH, JSON.stringify({
+            lastNotifiedPublishedTime,
+            notifiedIds: idsArray,
+            updatedAt: new Date().toISOString()
+        }, null, 2), 'utf8');
+    } catch (e) { }
+
+    // Save to SQLite DB & backup config.json
     try {
         if (db && db.saveConfig) {
             db.saveConfig({
-                notified_youtube_video_ids: Array.from(notifiedVideoIds).slice(-50) // keep last 50
+                notified_youtube_video_ids: idsArray,
+                youtube_last_published_time: lastNotifiedPublishedTime
             });
         }
     } catch (e) { }
@@ -147,8 +211,6 @@ async function sendVideoNotification(client, video, isTest = false) {
 function startYouTubeMonitor(client) {
     if (!client) return;
 
-    let isChecking = false;
-
     async function checkNow() {
         if (isChecking) return;
         isChecking = true;
@@ -156,33 +218,64 @@ function startYouTubeMonitor(client) {
         try {
             const videos = await fetchRecentVideos();
             if (!videos || videos.length === 0) {
-                isChecking = false;
                 return;
             }
 
-            // On first startup: seed existing videos so we never spam past videos
-            if (!isInitialized && notifiedVideoIds.size === 0) {
-                videos.forEach(v => notifiedVideoIds.add(v.videoId));
+            // --- STEP 1: FIRST STARTUP SEEDING (CRITICAL FIX) ---
+            // On the very first check cycle of this process run:
+            // ALWAYS seed ALL current videos in the RSS feed into notifiedVideoIds.
+            // This guarantees that ANY restart, reboot, or redeployment will NEVER
+            // blast Discord with existing/past videos!
+            if (!isInitialized) {
+                let newlySeeded = 0;
+                let maxPubTime = lastNotifiedPublishedTime;
+
+                for (const v of videos) {
+                    if (!notifiedVideoIds.has(v.videoId)) {
+                        notifiedVideoIds.add(v.videoId);
+                        newlySeeded++;
+                    }
+                    const pTime = new Date(v.published).getTime();
+                    if (!isNaN(pTime) && pTime > maxPubTime) {
+                        maxPubTime = pTime;
+                    }
+                }
+
+                lastNotifiedPublishedTime = maxPubTime;
                 persistNotifiedIds();
                 isInitialized = true;
-                console.log(`[YouTube Monitor] บันทึกคลิปเริ่มต้นที่มีอยู่แล้ว ${notifiedVideoIds.size} คลิป (ป้องกันการส่งซ้ำ)`);
-                isChecking = false;
+                console.log(`[YouTube Monitor] ซิงค์คลิปเริ่มต้น ${videos.length} คลิปเรียบร้อยแล้ว (${newlySeeded} คลิปถูกบันทึกลงระบบเพื่อป้องกันการส่งซ้ำ)`);
                 return;
             }
 
-            isInitialized = true;
+            // --- STEP 2: SUBSEQUENT RUNS (DETECT GENUINELY NEW VIDEOS) ---
+            const now = Date.now();
 
-            // Check if any video has NOT been notified yet
             for (const video of videos) {
-                if (!notifiedVideoIds.has(video.videoId)) {
-                    // Mark as notified immediately in memory before sending to prevent race conditions
+                // 1. If already known, skip immediately
+                if (notifiedVideoIds.has(video.videoId)) {
+                    continue;
+                }
+
+                const publishedTime = new Date(video.published).getTime();
+                const ageHours = (now - publishedTime) / (1000 * 60 * 60);
+
+                // 2. Safety Check: If older than 24 hours or older than our latest known published timestamp,
+                // it is an existing clip, not a newly uploaded video. Mark as known without notifying.
+                if (isNaN(publishedTime) || ageHours > 24 || (lastNotifiedPublishedTime > 0 && publishedTime <= lastNotifiedPublishedTime)) {
                     notifiedVideoIds.add(video.videoId);
                     persistNotifiedIds();
-
-                    console.log(`[YouTube Monitor] 🚀 พบคลิปใหม่ที่ยังไม่เคยแจ้งเตือน: [${video.videoId}] "${video.title}"`);
-                    await sendVideoNotification(client, video);
-                    break; // notify at most 1 per cycle
+                    continue;
                 }
+
+                // 3. Genuinely NEW video uploaded while the bot was running!
+                notifiedVideoIds.add(video.videoId);
+                lastNotifiedPublishedTime = Math.max(lastNotifiedPublishedTime, publishedTime);
+                persistNotifiedIds();
+
+                console.log(`[YouTube Monitor] 🚀 พบคลิปใหม่ที่เพิ่งลงสดๆ: [${video.videoId}] "${video.title}"`);
+                await sendVideoNotification(client, video);
+                break; // Notify at most 1 clip per check cycle
             }
         } catch (e) {
             console.error('[YouTube Monitor Loop Error]:', e);
@@ -191,8 +284,8 @@ function startYouTubeMonitor(client) {
         }
     }
 
-    // Run first check after 10 seconds, then every 1 minute
-    setTimeout(checkNow, 10000);
+    // Run first baseline check after 5 seconds, then every 1 minute
+    setTimeout(checkNow, 5000);
     setInterval(checkNow, CHECK_INTERVAL_MS);
     console.log(`📺 [YouTube Monitor] เริ่มระบบเฝ้าติดตามช่อง YouTube (ห้องแจ้งเตือน: ${botConfig.youtubeNotifyChannelId || '1549408423068573807'})`);
 }

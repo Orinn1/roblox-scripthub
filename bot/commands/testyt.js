@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { fetchLatestVideo, sendVideoNotification } = require('../youtube-monitor.js');
 const botConfig = require('../config.js');
 
@@ -9,7 +9,7 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const channelId = botConfig.youtubeNotifyChannelId || '1549408423068573807';
         const video = await fetchLatestVideo();

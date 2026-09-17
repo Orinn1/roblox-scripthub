@@ -162,6 +162,79 @@
             gap: 14px;
         }
 
+        /* Roblox Auto-Fetch Box Styling */
+        .roblox-autofetch-card {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(37, 99, 235, 0.04) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .roblox-autofetch-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .roblox-autofetch-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .roblox-autofetch-badge {
+            font-size: 11px;
+            background: rgba(56, 189, 248, 0.12);
+            color: #7dd3fc;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+        .roblox-fetch-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .btn-fetch-roblox {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 9px 16px;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .btn-fetch-roblox:hover {
+            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+        }
+        .btn-fetch-roblox:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spin {
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
         .scripts-table {
             width: 100%;
             border-collapse: collapse;
@@ -548,6 +621,28 @@
                 <span>เพิ่มสคริปต์ใหม่ลงในฐานข้อมูล</span>
             </h3>
             <form id="addScriptForm">
+                <!-- ตัวช่วยดึงข้อมูลเกมอัตโนมัติ (Roblox Game Auto-Fetch) -->
+                <div class="roblox-autofetch-card">
+                    <div class="roblox-autofetch-header">
+                        <div class="roblox-autofetch-title">
+                            <i data-lucide="sparkles" style="width: 16px; height: 16px; color: #38bdf8;"></i>
+                            <span>ดึงข้อมูลเกม Roblox อัตโนมัติ (Roblox Auto-Fetch)</span>
+                        </div>
+                        <span class="roblox-autofetch-badge">⚡ ดึงชื่อเกม, หมวดหมู่ และรูปปก HD ให้อัตโนมัติ</span>
+                    </div>
+                    <div class="roblox-fetch-row">
+                        <div style="flex: 1; position: relative;">
+                            <input type="text" id="robloxPlaceInput" class="form-control" placeholder="วางลิงก์เกม (เช่น https://www.roblox.com/games/2753915549/...) หรือใส่เฉพาะ Place ID" style="padding-left: 36px;">
+                            <i data-lucide="link" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text-muted); pointer-events: none;"></i>
+                        </div>
+                        <button type="button" id="btnFetchRobloxGame" class="btn-fetch-roblox">
+                            <i data-lucide="download-cloud" style="width: 14px; height: 14px;"></i>
+                            <span>ดึงข้อมูล</span>
+                        </button>
+                    </div>
+                    <div id="robloxFetchStatus" style="display: none; margin-top: 10px; font-size: 12px; border-radius: 6px; padding: 8px 12px;"></div>
+                </div>
+
                 <div class="form-grid">
                     <div>
                         <label class="form-label">ชื่อสคริปต์ *</label>
@@ -931,6 +1026,25 @@
 
             <form id="editScriptForm">
                 <input type="hidden" id="editScriptId">
+
+                <!-- ตัวช่วยดึงข้อมูลเกมอัตโนมัติใน Modal แก้ไข -->
+                <div class="roblox-autofetch-card" style="margin-bottom: 16px; padding: 12px 14px;">
+                    <div class="roblox-autofetch-header" style="margin-bottom: 8px;">
+                        <div class="roblox-autofetch-title" style="font-size: 12px;">
+                            <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #38bdf8;"></i>
+                            <span>ดึงข้อมูลใหม่อัตโนมัติจาก Roblox (Auto-Fetch)</span>
+                        </div>
+                        <span class="roblox-autofetch-badge">⚡ อัปเดตรูปและชื่อเกม</span>
+                    </div>
+                    <div class="roblox-fetch-row">
+                        <input type="text" id="editRobloxPlaceInput" class="form-control" placeholder="วางลิงก์เกม หรือ Place ID เพื่อดึงรูป/ชื่อเกมใหม่" style="font-size: 12px;">
+                        <button type="button" id="btnEditFetchRobloxGame" class="btn-fetch-roblox" style="padding: 7px 14px; font-size: 12px;">
+                            <i data-lucide="download-cloud" style="width: 13px; height: 13px;"></i> ดึงข้อมูล
+                        </button>
+                    </div>
+                    <div id="editRobloxFetchStatus" style="display: none; margin-top: 8px; font-size: 12px; border-radius: 6px; padding: 6px 10px;"></div>
+                </div>
+
                 <div class="form-grid">
                     <div>
                         <label class="form-label">ชื่อสคริปต์ *</label>

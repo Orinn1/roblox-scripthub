@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { Client, Collection, GatewayIntentBits, ActivityType, Events } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, ActivityType, Events, MessageFlags } = require('discord.js');
 const botConfig = require('./config.js');
 const db = require('../db.js');
 
@@ -115,7 +115,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         if (!hasPermission) {
             return interaction.reply({
                 content: `⛔ **คุณไม่มีสิทธิ์ใช้งานคำสั่งนี้!**\nเฉพาะผู้ที่มียศ <@&${requiredRoleId}> เท่านั้นที่สามารถใช้คำสั่งของบอทได้ครับ`,
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -125,7 +125,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             console.error(`[Command Error: ${interaction.commandName}]:`, error);
             const errorMessage = {
                 content: '❌ เกิดข้อผิดพลาดขณะประมวลผลคำสั่งนี้ กรุณาลองใหม่อีกครั้ง',
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             };
             if (interaction.replied || interaction.deferred) {
                 await interaction.followUp(errorMessage).catch(() => {});
@@ -147,13 +147,13 @@ client.on(Events.InteractionCreate, async (interaction) => {
             if (!script) {
                 return interaction.reply({
                     content: '❌ ไม่พบข้อมูลสคริปต์นี้ในฐานข้อมูล',
-                    ephemeral: true
+                    flags: MessageFlags.Ephemeral
                 });
             }
 
             return interaction.reply({
                 content: `📋 **โค้ด Loadstring สำหรับ [${script.title}]:**\n\`\`\`lua\n${script.loadstring || '-- ไม่พบโค้ด'}\n\`\`\`\n*(ข้อความนี้แสดงเฉพาะคุณ สามารถกดคัดลอกไปวางในตัวรันได้ทันที)*`,
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 

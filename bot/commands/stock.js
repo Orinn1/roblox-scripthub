@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const { getBloxFruitsStock, createStockEmbed } = require('../bloxfruits-stock.js');
 const botConfig = require('../config.js');
 const db = require('../../db.js');
@@ -37,14 +37,14 @@ module.exports = {
         if (!isButton && modeChoice === 'live' && interaction.channelId !== targetLiveChannel) {
             return interaction.reply({
                 content: `⛔ **กระดานผลสด 24 ชม. (Live Stock) กำหนดให้ลงเฉพาะห้อง <#${targetLiveChannel}> เท่านั้นครับ**\n💡 *(คุณสามารถใช้โหมดเช็คปกติ \`/stock\` ในห้องนี้ หรือไปดูกระดานผลสดที่ห้องดังกล่าวได้ครับ)*`,
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
         if (isButton) {
             await interaction.deferUpdate().catch(() => {});
         } else {
-            await interaction.deferReply({ ephemeral: false });
+            await interaction.deferReply();
         }
 
         try {
@@ -86,7 +86,7 @@ module.exports = {
 
                     await interaction.followUp({
                         content: `✅ **ตั้งค่ากระดานผลสด 24 ชม. ในห้อง <#${targetLiveChannel}> สำเร็จ!**\n📌 ข้อความด้านบนนี้จะคอยแก้ไขและอัปเดตข้อมูลสดให้ตลอด 24 ชม. อัตโนมัติทุก 1 นาที คุณสามารถปล่อยยาวทิ้งไว้ในห้องนี้ได้เลยโดยไม่ต้องพิมพ์ใหม่ครับ! 🎉`,
-                        ephemeral: true
+                        flags: MessageFlags.Ephemeral
                     }).catch(() => {});
                 } catch (saveErr) {
                     console.error('[Stock Save Panel Error]:', saveErr);

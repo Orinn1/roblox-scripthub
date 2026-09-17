@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const botConfig = require('../config.js');
 
 module.exports = {
@@ -9,29 +9,18 @@ module.exports = {
     async execute(interaction) {
         const embed = new EmbedBuilder()
             .setColor(botConfig.botColor)
-            .setTitle('⚡ คู่มือคำสั่ง Discord Bot - BlacklistScriptx')
-            .setDescription('บอทเชื่อมต่อคลังสคริปต์ Roblox สำหรับค้นหาสคริปต์ ดึง Loadstring และเช็คสถานะตัวรัน')
+            .setTitle('📖 คู่มือการใช้งานบอท BlacklistScriptx')
+            .setDescription('รายการ Slash Commands ทั้งหมดที่คุณสามารถใช้งานได้:')
             .addFields(
-                {
-                    name: '🔍 `/script <ชื่อเกม หรือ ชื่อสคริปต์>`',
-                    value: 'ค้นหาสคริปต์ในระบบ มีระบบช่วยแนะนำคำค้นหา (Autocomplete) พร้อมดึงโค้ด Loadstring ให้ทันที'
-                },
-                {
-                    name: '⚡ `/latest [จำนวน]`',
-                    value: 'ดูสคริปต์ที่เพิ่งอัปเดตลงเว็บล่าสุด (ค่าเริ่มต้น 5 รายการ)'
-                },
-                {
-                    name: '🛡️ `/exploits`',
-                    value: 'ตรวจสอบสถานะตัวรันสคริปต์ (Executors Live Status) จาก WEAO API แบบเรียลไทม์'
-                },
-                {
-                    name: '📊 `/stats`',
-                    value: 'ดูข้อมูลสถิติภาพรวม ยอดวิว ยอดกดถูกใจ และจำนวนสคริปต์ทั้งหมด'
-                },
-                {
-                    name: '📖 `/help`',
-                    value: 'แสดงหน้าต่างช่วยเหลือและคำสั่งทั้งหมดนี้'
-                }
+                { name: '⚡ `/script <ชื่อสคริปต์/เกม>`', value: 'ค้นหาสคริปต์ ดูรายละเอียด และกดปุ่มเพื่อคัดลอกโค้ด Loadstring ได้ทันที' },
+                { name: '🆕 `/latest [จำนวน]`', value: 'ดูรายการสคริปต์ที่เพิ่งอัปเดตลงเว็บล่าสุด (1 - 10 รายการ)' },
+                { name: '🍇 `/stock`', value: 'เช็คผลปีศาจและไอเทมในร้านค้า Blox Fruits แบบสดๆ (Mirage, Normal, Sword, Haki)' },
+                { name: '🛡️ `/exploits`', value: 'เช็คสถานะตัวรันสคริปต์ (Executor Status) จาก WEAO API แบบเรียลไทม์' },
+                { name: '📊 `/stats`', value: 'ตรวจสอบสถิติรวมของเว็บไซต์ จำนวนสคริปต์ ยอดวิว และสถานะระบบ' },
+                { name: '🧪 `/testyt` *(Admin)*', value: 'ทดสอบส่งการ์ดแจ้งเตือนคลิป YouTube ล่าสุด' },
+                { name: '🧪 `/testroblox` *(Admin)*', value: 'ทดสอบส่งการ์ดแจ้งเตือน Roblox Update หรือ Banwave' },
+                { name: '💎 `/lootlabs` *(Admin)*', value: 'ดูสถิติจำนวนผู้ใช้งานที่ปลดล็อคผ่าน LootLabs วันนี้' },
+                { name: '📖 `/help`', value: 'เปิดหน้านี้เพื่อดูคำสั่งทั้งหมด' }
             )
             .setFooter({ text: 'BlacklistScriptx Discord Assistant' })
             .setTimestamp();
@@ -43,6 +32,6 @@ module.exports = {
                 .setURL(botConfig.websiteUrl)
         );
 
-        return interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
+        return interaction.reply({ embeds: [embed], components: [row], flags: MessageFlags.Ephemeral });
     }
 };

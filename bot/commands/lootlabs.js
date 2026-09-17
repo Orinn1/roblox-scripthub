@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const botConfig = require('../config.js');
 
 const REQUIRED_ROLE_ID = '1549057153585651923';
@@ -19,11 +19,11 @@ module.exports = {
         if (!hasRole && !isAdmin) {
             return interaction.reply({
                 content: `⛔ **ขออภัยครับ:** คำสั่งนี้อนุญาตให้ใช้ได้เฉพาะผู้มียศ <@&${REQUIRED_ROLE_ID}> เท่านั้น`,
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
             const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_sessions?key=${FIREBASE_API_KEY}&pageSize=300`;

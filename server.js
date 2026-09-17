@@ -454,6 +454,14 @@ const server = http.createServer(async (req, res) => {
     }
 
     // =========================================================================
+    // API: GET /api/roblox-game (Roblox Game Info Auto-Fetch API)
+    // =========================================================================
+    if (pathname === '/api/roblox-game') {
+        await executeServerless('./api/roblox-game.js', req, res, parsedUrl);
+        return;
+    }
+
+    // =========================================================================
     // Static Files Handler
     // =========================================================================
     let filePath = path.join(__dirname, pathname === '/' ? 'index.html' : pathname);
@@ -489,4 +497,5 @@ server.listen(PORT, () => {
     console.log(`- GET      /api/db/stats`);
     console.log(`- GET      /api/exploits`);
     console.log(`- GET      /api/sunc`);
+    console.log(`- GET      /api/roblox-game`);
 });

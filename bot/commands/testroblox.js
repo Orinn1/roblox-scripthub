@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { fetchRobloxVersion, sendRobloxUpdateAlert, sendBanwaveAlert } = require('../roblox-monitor.js');
 const botConfig = require('../config.js');
 
@@ -18,7 +18,7 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const type = interaction.options.getString('type');
         const channelId = botConfig.robloxAlertChannelId || '1549456641379012709';

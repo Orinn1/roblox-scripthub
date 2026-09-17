@@ -39,16 +39,28 @@
     "masterKey": "$2a$10$IYkvYSXXCqfb9lO86OX8.ehEV.hMZwInw.esSiflJGjjaiYEs5eQ6"
   },
   "notified_youtube_video_ids": [
-    "P4gzUvf1l1M",
-    "b4vTQbsyebE",
-    "VsVw-zX3-AM",
-    "8XzBS6CcPjo",
-    "GxIir9fMRDU",
-    "j62DJ0UwHaM",
-    "l0GAwnTVhqQ",
-    "cQroA4kPW4o",
     "VsI796ml-rE",
-    "5gbDDEYCRv8"
+    "cQroA4kPW4o",
+    "l0GAwnTVhqQ",
+    "j62DJ0UwHaM",
+    "GxIir9fMRDU",
+    "8XzBS6CcPjo",
+    "VsVw-zX3-AM",
+    "b4vTQbsyebE",
+    "P4gzUvf1l1M",
+    "5gbDDEYCRv8",
+    "EDjJ502wmng",
+    "IuRBkqxHuGY"
   ],
-  "last_roblox_client_version": "version-4310300497aa4917"
+  "youtube_last_published_time": 1789670964000,
+  "last_roblox_client_version": "version-4310300497aa4917",
+  "stock_live_panels": [
+    {
+      "channelId": "1549774966474674259",
+      "messageId": "1550102814699683972",
+      "guildId": "1548669247998140438",
+      "dealer": "all",
+      "updatedAt": 1789671814372
+    }
+  ]
 }
