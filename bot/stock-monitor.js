@@ -19,20 +19,19 @@ async function checkStockRotation(client) {
 
         const currentStartedAt = stock.normal.startedAt;
 
-        // ครั้งแรกที่เปิดบอท: บันทึกเวลาเริ่มต้นรอบปัจจุบันไว้ ไม่ส่งสแปม
+        // ครั้งแรกที่เปิดบอท: บันทึกเวลาเริ่มต้นรอบปัจจุบันไว้
         if (isFirstCheck) {
             lastAnnouncedNormalStartedAt = currentStartedAt;
             isFirstCheck = false;
-            console.log(`🍇 [Stock Monitor] เริ่มต้นระบบเฝ้าระวังผล Blox Fruits (รอบปัจจุบันเริ่มเมื่อ: ${new Date(currentStartedAt).toLocaleTimeString()})`);
+            console.log(`🍇 [Stock Monitor] เริ่มต้นระบบกระดานผลสด Blox Fruits (รอบปัจจุบันเริ่มเมื่อ: ${new Date(currentStartedAt).toLocaleTimeString()})`);
         } else if (currentStartedAt && currentStartedAt !== lastAnnouncedNormalStartedAt) {
-            // ตรวจจับว่ามีการหมุนเวียนรอบใหม่หรือไม่ (startedAt เปลี่ยน)
-            console.log('🚨 [Stock Monitor] ตรวจพบการหมุนเวียนผลปีศาจรอบใหม่! กำลังส่งแจ้งเตือนเข้า Discord...');
+            // เมื่อร้านค้าในเกมหมุนเวียนรอบใหม่ (ทุก 4 ชม.)
+            // อัปเดตข้อมูลลงบนข้อความเดิมทันที โดยไม่ส่งข้อความใหม่ให้รกห้อง
+            console.log('🚨 [Stock Monitor] ตรวจพบการหมุนเวียนผลปีศาจรอบใหม่! อัปเดตข้อมูลบนกระดานเดิมทันที (ไม่ส่งข้อความใหม่)');
             lastAnnouncedNormalStartedAt = currentStartedAt;
-
-            await sendStockNotification(client, stock);
         }
 
-        // อัปเดตข้อความกระดานผลสด 24 ชม. ที่เคยตั้งไว้ (Auto-Updating Panels)
+        // อัปเดตแก้ไขข้อความเดิมบนกระดานผลสด 24 ชม. (Edit in-place เท่านั้น)
         await updateLivePanels(client, stock);
     } catch (err) {
         console.error('[Stock Monitor Check Error]:', err.message);
@@ -40,11 +39,10 @@ async function checkStockRotation(client) {
 }
 
 /**
- * อัปเดตข้อความกระดานผลสด 24 ชม. ลงเฉพาะห้องที่กำหนด (ค่าเริ่มต้น: 1549774966474674259)
- * - บอทจะตรวจสอบว่ามีข้อความกระดานสดในห้องนี้แล้วหรือยัง
- * - หากมีอยู่แล้ว: แก้ไข (edit) ข้อความเดิมให้เป็นข้อมูลล่าสุดทุก 60 วินาที
- * - หากยังไม่มีหรือข้อความถูกลบ: โพสต์ข้อความกระดานสดใหม่ลงในห้องนี้ทันทีอัตโนมัติ
- * - กรองและลบพาเนลของห้องอื่นออก เพื่อให้ทำงานเฉพาะห้องนี้เท่านั้น
+ * อัปเดตข้อความกระดานผลสด 24 ชม. ลงเฉพาะห้องที่กำหนด (1549774966474674259)
+ * - ทำงานแบบข้อความเดียว (Single Live Message) ตลอด 24 ชม.
+ * - แก้ไข (edit) ข้อความเดิมทุก 60 วินาที และเมื่อผลรีเซ็ต ไม่ส่งข้อความใหม่เด็ดขาด
+ * - หากมีข้อความแจ้งเตือนเก่าของบอทตกค้าง จะนำมารีไซเคิลเป็นกระดานสด หรือลบข้อความซ้ำออก
  */
 async function updateLivePanels(client, stock) {
     try {
@@ -57,8 +55,6 @@ async function updateLivePanels(client, stock) {
 
         const config = db.getConfig();
         let panels = Array.isArray(config.stock_live_panels) ? config.stock_live_panels : [];
-
-        // กรองเอาเฉพาะพาเนลของห้องที่กำหนดเท่านั้น (ลงเฉพาะห้องนี้)
         panels = panels.filter(p => p.channelId === targetChannelId);
 
         const embed = createStockEmbed(stock, { isLive: true, dealer: 'all' });
@@ -73,38 +69,76 @@ async function updateLivePanels(client, stock) {
                 .setStyle(ButtonStyle.Secondary)
         );
 
-        let activePanel = null;
+        let targetMessage = null;
 
-        // ตรวจสอบข้อความเดิมที่บันทึกไว้ว่ายังอยู่ในดิสคอร์ดหรือไม่
+        // 1. ตรวจสอบข้อความที่เคยบันทึกไว้ใน config ก่อน
         for (const panel of panels) {
             try {
                 const message = await channel.messages.fetch(panel.messageId).catch(() => null);
-                if (message) {
-                    await message.edit({ embeds: [embed], components: [row] }).catch(() => null);
-                    activePanel = panel;
+                if (message && message.author.id === client.user.id) {
+                    targetMessage = message;
                     break;
                 }
-            } catch (msgErr) {
-                // ข้อความถูกลบหรือไม่พบ
+            } catch (msgErr) {}
+        }
+
+        // 2. ถ้าไม่มีใน config หรือข้อความเดิมหลุด ให้ค้นหาข้อความเดิมของบอทในห้อง
+        // เพื่อนำข้อความเดิมมาแก้ไข (edit) ทันที ไม่ส่งข้อความใหม่
+        const botMessages = [];
+        try {
+            const recentMessages = await channel.messages.fetch({ limit: 30 }).catch(() => null);
+            if (recentMessages) {
+                recentMessages.forEach(m => {
+                    if (m.author.id === client.user.id) {
+                        botMessages.push(m);
+                    }
+                });
+            }
+        } catch (e) {}
+
+        if (!targetMessage && botMessages.length > 0) {
+            targetMessage = botMessages[0]; // ใช้ข้อความล่าสุดของบอท
+            console.log(`♻️ [Stock Monitor] พบข้อความเดิมของบอทในห้อง (ID: ${targetMessage.id}) นำมาใช้เป็นกระดานสดโดยไม่ต้องส่งข้อความใหม่`);
+        }
+
+        // 3. ถ้ามีข้อความของบอทตกค้างมากกว่า 1 ข้อความ (เช่น ข้อความแจ้งเตือนเก่า) ให้ลบข้อความส่วนเกินออก
+        if (botMessages.length > 1) {
+            for (const oldMsg of botMessages) {
+                if (targetMessage && oldMsg.id !== targetMessage.id) {
+                    await oldMsg.delete().catch(() => {});
+                }
             }
         }
 
-        // หากยังไม่มีกระดานสดในห้องนี้ หรือข้อความเดิมถูกลบ ให้โพสต์กระดานใหม่ลงห้องนี้โดยอัตโนมัติ
-        if (!activePanel) {
-            console.log(`📌 [Stock Monitor] กำลังสร้างกระดานผลสด Blox Fruits อัตโนมัติลงห้อง #${channel.name} (${targetChannelId})...`);
+        // 4. แก้ไข (edit) ข้อความเดิม
+        if (targetMessage) {
+            await targetMessage.edit({ content: '', embeds: [embed], components: [row] }).catch(err => {
+                console.error('[Stock Monitor Edit Error]:', err.message);
+            });
+            db.saveConfig({
+                stock_live_panels: [{
+                    channelId: targetChannelId,
+                    messageId: targetMessage.id,
+                    guildId: channel.guildId || '',
+                    dealer: 'all',
+                    updatedAt: Date.now()
+                }]
+            });
+        } else {
+            // กรณีเป็นห้องใหม่เอี่ยมที่ไม่มีข้อความใดๆ ของบอทเลย จึงจะส่งข้อความเริ่มต้น 1 ข้อความ
+            console.log(`📌 [Stock Monitor] ไม่พบข้อความเดิมในห้อง #${channel.name} กำลังสร้างข้อความกระดานสดเริ่มต้น...`);
             const newMessage = await channel.send({ embeds: [embed], components: [row] });
-            activePanel = {
-                channelId: targetChannelId,
-                messageId: newMessage.id,
-                guildId: channel.guildId || '',
-                dealer: 'all',
-                createdAt: Date.now()
-            };
-            console.log(`✅ [Stock Monitor] สร้างกระดานผลสดลงห้อง #${channel.name} เรียบร้อย! (Message ID: ${newMessage.id})`);
+            db.saveConfig({
+                stock_live_panels: [{
+                    channelId: targetChannelId,
+                    messageId: newMessage.id,
+                    guildId: channel.guildId || '',
+                    dealer: 'all',
+                    updatedAt: Date.now()
+                }]
+            });
+            console.log(`✅ [Stock Monitor] สร้างกระดานผลสดเริ่มต้นลงห้อง #${channel.name} เรียบร้อย! (ID: ${newMessage.id})`);
         }
-
-        // บันทึกสถานะกระดานเฉพาะห้องนี้ห้องเดียว
-        db.saveConfig({ stock_live_panels: [activePanel] });
     } catch (err) {
         console.error('[Stock Monitor updateLivePanels Error]:', err.message);
     }
