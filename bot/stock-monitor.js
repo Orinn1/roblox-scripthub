@@ -40,48 +40,71 @@ async function checkStockRotation(client) {
 }
 
 /**
- * อัปเดตข้อความกระดานผลสดที่แอดมินหรือผู้ใช้สั่งพิมพ์ไว้ (/stock mode:live)
- * แก้ไขข้อความเดิมในห้องแบบเรียลไทม์ โดยไม่ต้องพิมพ์ใหม่
+ * อัปเดตข้อความกระดานผลสด 24 ชม. ลงเฉพาะห้องที่กำหนด (ค่าเริ่มต้น: 1549774966474674259)
+ * - บอทจะตรวจสอบว่ามีข้อความกระดานสดในห้องนี้แล้วหรือยัง
+ * - หากมีอยู่แล้ว: แก้ไข (edit) ข้อความเดิมให้เป็นข้อมูลล่าสุดทุก 60 วินาที
+ * - หากยังไม่มีหรือข้อความถูกลบ: โพสต์ข้อความกระดานสดใหม่ลงในห้องนี้ทันทีอัตโนมัติ
+ * - กรองและลบพาเนลของห้องอื่นออก เพื่อให้ทำงานเฉพาะห้องนี้เท่านั้น
  */
 async function updateLivePanels(client, stock) {
     try {
+        const targetChannelId = botConfig.stockLiveChannelId || '1549774966474674259';
+        const channel = await client.channels.fetch(targetChannelId).catch(() => null);
+        if (!channel) {
+            console.warn(`⚠️ [Stock Monitor] ไม่พบห้องกระดานผลสด ID: ${targetChannelId}`);
+            return;
+        }
+
         const config = db.getConfig();
-        const panels = config.stock_live_panels;
-        if (!Array.isArray(panels) || panels.length === 0) return;
+        let panels = Array.isArray(config.stock_live_panels) ? config.stock_live_panels : [];
 
-        const activePanels = [];
+        // กรองเอาเฉพาะพาเนลของห้องที่กำหนดเท่านั้น (ลงเฉพาะห้องนี้)
+        panels = panels.filter(p => p.channelId === targetChannelId);
 
+        const embed = createStockEmbed(stock, { isLive: true, dealer: 'all' });
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setLabel('🌐 เว็บไซต์สคริปต์ฮับ')
+                .setStyle(ButtonStyle.Link)
+                .setURL(botConfig.websiteUrl || 'https://blacklistscripty.vercel.app'),
+            new ButtonBuilder()
+                .setCustomId('stock_refresh')
+                .setLabel('🔄 รีเฟรชข้อมูล')
+                .setStyle(ButtonStyle.Secondary)
+        );
+
+        let activePanel = null;
+
+        // ตรวจสอบข้อความเดิมที่บันทึกไว้ว่ายังอยู่ในดิสคอร์ดหรือไม่
         for (const panel of panels) {
             try {
-                const channel = await client.channels.fetch(panel.channelId).catch(() => null);
-                if (!channel) continue;
-
                 const message = await channel.messages.fetch(panel.messageId).catch(() => null);
-                if (!message) continue;
-
-                const embed = createStockEmbed(stock, { isLive: true, dealer: panel.dealer || 'all' });
-                const row = new ActionRowBuilder().addComponents(
-                    new ButtonBuilder()
-                        .setLabel('🌐 เว็บไซต์สคริปต์ฮับ')
-                        .setStyle(ButtonStyle.Link)
-                        .setURL(botConfig.websiteUrl || 'https://blacklistscripty.vercel.app'),
-                    new ButtonBuilder()
-                        .setCustomId('stock_refresh')
-                        .setLabel('🔄 รีเฟรชข้อมูล')
-                        .setStyle(ButtonStyle.Secondary)
-                );
-
-                await message.edit({ embeds: [embed], components: [row] }).catch(() => null);
-                activePanels.push(panel);
-            } catch (panelErr) {
-                // หากข้อความถูกลบให้ตัดออกจากลิสต์
+                if (message) {
+                    await message.edit({ embeds: [embed], components: [row] }).catch(() => null);
+                    activePanel = panel;
+                    break;
+                }
+            } catch (msgErr) {
+                // ข้อความถูกลบหรือไม่พบ
             }
         }
 
-        // หากมีการลบข้อความในดิสคอร์ด ให้อัปเดตรายการที่เหลือ
-        if (activePanels.length !== panels.length) {
-            db.saveConfig({ stock_live_panels: activePanels });
+        // หากยังไม่มีกระดานสดในห้องนี้ หรือข้อความเดิมถูกลบ ให้โพสต์กระดานใหม่ลงห้องนี้โดยอัตโนมัติ
+        if (!activePanel) {
+            console.log(`📌 [Stock Monitor] กำลังสร้างกระดานผลสด Blox Fruits อัตโนมัติลงห้อง #${channel.name} (${targetChannelId})...`);
+            const newMessage = await channel.send({ embeds: [embed], components: [row] });
+            activePanel = {
+                channelId: targetChannelId,
+                messageId: newMessage.id,
+                guildId: channel.guildId || '',
+                dealer: 'all',
+                createdAt: Date.now()
+            };
+            console.log(`✅ [Stock Monitor] สร้างกระดานผลสดลงห้อง #${channel.name} เรียบร้อย! (Message ID: ${newMessage.id})`);
         }
+
+        // บันทึกสถานะกระดานเฉพาะห้องนี้ห้องเดียว
+        db.saveConfig({ stock_live_panels: [activePanel] });
     } catch (err) {
         console.error('[Stock Monitor updateLivePanels Error]:', err.message);
     }
@@ -89,7 +112,7 @@ async function updateLivePanels(client, stock) {
 
 async function sendStockNotification(client, stock) {
     try {
-        const targetChannelId = botConfig.stockAlertChannelId || botConfig.robloxAlertChannelId || '1549456641379012709';
+        const targetChannelId = botConfig.stockAlertChannelId || botConfig.stockLiveChannelId || '1549774966474674259';
         const channel = await client.channels.fetch(targetChannelId).catch(() => null);
 
         if (!channel) {
@@ -156,7 +179,7 @@ function startStockMonitor(client) {
         checkStockRotation(client);
     }, 60 * 1000);
 
-    console.log('🚀 [Stock Monitor] มอนิเตอร์แจ้งเตือนและกระดานสด Blox Fruits เปิดทำงานแล้ว');
+    console.log(`🚀 [Stock Monitor] มอนิเตอร์แจ้งเตือนและกระดานสด Blox Fruits เปิดทำงานแล้ว (ห้อง Live Stock: ${botConfig.stockLiveChannelId || '1549774966474674259'})`);
 }
 
 module.exports = {

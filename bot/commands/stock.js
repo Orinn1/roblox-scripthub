@@ -30,6 +30,17 @@ module.exports = {
     async execute(interaction) {
         // หากเป็นการกดปุ่ม stock_refresh ให้ update message เดิม
         const isButton = interaction.isButton && interaction.isButton();
+        const modeChoice = interaction.options?.getString('mode') || 'check';
+        const targetLiveChannel = botConfig.stockLiveChannelId || '1549774966474674259';
+
+        // ป้องกันไม่ให้ตั้งกระดานผลสดในห้องอื่น นอกจากห้องที่กำหนดไว้เท่านั้น
+        if (!isButton && modeChoice === 'live' && interaction.channelId !== targetLiveChannel) {
+            return interaction.reply({
+                content: `⛔ **กระดานผลสด 24 ชม. (Live Stock) กำหนดให้ลงเฉพาะห้อง <#${targetLiveChannel}> เท่านั้นครับ**\n💡 *(คุณสามารถใช้โหมดเช็คปกติ \`/stock\` ในห้องนี้ หรือไปดูกระดานผลสดที่ห้องดังกล่าวได้ครับ)*`,
+                ephemeral: true
+            });
+        }
+
         if (isButton) {
             await interaction.deferUpdate().catch(() => {});
         } else {
@@ -37,7 +48,6 @@ module.exports = {
         }
 
         try {
-            const modeChoice = interaction.options?.getString('mode') || 'check';
             const dealerChoice = interaction.options?.getString('dealer') || 'all';
             const isLive = modeChoice === 'live';
 
@@ -62,24 +72,20 @@ module.exports = {
                 message = await interaction.editReply({ embeds: [embed], components: [row] });
             }
 
-            // ถ้าเลือกโหมด live ให้บันทึก Message ID และ Channel ID ลงฐานข้อมูล
+            // ถ้าเลือกโหมด live ในห้องที่กำหนด ให้บันทึก Message ID ลงฐานข้อมูล
             if (isLive && !isButton) {
                 try {
-                    const currentConfig = db.getConfig();
-                    let panels = Array.isArray(currentConfig.stock_live_panels) ? currentConfig.stock_live_panels : [];
-                    // ลบพาเนลเดิมในห้องเดียวกันออกก่อน
-                    panels = panels.filter(p => p.channelId !== interaction.channelId);
-                    panels.push({
-                        channelId: interaction.channelId,
+                    const panels = [{
+                        channelId: targetLiveChannel,
                         messageId: message.id,
-                        guildId: interaction.guildId,
+                        guildId: interaction.guildId || '',
                         dealer: dealerChoice,
                         createdAt: Date.now()
-                    });
+                    }];
                     db.saveConfig({ stock_live_panels: panels });
 
                     await interaction.followUp({
-                        content: `✅ **ตั้งค่ากระดานผลสด 24 ชม. สำเร็จ!**\n📌 ข้อความด้านบนนี้จะคอยแก้ไขและอัปเดตข้อมูลสดให้ตลอด 24 ชม. อัตโนมัติทุก 1-2 นาที คุณสามารถปล่อยยาวทิ้งไว้ในห้องนี้ได้เลยโดยไม่ต้องพิมพ์ใหม่แล้วครับ! 🎉`,
+                        content: `✅ **ตั้งค่ากระดานผลสด 24 ชม. ในห้อง <#${targetLiveChannel}> สำเร็จ!**\n📌 ข้อความด้านบนนี้จะคอยแก้ไขและอัปเดตข้อมูลสดให้ตลอด 24 ชม. อัตโนมัติทุก 1 นาที คุณสามารถปล่อยยาวทิ้งไว้ในห้องนี้ได้เลยโดยไม่ต้องพิมพ์ใหม่ครับ! 🎉`,
                         ephemeral: true
                     }).catch(() => {});
                 } catch (saveErr) {

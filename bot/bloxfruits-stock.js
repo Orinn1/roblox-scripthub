@@ -193,8 +193,9 @@ function createStockEmbed(stock, { isLive = false, dealer = 'all' } = {}) {
             : `💡 ข้อมูลจะรีเซ็ตอัตโนมัติตามเวลาร้านค้าในเกม`)
         : `ข้อมูลสต็อกผลปีศาจแบบเรียลไทม์จากระบบร้านค้า Blox Fruits\n` +
           (highTierNormal.length > 0 || highTierMirage.length > 0
-            ? `🔥 **ผลยอดฮิตเข้าแล้ว:** ${[...highTierNormal, ...highTierMirage].map(f => `**${f.name}**`).join(', ')}`
-            : `💡 *Tip: ผลจะหมุนเวียนอัตโนมัติเมื่อถึงเวลารีเซ็ต*`);
+            ? `🔥 **ผลยอดฮิตเข้าแล้ว:** ${[...highTierNormal, ...highTierMirage].map(f => `**${f.name}**`).join(', ')}\n`
+            : '') +
+          `📌 *ดูกระดานสดอัปเดตอัตโนมัติ 24 ชม. ได้ที่ห้อง <#1549774966474674259>*`;
 
     const embed = new EmbedBuilder()
         .setColor(embedColor)

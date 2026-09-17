@@ -9,7 +9,8 @@ module.exports = {
     youtubeNotifyChannelId: process.env.DISCORD_YT_NOTIFY_CHANNEL_ID || '1549408423068573807',
     youtubeChannelId: process.env.YOUTUBE_CHANNEL_ID || 'UCOAGxYeICyBbSjxJkul3HXA',
     robloxAlertChannelId: process.env.ROBLOX_ALERT_CHANNEL_ID || '1549456641379012709',
-    stockAlertChannelId: process.env.DISCORD_STOCK_ALERT_CHANNEL_ID || '1549456641379012709',
+    stockAlertChannelId: process.env.DISCORD_STOCK_ALERT_CHANNEL_ID || process.env.DISCORD_STOCK_CHANNEL_ID || '1549774966474674259',
+    stockLiveChannelId: process.env.DISCORD_STOCK_LIVE_CHANNEL_ID || process.env.DISCORD_STOCK_CHANNEL_ID || '1549774966474674259',
     webhookUrl: process.env.DISCORD_WEBHOOK_URL || '',
     websiteUrl: process.env.WEBSITE_URL || 'https://blacklistscripty.vercel.app',
     botColor: 0x5865F2, // Discord Blurple / Neon Cyan: 0x00f3ff
