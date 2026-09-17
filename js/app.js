@@ -734,17 +734,88 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // แผนผังไอคอนของเกมยอดนิยม
+    const GAME_ICONS = {
+        'bloxfruits': 'sword',
+        'blox fruits': 'sword',
+        'fisch': 'fish',
+        'stealanegg': 'egg',
+        'steal an egg': 'egg',
+        'bladeball': 'shield',
+        'blade ball': 'shield',
+        'petsim99': 'sparkles',
+        'pet simulator 99': 'sparkles',
+        'animedefenders': 'gem',
+        'anime defenders': 'gem',
+        'rivals': 'crosshair',
+        'doors': 'door-closed',
+        'bedwars': 'bed',
+        'arsenal': 'crosshair',
+        'kinglegacy': 'crown',
+        'king legacy': 'crown',
+        'brookhaven': 'home',
+        'dahood': 'crosshair',
+        'da hood': 'crosshair',
+        'murdermystery2': 'skull',
+        'murder mystery 2': 'skull',
+        'mm2': 'skull',
+        'animevanguards': 'shield-alert',
+        'anime vanguards': 'shield-alert',
+        'slapbattles': 'hand',
+        'slap battles': 'hand'
+    };
+
+    function getGameIcon(category = '', gameName = '') {
+        const normCat = category.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const normGame = gameName.toLowerCase().replace(/[^a-z0-9]/g, '');
+        return GAME_ICONS[normCat] || GAME_ICONS[normGame] || GAME_ICONS[category.toLowerCase()] || GAME_ICONS[gameName.toLowerCase()] || 'gamepad-2';
+    }
+
     function updateCategoryBadges() {
         if (totalCount) totalCount.textContent = scripts.length;
         if (!gameMenu) return;
-        gameMenu.querySelectorAll(".menu-item[data-game]").forEach(item => {
-            const cat = item.dataset.game;
-            const count = scripts.filter(s => s.category === cat).length;
-            const badge = item.querySelector(".menu-badge");
-            if (badge) {
-                badge.textContent = count;
+
+        // ดึงหมวดหมู่เกมที่มีอยู่จริงจากสคริปต์ (เฉพาะเกมที่มีสคริปต์อย่างน้อย 1 รายการ)
+        const gameMap = new Map();
+        scripts.forEach(s => {
+            const catKey = (s.category || '').toLowerCase().trim() || (s.game || '').toLowerCase().trim();
+            if (!catKey) return;
+            if (!gameMap.has(catKey)) {
+                gameMap.set(catKey, {
+                    category: catKey,
+                    gameName: s.game || s.category || catKey,
+                    count: 0
+                });
             }
+            gameMap.get(catKey).count++;
         });
+
+        if (gameMap.size === 0) {
+            gameMenu.innerHTML = `
+                <li style="padding: 10px 16px; font-size: 12px; color: var(--text-muted); list-style: none;">
+                    ยังไม่มีหมวดหมู่เกม
+                </li>
+            `;
+            return;
+        }
+
+        // เรียงลำดับตามจำนวนสคริปต์จากมากไปน้อย
+        const sortedGames = Array.from(gameMap.values()).sort((a, b) => b.count - a.count);
+
+        let html = '';
+        sortedGames.forEach(item => {
+            const icon = getGameIcon(item.category, item.gameName);
+            const isActive = activeGame && (activeGame.toLowerCase() === item.category.toLowerCase());
+            html += `
+                <li class="menu-item ${isActive ? 'active' : ''}" data-nav="feed" data-game="${escapeHtml(item.category)}">
+                    <div class="menu-left"><i data-lucide="${icon}"></i> ${escapeHtml(item.gameName)}</div>
+                    <span class="menu-badge">${item.count}</span>
+                </li>
+            `;
+        });
+
+        gameMenu.innerHTML = html;
+        refreshIcons();
     }
 
     async function syncDataFromServer() {
@@ -1105,7 +1176,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderFeed() {
         const filtered = scripts.filter(item => {
-            if (activeGame && item.category !== activeGame) return false;
+            if (activeGame) {
+                const target = activeGame.toLowerCase().trim();
+                const itemCat = (item.category || '').toLowerCase().trim();
+                const itemGame = (item.game || '').toLowerCase().trim();
+                if (itemCat !== target && itemGame !== target) return false;
+            }
             if (activeFilter === "keyless" && !item.isKeyless) return false;
             if (activeFilter === "mobile" && !item.isMobile) return false;
 

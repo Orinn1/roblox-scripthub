@@ -455,6 +455,101 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // ฟังก์ชันจัดการและบีบอัดรูปภาพจากเครื่อง (HTML5 Canvas Compression)
+    function processImageFile(file, onReady) {
+        if (!file || !file.type.startsWith("image/")) {
+            showToast("กรุณาเลือกไฟล์รูปภาพที่ถูกต้อง (PNG, JPG, WebP, GIF)", "error");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                // ปรับขนาดรูปไม่ให้ใหญ่เกิน 800px เพื่อประหยัดพื้นที่และโหลดเร็ว
+                const maxDim = 800;
+                let w = img.width;
+                let h = img.height;
+
+                if (w > maxDim || h > maxDim) {
+                    if (w > h) {
+                        h = Math.round((h * maxDim) / w);
+                        w = maxDim;
+                    } else {
+                        w = Math.round((w * maxDim) / h);
+                        h = maxDim;
+                    }
+                }
+
+                const canvas = document.createElement("canvas");
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, w, h);
+
+                // บีบอัดเป็น WebP (ถ้าเบราว์เซอร์ไม่รองรับจะ fallback เป็น JPEG)
+                let dataUrl = canvas.toDataURL("image/webp", 0.85);
+                if (!dataUrl.startsWith("data:image/webp")) {
+                    dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+                }
+
+                const approxSizeKb = (dataUrl.length * 0.75 / 1024).toFixed(1);
+                onReady(dataUrl, file.name, `${approxSizeKb} KB`);
+            };
+            img.onerror = function() {
+                showToast("ไม่สามารถอ่านไฟล์รูปภาพนี้ได้", "error");
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // จัดการอัปโหลดรูปภาพปกจากเครื่อง (Add Script Form)
+    const sThumbFile = document.getElementById("sThumbFile");
+    const sThumb = document.getElementById("sThumb");
+    const sThumbPreviewBox = document.getElementById("sThumbPreviewBox");
+    const sThumbPreviewImg = document.getElementById("sThumbPreviewImg");
+    const sThumbFileName = document.getElementById("sThumbFileName");
+    const sThumbFileSize = document.getElementById("sThumbFileSize");
+    const btnRemoveThumb = document.getElementById("btnRemoveThumb");
+
+    if (sThumbFile) {
+        sThumbFile.addEventListener("change", (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            processImageFile(file, (dataUrl, name, size) => {
+                if (sThumb) sThumb.value = dataUrl;
+                if (sThumbPreviewImg) sThumbPreviewImg.src = dataUrl;
+                if (sThumbFileName) sThumbFileName.textContent = name;
+                if (sThumbFileSize) sThumbFileSize.textContent = `✓ อัปโหลดสำเร็จ (${size})`;
+                if (sThumbPreviewBox) sThumbPreviewBox.style.display = "flex";
+                refreshIcons();
+            });
+        });
+    }
+
+    if (sThumb) {
+        sThumb.addEventListener("input", () => {
+            const val = sThumb.value.trim();
+            if (val) {
+                if (sThumbPreviewImg) sThumbPreviewImg.src = val;
+                if (sThumbFileName) sThumbFileName.textContent = "ลิงก์รูปภาพออนไลน์";
+                if (sThumbFileSize) sThumbFileSize.textContent = "✓ ตรวจพบ URL";
+                if (sThumbPreviewBox) sThumbPreviewBox.style.display = "flex";
+            } else {
+                if (sThumbPreviewBox) sThumbPreviewBox.style.display = "none";
+            }
+        });
+    }
+
+    if (btnRemoveThumb) {
+        btnRemoveThumb.addEventListener("click", () => {
+            if (sThumb) sThumb.value = "";
+            if (sThumbFile) sThumbFile.value = "";
+            if (sThumbPreviewBox) sThumbPreviewBox.style.display = "none";
+        });
+    }
+
     // เพิ่มสคริปต์ใหม่
     addScriptForm.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -513,6 +608,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         addScriptForm.reset();
+        if (sThumbPreviewBox) sThumbPreviewBox.style.display = "none";
+        if (sThumbFile) sThumbFile.value = "";
         renderTable();
         loadDbStats();
         showToast(`เพิ่มสคริปต์ "${title}" ลงในฐานข้อมูลเรียบร้อยแล้ว!`);
@@ -604,6 +701,23 @@ document.addEventListener("DOMContentLoaded", () => {
         if (editMobile) editMobile.checked = item.isMobile !== false && item.isMobile !== 0;
         if (editPC) editPC.checked = item.isPC !== false && item.isPC !== 0;
 
+        // แสดงตัวอย่างรูปปกใน Modal แก้ไข
+        const editThumbPreviewBox = document.getElementById("editThumbPreviewBox");
+        const editThumbPreviewImg = document.getElementById("editThumbPreviewImg");
+        const editThumbFileName = document.getElementById("editThumbFileName");
+        const editThumbFileSize = document.getElementById("editThumbFileSize");
+        const editThumbFile = document.getElementById("editThumbFile");
+        if (editThumbFile) editThumbFile.value = "";
+
+        if (item.thumbnail) {
+            if (editThumbPreviewImg) editThumbPreviewImg.src = item.thumbnail;
+            if (editThumbFileName) editThumbFileName.textContent = item.thumbnail.startsWith("data:") ? "รูปภาพปกอัปโหลดแล้ว" : "รูปภาพปกลิงก์ออนไลน์";
+            if (editThumbFileSize) editThumbFileSize.textContent = "✓ มีรูปภาพปก";
+            if (editThumbPreviewBox) editThumbPreviewBox.style.display = "flex";
+        } else {
+            if (editThumbPreviewBox) editThumbPreviewBox.style.display = "none";
+        }
+
         const editModal = document.getElementById("editScriptModal");
         if (editModal) {
             editModal.classList.add("active");
@@ -622,6 +736,8 @@ document.addEventListener("DOMContentLoaded", () => {
             editModal.style.opacity = "0";
             editModal.style.visibility = "hidden";
         }
+        const editThumbFile = document.getElementById("editThumbFile");
+        if (editThumbFile) editThumbFile.value = "";
     }
 
     const closeEditModalBtn = document.getElementById("closeEditModalBtn");
@@ -635,6 +751,52 @@ document.addEventListener("DOMContentLoaded", () => {
     if (editScriptModal) {
         editScriptModal.addEventListener("click", (e) => {
             if (e.target === editScriptModal) closeEditModal();
+        });
+    }
+
+    // จัดการอัปโหลดรูปภาพปกจากเครื่อง (Edit Script Modal)
+    const editThumbFile = document.getElementById("editThumbFile");
+    const editThumb = document.getElementById("editThumb");
+    const editThumbPreviewBox = document.getElementById("editThumbPreviewBox");
+    const editThumbPreviewImg = document.getElementById("editThumbPreviewImg");
+    const editThumbFileName = document.getElementById("editThumbFileName");
+    const editThumbFileSize = document.getElementById("editThumbFileSize");
+    const btnRemoveEditThumb = document.getElementById("btnRemoveEditThumb");
+
+    if (editThumbFile) {
+        editThumbFile.addEventListener("change", (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            processImageFile(file, (dataUrl, name, size) => {
+                if (editThumb) editThumb.value = dataUrl;
+                if (editThumbPreviewImg) editThumbPreviewImg.src = dataUrl;
+                if (editThumbFileName) editThumbFileName.textContent = name;
+                if (editThumbFileSize) editThumbFileSize.textContent = `✓ อัปโหลดสำเร็จ (${size})`;
+                if (editThumbPreviewBox) editThumbPreviewBox.style.display = "flex";
+                refreshIcons();
+            });
+        });
+    }
+
+    if (editThumb) {
+        editThumb.addEventListener("input", () => {
+            const val = editThumb.value.trim();
+            if (val) {
+                if (editThumbPreviewImg) editThumbPreviewImg.src = val;
+                if (editThumbFileName) editThumbFileName.textContent = "ลิงก์รูปภาพออนไลน์";
+                if (editThumbFileSize) editThumbFileSize.textContent = "✓ ตรวจพบ URL";
+                if (editThumbPreviewBox) editThumbPreviewBox.style.display = "flex";
+            } else {
+                if (editThumbPreviewBox) editThumbPreviewBox.style.display = "none";
+            }
+        });
+    }
+
+    if (btnRemoveEditThumb) {
+        btnRemoveEditThumb.addEventListener("click", () => {
+            if (editThumb) editThumb.value = "";
+            if (editThumbFile) editThumbFile.value = "";
+            if (editThumbPreviewBox) editThumbPreviewBox.style.display = "none";
         });
     }
 
