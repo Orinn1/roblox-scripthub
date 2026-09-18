@@ -8,7 +8,8 @@ const FIREBASE_API_KEY = 'AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI';
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('lootlabs')
-        .setDescription('💎 ดูสถิติจำนวนผู้ใช้งานที่ปลดล็อคผ่าน LootLabs วันนี้ (เฉพาะแอดมิน/ยศที่กำหนด)'),
+        .setDescription('💎 ดูสถิติจำนวนผู้ใช้งานที่ปลดล็อคผ่าน LootLabs วันนี้ (เฉพาะแอดมิน)')
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         // Check Role Permission

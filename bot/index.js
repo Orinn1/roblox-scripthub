@@ -119,24 +119,34 @@ client.on(Events.InteractionCreate, async (interaction) => {
         // ตรวจสอบสิทธิ์เฉพาะยศที่กำหนด (Role ID: 1549727990542508083)
         const requiredRoleId = botConfig.requiredRoleId || '1549727990542508083';
         const member = interaction.member;
-        let hasPermission = false;
+        
+        let isAdmin = false;
+        if (interaction.memberPermissions && interaction.memberPermissions.has('Administrator')) {
+            isAdmin = true;
+        }
 
+        let hasRequiredRole = false;
         if (member) {
             if (member.roles && member.roles.cache) {
-                hasPermission = member.roles.cache.has(requiredRoleId);
+                hasRequiredRole = member.roles.cache.has(requiredRoleId);
             } else if (Array.isArray(member.roles)) {
-                hasPermission = member.roles.includes(requiredRoleId);
-            }
-
-            // อนุญาตให้ Administrator หรือเจ้าของเซิร์ฟเวอร์ด้วย
-            if (!hasPermission && interaction.memberPermissions && interaction.memberPermissions.has('Administrator')) {
-                hasPermission = true;
+                hasRequiredRole = member.roles.includes(requiredRoleId);
             }
         }
 
-        if (!hasPermission) {
+        // 1. ผู้ใช้ต้องมียศ 1549727990542508083 หรือเป็น Administrator
+        if (!hasRequiredRole && !isAdmin) {
             return interaction.reply({
                 content: `⛔ **คุณไม่มีสิทธิ์ใช้งานคำสั่งนี้!**\nเฉพาะผู้ที่มียศ <@&${requiredRoleId}> เท่านั้นที่สามารถใช้คำสั่งของบอทได้ครับ`,
+                flags: MessageFlags.Ephemeral
+            }).catch(() => {});
+        }
+
+        // 2. สำหรับผู้ที่มียศ 1549727990542508083 (ที่ไม่ใช่ Admin): อนุญาตให้ใช้ได้เฉพาะ /script และ /exploits เท่านั้น
+        const allowedRoleCommands = ['script', 'exploits'];
+        if (!isAdmin && !allowedRoleCommands.includes(interaction.commandName)) {
+            return interaction.reply({
+                content: `⛔ **ไม่อนุญาตให้ใช้งานคำสั่งนี้!**\nยศ <@&${requiredRoleId}> สามารถใช้งานได้เฉพาะคำสั่ง \`/script\` และ \`/exploits\` เท่านั้นครับ`,
                 flags: MessageFlags.Ephemeral
             }).catch(() => {});
         }

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, PermissionFlagsBits } = require('discord.js');
 const { getScripts } = require('../scripts-helper.js');
 const botConfig = require('../config.js');
 
@@ -6,6 +6,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('latest')
         .setDescription('⚡ ดูสคริปต์ที่เพิ่งอัปเดตล่าสุดในเว็บ BlacklistScriptx')
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addIntegerOption(option =>
             option.setName('count')
                 .setDescription('จำนวนสคริปต์ที่ต้องการดู (ค่าเริ่มต้น 5, สูงสุด 10)')

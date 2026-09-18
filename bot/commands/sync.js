@@ -1,11 +1,12 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, PermissionFlagsBits } = require('discord.js');
 const { forceSyncScripts } = require('../scripts-helper.js');
 const botConfig = require('../config.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('sync')
-        .setDescription('🔄 ซิงค์สคริปต์ล่าสุดจาก Firebase เข้าบอททันที (ดึงข้อมูลล่าสุดจากเว็บ)'),
+        .setDescription('🔄 ซิงค์สคริปต์ล่าสุดจาก Firebase เข้าบอททันที (ดึงข้อมูลล่าสุดจากเว็บ)')
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });

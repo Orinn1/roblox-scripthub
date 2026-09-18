@@ -19,7 +19,7 @@
     "thumbnail_en": "",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua\"))()",
-    "created_at": 1789739099222
+    "created_at": 1789739393866
   },
   {
     "id": "script-1789400876314",
@@ -41,7 +41,7 @@
     "thumbnail_en": "",
     "description_en": "",
     "loadstring": "GravityHub = {\n    Key = \"\",\n    Team = \"Pirates\",\n    Color = \"Red\",\n    SaveSetting = false,\n    AutoExecute = false\n}\nloadstring(game:HttpGet(\"https://raw.githubusercontent.com/Dev-GravityHub/BloxFruit/refs/heads/main/MainPremium.lua\"))()",
-    "created_at": 1789739099219
+    "created_at": 1789739393864
   },
   {
     "id": "script-1789490850185",
@@ -63,7 +63,7 @@
     "thumbnail_en": "",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://zeroinhub.com/api/script\"))()",
-    "created_at": 1789739099215
+    "created_at": 1789739393861
   },
   {
     "id": "script-1789655182421",
@@ -72,7 +72,7 @@
     "category": "ride a pet",
     "version": "v1.0",
     "updated": "วันนี้",
-    "views": 33,
+    "views": 34,
     "likes": 2,
     "isKeyless": true,
     "isMobile": true,
@@ -85,6 +85,6 @@
     "thumbnail_en": "",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua\"))()",
-    "created_at": 1789739099210
+    "created_at": 1789739393856
   }
 ]

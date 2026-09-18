@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, PermissionFlagsBits } = require('discord.js');
 const db = require('../../db.js');
 const { getScripts } = require('../scripts-helper.js');
 const botConfig = require('../config.js');
@@ -6,7 +6,8 @@ const botConfig = require('../config.js');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('stats')
-        .setDescription('📊 ตรวจสอบสถิติเว็บไซต์ BlacklistScriptx และสถานะระบบ'),
+        .setDescription('📊 ตรวจสอบสถิติเว็บไซต์ BlacklistScriptx และสถานะระบบ')
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         const stats = db.getDatabaseStats ? db.getDatabaseStats() : {};

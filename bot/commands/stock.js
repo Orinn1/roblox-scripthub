@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, PermissionFlagsBits } = require('discord.js');
 const { getBloxFruitsStock, createStockEmbed } = require('../bloxfruits-stock.js');
 const botConfig = require('../config.js');
 const db = require('../../db.js');
@@ -7,6 +7,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('stock')
         .setDescription('🍇 ตรวจสอบสถานะผลปีศาจในร้านค้า Blox Fruits (Live Dealer Stock)')
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addStringOption(option =>
             option.setName('mode')
                 .setDescription('โหมด: เช็คครั้งเดียว หรือ ตั้งเป็นกระดานสดอัปเดตตลอด 24 ชม. (พิมพ์ครั้งเดียวปล่อยยาว)')
