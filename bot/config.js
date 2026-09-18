@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 module.exports = {
     token: process.env.DISCORD_TOKEN || '',
     clientId: process.env.DISCORD_CLIENT_ID || '',
+    clientSecret: process.env.DISCORD_CLIENT_SECRET || '_0r2E975KMdK9PRXYIiYat7ONK7xkIg3',
     guildId: process.env.DISCORD_GUILD_ID || '1548669247998140438',
     notifyChannelId: process.env.DISCORD_NOTIFY_CHANNEL_ID || '',
     youtubeNotifyChannelId: process.env.DISCORD_YT_NOTIFY_CHANNEL_ID || '1549408423068573807',
