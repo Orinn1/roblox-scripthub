@@ -1907,6 +1907,7 @@ body {
     justify-content: center;
     padding: 20px;
     animation: gateFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: auto !important;
 }
 
 @keyframes gateFadeIn {
@@ -2175,7 +2176,7 @@ body {
 .lootlabs-gate-overlay.gate-fade-out {
     opacity: 0 !important;
     transform: scale(0.97);
-    pointer-events: none;
+    pointer-events: none !important;
     transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
@@ -2789,6 +2790,12 @@ body {
     justify-content: center;
     padding: 20px;
     animation: vipFadeIn 0.25s ease-out;
+}
+
+.vip-modal-overlay[style*="display: none"] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 @keyframes vipFadeIn {

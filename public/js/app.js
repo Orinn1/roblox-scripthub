@@ -967,6 +967,8 @@ document.addEventListener("DOMContentLoaded", () => {
             updateVipUI();
             if (vipModalOverlay) {
                 vipModalOverlay.style.display = "flex";
+                vipModalOverlay.style.visibility = "visible";
+                vipModalOverlay.style.pointerEvents = "auto";
                 refreshIcons();
             }
         }
@@ -974,6 +976,8 @@ document.addEventListener("DOMContentLoaded", () => {
         function closeVipModal() {
             if (vipModalOverlay) {
                 vipModalOverlay.style.display = "none";
+                vipModalOverlay.style.visibility = "hidden";
+                vipModalOverlay.style.pointerEvents = "none";
             }
         }
 
@@ -1395,9 +1399,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // 4. Otherwise show gate overlay and setup dynamic link
         if (lootlabsGateOverlay) {
             isInternalGateChange = true;
+            lootlabsGateOverlay.classList.remove("gate-fade-out");
             lootlabsGateOverlay.style.display = "flex";
             lootlabsGateOverlay.style.visibility = "visible";
             lootlabsGateOverlay.style.opacity = "1";
+            lootlabsGateOverlay.style.pointerEvents = "auto";
             setTimeout(() => {
                 isInternalGateChange = false;
                 if (!isGateAuthorized() && !isCurrentlyBanned) {
@@ -1410,8 +1416,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (gateLootlabsBtn) {
                 if (provider === "shrinkearn") {
-                    const shrinkLink = (gate.shrinkearnUrl || gate.lootlabsUrl || "").trim();
-                    gateLootlabsBtn.href = shrinkLink || "#";
+                    const shrinkLink = (gate.shrinkearnUrl || gate.lootlabsUrl || SITE_CONFIG.lootlabsGate?.shrinkearnUrl || "https://srnky.com/aehfqq0").trim();
+                    gateLootlabsBtn.href = shrinkLink;
                     if (lblGateBtn) {
                         lblGateBtn.textContent = currentLang === "th" ? "🔓 เข้าใช้งานผ่าน ShrinkEarn (รอ 10-15 วินาที)" : "Unlock via ShrinkEarn (10-15s)";
                     }
@@ -1702,9 +1708,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (isHidden || lootlabsGateOverlay.style.opacity === "0") {
                     isInternalGateChange = true;
+                    lootlabsGateOverlay.classList.remove("gate-fade-out");
                     lootlabsGateOverlay.style.display = "flex";
                     lootlabsGateOverlay.style.visibility = "visible";
                     lootlabsGateOverlay.style.opacity = "1";
+                    lootlabsGateOverlay.style.pointerEvents = "auto";
                     lootlabsGateOverlay.hidden = false;
                     setTimeout(() => { isInternalGateChange = false; }, 300);
 
