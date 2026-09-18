@@ -1,4 +1,4 @@
-const { verifyVipToken } = require('../bot/vip-helper.js');
+const { verifyVipToken } = require('./_vip-helper.js');
 
 module.exports = async function handler(req, res) {
     // CORS headers

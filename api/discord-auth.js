@@ -1,10 +1,9 @@
-const { VIP_ROLE_ID, generateVipToken } = require('../bot/vip-helper.js');
-const botConfig = require('../bot/config.js');
+const { VIP_ROLE_ID, generateVipToken } = require('./_vip-helper.js');
 
-const CLIENT_ID = process.env.DISCORD_CLIENT_ID || botConfig.clientId || '1549395921228271686';
-const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || botConfig.clientSecret || '_0r2E975KMdK9PRXYIiYat7ONK7xkIg3';
-const GUILD_ID = process.env.DISCORD_GUILD_ID || botConfig.guildId || '1548669247998140438';
-const BOT_TOKEN = process.env.DISCORD_TOKEN || botConfig.token || '';
+const CLIENT_ID = process.env.DISCORD_CLIENT_ID || '1549395921228271686';
+const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || '_0r2E975KMdK9PRXYIiYat7ONK7xkIg3';
+const GUILD_ID = process.env.DISCORD_GUILD_ID || '1548669247998140438';
+const BOT_TOKEN = process.env.DISCORD_TOKEN || '';
 
 module.exports = async function handler(req, res) {
     const protocol = req.headers['x-forwarded-proto'] || 'https';
