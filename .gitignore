@@ -5,3 +5,4 @@ data/database.sqlite*
 public/data/database.sqlite*
 scratch/
 *.zip
+temp_api/
