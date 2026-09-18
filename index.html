@@ -25,8 +25,97 @@
         content="Free & 100% safe Roblox scripts, updated daily with executor status and sUNC score benchmarks.">
     <meta name="twitter:image" content="https://blacklistscripty.vercel.app/Banner.png">
 
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/sunc.css">
+    <!-- VIP Shield: Immediately check VIP and block all Adsterra/popunder networks before anything loads -->
+    <script>
+        (function() {
+            try {
+                // 1. Immediately decode and save VIP token from URL parameters synchronously
+                var params = new URLSearchParams(window.location.search);
+                var token = params.get('vip_token') || params.get('vip_code');
+                if (token && token.includes('.')) {
+                    var payloadStr = atob(token.split('.')[0].replace(/-/g, '+').replace(/_/g, '/'));
+                    var payload = JSON.parse(payloadStr);
+                    var vipSession = {
+                        token: token,
+                        user: {
+                            userId: payload.userId,
+                            id: payload.userId,
+                            username: payload.username || 'VIP Member',
+                            avatar: payload.avatar || ''
+                        },
+                        expiresAt: 0 // Lifetime
+                    };
+                    localStorage.setItem('blacklist_vip_pass', JSON.stringify(vipSession));
+                    localStorage.setItem('blacklist_lootlabs_auth_expiry', '9999999999999');
+                    sessionStorage.setItem('blacklist_lootlabs_auth', 'true');
+                }
+            } catch(e) {}
+
+            // 2. Check if user is VIP (or was previously unlocked as lifetime VIP)
+            var isVip = false;
+            try {
+                var raw = localStorage.getItem('blacklist_vip_pass');
+                if (raw) {
+                    var data = JSON.parse(raw);
+                    if (data && (data.token || data.user)) {
+                        var exp = Number(data.expiresAt || 0);
+                        if (exp === 0 || Date.now() < exp) {
+                            isVip = true;
+                        }
+                    }
+                }
+                if (!isVip && localStorage.getItem('blacklist_lootlabs_auth_expiry') === '9999999999999') {
+                    isVip = true;
+                }
+            } catch(e) {}
+
+            window.__IS_VIP__ = isVip;
+
+            // 3. If VIP, actively intercept and kill any ad script injection or popunders
+            if (isVip) {
+                // Intercept document.createElement('script') append
+                var origAppend = Element.prototype.appendChild;
+                Element.prototype.appendChild = function(el) {
+                    if (el && el.tagName === 'SCRIPT' && el.src) {
+                        var s = el.src.toLowerCase();
+                        if (s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm')) {
+                            console.warn('[VIP Shield] Ad script injection blocked:', el.src);
+                            return document.createElement('script');
+                        }
+                    }
+                    return origAppend.apply(this, arguments);
+                };
+
+                var origInsert = Element.prototype.insertBefore;
+                Element.prototype.insertBefore = function(el, ref) {
+                    if (el && el.tagName === 'SCRIPT' && el.src) {
+                        var s = el.src.toLowerCase();
+                        if (s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm')) {
+                            console.warn('[VIP Shield] Ad script insert blocked:', el.src);
+                            return document.createElement('script');
+                        }
+                    }
+                    return origInsert.apply(this, arguments);
+                };
+
+                // Intercept window.open against ad popunders
+                var origOpen = window.open;
+                window.open = function(url, target, features) {
+                    if (typeof url === 'string') {
+                        var u = url.toLowerCase();
+                        if (u.includes('profitableratecpmnetwork') || u.includes('alwingulla') || u.includes('adsterra') || u.includes('highcpmgate')) {
+                            console.warn('[VIP Shield] Ad popup blocked:', url);
+                            return null;
+                        }
+                    }
+                    return origOpen.apply(this, arguments);
+                };
+            }
+        })();
+    </script>
+
+    <link rel="stylesheet" href="css/style.css?v=20260919_vip">
+    <link rel="stylesheet" href="css/sunc.css?v=20260919_vip">
     <!-- Favicon Logo.ico -->
     <link rel="icon" type="image/x-icon" href="Logo.ico">
     <link rel="shortcut icon" href="Logo.ico">
@@ -643,28 +732,34 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-    <!-- Scripts -->
+    <!-- Scripts with Cache-Busting Version -->
     <script src="js/lucide.min.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/firebase-db.js"></script>
-    <script src="js/scripts-data.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/config.js?v=20260919_vip"></script>
+    <script src="js/firebase-db.js?v=20260919_vip"></script>
+    <script src="js/scripts-data.js?v=20260919_vip"></script>
+    <script src="js/app.js?v=20260919_vip"></script>
 
-    <!-- Adsterra Ads (Loaded only for non-VIP users) -->
+    <!-- Adsterra Ads (Loaded ONLY for Guest users - NEVER for VIP) -->
     <script>
         (function() {
+            // Comprehensive check across all VIP indicators
+            if (window.__IS_VIP__) return;
+
             try {
                 var vip = localStorage.getItem('blacklist_vip_pass');
                 if (vip) {
                     var data = JSON.parse(vip);
-                    if (data) {
+                    if (data && (data.token || data.user)) {
                         var exp = Number(data.expiresAt || 0);
-                        if (exp === 0 || Date.now() < exp) {
-                            return; // VIP Member: No Adsterra Ads! (Lifetime or active)
-                        }
+                        if (exp === 0 || Date.now() < exp) return;
                     }
                 }
+                if (localStorage.getItem('blacklist_lootlabs_auth_expiry') === '9999999999999') return;
+                var p = new URLSearchParams(window.location.search);
+                if (p.has('vip_token') || p.has('vip_code') || p.has('auth_success')) return;
             } catch(e) {}
+
+            // Strictly non-VIP guest: load Adsterra
             var s1 = document.createElement('script');
             s1.src = 'https://pl31372064.profitableratecpmnetwork.com/b1/28/5a/b1285aa73b09eccedfae325c60ae2c62.js';
             document.body.appendChild(s1);

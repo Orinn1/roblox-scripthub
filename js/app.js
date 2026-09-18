@@ -777,7 +777,20 @@ document.addEventListener("DOMContentLoaded", () => {
     function getVipData() {
         try {
             const raw = localStorage.getItem("blacklist_vip_pass");
-            if (!raw) return null;
+            if (!raw) {
+                // Auto-restore VIP session if previously unlocked with lifetime marker
+                if (localStorage.getItem("blacklist_lootlabs_auth_expiry") === "9999999999999") {
+                    const restored = {
+                        token: "",
+                        user: { username: "VIP Member", id: "" },
+                        expiresAt: 0
+                    };
+                    localStorage.setItem("blacklist_vip_pass", JSON.stringify(restored));
+                    window.__IS_VIP__ = true;
+                    return restored;
+                }
+                return null;
+            }
             const data = JSON.parse(raw);
             if (!data) return null;
             // Only expire if explicitly set to a timestamp > 0 and current time is past it
@@ -785,6 +798,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 localStorage.removeItem("blacklist_vip_pass");
                 return null;
             }
+            window.__IS_VIP__ = true;
             return data;
         } catch (e) {
             return null;
@@ -805,6 +819,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Also grant gate access permanently
         localStorage.setItem("blacklist_lootlabs_auth_expiry", "9999999999999");
         sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+        window.__IS_VIP__ = true;
         updateVipUI();
     }
 

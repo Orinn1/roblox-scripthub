@@ -10,5 +10,14 @@
     { "source": "/api/verify-vip", "destination": "/api/vip?action=verify" },
     { "source": "/api/reset-device-test", "destination": "/api/check-session?action=reset" },
     { "source": "/api/shrinkearn-shorten", "destination": "/api/shrinkearn" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Pragma", "value": "no-cache" }
+      ]
+    }
   ]
 }
