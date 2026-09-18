@@ -911,61 +911,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    async function handleVipCodeSubmit() {
-        const input = document.getElementById("vipCodeInput");
-        const err = document.getElementById("vipCodeErrorMsg");
-        const btn = document.getElementById("vipCodeSubmitBtn");
-        if (!input) return;
-        const code = input.value.trim();
-        if (!code) {
-            if (err) {
-                err.textContent = "กรุณากรอกรหัส VIP Token จากบอท";
-                err.style.display = "block";
-            }
-            return;
-        }
-
-        if (btn) btn.disabled = true;
-        if (err) err.style.display = "none";
-
-        try {
-            const res = await fetch("/api/verify-vip", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token: code })
-            });
-            const data = await res.json();
-            if (res.ok && data.valid) {
-                saveVipSession(code, data.user, data.expiresAt);
-                input.value = "";
-                showToast(`👑 เปิดใช้งาน VIP สำเร็จ! ยินดีต้อนรับ ${data.user ? (data.user.global_name || data.user.username) : ""}`);
-                const modal = document.getElementById("vipModalOverlay");
-                if (modal) modal.style.display = "none";
-            } else {
-                if (err) {
-                    err.textContent = data.message || "รหัส VIP Token ไม่ถูกต้องหรือหมดอายุแล้ว";
-                    err.style.display = "block";
-                }
-            }
-        } catch (e) {
-            if (err) {
-                err.textContent = "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์";
-                err.style.display = "block";
-            }
-        } finally {
-            if (btn) btn.disabled = false;
-        }
-    }
-
     function initVipSystem() {
         updateVipUI();
 
         const vipNavBtn = document.getElementById("vipNavBtn");
-        const gateOpenVipModalBtn = document.getElementById("gateOpenVipModalBtn");
         const vipModalOverlay = document.getElementById("vipModalOverlay");
         const vipModalCloseBtn = document.getElementById("vipModalCloseBtn");
-        const vipCodeSubmitBtn = document.getElementById("vipCodeSubmitBtn");
-        const vipCodeInput = document.getElementById("vipCodeInput");
         const vipLogoutBtn = document.getElementById("vipLogoutBtn");
 
         function openVipModal() {
@@ -982,23 +933,22 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        if (vipNavBtn) vipNavBtn.addEventListener("click", openVipModal);
-        if (gateOpenVipModalBtn) gateOpenVipModalBtn.addEventListener("click", openVipModal);
+        if (vipNavBtn) {
+            vipNavBtn.addEventListener("click", () => {
+                if (isVipMember()) {
+                    openVipModal();
+                } else {
+                    // Not VIP: Direct 1-Click to Discord OAuth2 login screen (like Maru Hub)
+                    window.location.href = "/api/discord-auth?action=login";
+                }
+            });
+        }
+
         if (vipModalCloseBtn) vipModalCloseBtn.addEventListener("click", closeVipModal);
 
         if (vipModalOverlay) {
             vipModalOverlay.addEventListener("click", (e) => {
                 if (e.target === vipModalOverlay) closeVipModal();
-            });
-        }
-
-        if (vipCodeSubmitBtn) vipCodeSubmitBtn.addEventListener("click", handleVipCodeSubmit);
-        if (vipCodeInput) {
-            vipCodeInput.addEventListener("keydown", (e) => {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleVipCodeSubmit();
-                }
             });
         }
 

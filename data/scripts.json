@@ -6,7 +6,7 @@
     "category": "stealanegg",
     "version": "v1.0",
     "updated": "วันนี้",
-    "views": 44,
+    "views": 45,
     "likes": 3,
     "isKeyless": false,
     "isMobile": true,
@@ -19,7 +19,7 @@
     "thumbnail_en": "",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua\"))()",
-    "created_at": 1789739488282
+    "created_at": 1789752002567
   },
   {
     "id": "script-1789400876314",
@@ -28,7 +28,7 @@
     "category": "bloxfruits",
     "version": "v1.0",
     "updated": "วันนี้",
-    "views": 225,
+    "views": 226,
     "likes": 1,
     "isKeyless": true,
     "isMobile": true,
@@ -41,7 +41,7 @@
     "thumbnail_en": "",
     "description_en": "",
     "loadstring": "GravityHub = {\n    Key = \"\",\n    Team = \"Pirates\",\n    Color = \"Red\",\n    SaveSetting = false,\n    AutoExecute = false\n}\nloadstring(game:HttpGet(\"https://raw.githubusercontent.com/Dev-GravityHub/BloxFruit/refs/heads/main/MainPremium.lua\"))()",
-    "created_at": 1789739488279
+    "created_at": 1789752002561
   },
   {
     "id": "script-1789490850185",
@@ -50,7 +50,7 @@
     "category": "stealanegg",
     "version": "v1.0",
     "updated": "วันนี้",
-    "views": 228,
+    "views": 229,
     "likes": 1,
     "isKeyless": false,
     "isMobile": true,
@@ -60,10 +60,10 @@
     "thumbnail": "https://i.postimg.cc/Tw5QWxyN/Chat-GPT-Image-Sep-15-2026-11-45-45-PM.png",
     "description": "สคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
     "title_en": "",
-    "thumbnail_en": "",
+    "thumbnail_en": "https://i.postimg.cc/ydn5BLQh/Chat-GPT-Image-Sep-18-2026-09-25-03-PM.png",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://zeroinhub.com/api/script\"))()",
-    "created_at": 1789739488276
+    "created_at": 1789752002558
   },
   {
     "id": "script-1789655182421",
@@ -72,7 +72,7 @@
     "category": "ride a pet",
     "version": "v1.0",
     "updated": "วันนี้",
-    "views": 35,
+    "views": 49,
     "likes": 2,
     "isKeyless": true,
     "isMobile": true,
@@ -85,6 +85,6 @@
     "thumbnail_en": "",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua\"))()",
-    "created_at": 1789739488271
+    "created_at": 1789752002554
   }
 ]

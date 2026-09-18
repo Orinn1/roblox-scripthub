@@ -23,7 +23,7 @@ module.exports = async function handler(req, res) {
             return;
         }
 
-        const discordAuthUrl = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=identify`;
+        const discordAuthUrl = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=identify%20guilds.members.read`;
         res.writeHead(302, { Location: discordAuthUrl });
         res.end();
         return;
@@ -79,27 +79,42 @@ module.exports = async function handler(req, res) {
             const userData = await userRes.json();
             const userId = userData.id;
             const username = userData.global_name || userData.username || 'Discord User';
+            const avatarUrl = userData.avatar
+                ? `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.png`
+                : '';
 
-            // Check guild member roles using Bot Token
+            // Check guild member roles (Role 1549727990542508083)
             const requiredRole = process.env.DISCORD_REQUIRED_ROLE_ID || VIP_ROLE_ID;
             let isVip = false;
 
-            if (BOT_TOKEN && GUILD_ID) {
-                const memberRes = await fetch(`https://discord.com/api/guilds/${GUILD_ID}/members/${userId}`, {
-                    headers: { Authorization: `Bot ${BOT_TOKEN}` }
-                });
+            // Method 1: Check member roles via user's access token (guilds.members.read scope)
+            if (GUILD_ID) {
+                const userMemberRes = await fetch(`https://discord.com/api/users/@me/guilds/${GUILD_ID}/member`, {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                }).catch(() => null);
 
-                if (memberRes.ok) {
-                    const memberData = await memberRes.json();
+                if (userMemberRes && userMemberRes.ok) {
+                    const memberData = await userMemberRes.json();
                     const roles = memberData.roles || [];
                     isVip = roles.includes(requiredRole);
-                } else {
-                    console.warn(`[Discord Auth] Member ${userId} not found in guild ${GUILD_ID}`);
+                }
+            }
+
+            // Method 2: Fallback check via Bot token
+            if (!isVip && BOT_TOKEN && GUILD_ID) {
+                const botMemberRes = await fetch(`https://discord.com/api/guilds/${GUILD_ID}/members/${userId}`, {
+                    headers: { Authorization: `Bot ${BOT_TOKEN}` }
+                }).catch(() => null);
+
+                if (botMemberRes && botMemberRes.ok) {
+                    const memberData = await botMemberRes.json();
+                    const roles = memberData.roles || [];
+                    isVip = roles.includes(requiredRole);
                 }
             }
 
             if (!isVip) {
-                res.writeHead(302, { Location: `${baseUrl}/?vip_error=not_vip&user=${encodeURIComponent(username)}` });
+                res.writeHead(302, { Location: `${baseUrl}/?vip_error=no_role&user=${encodeURIComponent(username)}` });
                 res.end();
                 return;
             }
@@ -109,6 +124,7 @@ module.exports = async function handler(req, res) {
                 userId,
                 username,
                 roleId: requiredRole,
+                avatar: avatarUrl,
                 durationDays: 30
             });
 

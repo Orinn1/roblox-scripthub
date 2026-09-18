@@ -35,15 +35,6 @@
     "binId": "6aa6a183ac6210605ac7dcf7",
     "masterKey": "$2a$10$IYkvYSXXCqfb9lO86OX8.ehEV.hMZwInw.esSiflJGjjaiYEs5eQ6"
   },
-  "stock_live_panels": [
-    {
-      "channelId": "1549774966474674259",
-      "messageId": "1550102814699683972",
-      "guildId": "1548669247998140438",
-      "dealer": "all",
-      "updatedAt": 1789739462182
-    }
-  ],
   "notified_youtube_video_ids": [
     "VsI796ml-rE",
     "cQroA4kPW4o",
@@ -59,5 +50,14 @@
     "IuRBkqxHuGY"
   ],
   "youtube_last_published_time": 1789670964000,
-  "last_roblox_client_version": "version-4310300497aa4917"
+  "last_roblox_client_version": "version-4310300497aa4917",
+  "stock_live_panels": [
+    {
+      "channelId": "1549774966474674259",
+      "messageId": "1550102814699683972",
+      "guildId": "1548669247998140438",
+      "dealer": "all",
+      "updatedAt": 1789751975859
+    }
+  ]
 }
