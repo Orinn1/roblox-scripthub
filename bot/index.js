@@ -3,6 +3,7 @@ const path = require('path');
 const { Client, Collection, GatewayIntentBits, ActivityType, Events, MessageFlags } = require('discord.js');
 const botConfig = require('./config.js');
 const db = require('../db.js');
+const { getScripts, getScriptById, onScriptsSynced } = require('./scripts-helper.js');
 
 if (!botConfig.token) {
     console.warn('⚠️ [Discord Bot] ยังไม่ได้ใส่ DISCORD_TOKEN ในไฟล์ .env');
@@ -15,6 +16,20 @@ const client = new Client({
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent
     ]
+});
+
+// Global Error Resilience
+client.on('error', (err) => {
+    if (err.code !== 10062 && err.code !== 40060) {
+        console.error('⚠️ [Discord Client Error]:', err.message || err);
+    }
+});
+
+process.on('unhandledRejection', (reason) => {
+    const msg = reason?.message || String(reason);
+    if (!msg.includes('10062') && !msg.includes('40060')) {
+        console.warn('⚠️ [Unhandled Rejection]:', msg);
+    }
 });
 
 client.commands = new Collection();
@@ -33,9 +48,9 @@ if (fs.existsSync(commandsPath)) {
 }
 
 // Update Activity Status
-function updateBotPresence() {
+async function updateBotPresence() {
     try {
-        const scripts = db.getAllScripts();
+        const scripts = await getScripts();
         const scriptCount = scripts ? scripts.length : 0;
         if (client.user) {
             client.user.setActivity({
@@ -46,6 +61,10 @@ function updateBotPresence() {
     } catch (e) {}
 }
 
+onScriptsSynced(() => {
+    updateBotPresence();
+});
+
 const { deployCommands } = require('./deploy-commands.js');
 const { startYouTubeMonitor } = require('./youtube-monitor.js');
 const { startRobloxMonitor } = require('./roblox-monitor.js');
@@ -53,8 +72,9 @@ const { startStockMonitor } = require('./stock-monitor.js');
 const { handleBypassMessage } = require('./bypass-helper.js');
 
 client.once(Events.ClientReady, async (readyClient) => {
+    const scripts = await getScripts();
     console.log(`🤖 Discord Bot ออนไลน์แล้วในชื่อ: ${readyClient.user.tag}`);
-    console.log(`🌐 บอทเชื่อมต่อกับฐานข้อมูล SQLite (${db.getAllScripts().length} สคริปต์)`);
+    console.log(`🌐 บอทเชื่อมต่อกับระบบฐานข้อมูล (${scripts.length} สคริปต์)`);
     updateBotPresence();
     setInterval(updateBotPresence, 5 * 60 * 1000); // ทุก 5 นาที
 
@@ -81,7 +101,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
         try {
             await command.autocomplete(interaction);
         } catch (error) {
-            console.error(`[Autocomplete Error: ${interaction.commandName}]:`, error);
+            if (error.code !== 10062 && error.code !== 40060) {
+                console.error(`[Autocomplete Error: ${interaction.commandName}]:`, error.message || error);
+            }
         }
         return;
     }
@@ -116,22 +138,26 @@ client.on(Events.InteractionCreate, async (interaction) => {
             return interaction.reply({
                 content: `⛔ **คุณไม่มีสิทธิ์ใช้งานคำสั่งนี้!**\nเฉพาะผู้ที่มียศ <@&${requiredRoleId}> เท่านั้นที่สามารถใช้คำสั่งของบอทได้ครับ`,
                 flags: MessageFlags.Ephemeral
-            });
+            }).catch(() => {});
         }
 
         try {
             await command.execute(interaction);
         } catch (error) {
-            console.error(`[Command Error: ${interaction.commandName}]:`, error);
+            if (error.code !== 10062 && error.code !== 40060) {
+                console.error(`[Command Error: ${interaction.commandName}]:`, error);
+            }
             const errorMessage = {
                 content: '❌ เกิดข้อผิดพลาดขณะประมวลผลคำสั่งนี้ กรุณาลองใหม่อีกครั้ง',
                 flags: MessageFlags.Ephemeral
             };
-            if (interaction.replied || interaction.deferred) {
-                await interaction.followUp(errorMessage).catch(() => {});
-            } else {
-                await interaction.reply(errorMessage).catch(() => {});
-            }
+            try {
+                if (interaction.replied || interaction.deferred) {
+                    await interaction.followUp(errorMessage);
+                } else {
+                    await interaction.reply(errorMessage);
+                }
+            } catch (e) {}
         }
         return;
     }
@@ -142,19 +168,19 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
         if (customId.startsWith('get_code_')) {
             const scriptId = customId.replace('get_code_', '');
-            const script = db.getScriptById(scriptId);
+            const script = await getScriptById(scriptId) || (db && db.getScriptById ? db.getScriptById(scriptId) : null);
 
             if (!script) {
                 return interaction.reply({
                     content: '❌ ไม่พบข้อมูลสคริปต์นี้ในฐานข้อมูล',
                     flags: MessageFlags.Ephemeral
-                });
+                }).catch(() => {});
             }
 
             return interaction.reply({
                 content: `📋 **โค้ด Loadstring สำหรับ [${script.title}]:**\n\`\`\`lua\n${script.loadstring || '-- ไม่พบโค้ด'}\n\`\`\`\n*(ข้อความนี้แสดงเฉพาะคุณ สามารถกดคัดลอกไปวางในตัวรันได้ทันที)*`,
                 flags: MessageFlags.Ephemeral
-            });
+            }).catch(() => {});
         }
 
         if (customId === 'stock_refresh') {

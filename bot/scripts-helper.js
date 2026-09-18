@@ -9,32 +9,147 @@ try {
     // If running in isolated container without SQLite
 }
 
+// Firebase Firestore Configuration
+let firebaseProjectId = process.env.FIREBASE_PROJECT_ID || 'blacklistscripts';
+let firebaseApiKey = process.env.FIREBASE_API_KEY || 'AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI';
+
+try {
+    const cfgPath = path.join(__dirname, '..', 'data', 'config.json');
+    if (fs.existsSync(cfgPath)) {
+        const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+        if (cfg && cfg.firebaseConfig) {
+            if (cfg.firebaseConfig.projectId) firebaseProjectId = cfg.firebaseConfig.projectId;
+            if (cfg.firebaseConfig.apiKey) firebaseApiKey = cfg.firebaseConfig.apiKey;
+        }
+    }
+} catch (e) {}
+
 let cachedScripts = [];
 let lastFetchTime = 0;
-const CACHE_TTL = 30 * 1000; // Cache 30 seconds
+const CACHE_TTL = 30 * 1000; // Cache for 30 seconds
+let syncListeners = [];
 
-async function getScripts() {
+/**
+ * Fetch scripts directly from Google Firebase Firestore REST API
+ */
+async function fetchFromFirestore() {
+    try {
+        const url = `https://firestore.googleapis.com/v1/projects/${firebaseProjectId}/databases/(default)/documents/hub/database?key=${firebaseApiKey}`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4500);
+
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) {
+            console.warn(`[ScriptsHelper] Firestore returned status ${res.status}`);
+            return null;
+        }
+
+        const data = await res.json();
+        let list = null;
+
+        if (data.fields && data.fields.scriptsJson && data.fields.scriptsJson.stringValue) {
+            try {
+                list = JSON.parse(data.fields.scriptsJson.stringValue);
+            } catch (e) {
+                console.warn('[ScriptsHelper] JSON parse error in scriptsJson:', e.message);
+            }
+        }
+
+        if (Array.isArray(list) && list.length > 0) {
+            return list;
+        }
+    } catch (err) {
+        console.warn('[ScriptsHelper] Failed to fetch scripts from Firebase Firestore:', err.message);
+    }
+    return null;
+}
+
+/**
+ * Persist scripts to local SQLite database and JSON files for offline resilience
+ */
+function syncToLocal(scripts) {
+    if (!Array.isArray(scripts) || scripts.length === 0) return;
+
+    // 1. Sync to local data/scripts.json
+    try {
+        const jsonDir = path.join(__dirname, '..', 'data');
+        if (!fs.existsSync(jsonDir)) fs.mkdirSync(jsonDir, { recursive: true });
+        const jsonPath = path.join(jsonDir, 'scripts.json');
+        fs.writeFileSync(jsonPath, JSON.stringify(scripts, null, 2), 'utf8');
+    } catch (e) {}
+
+    // 2. Sync to public/data/scripts.json if public directory exists
+    try {
+        const publicDir = path.join(__dirname, '..', 'public', 'data');
+        if (fs.existsSync(publicDir)) {
+            const publicPath = path.join(publicDir, 'scripts.json');
+            fs.writeFileSync(publicPath, JSON.stringify(scripts, null, 2), 'utf8');
+        }
+    } catch (e) {}
+
+    // 3. Upsert into SQLite database
+    if (localDb && typeof localDb.addScript === 'function') {
+        try {
+            for (const s of scripts) {
+                localDb.addScript(s);
+            }
+        } catch (e) {
+            console.warn('[ScriptsHelper] Failed to upsert to local SQLite:', e.message);
+        }
+    }
+}
+
+/**
+ * Get all scripts - Always prioritize live Firebase Firestore with smart TTL cache
+ * @param {boolean} forceRefresh - Bypass TTL cache and force fetch from Firestore
+ */
+async function getScripts(forceRefresh = false) {
     const now = Date.now();
 
-    // 1. If we have local SQLite database and it has scripts, use it
+    // 1. If cache is fresh and not forced, return immediately (< 1ms)
+    if (!forceRefresh && cachedScripts.length > 0 && (now - lastFetchTime) < CACHE_TTL) {
+        return cachedScripts;
+    }
+
+    // 2. Fetch live data from Firebase Firestore
+    const remoteScripts = await fetchFromFirestore();
+    if (remoteScripts && remoteScripts.length > 0) {
+        const isNewCount = cachedScripts.length !== remoteScripts.length;
+        cachedScripts = remoteScripts;
+        lastFetchTime = now;
+        syncToLocal(remoteScripts);
+
+        if (isNewCount) {
+            syncListeners.forEach(cb => {
+                try { cb(cachedScripts); } catch (e) {}
+            });
+        }
+        return cachedScripts;
+    }
+
+    // 3. Fallback: If we already have memory cache (even if expired), use it
+    if (cachedScripts.length > 0) {
+        return cachedScripts;
+    }
+
+    // 4. Fallback: Read from local SQLite
     if (localDb && typeof localDb.getAllScripts === 'function') {
         try {
             const list = localDb.getAllScripts();
-            if (list && list.length > 0) {
-                return list;
+            if (Array.isArray(list) && list.length > 0) {
+                cachedScripts = list;
+                lastFetchTime = now;
+                return cachedScripts;
             }
         } catch (e) {}
     }
 
-    // 2. Check in-memory cache for remote fetch
-    if (cachedScripts.length > 0 && (now - lastFetchTime) < CACHE_TTL) {
-        return cachedScripts;
-    }
-
-    // 3. Try reading local data/scripts.json directly
-    const jsonPath = path.join(__dirname, '..', 'data', 'scripts.json');
-    if (fs.existsSync(jsonPath)) {
-        try {
+    // 5. Fallback: Read from local data/scripts.json
+    try {
+        const jsonPath = path.join(__dirname, '..', 'data', 'scripts.json');
+        if (fs.existsSync(jsonPath)) {
             const raw = fs.readFileSync(jsonPath, 'utf8');
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed) && parsed.length > 0) {
@@ -42,30 +157,72 @@ async function getScripts() {
                 lastFetchTime = now;
                 return cachedScripts;
             }
-        } catch (e) {}
-    }
-
-    // 4. Try fetching from Vercel / Remote Website URL if configured
-    if (botConfig.websiteUrl && botConfig.websiteUrl.startsWith('http') && !botConfig.websiteUrl.includes('localhost')) {
-        try {
-            const targetUrl = botConfig.websiteUrl.replace(/\/$/, '') + '/data/scripts.json';
-            const resp = await fetch(targetUrl, { signal: AbortSignal.timeout(5000) });
-            if (resp.ok) {
-                const data = await resp.json();
-                if (Array.isArray(data) && data.length > 0) {
-                    cachedScripts = data;
-                    lastFetchTime = now;
-                    return cachedScripts;
-                }
-            }
-        } catch (e) {
-            console.warn('[ScriptsHelper] Failed to fetch scripts from remote website:', e.message);
         }
-    }
+    } catch (e) {}
 
     return cachedScripts;
 }
 
+/**
+ * Get a specific script by ID or fuzzy title/game
+ */
+async function getScriptById(idOrQuery) {
+    if (!idOrQuery) return null;
+    const scripts = await getScripts();
+    const strQuery = String(idOrQuery).trim();
+
+    // Exact ID match
+    let found = scripts.find(s => String(s.id) === strQuery);
+    if (found) return found;
+
+    // Fuzzy title or game match
+    const lower = strQuery.toLowerCase();
+    found = scripts.find(s => 
+        (s.title && s.title.toLowerCase().includes(lower)) ||
+        (s.game && s.game.toLowerCase().includes(lower))
+    );
+    return found || null;
+}
+
+/**
+ * Force refresh scripts from Firestore immediately
+ */
+async function forceSyncScripts() {
+    return await getScripts(true);
+}
+
+/**
+ * Subscribe to sync updates
+ */
+function onScriptsSynced(callback) {
+    if (typeof callback === 'function') {
+        syncListeners.push(callback);
+    }
+}
+
+// Background auto-refresh loop (every 30 seconds)
+const autoRefreshTimer = setInterval(async () => {
+    try {
+        await forceSyncScripts();
+    } catch (e) {}
+}, 30 * 1000);
+if (autoRefreshTimer && typeof autoRefreshTimer.unref === 'function') {
+    autoRefreshTimer.unref();
+}
+
+// Initial prime on boot
+const initialPrimeTimer = setTimeout(() => {
+    forceSyncScripts().then(list => {
+        console.log(`[ScriptsHelper] 🔥 Synced ${list.length} scripts from Firebase Firestore`);
+    }).catch(() => {});
+}, 1000);
+if (initialPrimeTimer && typeof initialPrimeTimer.unref === 'function') {
+    initialPrimeTimer.unref();
+}
+
 module.exports = {
-    getScripts
+    getScripts,
+    getScriptById,
+    forceSyncScripts,
+    onScriptsSynced
 };

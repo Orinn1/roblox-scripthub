@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const db = require('../../db.js');
+const { getScripts } = require('../scripts-helper.js');
 const botConfig = require('../config.js');
 
 module.exports = {
@@ -9,7 +10,7 @@ module.exports = {
 
     async execute(interaction) {
         const stats = db.getDatabaseStats ? db.getDatabaseStats() : {};
-        const scripts = db.getAllScripts();
+        const scripts = await getScripts();
         const totalViews = scripts.reduce((acc, s) => acc + (s.views || 0), 0);
         const totalLikes = scripts.reduce((acc, s) => acc + (s.likes || 0), 0);
         const keylessCount = scripts.filter(s => s.isKeyless).length;
