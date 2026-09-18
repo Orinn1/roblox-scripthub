@@ -1241,12 +1241,21 @@ document.addEventListener("DOMContentLoaded", () => {
             if (window.lucide && lucide.createIcons) lucide.createIcons();
 
             try {
-                const res = await fetch("/api/shrinkearn-shorten", {
+                let res = await fetch("/api/shrinkearn", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ url: targetUrl, apiToken: apiToken })
-                });
-                const data = await res.json();
+                }).catch(() => null);
+
+                if (!res || !res.ok) {
+                    res = await fetch("/api/shrinkearn-shorten", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ url: targetUrl, apiToken: apiToken })
+                    }).catch(() => null);
+                }
+
+                const data = res ? await res.json().catch(() => null) : null;
                 if (data && data.success && data.shortenedUrl) {
                     if (adminGateUrl) adminGateUrl.value = data.shortenedUrl;
                     if (SITE_CONFIG.lootlabsGate) {
