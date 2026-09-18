@@ -13,12 +13,39 @@ function getSecretKey() {
     return 'blacklist_vip_default_secret_salt_2026_x89';
 }
 
+const ROLE_DEFINITIONS = {
+    '1549057153585651923': { name: 'Admin', tag: '🛡️ Admin', color: '#ef4444', canBypass: true, priority: 1 },
+    '1548695694586544271': { name: 'Dev', tag: '💻 Dev', color: '#06b6d4', canBypass: true, priority: 2 },
+    '1549727990542508083': { name: 'Bypass', tag: '⚡ Bypass', color: '#eab308', canBypass: true, priority: 3 },
+    '1550502141699821619': { name: 'Bypass', tag: '⚡ Bypass', color: '#eab308', canBypass: true, priority: 3 },
+    '1549056973566116020': { name: 'Verified', tag: '✅ Verified', color: '#22c55e', canBypass: false, priority: 4 }
+};
+
+function resolveUserRoles(roles = []) {
+    let bestRole = { id: '', name: 'Member', tag: '👤 Member', color: '#94a3b8', canBypass: false, priority: 99 };
+    let canBypass = false;
+
+    for (const rId of roles) {
+        const def = ROLE_DEFINITIONS[rId];
+        if (def) {
+            if (def.canBypass) canBypass = true;
+            if (def.priority < bestRole.priority) {
+                bestRole = { id: rId, ...def };
+            }
+        }
+    }
+
+    return { primaryRole: bestRole, canBypass, roles };
+}
+
 function generateVipToken(data) {
     const payload = {
         userId: String(data.userId || 'unknown'),
-        username: String(data.username || 'VIP Member'),
-        roleId: String(data.roleId || VIP_ROLE_ID),
+        username: String(data.username || 'Discord User'),
         avatar: String(data.avatar || ''),
+        roles: Array.isArray(data.roles) ? data.roles : [],
+        primaryRole: data.primaryRole || { id: '', name: 'Member', tag: '👤 Member', color: '#94a3b8', canBypass: false },
+        canBypass: Boolean(data.canBypass),
         exp: 0, // 0 = Lifetime (Never expires)
         createdAt: Date.now(),
         nonce: crypto.randomBytes(6).toString('hex')
@@ -118,8 +145,10 @@ module.exports = async (req, res) => {
                     username: result.payload.username,
                     avatar: result.payload.avatar || ''
                 },
-                roleId: result.payload.roleId || VIP_ROLE_ID,
-                expiresAt: result.payload.exp,
+                roles: result.payload.roles || [],
+                primaryRole: result.payload.primaryRole || { id: '', name: 'Member', tag: '👤 Member', color: '#94a3b8', canBypass: false },
+                canBypass: Boolean(result.payload.canBypass),
+                expiresAt: result.payload.exp || 0,
                 createdAt: result.payload.createdAt
             });
         } catch (err) {
@@ -186,8 +215,8 @@ module.exports = async (req, res) => {
                 ? `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.png`
                 : '';
 
-            const requiredRole = process.env.DISCORD_REQUIRED_ROLE_ID || VIP_ROLE_ID;
-            let isVip = false;
+            let memberFound = false;
+            let memberRoles = [];
 
             // Check roles via user access token
             if (GUILD_ID) {
@@ -197,33 +226,37 @@ module.exports = async (req, res) => {
 
                 if (userMemberRes && userMemberRes.ok) {
                     const memberData = await userMemberRes.json();
-                    const roles = memberData.roles || [];
-                    isVip = roles.some(r => r === requiredRole || VIP_ROLE_IDS.includes(r));
+                    memberRoles = memberData.roles || [];
+                    memberFound = true;
                 }
             }
 
             // Fallback via Bot Token
-            if (!isVip && BOT_TOKEN && GUILD_ID) {
+            if (!memberFound && BOT_TOKEN && GUILD_ID) {
                 const botMemberRes = await fetch(`https://discord.com/api/guilds/${GUILD_ID}/members/${userId}`, {
                     headers: { Authorization: `Bot ${BOT_TOKEN}` }
                 }).catch(() => null);
 
                 if (botMemberRes && botMemberRes.ok) {
                     const memberData = await botMemberRes.json();
-                    const roles = memberData.roles || [];
-                    isVip = roles.some(r => r === requiredRole || VIP_ROLE_IDS.includes(r));
+                    memberRoles = memberData.roles || [];
+                    memberFound = true;
                 }
             }
 
-            if (!isVip) {
-                return res.redirect(302, `${baseUrl}/?vip_error=no_role&user=${encodeURIComponent(username)}`);
+            if (!memberFound) {
+                return res.redirect(302, `${baseUrl}/?vip_error=not_in_guild&user=${encodeURIComponent(username)}`);
             }
+
+            const { primaryRole, canBypass } = resolveUserRoles(memberRoles);
 
             const vipToken = generateVipToken({
                 userId,
                 username,
-                roleId: requiredRole,
-                avatar: avatarUrl
+                avatar: avatarUrl,
+                roles: memberRoles,
+                primaryRole,
+                canBypass
             });
 
             return res.redirect(302, `${baseUrl}/?vip_token=${encodeURIComponent(vipToken)}&auth_success=1`);

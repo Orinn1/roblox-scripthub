@@ -2986,22 +2986,36 @@ body {
     color: #fca5a5;
 }
 
-/* VIP Inactive / Connect Panel */
-.vip-method-card {
-    background: linear-gradient(135deg, rgba(88, 101, 242, 0.1) 0%, rgba(20, 24, 38, 0.6) 100%);
-    border: 1px solid rgba(88, 101, 242, 0.28);
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 16px;
-}
-
-.vip-method-num {
+/* Role Badges */
+.nav-role-pill {
     font-size: 11px;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #818cf8;
-    margin-bottom: 6px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    margin-left: 6px;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.2;
+}
+
+.user-role-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.2;
+}
+
+.vip-badge-tag.is-active {
+    color: #34d399;
+}
+
+.vip-badge-tag.is-standard {
+    color: #94a3b8;
+}
+
 /* VIP Inactive / Discord OAuth2 Connect Panel */
 .vip-oauth-card {
     background: linear-gradient(135deg, rgba(88, 101, 242, 0.12) 0%, rgba(15, 23, 42, 0.7) 100%);

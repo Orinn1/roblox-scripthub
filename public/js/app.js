@@ -772,7 +772,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================================================
-    // VIP MEMBER (DISCORD ROLE 1549727990542508083) SYSTEM
+    // =========================================================================
+    // DISCORD MULTI-ROLE & BYPASS SYSTEM
     // =========================================================================
     function getVipData() {
         try {
@@ -786,7 +787,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 window.__IS_VIP__ = false;
                 return null;
             }
-            window.__IS_VIP__ = true;
+            if (data.canBypass) {
+                window.__IS_VIP__ = true;
+            } else {
+                window.__IS_VIP__ = false;
+            }
             return data;
         } catch (e) {
             return null;
@@ -794,20 +799,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function isVipMember() {
+        const d = getVipData();
+        return d !== null && d.canBypass === true;
+    }
+
+    function isUserLoggedIn() {
         return getVipData() !== null;
     }
 
-    function saveVipSession(token, user, expiresAt) {
+    function saveVipSession(token, user, roles, primaryRole, canBypass, expiresAt) {
+        // Fallback if decode needed
+        if ((!primaryRole || !roles) && token && token.includes('.')) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[0].replace(/-/g, '+').replace(/_/g, '/')));
+                if (!roles) roles = payload.roles || [];
+                if (!primaryRole) primaryRole = payload.primaryRole;
+                if (typeof canBypass === 'undefined') canBypass = payload.canBypass;
+            } catch (e) {}
+        }
+
         const payload = {
             token: token || "",
-            user: user || { username: "VIP Member", id: "" },
+            user: user || { username: "Discord User", id: "" },
+            roles: Array.isArray(roles) ? roles : [],
+            primaryRole: primaryRole || { id: '', name: 'Member', tag: '👤 Member', color: '#94a3b8', canBypass: false },
+            canBypass: Boolean(canBypass),
             expiresAt: 0 // 0 = Lifetime (Never expires)
         };
         localStorage.setItem("blacklist_vip_pass", JSON.stringify(payload));
-        // Also grant gate access permanently
-        localStorage.setItem("blacklist_lootlabs_auth_expiry", "9999999999999");
-        sessionStorage.setItem("blacklist_lootlabs_auth", "true");
-        window.__IS_VIP__ = true;
+        if (payload.canBypass) {
+            localStorage.setItem("blacklist_lootlabs_auth_expiry", "9999999999999");
+            sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+            window.__IS_VIP__ = true;
+        } else {
+            window.__IS_VIP__ = false;
+        }
         updateVipUI();
     }
 
@@ -824,41 +850,50 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateVipUI() {
-        const vip = getVipData();
+        const session = getVipData();
         const vipNavBtn = document.getElementById("vipNavBtn");
         const vipNavText = document.getElementById("vipNavText");
         const vipBtnIcon = document.getElementById("vipBtnIcon");
         const vipActivePanel = document.getElementById("vipActivePanel");
         const vipInactivePanel = document.getElementById("vipInactivePanel");
         const vipUserName = document.getElementById("vipUserName");
+        const vipUserRoleBadge = document.getElementById("vipUserRoleBadge");
+        const vipStatusBadgeTag = document.getElementById("vipStatusBadgeTag");
+        const vipFeaturesList = document.getElementById("vipFeaturesList");
         const vipUserAvatar = document.getElementById("vipUserAvatar");
         const vipExpiryText = document.getElementById("vipExpiryText");
 
-        if (vip) {
-            let username = "VIP Member";
+        if (session) {
+            let username = "Discord User";
             let avatarUrl = "";
+            let role = session.primaryRole || { id: '', name: 'Member', tag: '👤 Member', color: '#94a3b8', canBypass: false };
+            let canBypass = Boolean(session.canBypass);
 
-            if (vip.user) {
-                username = vip.user.global_name || vip.user.username || username;
-                if (vip.user.avatar) {
-                    avatarUrl = vip.user.avatar.startsWith("http")
-                        ? vip.user.avatar
-                        : `https://cdn.discordapp.com/avatars/${vip.user.userId || vip.user.id}/${vip.user.avatar}.png`;
+            if (session.user) {
+                username = session.user.global_name || session.user.username || username;
+                if (session.user.avatar) {
+                    avatarUrl = session.user.avatar.startsWith("http")
+                        ? session.user.avatar
+                        : `https://cdn.discordapp.com/avatars/${session.user.userId || session.user.id}/${session.user.avatar}.png`;
                 }
             }
 
-            // Fallback: decode directly from token if avatar or username missing
-            if ((!avatarUrl || username === "VIP Member") && vip.token && vip.token.includes('.')) {
+            // Fallback decode from token if needed
+            if ((!avatarUrl || username === "Discord User" || !session.primaryRole) && session.token && session.token.includes('.')) {
                 try {
-                    const tokenPayload = JSON.parse(atob(vip.token.split('.')[0].replace(/-/g, '+').replace(/_/g, '/')));
+                    const tokenPayload = JSON.parse(atob(session.token.split('.')[0].replace(/-/g, '+').replace(/_/g, '/')));
                     if (tokenPayload.username) username = tokenPayload.username;
                     if (tokenPayload.avatar) avatarUrl = tokenPayload.avatar;
+                    if (tokenPayload.primaryRole) role = tokenPayload.primaryRole;
+                    if (typeof tokenPayload.canBypass !== 'undefined') canBypass = Boolean(tokenPayload.canBypass);
                 } catch (e) {}
             }
 
             if (vipNavBtn) {
                 vipNavBtn.classList.add("is-active");
-                if (vipNavText) vipNavText.textContent = username;
+                if (vipNavText) {
+                    vipNavText.innerHTML = `${escapeHtml(username)} <span class="nav-role-pill" style="background: ${role.color}22; color: ${role.color}; border: 1px solid ${role.color}55;">${role.tag || role.name}</span>`;
+                }
                 if (vipBtnIcon) {
                     if (avatarUrl) {
                         vipBtnIcon.innerHTML = `<img src="${avatarUrl}" class="vip-user-nav-avatar" alt="${escapeHtml(username)}">`;
@@ -866,12 +901,45 @@ document.addEventListener("DOMContentLoaded", () => {
                         vipBtnIcon.innerHTML = `<div class="vip-user-nav-avatar-placeholder">${escapeHtml(username.charAt(0).toUpperCase())}</div>`;
                     }
                 }
-                vipNavBtn.title = username;
+                vipNavBtn.title = `${username} (${role.name})`;
             }
+
             if (vipActivePanel) vipActivePanel.style.display = "block";
             if (vipInactivePanel) vipInactivePanel.style.display = "none";
 
             if (vipUserName) vipUserName.textContent = username;
+            if (vipUserRoleBadge) {
+                vipUserRoleBadge.innerHTML = role.tag || role.name;
+                vipUserRoleBadge.style.background = `${role.color}22`;
+                vipUserRoleBadge.style.color = role.color;
+                vipUserRoleBadge.style.border = `1px solid ${role.color}55`;
+            }
+
+            if (vipStatusBadgeTag) {
+                if (canBypass) {
+                    vipStatusBadgeTag.textContent = "🟢 ACTIVE • BYPASS ADS 100%";
+                    vipStatusBadgeTag.className = "vip-badge-tag is-active";
+                } else {
+                    vipStatusBadgeTag.textContent = "⚪ CONNECTED • MEMBER";
+                    vipStatusBadgeTag.className = "vip-badge-tag is-standard";
+                }
+            }
+
+            if (vipFeaturesList) {
+                if (canBypass) {
+                    vipFeaturesList.innerHTML = `
+                        <div>✅ ปิดโฆษณา Adsterra และป๊อปอัปทั้งหมด 100%</div>
+                        <div>✅ ข้ามเกทโฆษณา ShrinkEarn / LootLabs ถาวร</div>
+                        <div>✅ เข้าถึงโค้ดสคริปต์ได้ทันทีไม่ต้องรอ</div>
+                    `;
+                } else {
+                    vipFeaturesList.innerHTML = `
+                        <div>✅ เชื่อมต่อบัญชี Discord (${escapeHtml(role.name)}) สำเร็จ</div>
+                        <div>✅ แสดงป้ายยศบนโปรไฟล์เว็บ</div>
+                        <div style="color: #fbbf24;">🔒 สิทธิ์ Bypass: ต้องมียศ Bypass ใน Discord จึงจะปิดโฆษณาได้</div>
+                    `;
+                }
+            }
 
             if (vipUserAvatar) {
                 if (avatarUrl) {
@@ -882,16 +950,18 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (vipExpiryText) {
-                if (vip.expiresAt && Number(vip.expiresAt) > 0) {
-                    const daysLeft = Math.max(1, Math.ceil((Number(vip.expiresAt) - Date.now()) / (24 * 60 * 60 * 1000)));
-                    vipExpiryText.innerHTML = `✨ สถานะ: <strong>VIP (${daysLeft} วัน)</strong>`;
+                if (canBypass) {
+                    vipExpiryText.innerHTML = `✨ สิทธิ์ Bypass: <strong>ตลอดชีพ (ไม่มีวันหมดอายุ)</strong>`;
+                    vipExpiryText.style.display = "block";
                 } else {
-                    vipExpiryText.innerHTML = '✨ สถานะ: <strong>ตลอดชีพ (ไม่มีวันหมดอายุ)</strong>';
+                    vipExpiryText.innerHTML = `ℹ️ บัญชีของคุณยังไม่มียศ Bypass ใน Discord`;
+                    vipExpiryText.style.display = "block";
                 }
             }
 
-            // Immediately close and suppress gate overlay if visible
-            hideGateOverlay(false);
+            if (canBypass) {
+                hideGateOverlay(false);
+            }
         } else {
             if (vipNavBtn) {
                 vipNavBtn.classList.remove("is-active");
@@ -921,15 +991,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (res && res.ok) {
                     const data = await res.json();
                     if (data.valid) {
-                        saveVipSession(token, data.user, data.expiresAt);
-                        showToast(`👑 ยินดีต้อนรับ VIP ${data.user ? (data.user.global_name || data.user.username) : ""}! ปลดล็อคระบบไร้โฆษณาเรียบร้อย`);
+                        saveVipSession(token, data.user, data.roles, data.primaryRole, data.canBypass, data.expiresAt);
+                        const roleName = data.primaryRole ? data.primaryRole.tag : "Member";
+                        const welcomeName = data.user ? (data.user.global_name || data.user.username) : "";
+                        if (data.canBypass) {
+                            showToast(`👑 ยินดีต้อนรับ ${welcomeName} [${roleName}]! ปลดล็อคระบบไร้โฆษณา 100%`);
+                        } else {
+                            showToast(`👋 ยินดีต้อนรับ ${welcomeName} [${roleName}]! เชื่อมต่อบัญชีเรียบร้อย`);
+                        }
                         urlParams.delete("vip_token");
                         urlParams.delete("vip_code");
                         const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "") + window.location.hash;
                         window.history.replaceState({}, document.title, newUrl);
                         return;
                     } else {
-                        showToast(data.message || "รหัส VIP ไม่ถูกต้องหรือหมดอายุแล้ว", "error");
+                        showToast(data.message || "รหัสเข้าสู่ระบบไม่ถูกต้องหรือหมดอายุแล้ว", "error");
                     }
                 }
             }
@@ -938,12 +1014,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 urlParams.delete("vip_success");
                 const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "") + window.location.hash;
                 window.history.replaceState({}, document.title, newUrl);
-                showToast("👑 ยืนยันสิทธิ์ VIP ผ่าน Discord สำเร็จ! เพลิดเพลินกับเว็บไร้โฆษณา");
+                showToast("✅ ยืนยันตัวตนผ่าน Discord สำเร็จ!");
             } else if (oauthError) {
                 const checkedUser = urlParams.get("user") || "";
-                let msg = "ไม่สามารถยืนยันยศ VIP ได้";
-                if (oauthError === "no_role") msg = `❌ บัญชี ${checkedUser ? '(' + checkedUser + ') ' : ''}ยังไม่มียศ VIP ในเซิร์ฟเวอร์ Discord`;
-                else if (oauthError === "not_in_guild") msg = "❌ คุณยังไม่ได้เข้าร่วม Discord เซิร์ฟเวอร์ของเรา";
+                let msg = "ไม่สามารถยืนยันตัวตนได้";
+                if (oauthError === "not_in_guild") msg = "❌ คุณยังไม่ได้เข้าร่วม Discord เซิร์ฟเวอร์ของเรา (กรุณาเข้าร่วมเซิร์ฟเวอร์ก่อน)";
+                else if (oauthError === "no_role") msg = `❌ บัญชี ${checkedUser ? '(' + checkedUser + ') ' : ''}ไม่มีสิทธิ์เข้าใช้งาน`;
                 urlParams.delete("vip_error");
                 urlParams.delete("user");
                 const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "") + window.location.hash;

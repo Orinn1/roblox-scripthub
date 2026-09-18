@@ -1,74 +1,76 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const botConfig = require('../config.js');
-const { VIP_ROLE_ID, generateVipToken } = require('../vip-helper.js');
+const { ROLE_DEFINITIONS, resolveUserRoles, generateVipToken } = require('../vip-helper.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('vip')
-        .setDescription('👑 รับลิงก์เข้าใช้งานเว็บไซต์แบบ VIP ไร้โฆษณา 100% (เฉพาะผู้มียศ VIP)'),
+        .setDescription('👑 รับลิงก์เข้าสู่ระบบเว็บไซต์พร้อมแสดงยศ (Admin / Dev / Bypass / Verified)'),
 
     async execute(interaction) {
         const member = interaction.member;
-        const requiredRoleId = botConfig.requiredRoleId || VIP_ROLE_ID;
 
-        let isAdmin = false;
-        if (interaction.memberPermissions && interaction.memberPermissions.has('Administrator')) {
-            isAdmin = true;
-        }
-
-        let hasVipRole = false;
+        let userRoles = [];
         if (member) {
             if (member.roles && member.roles.cache) {
-                hasVipRole = member.roles.cache.has(requiredRoleId);
+                userRoles = Array.from(member.roles.cache.keys());
             } else if (Array.isArray(member.roles)) {
-                hasVipRole = member.roles.includes(requiredRoleId);
+                userRoles = member.roles;
             }
         }
 
-        // ตรวจสอบสิทธิ์ยศ VIP
-        if (!hasVipRole && !isAdmin) {
-            return interaction.reply({
-                content: `⛔ **คุณยังไม่ได้รับสิทธิ์ VIP!**\nคำสั่งนี้สงวนไว้เฉพาะผู้ที่มียศ <@&${requiredRoleId}> เท่านั้นครับ\n*(หากต้องการสิทธิ์ VIP ไร้โฆษณา กรุณาติดตามประกาศจากทางเซิร์ฟเวอร์)*`,
-                flags: MessageFlags.Ephemeral
-            });
+        let { primaryRole, canBypass } = resolveUserRoles(userRoles);
+
+        if (interaction.memberPermissions && interaction.memberPermissions.has('Administrator')) {
+            canBypass = true;
+            if (primaryRole.priority > 1) {
+                primaryRole = { id: '1549057153585651923', ...ROLE_DEFINITIONS['1549057153585651923'] };
+            }
         }
+
+        const avatarUrl = interaction.user.displayAvatarURL({ extension: 'png', size: 128 }) || '';
 
         // สร้าง VIP Token ที่เข้ารหัสและมีลายเซ็น HMAC
         const token = generateVipToken({
             userId: interaction.user.id,
             username: interaction.user.username,
-            roleId: requiredRoleId
+            avatar: avatarUrl,
+            roles: userRoles,
+            primaryRole,
+            canBypass
         });
 
         const baseUrl = (botConfig.websiteUrl || 'https://blacklistscripty.vercel.app').replace(/\/$/, '');
         const vipAccessUrl = `${baseUrl}/?vip_token=${encodeURIComponent(token)}`;
 
         const embed = new EmbedBuilder()
-            .setColor(0xffd700) // Gold Color
-            .setTitle('👑 บัตรผ่าน VIP BlacklistScriptx (โหมดไร้โฆษณา 100%)')
-            .setDescription(`ยินดีต้อนรับคุณ **${interaction.user.username}**!\nระบบได้ออกบัตรผ่านสิทธิ์ VIP ให้กับคุณเรียบร้อยแล้ว กดปุ่มด้านล่างเพื่อเข้าสู่ระบบเว็บได้ทันที`)
+            .setColor(canBypass ? 0xffd700 : 0x5865f2)
+            .setTitle(canBypass ? '👑 บัตรผ่านสิทธิ์ Bypass (โหมดไร้โฆษณา 100%)' : `👋 เข้าสู่ระบบ BlacklistScriptx [${primaryRole.tag || primaryRole.name}]`)
+            .setDescription(`ยินดีต้อนรับคุณ **${interaction.user.username}**!\nระบบได้ออกลิงก์เข้าสู่ระบบสำหรับยศ **${primaryRole.tag || primaryRole.name}** เรียบร้อยแล้ว กดปุ่มด้านล่างเพื่อเข้าสู่ระบบเว็บได้ทันที`)
             .addFields(
                 {
-                    name: '✨ สิทธิพิเศษที่คุณจะได้รับ',
-                    value: '• 🚫 **ปิดโฆษณา 100%:** ไม่เจอ Adsterra, ไม่มี Popunder, ไร้ป้ายโฆษณากวนใจ\n• ⚡ **ข้ามเกทถาวร:** ไม่ต้องผ่าน ShrinkEarn / LootLabs ทุกวัน\n• 📜 **คัดลอกสคริปต์ทันที:** เข้าถึงโค้ด Loadstring ทุกเกมได้รวดเร็วที่สุด\n• 👑 **ตราสัญลักษณ์ VIP:** ตราสัญลักษณ์พิเศษบนหน้าเว็บ'
-                },
-                {
-                    name: '⏳ ระยะเวลาใช้งาน',
-                    value: '`ตลอดชีพ (ไม่มีวันหมดอายุ)`',
+                    name: '🎖️ ยศที่ตรวจพบ',
+                    value: `\`${primaryRole.tag || primaryRole.name}\``,
                     inline: true
                 },
                 {
-                    name: '🔒 ความปลอดภัย',
-                    value: 'บัตรผ่านนี้ผูกกับบัญชี Discord ของคุณโดยเฉพาะ',
+                    name: '⚡ สถานะ Bypass โฆษณา',
+                    value: canBypass ? '`✅ ปลดล็อคไร้โฆษณา 100%`' : '`❌ ยังไม่เปิดใช้งาน (ต้องมียศ Bypass)`',
                     inline: true
+                },
+                {
+                    name: '✨ สิทธิประโยชน์',
+                    value: canBypass
+                        ? '• 🚫 **ปิดโฆษณา 100%:** ไม่มี Adsterra, ไม่มีป๊อปอัป\n• ⚡ **ข้ามเกทถาวร:** ไม่ต้องผ่าน ShrinkEarn / LootLabs\n• 📜 **คัดลอกสคริปต์ทันที:** โหลดสคริปต์ได้โดยตรง'
+                        : '• 👤 **แสดงโปรไฟล์และป้ายยศบนเว็บไซต์**\n• ℹ️ **ต้องการปิดโฆษณา?** ติดต่อขอรับยศ Bypass จากผู้ดูแลเซิร์ฟเวอร์'
                 }
             )
-            .setFooter({ text: '⚡ BlacklistScriptx VIP Pass • ใช้งานได้บนทุกอุปกรณ์ (PC / มือถือ)' })
+            .setFooter({ text: '⚡ BlacklistScriptx System • ใช้งานได้บนทุกอุปกรณ์ (PC / มือถือ)' })
             .setTimestamp();
 
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
-                .setLabel('🚀 คลิกเพื่อเปิดใช้งานเว็บ VIP ทันที')
+                .setLabel('🚀 คลิกเพื่อเข้าสู่ระบบเว็บทันที')
                 .setStyle(ButtonStyle.Link)
                 .setURL(vipAccessUrl),
             new ButtonBuilder()

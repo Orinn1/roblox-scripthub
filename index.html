@@ -35,29 +35,35 @@
                 if (token && token.includes('.')) {
                     var payloadStr = atob(token.split('.')[0].replace(/-/g, '+').replace(/_/g, '/'));
                     var payload = JSON.parse(payloadStr);
+                    var canBypass = Boolean(payload.canBypass);
                     var vipSession = {
                         token: token,
                         user: {
                             userId: payload.userId,
                             id: payload.userId,
-                            username: payload.username || 'VIP Member',
+                            username: payload.username || 'Discord User',
                             avatar: payload.avatar || ''
                         },
+                        roles: payload.roles || [],
+                        primaryRole: payload.primaryRole || { id: '', name: 'Member', tag: '👤 Member', color: '#94a3b8', canBypass: false },
+                        canBypass: canBypass,
                         expiresAt: 0 // Lifetime
                     };
                     localStorage.setItem('blacklist_vip_pass', JSON.stringify(vipSession));
-                    localStorage.setItem('blacklist_lootlabs_auth_expiry', '9999999999999');
-                    sessionStorage.setItem('blacklist_lootlabs_auth', 'true');
+                    if (canBypass) {
+                        localStorage.setItem('blacklist_lootlabs_auth_expiry', '9999999999999');
+                        sessionStorage.setItem('blacklist_lootlabs_auth', 'true');
+                    }
                 }
             } catch(e) {}
 
-            // 2. Check if user is VIP
+            // 2. Check if user has ad bypass permission
             var isVip = false;
             try {
                 var raw = localStorage.getItem('blacklist_vip_pass');
                 if (raw) {
                     var data = JSON.parse(raw);
-                    if (data && (data.token || data.user)) {
+                    if (data && data.canBypass === true) {
                         var exp = Number(data.expiresAt || 0);
                         if (exp === 0 || Date.now() < exp) {
                             isVip = true;
@@ -111,7 +117,7 @@
         })();
     </script>
 
-    <link rel="stylesheet" href="css/style.css?v=20260919_v4">
+    <link rel="stylesheet" href="css/style.css?v=20260919_v5">
     <link rel="stylesheet" href="css/sunc.css?v=20260919_v4">
     <!-- Favicon Logo.ico -->
     <link rel="icon" type="image/x-icon" href="Logo.ico">
@@ -604,9 +610,9 @@
         <div class="vip-modal-box">
             <button class="vip-modal-close" id="vipModalCloseBtn" aria-label="Close modal">&times;</button>
             <div class="vip-modal-header">
-                <div class="vip-crown-badge">👑 VIP PRIVILEGE</div>
-                <h3 id="vipModalTitle">ระบบสมาชิก VIP ไร้โฆษณา 100%</h3>
-                <p id="vipModalSubtitle">สำหรับผู้ที่มียศ <span class="vip-role-tag">VIP (@1549727990542508083)</span> ใน Discord ของเรา</p>
+                <div class="vip-crown-badge" id="vipModalBadge">👑 DISCORD MEMBERSHIP</div>
+                <h3 id="vipModalTitle">ระบบสมาชิก Discord & บทบาท</h3>
+                <p id="vipModalSubtitle">เข้าสู่ระบบเพื่อแสดงโปรไฟล์และยศของคุณบนเว็บไซต์</p>
             </div>
 
             <!-- VIP Active State -->
@@ -614,17 +620,20 @@
                 <div class="vip-active-card">
                     <div class="vip-avatar" id="vipUserAvatar">👑</div>
                     <div class="vip-details">
-                        <div class="vip-name" id="vipUserName">VIP Member</div>
-                        <div class="vip-badge-tag">🟢 ACTIVE • NO-ADS FOREVER</div>
+                        <div class="vip-name-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span class="vip-name" id="vipUserName">Discord User</span>
+                            <span class="user-role-badge" id="vipUserRoleBadge">⚡ Bypass</span>
+                        </div>
+                        <div class="vip-badge-tag" id="vipStatusBadgeTag">🟢 ACTIVE • BYPASS ADS 100%</div>
                     </div>
                 </div>
-                <div class="vip-features-list">
+                <div class="vip-features-list" id="vipFeaturesList">
                     <div>✅ ปิดโฆษณา Adsterra และป๊อปอัปทั้งหมด 100%</div>
                     <div>✅ ข้ามเกทโฆษณา ShrinkEarn / LootLabs ถาวร</div>
                     <div>✅ เข้าถึงโค้ดสคริปต์ได้ทันทีไม่ต้องรอ</div>
                 </div>
-                <div class="vip-expiry-note" id="vipExpiryText">✨ สถานะ: ตลอดชีพ (ไม่มีวันหมดอายุ)</div>
-                <button type="button" class="btn-vip-logout" id="vipLogoutBtn">ออกจากระบบ VIP บนเครื่องนี้</button>
+                <div class="vip-expiry-note" id="vipExpiryText">✨ สถานะ: สมาชิกตลอดชีพ</div>
+                <button type="button" class="btn-vip-logout" id="vipLogoutBtn">ออกจากระบบบนเครื่องนี้</button>
             </div>
 
             <!-- VIP Inactive / Login State -->
@@ -634,7 +643,7 @@
                         <svg width="44" height="44" viewBox="0 0 24 24" fill="#5865f2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
                     </div>
                     <h4 class="vip-oauth-title">เข้าสู่ระบบด้วยบัญชี Discord</h4>
-                    <p class="vip-oauth-desc">กดปุ่มด้านล่างเพื่อยืนยันตัวตนกับ Discord ระบบจะตรวจสอบยศ VIP (@1549727990542508083) และเปิดโหมดไร้โฆษณา 100% ให้อัตโนมัติ</p>
+                    <p class="vip-oauth-desc">กดปุ่มด้านล่างเพื่อยืนยันตัวตนกับ Discord ระบบจะตรวจสอบยศ (Admin / Dev / Bypass / Verified) และแสดงโปรไฟล์บนเว็บให้อัตโนมัติ</p>
                     
                     <a href="/api/discord-auth?action=login" class="btn-discord-oauth-main" id="btnVipOauthLogin">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
@@ -731,10 +740,10 @@
 
     <!-- Scripts with Cache-Busting Version -->
     <script src="js/lucide.min.js"></script>
-    <script src="js/config.js?v=20260919_v4"></script>
-    <script src="js/firebase-db.js?v=20260919_v4"></script>
-    <script src="js/scripts-data.js?v=20260919_v4"></script>
-    <script src="js/app.js?v=20260919_v4"></script>
+    <script src="js/config.js?v=20260919_v5"></script>
+    <script src="js/firebase-db.js?v=20260919_v5"></script>
+    <script src="js/scripts-data.js?v=20260919_v5"></script>
+    <script src="js/app.js?v=20260919_v5"></script>
 
     <!-- Adsterra Ads (Loaded ONLY for Guest users - NEVER for VIP) -->
     <script>

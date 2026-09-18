@@ -19,7 +19,6 @@
   },
   "lootlabsGate": {
     "provider": "shrinkearn",
-    "shrinkearnUrl": "https://srnky.com/aehfqq0",
     "bypassMessage": "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
   },
   "firebaseConfig": {
@@ -58,7 +57,7 @@
       "messageId": "1550102814699683972",
       "guildId": "1548669247998140438",
       "dealer": "all",
-      "updatedAt": 1789759780455
+      "updatedAt": 1789760321878
     }
   ]
 }
