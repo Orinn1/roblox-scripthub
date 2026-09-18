@@ -51,7 +51,7 @@
                 }
             } catch(e) {}
 
-            // 2. Check if user is VIP (or was previously unlocked as lifetime VIP)
+            // 2. Check if user is VIP
             var isVip = false;
             try {
                 var raw = localStorage.getItem('blacklist_vip_pass');
@@ -63,9 +63,6 @@
                             isVip = true;
                         }
                     }
-                }
-                if (!isVip && localStorage.getItem('blacklist_lootlabs_auth_expiry') === '9999999999999') {
-                    isVip = true;
                 }
             } catch(e) {}
 
@@ -114,8 +111,8 @@
         })();
     </script>
 
-    <link rel="stylesheet" href="css/style.css?v=20260919_vip">
-    <link rel="stylesheet" href="css/sunc.css?v=20260919_vip">
+    <link rel="stylesheet" href="css/style.css?v=20260919_v3">
+    <link rel="stylesheet" href="css/sunc.css?v=20260919_v3">
     <!-- Favicon Logo.ico -->
     <link rel="icon" type="image/x-icon" href="Logo.ico">
     <link rel="shortcut icon" href="Logo.ico">
@@ -734,10 +731,10 @@
 
     <!-- Scripts with Cache-Busting Version -->
     <script src="js/lucide.min.js"></script>
-    <script src="js/config.js?v=20260919_vip"></script>
-    <script src="js/firebase-db.js?v=20260919_vip"></script>
-    <script src="js/scripts-data.js?v=20260919_vip"></script>
-    <script src="js/app.js?v=20260919_vip"></script>
+    <script src="js/config.js?v=20260919_v3"></script>
+    <script src="js/firebase-db.js?v=20260919_v3"></script>
+    <script src="js/scripts-data.js?v=20260919_v3"></script>
+    <script src="js/app.js?v=20260919_v3"></script>
 
     <!-- Adsterra Ads (Loaded ONLY for Guest users - NEVER for VIP) -->
     <script>
@@ -754,7 +751,6 @@
                         if (exp === 0 || Date.now() < exp) return;
                     }
                 }
-                if (localStorage.getItem('blacklist_lootlabs_auth_expiry') === '9999999999999') return;
                 var p = new URLSearchParams(window.location.search);
                 if (p.has('vip_token') || p.has('vip_code') || p.has('auth_success')) return;
             } catch(e) {}

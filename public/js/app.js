@@ -777,25 +777,13 @@ document.addEventListener("DOMContentLoaded", () => {
     function getVipData() {
         try {
             const raw = localStorage.getItem("blacklist_vip_pass");
-            if (!raw) {
-                // Auto-restore VIP session if previously unlocked with lifetime marker
-                if (localStorage.getItem("blacklist_lootlabs_auth_expiry") === "9999999999999") {
-                    const restored = {
-                        token: "",
-                        user: { username: "VIP Member", id: "" },
-                        expiresAt: 0
-                    };
-                    localStorage.setItem("blacklist_vip_pass", JSON.stringify(restored));
-                    window.__IS_VIP__ = true;
-                    return restored;
-                }
-                return null;
-            }
+            if (!raw) return null;
             const data = JSON.parse(raw);
             if (!data) return null;
             // Only expire if explicitly set to a timestamp > 0 and current time is past it
             if (data.expiresAt && Number(data.expiresAt) > 0 && Date.now() > Number(data.expiresAt)) {
                 localStorage.removeItem("blacklist_vip_pass");
+                window.__IS_VIP__ = false;
                 return null;
             }
             window.__IS_VIP__ = true;
@@ -825,6 +813,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function clearVipSession() {
         localStorage.removeItem("blacklist_vip_pass");
+        localStorage.removeItem("blacklist_lootlabs_auth_expiry");
+        sessionStorage.removeItem("blacklist_lootlabs_auth");
+        window.__IS_VIP__ = false;
+        if (window.location.search.includes("vip_token") || window.location.search.includes("auth_success") || window.location.search.includes("vip_code")) {
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+        }
         updateVipUI();
     }
 
@@ -1002,13 +997,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (vipLogoutBtn) {
-            vipLogoutBtn.addEventListener("click", () => {
-                if (confirm("ต้องการออกจากระบบ VIP บนเครื่องนี้ใช่หรือไม่?")) {
-                    clearVipSession();
-                    closeVipModal();
-                    showToast("ออกจากระบบ VIP บนเครื่องนี้เรียบร้อยแล้ว");
-                    checkLootlabsGate();
-                }
+            vipLogoutBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                clearVipSession();
+                closeVipModal();
+                showToast("ออกจากระบบ VIP บนเครื่องนี้เรียบร้อยแล้ว");
+                checkLootlabsGate();
             });
         }
     }
