@@ -53,6 +53,7 @@ const SITE_CONFIG = {
         token: "blacklist_vip",
         shrinkearnUrl: "https://srnky.com/aehfqq0",
         shrinkearnApiToken: "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
+        tutorialVideoUrl: "https://youtu.be/FdXsvivWhOw",
         lootlabsUrl: "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
         expiryHours: 24, // จดจำเครื่องไว้ 24 ชั่วโมง
         bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"

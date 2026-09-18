@@ -64,6 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const lblAdminGateUrl = document.getElementById("lblAdminGateUrl");
     const descAdminGateUrl = document.getElementById("descAdminGateUrl");
     const adminShrinkearnApiToken = document.getElementById("adminShrinkearnApiToken");
+    const adminGateTutorialUrl = document.getElementById("adminGateTutorialUrl");
     const btnAutoShortenShrinkearn = document.getElementById("btnAutoShortenShrinkearn");
     const shrinkearnGuideBox = document.getElementById("shrinkearnGuideBox");
     const lootlabsGuideBox = document.getElementById("lootlabsGuideBox");
@@ -1444,6 +1445,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (adminGateToken) adminGateToken.value = gate.token || "blacklist_vip";
         if (adminGateExpiryHours) adminGateExpiryHours.value = gate.expiryHours || 24;
         if (adminShrinkearnApiToken) adminShrinkearnApiToken.value = gate.shrinkearnApiToken || "3ce8c70d0c1e31404164f66164ea8f9117b29b69";
+        if (adminGateTutorialUrl) adminGateTutorialUrl.value = gate.tutorialVideoUrl || "https://youtu.be/FdXsvivWhOw";
 
         handleGateProviderChange();
         updateGateHelperUrl();
@@ -1469,6 +1471,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 token: (adminGateToken ? adminGateToken.value.trim() : "blacklist_vip") || "blacklist_vip",
                 shrinkearnUrl: provider === "shrinkearn" ? enteredUrl : (currentGate.shrinkearnUrl || enteredUrl),
                 shrinkearnApiToken: (adminShrinkearnApiToken ? adminShrinkearnApiToken.value.trim() : "3ce8c70d0c1e31404164f66164ea8f9117b29b69") || "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
+                tutorialVideoUrl: (adminGateTutorialUrl ? adminGateTutorialUrl.value.trim() : "https://youtu.be/FdXsvivWhOw") || "https://youtu.be/FdXsvivWhOw",
                 lootlabsUrl: provider === "lootlabs" ? enteredUrl : (currentGate.lootlabsUrl || enteredUrl),
                 expiryHours: adminGateExpiryHours ? (Number(adminGateExpiryHours.value) || 24) : 24,
                 bypassMessage: provider === "shrinkearn"

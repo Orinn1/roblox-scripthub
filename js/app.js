@@ -103,8 +103,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const gateAutoDetectText = document.getElementById("gateAutoDetectText");
     const gateCheckStatusBtn = document.getElementById("gateCheckStatusBtn");
     const gateTokenInput = document.getElementById("gateTokenInput");
-    const gateTokenSubmitBtn = document.getElementById("gateTokenSubmitBtn");
     const gateErrorMsg = document.getElementById("gateErrorMsg");
+    const btnToggleGateTutorial = document.getElementById("btnToggleGateTutorial");
+    const lblGateTutorial = document.getElementById("lblGateTutorial");
+    const gateTutorialChevron = document.getElementById("gateTutorialChevron");
+    const gateTutorialPlayerBox = document.getElementById("gateTutorialPlayerBox");
+    const gateTutorialIframe = document.getElementById("gateTutorialIframe");
+    const gateTutorialYtDirectLink = document.getElementById("gateTutorialYtDirectLink");
 
     // Banned Screen Overlay Elements
     const bannedScreenOverlay = document.getElementById("bannedScreenOverlay");
@@ -711,6 +716,8 @@ document.addEventListener("DOMContentLoaded", () => {
         isGateActivelyEnforced = false;
         isInternalGateChange = true;
         stopGatePolling();
+        if (gateTutorialIframe) gateTutorialIframe.src = "";
+        if (gateTutorialPlayerBox) gateTutorialPlayerBox.style.display = "none";
         lootlabsGateOverlay.style.pointerEvents = "none";
         lootlabsGateOverlay.classList.add("gate-fade-out");
         setTimeout(() => {
@@ -1193,6 +1200,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if (lblGateTitleEl) {
                 lblGateTitleEl.textContent = currentLang === "th" ? "ปลดล็อคเพื่อเข้าสู่เว็บไซต์" : "Access Restricted";
             }
+            if (lblGateTutorial) {
+                lblGateTutorial.textContent = currentLang === "th" ? "ดูคลิปสอนวิธีผ่านลิงก์ (คลิกที่นี่)" : "Watch Tutorial Guide";
+            }
+            if (gateTutorialYtDirectLink && gate.tutorialVideoUrl) {
+                gateTutorialYtDirectLink.href = gate.tutorialVideoUrl;
+            }
             refreshIcons();
         }
     }
@@ -1246,6 +1259,66 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     });
+
+    // Helper: ดึง YouTube Embed URL พร้อม No-Cookie
+    function getYouTubeEmbedUrl(url) {
+        if (!url) return "https://www.youtube-nocookie.com/embed/FdXsvivWhOw?autoplay=1&rel=0";
+        try {
+            let videoId = "";
+            if (url.includes("youtu.be/")) {
+                videoId = url.split("youtu.be/")[1].split(/[?&]/)[0];
+            } else if (url.includes("youtube.com/watch")) {
+                const u = new URL(url);
+                videoId = u.searchParams.get("v");
+            } else if (url.includes("youtube.com/embed/")) {
+                videoId = url.split("youtube.com/embed/")[1].split(/[?&]/)[0];
+            }
+            if (videoId) {
+                return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+            }
+        } catch (e) {}
+        return url;
+    }
+
+    // สลับเปิด/ปิดคลิปสอนวิธีผ่านลิงก์ใน Gate Modal
+    if (btnToggleGateTutorial) {
+        btnToggleGateTutorial.addEventListener("click", () => {
+            const isHidden = !gateTutorialPlayerBox || gateTutorialPlayerBox.style.display === "none";
+            const gate = SITE_CONFIG.lootlabsGate || {};
+            const ytUrl = gate.tutorialVideoUrl || "https://youtu.be/FdXsvivWhOw";
+
+            if (isHidden) {
+                if (gateTutorialIframe) {
+                    gateTutorialIframe.src = getYouTubeEmbedUrl(ytUrl);
+                }
+                if (gateTutorialYtDirectLink) {
+                    gateTutorialYtDirectLink.href = ytUrl;
+                }
+                if (gateTutorialPlayerBox) {
+                    gateTutorialPlayerBox.style.display = "block";
+                }
+                if (gateTutorialChevron) {
+                    gateTutorialChevron.style.transform = "rotate(180deg)";
+                }
+                if (lblGateTutorial) {
+                    lblGateTutorial.textContent = currentLang === "th" ? "ซ่อนคลิปสอนวิธีผ่าน" : "Hide Tutorial";
+                }
+            } else {
+                if (gateTutorialIframe) {
+                    gateTutorialIframe.src = "";
+                }
+                if (gateTutorialPlayerBox) {
+                    gateTutorialPlayerBox.style.display = "none";
+                }
+                if (gateTutorialChevron) {
+                    gateTutorialChevron.style.transform = "rotate(0deg)";
+                }
+                if (lblGateTutorial) {
+                    lblGateTutorial.textContent = currentLang === "th" ? "ดูคลิปสอนวิธีผ่านลิงก์ (คลิกที่นี่)" : "Watch Tutorial Guide";
+                }
+            }
+        });
+    }
 
     if (gateTokenSubmitBtn && gateTokenInput) {
         const verifyManualToken = async () => {

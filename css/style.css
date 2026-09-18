@@ -2015,6 +2015,86 @@ body {
     color: #fff;
 }
 
+/* Gate Tutorial Video Widget */
+.gate-tutorial-row {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-gate-tutorial {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.btn-gate-tutorial:hover {
+    background: rgba(239, 68, 68, 0.18);
+    border-color: rgba(239, 68, 68, 0.65);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.gate-tutorial-player-box {
+    margin-top: 12px;
+    background: #090a0f;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 14px;
+    padding: 10px;
+    text-align: left;
+    animation: fadeIn 0.25s ease;
+}
+
+.gate-tutorial-video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #000;
+}
+
+.gate-tutorial-video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.gate-tutorial-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding: 0 4px;
+}
+
+.gate-tutorial-yt-link {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.15s ease;
+}
+
+.gate-tutorial-yt-link:hover {
+    color: #ef4444;
+}
+
 .gate-divider {
     display: flex;
     align-items: center;
