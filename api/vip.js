@@ -118,7 +118,8 @@ module.exports = async (req, res) => {
                 valid: true,
                 user: {
                     userId: result.payload.userId,
-                    username: result.payload.username
+                    username: result.payload.username,
+                    avatar: result.payload.avatar || ''
                 },
                 roleId: result.payload.roleId || VIP_ROLE_ID,
                 expiresAt: result.payload.exp,

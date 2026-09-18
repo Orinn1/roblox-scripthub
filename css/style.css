@@ -2674,17 +2674,51 @@ body {
 }
 
 .vip-badge-btn.is-active {
-    background: linear-gradient(135deg, rgba(234, 179, 8, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
-    border-color: rgba(234, 179, 8, 0.6);
-    color: #facc15;
-    box-shadow: 0 0 15px rgba(234, 179, 8, 0.25);
-    font-weight: 600;
+    background: var(--bg-card, #111a2d);
+    border: 1px solid var(--border, #1c273e);
+    color: #f3f4f6;
+    padding: 4px 14px 4px 5px;
+    gap: 8px;
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .vip-badge-btn.is-active:hover {
-    background: linear-gradient(135deg, rgba(234, 179, 8, 0.3) 0%, rgba(245, 158, 11, 0.18) 100%);
-    border-color: #facc15;
-    color: #fef08a;
+    background: var(--bg-card-hover, #16223b);
+    border-color: var(--primary, #0ea5e9);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 10px rgba(14, 165, 233, 0.2);
+}
+
+.vip-user-nav-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.vip-user-nav-avatar-placeholder {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--primary, #0ea5e9);
+    color: #0b0f19;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#vipNavText {
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
 }
 
 .vip-btn-icon {

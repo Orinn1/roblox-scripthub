@@ -825,25 +825,49 @@ document.addEventListener("DOMContentLoaded", () => {
         const vipExpiryText = document.getElementById("vipExpiryText");
 
         if (vip) {
+            let username = "VIP Member";
+            let avatarUrl = "";
+
+            if (vip.user) {
+                username = vip.user.global_name || vip.user.username || username;
+                if (vip.user.avatar) {
+                    avatarUrl = vip.user.avatar.startsWith("http")
+                        ? vip.user.avatar
+                        : `https://cdn.discordapp.com/avatars/${vip.user.userId || vip.user.id}/${vip.user.avatar}.png`;
+                }
+            }
+
+            // Fallback: decode directly from token if avatar or username missing
+            if ((!avatarUrl || username === "VIP Member") && vip.token && vip.token.includes('.')) {
+                try {
+                    const tokenPayload = JSON.parse(atob(vip.token.split('.')[0].replace(/-/g, '+').replace(/_/g, '/')));
+                    if (tokenPayload.username) username = tokenPayload.username;
+                    if (tokenPayload.avatar) avatarUrl = tokenPayload.avatar;
+                } catch (e) {}
+            }
+
             if (vipNavBtn) {
                 vipNavBtn.classList.add("is-active");
-                if (vipNavText) vipNavText.textContent = "VIP Active";
-                if (vipBtnIcon) vipBtnIcon.innerHTML = `<span class="vip-crown-icon">👑</span>`;
+                if (vipNavText) vipNavText.textContent = username;
+                if (vipBtnIcon) {
+                    if (avatarUrl) {
+                        vipBtnIcon.innerHTML = `<img src="${avatarUrl}" class="vip-user-nav-avatar" alt="${escapeHtml(username)}">`;
+                    } else {
+                        vipBtnIcon.innerHTML = `<div class="vip-user-nav-avatar-placeholder">${escapeHtml(username.charAt(0).toUpperCase())}</div>`;
+                    }
+                }
+                vipNavBtn.title = username;
             }
             if (vipActivePanel) vipActivePanel.style.display = "block";
             if (vipInactivePanel) vipInactivePanel.style.display = "none";
 
-            const username = (vip.user && (vip.user.global_name || vip.user.username)) ? (vip.user.global_name || vip.user.username) : "VIP Member";
             if (vipUserName) vipUserName.textContent = username;
 
             if (vipUserAvatar) {
-                if (vip.user && vip.user.avatar) {
-                    const avatarUrl = vip.user.avatar.startsWith("http")
-                        ? vip.user.avatar
-                        : `https://cdn.discordapp.com/avatars/${vip.user.id}/${vip.user.avatar}.png`;
-                    vipUserAvatar.innerHTML = `<img src="${avatarUrl}" alt="${username}">`;
+                if (avatarUrl) {
+                    vipUserAvatar.innerHTML = `<img src="${avatarUrl}" alt="${escapeHtml(username)}">`;
                 } else {
-                    vipUserAvatar.textContent = "👑";
+                    vipUserAvatar.textContent = "👤";
                 }
             }
 
