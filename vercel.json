@@ -5,6 +5,10 @@
   "cleanUrls": true,
   "rewrites": [
     { "source": "/", "destination": "/index.html" },
-    { "source": "/admin", "destination": "/admin.html" }
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/api/discord-auth", "destination": "/api/vip" },
+    { "source": "/api/verify-vip", "destination": "/api/vip?action=verify" },
+    { "source": "/api/reset-device-test", "destination": "/api/check-session?action=reset" },
+    { "source": "/api/shrinkearn-shorten", "destination": "/api/shrinkearn" }
   ]
 }

@@ -25,6 +25,22 @@ module.exports = async (req, res) => {
         const clientIp = (forwarded.split(",")[0] || req.socket.remoteAddress || "").trim();
         const cleanIp = clientIp.replace(/[^a-zA-Z0-9_]/g, "_");
 
+        // Support reset device test
+        if (query.action === "reset" || req.method === "DELETE") {
+            let deletedDoc = false;
+            if (cleanIp) {
+                const ipDocUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_ips/${cleanIp}?key=${FIREBASE_API_KEY}`;
+                const fbRes = await fetch(ipDocUrl, { method: "DELETE" }).catch(() => null);
+                if (fbRes && fbRes.ok) deletedDoc = true;
+            }
+            return res.status(200).json({
+                success: true,
+                message: "Cleared device IP memory from server database.",
+                clientIp: clientIp,
+                cleared: deletedDoc
+            });
+        }
+
         // 1. ตรวจสอบตาม puid ถ้ามี
         if (puid) {
             const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(puid)}?key=${FIREBASE_API_KEY}`;

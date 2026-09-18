@@ -137,13 +137,8 @@ const server = http.createServer(async (req, res) => {
     // =========================================================================
     // API: VIP System & Discord OAuth2
     // =========================================================================
-    if (pathname === '/api/verify-vip') {
-        await executeServerless('./api/verify-vip.js', req, res, parsedUrl);
-        return;
-    }
-
-    if (pathname === '/api/discord-auth') {
-        await executeServerless('./api/discord-auth.js', req, res, parsedUrl);
+    if (pathname === '/api/vip' || pathname === '/api/verify-vip' || pathname === '/api/discord-auth') {
+        await executeServerless('./api/vip.js', req, res, parsedUrl);
         return;
     }
 
