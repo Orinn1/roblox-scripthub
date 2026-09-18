@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 
 const VIP_ROLE_ID = process.env.DISCORD_REQUIRED_ROLE_ID || '1549727990542508083';
+const VIP_ROLE_IDS = ['1549727990542508083', '1550502141699821619'];
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID || '1549395921228271686';
 const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || '_0r2E975KMdK9PRXYIiYat7ONK7xkIg3';
 const GUILD_ID = process.env.DISCORD_GUILD_ID || '1548669247998140438';
@@ -199,7 +200,7 @@ module.exports = async (req, res) => {
                 if (userMemberRes && userMemberRes.ok) {
                     const memberData = await userMemberRes.json();
                     const roles = memberData.roles || [];
-                    isVip = roles.includes(requiredRole);
+                    isVip = roles.some(r => r === requiredRole || VIP_ROLE_IDS.includes(r));
                 }
             }
 
@@ -212,7 +213,7 @@ module.exports = async (req, res) => {
                 if (botMemberRes && botMemberRes.ok) {
                     const memberData = await botMemberRes.json();
                     const roles = memberData.roles || [];
-                    isVip = roles.includes(requiredRole);
+                    isVip = roles.some(r => r === requiredRole || VIP_ROLE_IDS.includes(r));
                 }
             }
 

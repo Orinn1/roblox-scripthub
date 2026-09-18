@@ -902,10 +902,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 window.history.replaceState({}, document.title, newUrl);
                 showToast("👑 ยืนยันสิทธิ์ VIP ผ่าน Discord สำเร็จ! เพลิดเพลินกับเว็บไร้โฆษณา");
             } else if (oauthError) {
+                const checkedUser = urlParams.get("user") || "";
                 let msg = "ไม่สามารถยืนยันยศ VIP ได้";
-                if (oauthError === "no_role") msg = "❌ คุณยังไม่มียศ VIP ใน Discord หรือยังไม่ได้รับยศ";
+                if (oauthError === "no_role") msg = `❌ บัญชี ${checkedUser ? '(' + checkedUser + ') ' : ''}ยังไม่มียศ VIP ในเซิร์ฟเวอร์ Discord`;
                 else if (oauthError === "not_in_guild") msg = "❌ คุณยังไม่ได้เข้าร่วม Discord เซิร์ฟเวอร์ของเรา";
                 urlParams.delete("vip_error");
+                urlParams.delete("user");
                 const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "") + window.location.hash;
                 window.history.replaceState({}, document.title, newUrl);
                 showToast(msg, "error");
