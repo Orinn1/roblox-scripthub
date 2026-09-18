@@ -779,8 +779,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const raw = localStorage.getItem("blacklist_vip_pass");
             if (!raw) return null;
             const data = JSON.parse(raw);
-            if (!data || !data.expiresAt) return null;
-            if (Date.now() > data.expiresAt) {
+            if (!data) return null;
+            // Only expire if explicitly set to a timestamp > 0 and current time is past it
+            if (data.expiresAt && Number(data.expiresAt) > 0 && Date.now() > Number(data.expiresAt)) {
                 localStorage.removeItem("blacklist_vip_pass");
                 return null;
             }
@@ -795,15 +796,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function saveVipSession(token, user, expiresAt) {
-        const defaultExpiry = Date.now() + (30 * 24 * 60 * 60 * 1000);
         const payload = {
             token: token || "",
             user: user || { username: "VIP Member", id: "" },
-            expiresAt: expiresAt ? Number(expiresAt) : defaultExpiry
+            expiresAt: 0 // 0 = Lifetime (Never expires)
         };
         localStorage.setItem("blacklist_vip_pass", JSON.stringify(payload));
         // Also grant gate access permanently
-        localStorage.setItem("blacklist_lootlabs_auth_expiry", String(payload.expiresAt));
+        localStorage.setItem("blacklist_lootlabs_auth_expiry", "9999999999999");
         sessionStorage.setItem("blacklist_lootlabs_auth", "true");
         updateVipUI();
     }
@@ -871,9 +871,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            if (vipExpiryText && vip.expiresAt) {
-                const daysLeft = Math.max(1, Math.ceil((vip.expiresAt - Date.now()) / (24 * 60 * 60 * 1000)));
-                vipExpiryText.textContent = `หมดอายุในอีก: ~${daysLeft} วัน`;
+            if (vipExpiryText) {
+                if (vip.expiresAt && Number(vip.expiresAt) > 0) {
+                    const daysLeft = Math.max(1, Math.ceil((Number(vip.expiresAt) - Date.now()) / (24 * 60 * 60 * 1000)));
+                    vipExpiryText.innerHTML = `✨ สถานะ: <strong>VIP (${daysLeft} วัน)</strong>`;
+                } else {
+                    vipExpiryText.innerHTML = '✨ สถานะ: <strong>ตลอดชีพ (ไม่มีวันหมดอายุ)</strong>';
+                }
             }
 
             // Immediately close and suppress gate overlay if visible

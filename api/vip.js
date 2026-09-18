@@ -14,15 +14,12 @@ function getSecretKey() {
 }
 
 function generateVipToken(data) {
-    const durationDays = data.durationDays || 30;
-    const exp = Date.now() + (durationDays * 24 * 60 * 60 * 1000);
-
     const payload = {
         userId: String(data.userId || 'unknown'),
         username: String(data.username || 'VIP Member'),
         roleId: String(data.roleId || VIP_ROLE_ID),
         avatar: String(data.avatar || ''),
-        exp: exp,
+        exp: 0, // 0 = Lifetime (Never expires)
         createdAt: Date.now(),
         nonce: crypto.randomBytes(6).toString('hex')
     };
@@ -64,7 +61,7 @@ function verifyVipToken(token) {
         const payloadJson = Buffer.from(payloadBase64, 'base64url').toString('utf8');
         const payload = JSON.parse(payloadJson);
 
-        if (payload.exp && Date.now() > payload.exp) {
+        if (payload.exp && payload.exp > 0 && Date.now() > payload.exp) {
             return { valid: false, error: 'Token expired', payload };
         }
 
@@ -226,8 +223,7 @@ module.exports = async (req, res) => {
                 userId,
                 username,
                 roleId: requiredRole,
-                avatar: avatarUrl,
-                durationDays: 30
+                avatar: avatarUrl
             });
 
             return res.redirect(302, `${baseUrl}/?vip_token=${encodeURIComponent(vipToken)}&auth_success=1`);

@@ -37,8 +37,7 @@ module.exports = {
         const token = generateVipToken({
             userId: interaction.user.id,
             username: interaction.user.username,
-            roleId: requiredRoleId,
-            durationDays: 30
+            roleId: requiredRoleId
         });
 
         const baseUrl = (botConfig.websiteUrl || 'https://blacklistscripty.vercel.app').replace(/\/$/, '');
@@ -51,11 +50,11 @@ module.exports = {
             .addFields(
                 {
                     name: '✨ สิทธิพิเศษที่คุณจะได้รับ',
-                    value: '• 🚫 **ปิดโฆษณา 100%:** ไม่เจอ Adsterra, ไม่มี Popunder, ไร้ป้ายโฆษณากวนใจ\n• ⚡ **ข้ามเกทถาวร:** ไม่ต้องผ่าน ShrinkEarn / LootLabs ทุกวัน\n• 📜 **คัดลอกสคริปต์ทันที:** เข้าถึงโค้ด Loadstring ทุกเกมได้รวดเร็วที่สุด\n• 👑 **ป้ายทอง VIP Member:** ตราสัญลักษณ์พิเศษบนหน้าเว็บ'
+                    value: '• 🚫 **ปิดโฆษณา 100%:** ไม่เจอ Adsterra, ไม่มี Popunder, ไร้ป้ายโฆษณากวนใจ\n• ⚡ **ข้ามเกทถาวร:** ไม่ต้องผ่าน ShrinkEarn / LootLabs ทุกวัน\n• 📜 **คัดลอกสคริปต์ทันที:** เข้าถึงโค้ด Loadstring ทุกเกมได้รวดเร็วที่สุด\n• 👑 **ตราสัญลักษณ์ VIP:** ตราสัญลักษณ์พิเศษบนหน้าเว็บ'
                 },
                 {
                     name: '⏳ ระยะเวลาใช้งาน',
-                    value: '`30 วัน` *(หากหมดอายุ สามารถพิมพ์คำสั่ง `/vip` เพื่อรับบัตรผ่านใหม่ได้ตลอดเวลา)*',
+                    value: '`ตลอดชีพ (ไม่มีวันหมดอายุ)`',
                     inline: true
                 },
                 {

@@ -537,7 +537,7 @@
                     <div>✅ ข้ามเกทโฆษณา ShrinkEarn / LootLabs ถาวร</div>
                     <div>✅ เข้าถึงโค้ดสคริปต์ได้ทันทีไม่ต้องรอ</div>
                 </div>
-                <div class="vip-expiry-note" id="vipExpiryText">หมดอายุในอีก: 30 วัน</div>
+                <div class="vip-expiry-note" id="vipExpiryText">✨ สถานะ: ตลอดชีพ (ไม่มีวันหมดอายุ)</div>
                 <button type="button" class="btn-vip-logout" id="vipLogoutBtn">ออกจากระบบ VIP บนเครื่องนี้</button>
             </div>
 
@@ -657,8 +657,11 @@
                 var vip = localStorage.getItem('blacklist_vip_pass');
                 if (vip) {
                     var data = JSON.parse(vip);
-                    if (data && data.expiresAt && Date.now() < data.expiresAt) {
-                        return; // VIP Member: No Adsterra Ads!
+                    if (data) {
+                        var exp = Number(data.expiresAt || 0);
+                        if (exp === 0 || Date.now() < exp) {
+                            return; // VIP Member: No Adsterra Ads! (Lifetime or active)
+                        }
                     }
                 }
             } catch(e) {}
