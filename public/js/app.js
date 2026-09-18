@@ -711,12 +711,14 @@ document.addEventListener("DOMContentLoaded", () => {
         isGateActivelyEnforced = false;
         isInternalGateChange = true;
         stopGatePolling();
+        lootlabsGateOverlay.style.pointerEvents = "none";
         lootlabsGateOverlay.classList.add("gate-fade-out");
         setTimeout(() => {
             lootlabsGateOverlay.style.display = "none";
+            lootlabsGateOverlay.style.visibility = "hidden";
             lootlabsGateOverlay.classList.remove("gate-fade-out");
             isInternalGateChange = false;
-        }, 450);
+        }, 350);
 
         if (withToast) {
             const gate = SITE_CONFIG.lootlabsGate || {};
@@ -1034,14 +1036,29 @@ document.addEventListener("DOMContentLoaded", () => {
                 } catch (e) {}
             }
 
-            // Anti-Bypass Check 2: Handshake Check (ห้ามก๊อปลิงก์ Token ไปแจกใน Discord หรือเปิดตรง)
-            const clickedHandshake = sessionStorage.getItem("blacklist_gate_clicked") === "true";
-            const isManualInput = sessionStorage.getItem("blacklist_manual_token_verify") === "true";
+            // Anti-Bypass Check 2: Handshake Check & Source Verification (รองรับทั้งแท็บเดิมและเปิดแท็บใหม่)
+            const clickedHandshake = (localStorage.getItem("blacklist_gate_clicked") === "true") ||
+                                     (sessionStorage.getItem("blacklist_gate_clicked") === "true");
+            const isManualInput = (sessionStorage.getItem("blacklist_manual_token_verify") === "true") ||
+                                  (localStorage.getItem("blacklist_manual_token_verify") === "true");
 
-            // ถ้าเป็น ShrinkEarn หรือ Custom และไม่ใช่การกรอกด้วยมือ: ต้องมีประวัติการกดปุ่มจากเว็บเรามาก่อนเท่านั้น!
-            if (!clickedHandshake && !isManualInput && provider !== "lootlabs") {
-                showToast("⚠️ ไม่อนุญาตให้เปิดลิงก์ปลดล็อคข้ามโดยตรง กรุณากดปุ่มผ่าน ShrinkEarn จากหน้าเว็บ");
-                reportBypassAttempt("พยายามเปิดลิงก์ Token โดยไม่เคยกดปุ่มจากเว็บ (Direct/Shared Link)", `Token: ${incomingToken}`);
+            // ตรวจสอบ Referrer จาก ShrinkEarn โดยตรง
+            const ref = (document.referrer || "").toLowerCase();
+            const isFromShortener = ref.includes("shrinkearn") || ref.includes("srnky") || ref.includes("shrinkforearn") || ref.includes("shrink");
+
+            // ดึงเวลาที่กดลิงก์
+            const clickTime = Number(localStorage.getItem("blacklist_gate_click_time") || sessionStorage.getItem("blacklist_gate_click_time") || 0);
+            const timeSinceClick = clickTime > 0 ? (Date.now() - clickTime) : 999999;
+            const isRecentClick = clickTime > 0 && (timeSinceClick < 3600000); // ภายใน 1 ชั่วโมง
+
+            // อนุญาตถ้า:
+            // 1) มีประวัติการคลิกจากเว็บนี้ (localStorage หรือ sessionStorage ภายใน 1 ชั่วโมง)
+            // 2) หรือ Referrer มาจาก ShrinkEarn โดยตรง
+            // 3) หรือเป็นการกรอก token ด้วยตนเอง
+            const isAuthorizedSource = isRecentClick || clickedHandshake || isFromShortener || isManualInput || provider === "lootlabs";
+
+            if (!isAuthorizedSource) {
+                showToast("⚠️ กรุณากดปุ่มเพื่อรับสิทธิ์ผ่าน ShrinkEarn ก่อนเข้าใช้งาน");
                 try {
                     const cleanUrl = window.location.origin + window.location.pathname;
                     window.history.replaceState({}, document.title, cleanUrl);
@@ -1049,13 +1066,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // Anti-Bypass Check 3: Speed Check (มนุษย์จริงต้องใช้เวลาอย่างน้อย 10 วินาทีใน ShrinkEarn)
-            const clickTime = Number(sessionStorage.getItem("blacklist_gate_click_time") || 0);
+            // Anti-Bypass Check 3: Speed Check (ดักจับบอทที่ตอบกลับเร็วเกินไป < 3 วินาที)
             if (clickTime > 0 && !isManualInput && provider !== "lootlabs") {
                 const elapsedSec = (Date.now() - clickTime) / 1000;
-                if (elapsedSec < 10) {
-                    showToast(`⚠️ ตรวจพบความเร็วผิดปกติ (${elapsedSec.toFixed(1)}s - เร็วเกินมนุษย์) กรุณารอสักครู่แล้วลองใหม่`);
-                    reportBypassAttempt("พยายามใช้บอท Bypass ลิงก์ (Speed Check)", `ใช้เวลาเพียง ${elapsedSec.toFixed(1)} วินาที`);
+                if (elapsedSec < 3) {
+                    showToast(`⚠️ ตรวจพบความเร็วผิดปกติ (${elapsedSec.toFixed(1)}s) กรุณารอสักครู่แล้วลองใหม่`);
                     try {
                         const cleanUrl = window.location.origin + window.location.pathname;
                         window.history.replaceState({}, document.title, cleanUrl);
@@ -1065,6 +1080,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // ผ่านการตรวจสอบความปลอดภัยทั้งหมด!
+            localStorage.removeItem("blacklist_gate_clicked");
+            localStorage.removeItem("blacklist_gate_click_time");
+            localStorage.removeItem("blacklist_manual_token_verify");
             sessionStorage.removeItem("blacklist_gate_clicked");
             sessionStorage.removeItem("blacklist_gate_click_time");
             sessionStorage.removeItem("blacklist_manual_token_verify");
@@ -1185,7 +1203,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const gate = SITE_CONFIG.lootlabsGate || {};
             const provider = gate.provider || "shrinkearn";
 
-            // 1. บันทึก Session Handshake และเวลาที่คลิก สำหรับป้องกัน Bypass และป้องกันแชร์ลิงก์ตรง
+            // 1. บันทึก Session & LocalStorage Handshake และเวลาที่คลิก สำหรับป้องกัน Bypass
+            localStorage.setItem("blacklist_gate_clicked", "true");
+            localStorage.setItem("blacklist_gate_click_time", String(Date.now()));
+            localStorage.setItem("blacklist_gate_provider", provider);
             sessionStorage.setItem("blacklist_gate_clicked", "true");
             sessionStorage.setItem("blacklist_gate_click_time", String(Date.now()));
             sessionStorage.setItem("blacklist_gate_provider", provider);
@@ -1202,6 +1223,29 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // ซิงก์สถานะปลดล็อคข้ามแท็บอัตโนมัติ (หากผู้ใช้เปิดหลายแท็บ เมื่อแท็บหนึ่งปลดล็อคแล้ว แท็บอื่นจะหายทันที)
+    window.addEventListener("storage", (e) => {
+        if (e.key === "blacklist_lootlabs_auth_expiry" || e.key === "blacklist_lootlabs_auth") {
+            if (isGateAuthorized()) {
+                hideGateOverlay(true);
+            }
+        }
+    });
+
+    window.addEventListener("focus", () => {
+        if (isGateAuthorized()) {
+            hideGateOverlay(false);
+        }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            if (isGateAuthorized()) {
+                hideGateOverlay(false);
+            }
+        }
+    });
 
     if (gateTokenSubmitBtn && gateTokenInput) {
         const verifyManualToken = async () => {
