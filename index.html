@@ -120,6 +120,14 @@
                 </div>
 
                 <div class="topbar-right">
+                    <!-- VIP Member Status / Login Button -->
+                    <div id="vipNavContainer" class="vip-nav-container">
+                        <button type="button" class="vip-badge-btn" id="vipNavBtn" aria-label="VIP Member Status">
+                            <span class="vip-crown-icon">👑</span>
+                            <span id="vipNavText">VIP No-Ads</span>
+                        </button>
+                    </div>
+
                     <div class="lang-switcher" id="langSwitcher" role="group" aria-label="Language Switcher">
                         <button type="button" class="lang-btn active" id="langBtnEn" data-lang="en">
                             <span class="flag-icon">🇺🇸</span> <span>EN</span>
@@ -491,6 +499,76 @@
                 <i data-lucide="info"></i>
                 <span id="lblGateHint">Once verified, this device will be remembered for 24 hours</span>
             </div>
+
+            <!-- ลิงก์เข้าใช้งานสำหรับผู้มียศ VIP ใน Discord -->
+            <div class="gate-vip-box">
+                <span class="gate-vip-crown">👑</span>
+                <span id="lblGateVipText">มียศ VIP ใน Discord?</span>
+                <button type="button" id="gateOpenVipModalBtn" class="gate-vip-link-btn">
+                    <span id="lblGateVipBtn">คลิกเพื่อรับสิทธิ์ไร้โฆษณา</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =======================================================================
+         MODAL: VIP MEMBER LOGIN / STATUS (DISCORD ROLE 1549727990542508083)
+         ======================================================================= -->
+    <div class="vip-modal-overlay" id="vipModalOverlay" style="display: none;">
+        <div class="vip-modal-box">
+            <button class="vip-modal-close" id="vipModalCloseBtn" aria-label="Close modal">&times;</button>
+            <div class="vip-modal-header">
+                <div class="vip-crown-badge">👑 VIP PRIVILEGE</div>
+                <h3 id="vipModalTitle">ระบบสมาชิก VIP ไร้โฆษณา 100%</h3>
+                <p id="vipModalSubtitle">สำหรับผู้ที่มียศ <span class="vip-role-tag">VIP (@1549727990542508083)</span> ใน Discord ของเรา</p>
+            </div>
+
+            <!-- VIP Active State -->
+            <div class="vip-active-panel" id="vipActivePanel" style="display: none;">
+                <div class="vip-active-card">
+                    <div class="vip-avatar" id="vipUserAvatar">👑</div>
+                    <div class="vip-details">
+                        <div class="vip-name" id="vipUserName">VIP Member</div>
+                        <div class="vip-badge-tag">🟢 ACTIVE • NO-ADS FOREVER</div>
+                    </div>
+                </div>
+                <div class="vip-features-list">
+                    <div>✅ ปิดโฆษณา Adsterra และป๊อปอัปทั้งหมด 100%</div>
+                    <div>✅ ข้ามเกทโฆษณา ShrinkEarn / LootLabs ถาวร</div>
+                    <div>✅ เข้าถึงโค้ดสคริปต์ได้ทันทีไม่ต้องรอ</div>
+                </div>
+                <div class="vip-expiry-note" id="vipExpiryText">หมดอายุในอีก: 30 วัน</div>
+                <button type="button" class="btn-vip-logout" id="vipLogoutBtn">ออกจากระบบ VIP บนเครื่องนี้</button>
+            </div>
+
+            <!-- VIP Inactive / Login State -->
+            <div class="vip-inactive-panel" id="vipInactivePanel">
+                <!-- Method A: One-click /vip command from Discord -->
+                <div class="vip-method-card">
+                    <div class="vip-method-num">วิธีที่ 1 (แนะนำ รวดเร็วที่สุด)</div>
+                    <div class="vip-method-body">
+                        <div class="vip-method-title">พิมพ์คำสั่ง <code>/vip</code> ในห้องดิสคอร์ด</div>
+                        <p class="vip-method-desc">บอทจะส่งลิงก์ส่วนตัวให้คุณกดคลิก 1 ครั้ง เพื่อเข้าสู่โหมดไร้โฆษณาทันที!</p>
+                        <a href="https://discord.gg/6x67MrtfbX" target="_blank" class="btn-vip-discord">
+                            <i data-lucide="message-square"></i> ไปที่ Discord เซิร์ฟเวอร์
+                        </a>
+                    </div>
+                </div>
+
+                <div class="vip-divider"><span>หรือ ใส่รหัส VIP Token จากบอท</span></div>
+
+                <div class="vip-code-form">
+                    <input type="text" id="vipCodeInput" class="vip-code-input" placeholder="วางรหัส VIP Token จากบอทที่นี่...">
+                    <button type="button" id="vipCodeSubmitBtn" class="btn-vip-submit">เปิดใช้งาน VIP</button>
+                </div>
+                <div id="vipCodeErrorMsg" class="vip-error-text" style="display: none;"></div>
+
+                <div class="vip-divider"><span>หรือ ล็อกอินด้วยบัญชี Discord</span></div>
+
+                <a href="/api/discord-auth?action=login" class="btn-vip-oauth" id="btnVipOauthLogin">
+                    <i data-lucide="log-in"></i> เข้าสู่ระบบด้วย Discord (OAuth2)
+                </a>
+            </div>
         </div>
     </div>
 
@@ -585,9 +663,27 @@
     <script src="js/scripts-data.js"></script>
     <script src="js/app.js"></script>
 
-    <!-- Adsterra Ads -->
-    <script src="https://pl31372064.profitableratecpmnetwork.com/b1/28/5a/b1285aa73b09eccedfae325c60ae2c62.js"></script>
-    <script src="https://pl31372187.profitableratecpmnetwork.com/60/bc/1b/60bc1b6927b2e11658d89c4b5655cbde.js"></script>
+    <!-- Adsterra Ads (Loaded only for non-VIP users) -->
+    <script>
+        (function() {
+            try {
+                var vip = localStorage.getItem('blacklist_vip_pass');
+                if (vip) {
+                    var data = JSON.parse(vip);
+                    if (data && data.expiresAt && Date.now() < data.expiresAt) {
+                        return; // VIP Member: No Adsterra Ads!
+                    }
+                }
+            } catch(e) {}
+            var s1 = document.createElement('script');
+            s1.src = 'https://pl31372064.profitableratecpmnetwork.com/b1/28/5a/b1285aa73b09eccedfae325c60ae2c62.js';
+            document.body.appendChild(s1);
+
+            var s2 = document.createElement('script');
+            s2.src = 'https://pl31372187.profitableratecpmnetwork.com/60/bc/1b/60bc1b6927b2e11658d89c4b5655cbde.js';
+            document.body.appendChild(s2);
+        })();
+    </script>
 </body>
 
 </html>

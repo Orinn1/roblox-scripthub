@@ -771,8 +771,252 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // =========================================================================
+    // VIP MEMBER (DISCORD ROLE 1549727990542508083) SYSTEM
+    // =========================================================================
+    function getVipData() {
+        try {
+            const raw = localStorage.getItem("blacklist_vip_pass");
+            if (!raw) return null;
+            const data = JSON.parse(raw);
+            if (!data || !data.expiresAt) return null;
+            if (Date.now() > data.expiresAt) {
+                localStorage.removeItem("blacklist_vip_pass");
+                return null;
+            }
+            return data;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function isVipMember() {
+        return getVipData() !== null;
+    }
+
+    function saveVipSession(token, user, expiresAt) {
+        const defaultExpiry = Date.now() + (30 * 24 * 60 * 60 * 1000);
+        const payload = {
+            token: token || "",
+            user: user || { username: "VIP Member", id: "" },
+            expiresAt: expiresAt ? Number(expiresAt) : defaultExpiry
+        };
+        localStorage.setItem("blacklist_vip_pass", JSON.stringify(payload));
+        // Also grant gate access permanently
+        localStorage.setItem("blacklist_lootlabs_auth_expiry", String(payload.expiresAt));
+        sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+        updateVipUI();
+    }
+
+    function clearVipSession() {
+        localStorage.removeItem("blacklist_vip_pass");
+        updateVipUI();
+    }
+
+    function updateVipUI() {
+        const vip = getVipData();
+        const vipNavBtn = document.getElementById("vipNavBtn");
+        const vipNavText = document.getElementById("vipNavText");
+        const vipActivePanel = document.getElementById("vipActivePanel");
+        const vipInactivePanel = document.getElementById("vipInactivePanel");
+        const vipUserName = document.getElementById("vipUserName");
+        const vipUserAvatar = document.getElementById("vipUserAvatar");
+        const vipExpiryText = document.getElementById("vipExpiryText");
+
+        if (vip) {
+            if (vipNavBtn) {
+                vipNavBtn.classList.add("is-active");
+                if (vipNavText) vipNavText.textContent = "VIP Active";
+            }
+            if (vipActivePanel) vipActivePanel.style.display = "block";
+            if (vipInactivePanel) vipInactivePanel.style.display = "none";
+
+            const username = (vip.user && (vip.user.global_name || vip.user.username)) ? (vip.user.global_name || vip.user.username) : "VIP Member";
+            if (vipUserName) vipUserName.textContent = username;
+
+            if (vipUserAvatar) {
+                if (vip.user && vip.user.avatar) {
+                    const avatarUrl = vip.user.avatar.startsWith("http")
+                        ? vip.user.avatar
+                        : `https://cdn.discordapp.com/avatars/${vip.user.id}/${vip.user.avatar}.png`;
+                    vipUserAvatar.innerHTML = `<img src="${avatarUrl}" alt="${username}">`;
+                } else {
+                    vipUserAvatar.textContent = "👑";
+                }
+            }
+
+            if (vipExpiryText && vip.expiresAt) {
+                const daysLeft = Math.max(1, Math.ceil((vip.expiresAt - Date.now()) / (24 * 60 * 60 * 1000)));
+                vipExpiryText.textContent = `หมดอายุในอีก: ~${daysLeft} วัน (ต่ออายุอัตโนมัติเมื่อกด /vip ใหม่)`;
+            }
+
+            // Immediately close and suppress gate overlay if visible
+            hideGateOverlay(false);
+        } else {
+            if (vipNavBtn) {
+                vipNavBtn.classList.remove("is-active");
+                if (vipNavText) vipNavText.textContent = "VIP No-Ads";
+            }
+            if (vipActivePanel) vipActivePanel.style.display = "none";
+            if (vipInactivePanel) vipInactivePanel.style.display = "block";
+        }
+    }
+
+    async function checkUrlForVipToken() {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get("vip_token") || urlParams.get("vip_code");
+            const oauthSuccess = urlParams.get("vip_success");
+            const oauthError = urlParams.get("vip_error");
+
+            if (token) {
+                const res = await fetch("/api/verify-vip", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token })
+                }).catch(() => null);
+
+                if (res && res.ok) {
+                    const data = await res.json();
+                    if (data.valid) {
+                        saveVipSession(token, data.user, data.expiresAt);
+                        showToast(`👑 ยินดีต้อนรับ VIP ${data.user ? (data.user.global_name || data.user.username) : ""}! ปลดล็อคระบบไร้โฆษณาเรียบร้อย`);
+                        urlParams.delete("vip_token");
+                        urlParams.delete("vip_code");
+                        const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "") + window.location.hash;
+                        window.history.replaceState({}, document.title, newUrl);
+                        return;
+                    } else {
+                        showToast(data.message || "รหัส VIP ไม่ถูกต้องหรือหมดอายุแล้ว", "error");
+                    }
+                }
+            }
+
+            if (oauthSuccess === "true") {
+                urlParams.delete("vip_success");
+                const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "") + window.location.hash;
+                window.history.replaceState({}, document.title, newUrl);
+                showToast("👑 ยืนยันสิทธิ์ VIP ผ่าน Discord สำเร็จ! เพลิดเพลินกับเว็บไร้โฆษณา");
+            } else if (oauthError) {
+                let msg = "ไม่สามารถยืนยันยศ VIP ได้";
+                if (oauthError === "no_role") msg = "❌ คุณยังไม่มียศ VIP ใน Discord หรือยังไม่ได้รับยศ";
+                else if (oauthError === "not_in_guild") msg = "❌ คุณยังไม่ได้เข้าร่วม Discord เซิร์ฟเวอร์ของเรา";
+                urlParams.delete("vip_error");
+                const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "") + window.location.hash;
+                window.history.replaceState({}, document.title, newUrl);
+                showToast(msg, "error");
+            }
+        } catch (e) {
+            console.warn("[VIP] checkUrlForVipToken error:", e);
+        }
+    }
+
+    async function handleVipCodeSubmit() {
+        const input = document.getElementById("vipCodeInput");
+        const err = document.getElementById("vipCodeErrorMsg");
+        const btn = document.getElementById("vipCodeSubmitBtn");
+        if (!input) return;
+        const code = input.value.trim();
+        if (!code) {
+            if (err) {
+                err.textContent = "กรุณากรอกรหัส VIP Token จากบอท";
+                err.style.display = "block";
+            }
+            return;
+        }
+
+        if (btn) btn.disabled = true;
+        if (err) err.style.display = "none";
+
+        try {
+            const res = await fetch("/api/verify-vip", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token: code })
+            });
+            const data = await res.json();
+            if (res.ok && data.valid) {
+                saveVipSession(code, data.user, data.expiresAt);
+                input.value = "";
+                showToast(`👑 เปิดใช้งาน VIP สำเร็จ! ยินดีต้อนรับ ${data.user ? (data.user.global_name || data.user.username) : ""}`);
+                const modal = document.getElementById("vipModalOverlay");
+                if (modal) modal.style.display = "none";
+            } else {
+                if (err) {
+                    err.textContent = data.message || "รหัส VIP Token ไม่ถูกต้องหรือหมดอายุแล้ว";
+                    err.style.display = "block";
+                }
+            }
+        } catch (e) {
+            if (err) {
+                err.textContent = "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์";
+                err.style.display = "block";
+            }
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    function initVipSystem() {
+        updateVipUI();
+
+        const vipNavBtn = document.getElementById("vipNavBtn");
+        const gateOpenVipModalBtn = document.getElementById("gateOpenVipModalBtn");
+        const vipModalOverlay = document.getElementById("vipModalOverlay");
+        const vipModalCloseBtn = document.getElementById("vipModalCloseBtn");
+        const vipCodeSubmitBtn = document.getElementById("vipCodeSubmitBtn");
+        const vipCodeInput = document.getElementById("vipCodeInput");
+        const vipLogoutBtn = document.getElementById("vipLogoutBtn");
+
+        function openVipModal() {
+            updateVipUI();
+            if (vipModalOverlay) {
+                vipModalOverlay.style.display = "flex";
+                refreshIcons();
+            }
+        }
+
+        function closeVipModal() {
+            if (vipModalOverlay) {
+                vipModalOverlay.style.display = "none";
+            }
+        }
+
+        if (vipNavBtn) vipNavBtn.addEventListener("click", openVipModal);
+        if (gateOpenVipModalBtn) gateOpenVipModalBtn.addEventListener("click", openVipModal);
+        if (vipModalCloseBtn) vipModalCloseBtn.addEventListener("click", closeVipModal);
+
+        if (vipModalOverlay) {
+            vipModalOverlay.addEventListener("click", (e) => {
+                if (e.target === vipModalOverlay) closeVipModal();
+            });
+        }
+
+        if (vipCodeSubmitBtn) vipCodeSubmitBtn.addEventListener("click", handleVipCodeSubmit);
+        if (vipCodeInput) {
+            vipCodeInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleVipCodeSubmit();
+                }
+            });
+        }
+
+        if (vipLogoutBtn) {
+            vipLogoutBtn.addEventListener("click", () => {
+                if (confirm("ต้องการออกจากระบบ VIP บนเครื่องนี้ใช่หรือไม่?")) {
+                    clearVipSession();
+                    closeVipModal();
+                    showToast("ออกจากระบบ VIP บนเครื่องนี้เรียบร้อยแล้ว");
+                    checkLootlabsGate();
+                }
+            });
+        }
+    }
+
     // Helper: ตรวจสอบว่าเครื่องนี้มีสิทธิ์ผ่าน LootLabs หรือยัง
     function isGateAuthorized() {
+        if (isVipMember()) return true;
         const gate = SITE_CONFIG.lootlabsGate;
         if (!gate || !gate.enabled) return true;
         const savedExpiry = localStorage.getItem("blacklist_lootlabs_auth_expiry");
@@ -977,6 +1221,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     function checkLootlabsGate() {
         if (isCurrentlyBanned) return;
+
+        if (isVipMember()) {
+            isGateActivelyEnforced = false;
+            isInternalGateChange = true;
+            if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";
+            stopGatePolling();
+            setTimeout(() => { isInternalGateChange = false; }, 200);
+            return;
+        }
 
         const gate = SITE_CONFIG.lootlabsGate;
         if (!gate || !gate.enabled) {
@@ -2506,6 +2759,18 @@ document.addEventListener("DOMContentLoaded", () => {
         // Increment view count immediately
         incrementScriptView(id);
 
+        if (isVipMember()) {
+            tasks = { t1: true, t2: true, t3: true };
+            scriptCodeBox.value = selectedScript.loadstring || "";
+            tasksStack.style.display = "none";
+            lockedLabel.style.display = "none";
+            unlockedView.classList.add("show");
+            lockerModal.classList.add("active");
+            refreshIcons();
+            showToast("👑 สมาชิก VIP: ปลดล็อคโค้ดสคริปต์ทันที!");
+            return;
+        }
+
         tasks = { t1: false, t2: false, t3: false };
         scriptCodeBox.value = selectedScript.loadstring || "";
 
@@ -3067,6 +3332,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initialize App
     setLanguage(currentLang);
     applySiteConfig();
+    initVipSystem();
+    checkUrlForVipToken();
     checkBanStatus();
     checkLootlabsGate();
     updateCategoryBadges();

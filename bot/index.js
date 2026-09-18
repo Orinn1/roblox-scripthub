@@ -142,11 +142,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
             }).catch(() => {});
         }
 
-        // 2. สำหรับผู้ที่มียศ 1549727990542508083 (ที่ไม่ใช่ Admin): อนุญาตให้ใช้ได้เฉพาะ /script และ /exploits เท่านั้น
-        const allowedRoleCommands = ['script', 'exploits'];
+        // 2. สำหรับผู้ที่มียศ 1549727990542508083 (ที่ไม่ใช่ Admin): อนุญาตให้ใช้ได้เฉพาะ /script, /exploits และ /vip เท่านั้น
+        const allowedRoleCommands = ['script', 'exploits', 'vip'];
         if (!isAdmin && !allowedRoleCommands.includes(interaction.commandName)) {
             return interaction.reply({
-                content: `⛔ **ไม่อนุญาตให้ใช้งานคำสั่งนี้!**\nยศ <@&${requiredRoleId}> สามารถใช้งานได้เฉพาะคำสั่ง \`/script\` และ \`/exploits\` เท่านั้นครับ`,
+                content: `⛔ **ไม่อนุญาตให้ใช้งานคำสั่งนี้!**\nยศ <@&${requiredRoleId}> สามารถใช้งานได้เฉพาะคำสั่ง \`/script\`, \`/exploits\` และ \`/vip\` เท่านั้นครับ`,
                 flags: MessageFlags.Ephemeral
             }).catch(() => {});
         }

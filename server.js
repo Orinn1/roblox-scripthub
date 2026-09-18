@@ -135,6 +135,19 @@ const server = http.createServer(async (req, res) => {
     }
 
     // =========================================================================
+    // API: VIP System & Discord OAuth2
+    // =========================================================================
+    if (pathname === '/api/verify-vip') {
+        await executeServerless('./api/verify-vip.js', req, res, parsedUrl);
+        return;
+    }
+
+    if (pathname === '/api/discord-auth') {
+        await executeServerless('./api/discord-auth.js', req, res, parsedUrl);
+        return;
+    }
+
+    // =========================================================================
     // API: Database Tools (/api/db/stats, /api/db/clear, /api/db/reset)
     // =========================================================================
     if (pathname === '/api/db/stats' && req.method === 'GET') {

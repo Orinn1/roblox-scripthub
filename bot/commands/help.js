@@ -14,6 +14,7 @@ module.exports = {
             .setDescription('รายการ Slash Commands ทั้งหมดที่คุณสามารถใช้งานได้:')
             .addFields(
                 { name: '⚡ `/script <ชื่อสคริปต์/เกม>`', value: 'ค้นหาสคริปต์ ดูรายละเอียด และกดปุ่มเพื่อคัดลอกโค้ด Loadstring ได้ทันที' },
+                { name: '👑 `/vip`', value: 'รับลิงก์เข้าใช้งานเว็บไซต์แบบ VIP ไร้โฆษณา 100% (เฉพาะผู้มียศ VIP)' },
                 { name: '🆕 `/latest [จำนวน]`', value: 'ดูรายการสคริปต์ที่เพิ่งอัปเดตลงเว็บล่าสุด (1 - 10 รายการ)' },
                 { name: '🍇 `/stock`', value: 'เช็คผลปีศาจและไอเทมในร้านค้า Blox Fruits แบบสดๆ (Mirage, Normal, Sword, Haki)' },
                 { name: '🛡️ `/exploits`', value: 'เช็คสถานะตัวรันสคริปต์ (Executor Status) จาก WEAO API แบบเรียลไทม์' },
