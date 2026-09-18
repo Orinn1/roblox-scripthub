@@ -53,6 +53,11 @@ CREATE TABLE IF NOT EXISTS banned_ips (
 );
 `);
 
+// Migration for bilingual fields (title_en, thumbnail_en, description_en)
+try { db.exec("ALTER TABLE scripts ADD COLUMN title_en TEXT;"); } catch (e) {}
+try { db.exec("ALTER TABLE scripts ADD COLUMN thumbnail_en TEXT;"); } catch (e) {}
+try { db.exec("ALTER TABLE scripts ADD COLUMN description_en TEXT;"); } catch (e) {}
+
 // Default Initial Scripts Seed Data
 const DEFAULT_SCRIPTS = [
     {
@@ -204,10 +209,12 @@ const DEFAULT_CONFIG = {
     },
     lootlabsGate: {
         enabled: true,
+        provider: "shrinkearn",
         token: "blacklist_vip",
+        shrinkearnUrl: "",
         lootlabsUrl: "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
         expiryHours: 24,
-        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
     }
 };
 
@@ -295,6 +302,9 @@ function formatScriptRow(r) {
         badge: r.badge,
         thumbnail: r.thumbnail,
         description: r.description,
+        title_en: r.title_en || '',
+        thumbnail_en: r.thumbnail_en || '',
+        description_en: r.description_en || '',
         loadstring: r.loadstring,
         created_at: r.created_at
     };
@@ -316,8 +326,8 @@ function addScript(s) {
 
     const stmt = db.prepare(`
         INSERT OR REPLACE INTO scripts 
-        (id, title, game, category, version, updated, views, likes, isKeyless, isMobile, isPC, status, badge, thumbnail, description, loadstring, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (id, title, game, category, version, updated, views, likes, isKeyless, isMobile, isPC, status, badge, thumbnail, description, loadstring, created_at, title_en, thumbnail_en, description_en)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run(
@@ -337,7 +347,10 @@ function addScript(s) {
         s.thumbnail || '',
         s.description || '',
         s.loadstring || '',
-        createdAt
+        createdAt,
+        s.title_en || '',
+        s.thumbnail_en || '',
+        s.description_en || ''
     );
 
     // Sync to data/scripts.json as backup

@@ -15,6 +15,9 @@
     "badge": "มาใหม่",
     "thumbnail": "https://i.postimg.cc/NjhnhRkJ/153b5a40-0a72-4b41-ab3d-a784d6cff6ec.png",
     "description": "สคริปต์ Steal An Egg อัปเดตล่าสุด ฟังก์ชันครบ ใช้งานง่าย ปลอดภัย",
+    "title_en": "",
+    "thumbnail_en": "",
+    "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua\"))()",
     "created_at": 1789451117426
   },
@@ -34,6 +37,9 @@
     "badge": "มาใหม่",
     "thumbnail": "https://i.postimg.cc/QdMcnX6k/c83f1d25-2231-4a10-95d3-e39b21b902ba.png",
     "description": "สคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
+    "title_en": "",
+    "thumbnail_en": "",
+    "description_en": "",
     "loadstring": "GravityHub = {\n    Key = \"\",\n    Team = \"Pirates\",\n    Color = \"Red\",\n    SaveSetting = false,\n    AutoExecute = false\n}\nloadstring(game:HttpGet(\"https://raw.githubusercontent.com/Dev-GravityHub/BloxFruit/refs/heads/main/MainPremium.lua\"))()",
     "created_at": 1789451117423
   }

@@ -645,8 +645,13 @@
 
                 <div class="form-grid">
                     <div>
-                        <label class="form-label">ชื่อสคริปต์ *</label>
-                        <input type="text" id="sTitle" class="form-control" placeholder="เช่น Blox Fruits - Maru Hub Auto Farm" required>
+                        <label class="form-label">ชื่อสคริปต์ (ภาษาไทย) *</label>
+                        <input type="text" id="sTitle" class="form-control" placeholder="เช่น Blox Fruits แจกสคริปต์ฟาร์มออโต้" required>
+                    </div>
+
+                    <div>
+                        <label class="form-label">ชื่อสคริปต์ภาษาอังกฤษ (English Title - ปล่อยว่างจะแปลให้อัตโนมัติ)</label>
+                        <input type="text" id="sTitleEn" class="form-control" placeholder="เช่น Blox Fruits Script - Auto Farm & Raid">
                     </div>
 
                     <div>
@@ -674,14 +679,19 @@
                         <input type="number" id="sLikes" class="form-control" value="95" min="0" placeholder="95">
                     </div>
 
-                    <div class="full-width">
-                        <label class="form-label">คำอธิบายฟังก์ชั่นสคริปต์</label>
-                        <input type="text" id="sDesc" class="form-control" placeholder="ปล่อยว่างได้ หรือใส่ เช่น ออโต้ฟาร์มเวล ออโต้เควสต์">
+                    <div>
+                        <label class="form-label">คำอธิบายฟังก์ชั่นสคริปต์ (ภาษาไทย)</label>
+                        <input type="text" id="sDesc" class="form-control" placeholder="เช่น ออโต้ฟาร์มเวล ปลอดภัย ปลดล็อคฟรี">
+                    </div>
+
+                    <div>
+                        <label class="form-label">คำอธิบายภาษาอังกฤษ (English Description - ปล่อยว่างได้)</label>
+                        <input type="text" id="sDescEn" class="form-control" placeholder="เช่น Latest updated script, 100% safe & verified.">
                     </div>
 
                     <div class="full-width">
                         <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span>รูปภาพปกสคริปต์ (Cover Image)</span>
+                            <span>รูปภาพปกสคริปต์หลัก (Cover Image - ปกไทย / ค่าเริ่มต้น)</span>
                             <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">เลือกรูปจากเครื่อง หรือ วางลิงก์รูปภาพ</span>
                         </label>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -705,6 +715,14 @@
                                 </button>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="full-width">
+                        <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span>รูปภาพปกภาษาอังกฤษ (English Cover URL - 🇺🇸 สำหรับผู้ชมต่างชาติ)</span>
+                            <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">ไม่บังคับ (ถ้าไม่ใส่จะใช้รูปปกหลักด้านบน)</span>
+                        </label>
+                        <input type="text" id="sThumbEn" class="form-control" placeholder="วางลิงก์รูปภาพปกภาษาอังกฤษ เช่น https://... (ปล่อยว่างจะใช้รูปปกหลัก)">
                     </div>
 
                     <div class="full-width">
@@ -850,52 +868,127 @@
                     <input type="url" id="linkDiscord" class="form-control" placeholder="https://discord.gg/xxxx">
                 </div>
 
-                <!-- ระบบป้องกัน Bypass (LootLabs Gate) -->
+                <!-- ระบบสร้างรายได้และป้องกัน Bypass (ShrinkEarn / LootLabs Gate) -->
                 <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border);">
-                    <h4 style="font-size: 15px; margin-bottom: 8px; color: #c084fc; display: flex; align-items: center; gap: 8px;">
-                        <i data-lucide="shield-alert" style="width: 18px; height: 18px; color: #a855f7;"></i>
-                        <span>ระบบป้องกัน Bypass (LootLabs Security Gate)</span>
+                    <h4 style="font-size: 15px; margin-bottom: 8px; color: #34d399; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="shield-check" style="width: 18px; height: 18px; color: #10b981;"></i>
+                        <span>ระบบสร้างรายได้ & ล็อคป้องกัน Bypass (Monetization & Security Gate)</span>
                     </h4>
                     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
-                        ล็อคหน้าเว็บทั้งหมด ต้องเข้าผ่านลิงก์ LootLabs ที่มี Token หรือกรอกรหัสถูกต้องเท่านั้นถึงจะเปิดเว็บได้
+                        ล็อคหน้าเว็บทั้งหมด บังคับเข้าผ่านลิงก์ย่อสร้างรายได้ (ShrinkEarn หรือ LootLabs) พร้อมระบบป้องกันบอท Bypass และป้องกันคนก๊อปลิงก์ไปแจกฟรี 100%
                     </p>
 
                     <div style="margin-bottom: 16px;">
                         <label class="checkbox-label" style="font-weight: 500; color: #fff;">
                             <input type="checkbox" id="gateEnableCheckbox"> 
-                            <span>เปิดใช้งานระบบล็อคหน้าเว็บ (LootLabs Anti-Bypass Gate)</span>
+                            <span>เปิดใช้งานระบบล็อคหน้าเว็บสร้างรายได้ (Monetization Gate)</span>
                         </label>
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                        <label class="form-label">เลือกผู้ให้บริการสร้างรายได้ (Provider)</label>
+                        <select id="adminGateProvider" class="form-control" style="background: #0f111a; color: #fff; border-color: rgba(16, 185, 129, 0.4);">
+                            <option value="shrinkearn">🌟 ShrinkEarn (แนะนำ - เรตไทยสูง $3-$4 ถอนเข้า Bitkub ง่าย)</option>
+                            <option value="lootlabs">💎 LootLabs (รองรับ Postback Webhook)</option>
+                            <option value="custom">🔗 ลิงก์ย่ออื่นๆ (Custom Shortener)</option>
+                        </select>
                     </div>
 
                     <div class="form-grid" style="margin-bottom: 16px;">
                         <div>
-                            <label class="form-label">Access Token ประจำเว็บ (คีย์ลับ)</label>
-                            <input type="text" id="adminGateToken" class="form-control" placeholder="ระบุ Access Token ลับ">
-                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">รหัสลับสำหรับผ่านการตรวจสอบ</span>
+                            <label class="form-label">Access Token ประจำเว็บ (รหัสลับปลดล็อค)</label>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="adminGateToken" class="form-control" placeholder="blacklist_vip">
+                                <button type="button" id="btnRandomizeToken" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; padding: 0 12px; border-radius: 8px; font-size: 11px; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 4px;">
+                                    <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> <span>สุ่มรหัส</span>
+                                </button>
+                            </div>
+                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">รหัสลับประจำเว็บ สามารถกดสุ่มใหม่ได้ตลอดเวลาหากกลัวรหัสหลุด</span>
                         </div>
 
                         <div>
-                            <label class="form-label">ลิงก์ LootLabs Anti-Bypass (สำหรับให้ผู้ใช้กด)</label>
-                            <input type="url" id="adminGateUrl" class="form-control" placeholder="https://loot-link.com/s?xxxx">
-                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">ลิงก์ที่สร้างจากช่อง Redirect Link ใน LootLabs</span>
+                            <label class="form-label" id="lblAdminGateUrl">ลิงก์สำหรับให้ผู้ใช้กด (Shortened Link จาก ShrinkEarn)</label>
+                            <input type="url" id="adminGateUrl" class="form-control" placeholder="https://shrinkearn.com/xxxx">
+                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;" id="descAdminGateUrl">นำลิงก์ย่อที่ได้จาก ShrinkEarn มาใส่ในช่องนี้</span>
                         </div>
 
-                        <div class="full-width">
+                        <div>
+                            <label class="form-label">ShrinkEarn API Token (สำหรับย่อลิงก์อัตโนมัติ)</label>
+                            <input type="text" id="adminShrinkearnApiToken" class="form-control" placeholder="3ce8c70d0c1e31404164f66164ea8f9117b29b69">
+                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">รหัส API Token จากหน้า Developers API บนเว็บ ShrinkEarn</span>
+                        </div>
+
+                        <div>
                             <label class="form-label">ระยะเวลาจำเครื่อง (ชั่วโมง)</label>
                             <input type="number" id="adminGateExpiryHours" class="form-control" value="24" min="1" max="720" placeholder="24">
-                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">ระยะเวลาที่จะไม่ถาม LootLabs ซ้ำบนเครื่องเดิม (ค่าเริ่มต้น 24 ชั่วโมง)</span>
+                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">ระยะเวลาที่จะไม่ถามลิงก์ซ้ำบนเครื่องเดิม (ค่าเริ่มต้น 24 ชั่วโมง)</span>
                         </div>
                     </div>
 
-                    <!-- ช่องแสดง URL สำหรับนำไปใส่ใน LootLabs -->
-                    <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 16px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 14px;">
+                    <!-- กล่องแนะนำวิธีใช้งาน ShrinkEarn (Anti-Bypass ปลอดภัย 100%) -->
+                    <div id="shrinkearnGuideBox" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 10px; padding: 18px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 14px;">
+                        <!-- ปุ่มสร้างลิงก์อัตโนมัติ 100% ผ่าน API -->
+                        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <div style="font-size: 13px; font-weight: 600; color: #34d399; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i>
+                                    <span>ย่อลิงก์อัตโนมัติด้วย ShrinkEarn API (ไม่ต้องเข้าเว็บ ShrinkEarn)</span>
+                                </div>
+                                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                                    กดปุ่มนี้ ระบบจะดึง API ย่อลิงก์ปลายทาง และใส่ในช่องลิงก์ให้ทันทีใน 1 วินาที!
+                                </div>
+                            </div>
+                            <button type="button" id="btnAutoShortenShrinkearn" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 9px 20px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35); transition: 0.15s;">
+                                <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
+                                <span>⚡ สั่งย่อลิงก์ด้วย API ทันที</span>
+                            </button>
+                        </div>
+
+                        <div style="font-weight: 600; font-size: 13px; color: #34d399; display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="help-circle" style="width: 16px; height: 16px;"></i>
+                            <span>หรือจะนำลิงก์ปลายทางไปสร้างเองบนเว็บ ShrinkEarn (วิธีแบบแมนนวล):</span>
+                        </div>
+                        <ol style="font-size: 12px; color: var(--text-muted); margin: 0; padding-left: 20px; line-height: 1.8;">
+                            <li>คัดลอก <b>"ลิงก์ปลายทาง (Target URL)"</b> ในกล่องสีเขียวด้านล่างนี้</li>
+                            <li>เปิดเว็บ <a href="https://shrinkearn.com/member/links" target="_blank" rel="noopener noreferrer" style="color: #34d399; text-decoration: underline; font-weight: 500;">ShrinkEarn -> เมนู New Shorten Link (คลิกที่นี่)</a> นำลิงก์นี้ไปวางในช่อง <b>Your URL Here</b> แล้วกดปุ่ม <b>Shorten</b></li>
+                            <li>คัดลอกลิงก์ย่อที่ ShrinkEarn ให้มา นำมาวางในช่อง <b>"ลิงก์สำหรับให้ผู้ใช้กด"</b> ด้านบน แล้วกดปุ่มบันทึก</li>
+                        </ol>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <label style="font-size: 12px; color: #34d399; font-weight: 600;">
+                                    📋 ลิงก์ปลายทาง (Target URL) สำหรับนำไปวางใน ShrinkEarn:
+                                </label>
+                                <button type="button" id="btnRandomizeShrinkearnUrl" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; padding: 3px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                    <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> <span>สุ่มพารามิเตอร์ใหม่</span>
+                                </button>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="shrinkearnTargetUrlHelper" class="form-control" readonly style="background: #08090d; color: #34d399; font-family: monospace; font-size: 12px;">
+                                <button type="button" id="btnCopyShrinkearnHelper" style="background: #059669; color: #fff; border: none; padding: 0 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="copy"></i> <span>คัดลอก</span>
+                                </button>
+                            </div>
+                            <div style="margin-top: 8px; padding: 10px 12px; background: rgba(0, 0, 0, 0.35); border-radius: 6px; border-left: 3px solid #10b981;">
+                                <div style="font-size: 11px; color: #6ee7b7; line-height: 1.6;">
+                                    🛡️ <b>เกราะป้องกัน Bypass ทำงานอัตโนมัติ:</b><br>
+                                    • <b>Handshake Protection:</b> คนที่เปิดลิงก์นี้ตรงๆ หรือก๊อปลิงก์ไปแจกใน Discord จะปลดล็อคไม่ได้ (ต้องกดปุ่มจากหน้าเว็บเราก่อนเท่านั้น)<br>
+                                    • <b>Speed Check:</b> ดักจับบอทที่ข้ามลิงก์เร็วกว่า 10 วินาที (มนุษย์ต้องรอนับถอยหลัง 10-15s เสมอ)<br>
+                                    • <b>Referrer Blacklist:</b> แบน IP และบล็อกเว็บ Bypass ทุกชนิดอัตโนมัติ
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- กล่องแสดง URL สำหรับ LootLabs (แสดงเมื่อเลือก LootLabs) -->
+                    <div id="lootlabsGuideBox" style="display: none; background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 16px; margin-bottom: 20px; flex-direction: column; gap: 14px;">
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                                 <label style="font-size: 12px; color: #c084fc; font-weight: 600;">
                                     📋 1. ลิงก์สำหรับใส่ในช่อง "Place redirect url here" บน LootLabs:
                                 </label>
                                 <button type="button" id="btnRandomizeTargetUrl" style="background: rgba(192, 132, 252, 0.15); border: 1px solid rgba(192, 132, 252, 0.3); color: #c084fc; padding: 3px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                                    <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> <span>สุ่ม URL ใหม่ (แก้ปัญหาได้ลิงก์เดิม)</span>
+                                    <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> <span>สุ่ม URL ใหม่</span>
                                 </button>
                             </div>
                             <div style="display: flex; gap: 8px;">
@@ -904,9 +997,6 @@
                                     <i data-lucide="copy"></i> <span>คัดลอก</span>
                                 </button>
                             </div>
-                            <span style="font-size: 11px; color: #a78bfa; margin-top: 4px; display: block;">
-                                💡 หาก LootLabs ออกลิงก์ย่อเดิมซ้ำ: ให้กดปุ่ม <b>"สุ่ม URL ใหม่"</b> ด้านบน เพื่อให้ LootLabs ยอมสร้างลิงก์ย่อใหม่ทันที
-                            </span>
                         </div>
 
                         <div>
@@ -1047,8 +1137,13 @@
 
                 <div class="form-grid">
                     <div>
-                        <label class="form-label">ชื่อสคริปต์ *</label>
+                        <label class="form-label">ชื่อสคริปต์ (ภาษาไทย) *</label>
                         <input type="text" id="editTitle" class="form-control" required>
+                    </div>
+
+                    <div>
+                        <label class="form-label">ชื่อสคริปต์ภาษาอังกฤษ (English Title - ปล่อยว่างจะแปลให้อัตโนมัติ)</label>
+                        <input type="text" id="editTitleEn" class="form-control" placeholder="เช่น Blox Fruits Script - Auto Farm">
                     </div>
 
                     <div>
@@ -1076,14 +1171,19 @@
                         <input type="number" id="editLikes" class="form-control" min="0" placeholder="0">
                     </div>
 
-                    <div class="full-width">
-                        <label class="form-label">คำอธิบายฟังก์ชั่นสคริปต์</label>
+                    <div>
+                        <label class="form-label">คำอธิบายฟังก์ชั่นสคริปต์ (ภาษาไทย)</label>
                         <input type="text" id="editDesc" class="form-control">
                     </div>
 
                     <div class="full-width">
+                        <label class="form-label">คำอธิบายภาษาอังกฤษ (English Description - ปล่อยว่างได้)</label>
+                        <input type="text" id="editDescEn" class="form-control" placeholder="เช่น Latest updated script, 100% safe & verified.">
+                    </div>
+
+                    <div class="full-width">
                         <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span>รูปภาพปกสคริปต์ (Cover Image)</span>
+                            <span>รูปภาพปกสคริปต์หลัก (Cover Image - ปกไทย / ค่าเริ่มต้น)</span>
                             <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">เลือกรูปจากเครื่อง หรือ วางลิงก์รูปภาพ</span>
                         </label>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -1107,6 +1207,14 @@
                                 </button>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="full-width">
+                        <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span>รูปภาพปกภาษาอังกฤษ (English Cover URL - 🇺🇸 สำหรับผู้ชมต่างชาติ)</span>
+                            <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">ไม่บังคับ (ถ้าไม่ใส่จะใช้รูปปกหลักด้านบน)</span>
+                        </label>
+                        <input type="text" id="editThumbEn" class="form-control" placeholder="วางลิงก์รูปภาพปกภาษาอังกฤษ เช่น https://... (ปล่อยว่างจะใช้รูปปกหลัก)">
                     </div>
 
                     <div class="full-width">

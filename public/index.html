@@ -1,28 +1,28 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlacklistScriptX แจกสคริป Roblox</title>
+    <title>BlacklistScriptX - Roblox Scripts & Exploit Hub</title>
     <meta name="description"
-        content="สคริปต์ฟรี ปลอดภัย 100% ใช้งานง่าย อัพเดทใหม่ทุกวัน พร้อมระบบเช็คสถานะตัวรันและ sUNC Score">
+        content="Free & 100% safe Roblox scripts, updated daily with executor status and sUNC score benchmarks.">
 
     <!-- Open Graph / Discord / Facebook Embed -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://blacklistscripty.vercel.app/">
-    <meta property="og:title" content="BlacklistScriptX แจกสคริป Roblox">
+    <meta property="og:title" content="BlacklistScriptX - Roblox Scripts & Exploit Hub">
     <meta property="og:description"
-        content="สคริปต์ฟรี ปลอดภัย 100% ใช้งานง่าย อัพเดทใหม่ทุกวัน พร้อมระบบเช็คสถานะตัวรันและ sUNC Score">
+        content="Free & 100% safe Roblox scripts, updated daily with executor status and sUNC score benchmarks.">
     <meta property="og:image" content="https://blacklistscripty.vercel.app/Banner.png">
     <meta property="og:site_name" content="BlacklistScriptx">
     <meta name="theme-color" content="#38bdf8">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="BlacklistScriptX แจกสคริป Roblox">
+    <meta name="twitter:title" content="BlacklistScriptX - Roblox Scripts & Exploit Hub">
     <meta name="twitter:description"
-        content="สคริปต์ฟรี ปลอดภัย 100% ใช้งานง่าย อัพเดทใหม่ทุกวัน พร้อมระบบเช็คสถานะตัวรันและ sUNC Score">
+        content="Free & 100% safe Roblox scripts, updated daily with executor status and sUNC score benchmarks.">
     <meta name="twitter:image" content="https://blacklistscripty.vercel.app/Banner.png">
 
     <link rel="stylesheet" href="css/style.css">
@@ -47,31 +47,31 @@
                     <img src="Logo.ico" alt="Logo" style="width: 28px; height: 28px; object-fit: contain;">
                 </div>
                 <div class="brand-title" id="brandTitleText">Blacklist<span>Scriptx</span></div>
-                <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="ปิดเมนู">
+                <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close menu">
                     <i data-lucide="x"></i>
                 </button>
             </div>
 
             <div class="sidebar-scroll">
                 <div>
-                    <div class="sidebar-group-label">เมนูหลัก</div>
+                    <div class="sidebar-group-label" id="lblMainMenu">Main Menu</div>
                     <ul class="sidebar-menu" id="mainMenu">
                         <li class="menu-item active" data-nav="home">
-                            <div class="menu-left"><i data-lucide="home"></i> หน้าหลัก</div>
+                            <div class="menu-left"><i data-lucide="home"></i> <span id="lblNavHome">Home</span></div>
                         </li>
                         <li class="menu-item" data-nav="feed" data-filter="all">
-                            <div class="menu-left"><i data-lucide="folder"></i> สคริปต์ทั้งหมด</div>
+                            <div class="menu-left"><i data-lucide="folder"></i> <span id="lblNavAll">All Scripts</span></div>
                             <span class="menu-badge" id="totalCount">8</span>
                         </li>
                         <li class="menu-item" data-nav="feed" data-filter="keyless">
-                            <div class="menu-left"><i data-lucide="key"></i> ไร้คีย์ (Keyless)</div>
+                            <div class="menu-left"><i data-lucide="key"></i> <span id="lblNavKeyless">Keyless</span></div>
                         </li>
                         <li class="menu-item" data-nav="feed" data-filter="mobile">
-                            <div class="menu-left"><i data-lucide="smartphone"></i> รองรับมือถือ</div>
+                            <div class="menu-left"><i data-lucide="smartphone"></i> <span id="lblNavMobile">Mobile Supported</span></div>
                         </li>
                         <!-- เมนู WEAO API: สถานะตัวรัน & sUNC -->
                         <li class="menu-item" data-nav="exploits">
-                            <div class="menu-left"><i data-lucide="cpu"></i> สถานะตัวรัน & sUNC</div>
+                            <div class="menu-left"><i data-lucide="cpu"></i> <span id="lblNavExploits">Executor Status & sUNC</span></div>
                             <span class="menu-badge"
                                 style="background: rgba(34, 197, 94, 0.2); color: #4ade80;">WEAO</span>
                         </li>
@@ -79,7 +79,7 @@
                 </div>
 
                 <div>
-                    <div class="sidebar-group-label">หมวดหมู่เกม</div>
+                    <div class="sidebar-group-label" id="lblGameCat">Game Categories</div>
                     <ul class="sidebar-menu" id="gameMenu">
                         <!-- โหลดหมวดหมู่เกมอัตโนมัติตามสคริปต์ที่มีจริงในระบบ -->
                     </ul>
@@ -90,10 +90,10 @@
             <div class="sidebar-footer">
                 <a href="https://www.youtube.com/@Blacklistxyx" target="_blank" class="sidebar-btn yt-btn"
                     id="sideYtBtn">
-                    <i data-lucide="youtube"></i> ช่อง YouTube
+                    <i data-lucide="youtube"></i> <span id="lblSideYt">YouTube Channel</span>
                 </a>
                 <a href="https://discord.gg" target="_blank" class="sidebar-btn dc-btn" id="sideDcBtn">
-                    <i data-lucide="message-square"></i> เข้า Discord
+                    <i data-lucide="message-square"></i> <span id="lblSideDc">Join Discord</span>
                 </a>
             </div>
         </aside>
@@ -105,7 +105,7 @@
             <!-- Topbar บาร์ค้นหาด้านบน -->
             <header class="app-topbar">
                 <div class="mobile-topbar-left">
-                    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="เปิดเมนู">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
                         <i data-lucide="menu"></i>
                     </button>
                     <div class="mobile-brand">
@@ -116,7 +116,18 @@
 
                 <div class="topbar-search">
                     <i data-lucide="search" style="color: var(--text-muted);"></i>
-                    <input type="text" id="globalSearch" placeholder="ค้นหาชื่อเกม, สคริปต์, หรือตัวรัน...">
+                    <input type="text" id="globalSearch" placeholder="Search games, scripts, or executors...">
+                </div>
+
+                <div class="topbar-right">
+                    <div class="lang-switcher" id="langSwitcher" role="group" aria-label="Language Switcher">
+                        <button type="button" class="lang-btn active" id="langBtnEn" data-lang="en">
+                            <span class="flag-icon">🇺🇸</span> <span>EN</span>
+                        </button>
+                        <button type="button" class="lang-btn" id="langBtnTh" data-lang="th">
+                            <span class="flag-icon">🇹🇭</span> <span>TH</span>
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -129,87 +140,85 @@
                     <section class="home-spotlight">
                         <div class="spotlight-content">
                             <span class="spotlight-badge">
-                                <i data-lucide="flame" style="width: 13px; height: 13px;"></i> สคริปต์ยอดนิยมอันดับ 1
+                                <i data-lucide="flame" style="width: 13px; height: 13px;"></i> <span id="lblSpotBadge">#1 Trending Script</span>
                             </span>
                             <h2 class="spotlight-title">Blox Fruits - Redz Hub (Auto Farm 1-Max)</h2>
-                            <p class="spotlight-desc">สคริปต์ฟาร์มเลเวลที่เสถียรที่สุด ฟาร์มออโต้ เควสต์ ดาบคู่โซโร
-                                ผลตื่นครบทุกสาย ไม่หลุดง่าย รองรับทั้งมือถือและ PC</p>
+                            <p class="spotlight-desc" id="lblSpotDesc">The most stable level farming script. Auto farm, quests, dual katanas, fully awakened fruits. Mobile & PC supported.</p>
                             <div class="spotlight-actions">
                                 <button class="btn-spotlight" onclick="openLocker('blox-fruits-redz')">
                                     <i data-lucide="unlock" style="width: 14px; height: 14px;"></i>
-                                    <span>รับสคริปต์นี้</span>
+                                    <span id="lblSpotGet">Get This Script</span>
                                 </button>
                                 <button class="btn-spotlight-secondary" id="btnGoFeedAll">
-                                    <span>ดูสคริปต์ทั้งหมด</span>
+                                    <span id="lblSpotAll">View All Scripts</span>
                                     <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
                                 </button>
                             </div>
                         </div>
                     </section>
 
-                    <!-- สคริปต์มาแรงล่าสุด -->
+                    <!-- Trending Scripts -->
                     <section>
                         <div class="section-head">
-                            <h3><i data-lucide="zap"></i> สคริปต์มาแรงล่าสุด</h3>
-                            <button class="btn-view-all" id="btnSeeAllScripts">ดูทั้งหมด ➔</button>
+                            <h3><i data-lucide="zap"></i> <span id="lblTrendingHead">Trending Scripts</span></h3>
+                            <button class="btn-view-all" id="btnSeeAllScripts"><span id="lblSeeAllScripts">View All ➔</span></button>
                         </div>
                         <div class="scripts-feed" id="homeRecentScripts">
-                            <!-- โหลดจาก JS -->
+                            <!-- Loaded from JS -->
                         </div>
                     </section>
 
-                    <!-- แนะนำตัวรัน (Executors Live from WEAO API) -->
+                    <!-- Executors Live from WEAO API -->
                     <section>
                         <div class="section-head">
-                            <h3><i data-lucide="cpu"></i> สถานะตัวรันยอดนิยม & sUNC (Live WEAO)</h3>
-                            <button class="btn-view-all" id="btnSeeAllExploits">ดูตัวรันทั้งหมด 30+ ตัว ➔</button>
+                            <h3><i data-lucide="cpu"></i> <span id="lblExecutorsHead">Live Executor Status & sUNC (WEAO)</span></h3>
+                            <button class="btn-view-all" id="btnSeeAllExploits"><span id="lblSeeAllExploits">View All 30+ Executors ➔</span></button>
                         </div>
                         <div class="executors-grid" id="homeExecutorsGrid">
-                            <!-- โหลดอัตโนมัติจาก WEAO API -->
+                            <!-- Loaded from WEAO API -->
                             <div
-                                style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--text-muted);">
-                                <i data-lucide="loader-2" class="spin"></i> กำลังโหลดข้อมูลสถานะตัวรันจาก WEAO API...
+                                style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--text-muted);" id="lblLoadingExploits">
+                                <i data-lucide="loader-2" class="spin"></i> Loading executor status from WEAO API...
                             </div>
                         </div>
                     </section>
                 </div>
 
                 <!-- =======================================================
-                     VIEW 2: หน้ารายการสคริปต์ทั้งหมด (FEED VIEW)
+                     VIEW 2: All Scripts Feed (FEED VIEW)
                      ======================================================= -->
                 <div class="feed-view" id="feedView">
                     <div class="view-toolbar">
                         <div class="view-title-group">
-                            <h2 id="currentViewTitle">สคริปต์ทั้งหมด</h2>
-                            <p id="currentViewDesc">เลือกสคริปต์ที่ต้องการเพื่อปลดล็อคโค้ด</p>
+                            <h2 id="currentViewTitle">All Scripts</h2>
+                            <p id="currentViewDesc">Select a script to unlock its code</p>
                         </div>
 
                         <div class="view-filter-chips">
-                            <span class="chip active" data-tag="all">ทั้งหมด</span>
-                            <span class="chip" data-tag="keyless"><i data-lucide="key"></i> ไร้คีย์</span>
-                            <span class="chip" data-tag="mobile"><i data-lucide="smartphone"></i> มือถือ</span>
+                            <span class="chip active" data-tag="all" id="lblChipAll">All</span>
+                            <span class="chip" data-tag="keyless"><i data-lucide="key"></i> <span id="lblChipKeyless">Keyless</span></span>
+                            <span class="chip" data-tag="mobile"><i data-lucide="smartphone"></i> <span id="lblChipMobile">Mobile</span></span>
                         </div>
                     </div>
 
                     <div class="scripts-feed" id="scriptsFeed">
-                        <!-- โหลดรายการสคริปต์จาก JS -->
+                        <!-- Loaded from JS -->
                     </div>
                 </div>
 
                 <!-- =======================================================
-                     VIEW 3: หน้าระบบเช็คตัวรัน & sUNC Data (WEAO API VIEW)
+                     VIEW 3: Executor Status & sUNC Data (WEAO API VIEW)
                      ======================================================= -->
                 <div class="feed-view" id="exploitsView" style="display: none;">
                     <div class="view-toolbar">
                         <div class="view-title-group">
-                            <h2><i data-lucide="cpu"></i> ตรวจสอบสถานะตัวรันยอดนิยม & sUNC Data</h2>
-                            <p>สถานะสดตัวรันระดับท็อป (Delta, Codex, Solara, Wave ฯลฯ) พร้อมคะแนน sUNC
-                                และลิงก์ดาวน์โหลดทางการ</p>
+                            <h2><i data-lucide="cpu"></i> <span id="lblExploitsViewTitle">Top Executor Status & sUNC Data</span></h2>
+                            <p id="lblExploitsViewDesc">Live status of top executors (Delta, Codex, Solara, Wave, etc.) with sUNC scores and official downloads</p>
                         </div>
 
-                        <!-- ตัวกรอง Platform ของตัวรัน -->
+                        <!-- Platform filter chips -->
                         <div class="view-filter-chips" id="exploitPlatformFilter">
-                            <span class="chip active" data-plat="all">ทั้งหมด</span>
+                            <span class="chip active" data-plat="all" id="lblPlatAll">All</span>
                             <span class="chip" data-plat="Windows">Windows</span>
                             <span class="chip" data-plat="Android">Android</span>
                             <span class="chip" data-plat="Mac">Mac</span>
@@ -217,10 +226,10 @@
                         </div>
                     </div>
 
-                    <!-- ตารางการ์ดตัวรันทั้งหมด 30+ ตัวจาก API -->
+                    <!-- Exploits grid -->
                     <div class="exploits-grid" id="exploitsGrid">
-                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
-                            <i data-lucide="loader-2" class="spin"></i> กำลังดึงข้อมูลจาก WEAO API...
+                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);" id="lblLoadingAllExploits">
+                            <i data-lucide="loader-2" class="spin"></i> Loading data from WEAO API...
                         </div>
                     </div>
                 </div>
@@ -229,48 +238,46 @@
     </div>
 
     <!-- =======================================================================
-         MODAL รายละเอียด sUNC Test Data (เปิดเมื่อกดดูรายละเอียด sUNC)
+         MODAL sUNC Test Data
          ======================================================================= -->
     <div class="modal-overlay" id="suncModal">
         <div class="sunc-modal-box">
             <button class="modal-close" id="closeSuncModalBtn">✕</button>
 
             <div style="margin-bottom: 12px;">
-                <span class="tag-badge" style="color: #38bdf8; background: rgba(56, 189, 248, 0.1);">sUNC Benchmark
-                    Test</span>
-                <h3 id="suncModalTitle" style="font-size: 18px; color: #fff; margin-top: 4px;">Potassium - sUNC Data
-                </h3>
+                <span class="tag-badge" style="color: #38bdf8; background: rgba(56, 189, 248, 0.1);">sUNC Benchmark Test</span>
+                <h3 id="suncModalTitle" style="font-size: 18px; color: #fff; margin-top: 4px;">Potassium - sUNC Data</h3>
                 <div id="suncModalMeta"
                     style="font-size: 12px; color: var(--text-muted); display: flex; gap: 12px; margin-top: 4px;">
-                    <span>เวอร์ชั่น: <strong id="suncVersion">-</strong></span>
-                    <span>เวลาทดสอบ: <strong id="suncTime">-</strong></span>
-                    <span style="color: #4ade80;">ผ่าน: <strong id="suncPassedCount">0</strong></span>
-                    <span style="color: #f87171;">ไม่ผ่าน: <strong id="suncFailedCount">0</strong></span>
+                    <span id="lblSuncVer">Version: <strong id="suncVersion">-</strong></span>
+                    <span id="lblSuncTime">Tested: <strong id="suncTime">-</strong></span>
+                    <span style="color: #4ade80;" id="lblSuncPass">Passed: <strong id="suncPassedCount">0</strong></span>
+                    <span style="color: #f87171;" id="lblSuncFail">Failed: <strong id="suncFailedCount">0</strong></span>
                 </div>
             </div>
 
-            <!-- ช่องค้นหาฟังก์ชันใน sUNC -->
+            <!-- Search box in sUNC -->
             <div style="margin-bottom: 10px;">
                 <input type="text" id="searchSuncFunc" class="form-control"
-                    placeholder="ค้นหาฟังก์ชัน เช่น getrawmetatable, hookmetamethod..."
+                    placeholder="Search functions e.g. getrawmetatable, hookmetamethod..."
                     style="font-size: 12px; padding: 8px 12px;">
             </div>
 
-            <!-- รายการฟังก์ชันที่ทดสอบ -->
+            <!-- Tested functions list -->
             <div class="sunc-test-list" id="suncTestList">
-                <div style="text-align: center; padding: 20px; color: var(--text-muted);">
-                    <i data-lucide="loader-2" class="spin"></i> กำลังโหลดผลการทดสอบฟังก์ชัน...
+                <div style="text-align: center; padding: 20px; color: var(--text-muted);" id="lblLoadingSunc">
+                    <i data-lucide="loader-2" class="spin"></i> Loading function benchmark results...
                 </div>
             </div>
         </div>
     </div>
 
     <!-- =======================================================================
-         MODAL ปลดล็อคสคริปต์ (Sub2Unlock - Ultra Modern Gaming Locker)
+         MODAL Sub2Unlock Gaming Locker
          ======================================================================= -->
     <div class="modal-overlay" id="lockerModal">
         <div class="locker-box">
-            <button class="modal-close" id="closeLockerBtn" aria-label="ปิด">
+            <button class="modal-close" id="closeLockerBtn" aria-label="Close">
                 <i data-lucide="x"></i>
             </button>
 
@@ -281,24 +288,24 @@
                 </div>
             </div>
 
-            <h3 class="locker-title">ปลดล็อคโค้ดสคริปต์</h3>
-            <p class="locker-desc">ทำภารกิจสนับสนุน 3 ขั้นตอนด้านล่างเพื่อรับโค้ดสคริปต์ฟรี</p>
+            <h3 class="locker-title" id="lblLockerTitle">Unlock Script Code</h3>
+            <p class="locker-desc" id="lblLockerDesc">Complete the 3 support tasks below to receive the free script code</p>
 
             <!-- Step Progress Tracker -->
             <div class="locker-steps-tracker">
                 <div class="tracker-step active" id="dot1">
                     <div class="step-num">1</div>
-                    <span class="step-txt">ภารกิจ 1</span>
+                    <span class="step-txt" id="lblStep1">Task 1</span>
                 </div>
                 <div class="tracker-line" id="line1"></div>
                 <div class="tracker-step" id="dot2">
                     <div class="step-num">2</div>
-                    <span class="step-txt">ภารกิจ 2</span>
+                    <span class="step-txt" id="lblStep2">Task 2</span>
                 </div>
                 <div class="tracker-line" id="line2"></div>
                 <div class="tracker-step" id="dot3">
                     <div class="step-num">3</div>
-                    <span class="step-txt">ภารกิจ 3</span>
+                    <span class="step-txt" id="lblStep3">Task 3</span>
                 </div>
             </div>
 
@@ -309,12 +316,12 @@
                         <div class="task-badge">01</div>
                         <div class="task-icon-box"><i data-lucide="youtube"></i></div>
                         <div class="task-meta">
-                            <span class="task-name" id="task1Text">กดติดตาม YouTube / Subscribe</span>
-                            <span class="task-hint">เปิดลิงก์และรอระบบยืนยัน 5 วินาที</span>
+                            <span class="task-name" id="task1Text">Subscribe to YouTube Channel</span>
+                            <span class="task-hint" id="task1Hint">Open link and wait 5 seconds for verification</span>
                         </div>
                     </div>
                     <div class="task-status">
-                        <span class="status-pill active-pill">เริ่มทำ <i data-lucide="arrow-right"></i></span>
+                        <span class="status-pill active-pill" id="task1Status">Start <i data-lucide="arrow-right"></i></span>
                     </div>
                 </button>
 
@@ -323,12 +330,12 @@
                         <div class="task-badge">02</div>
                         <div class="task-icon-box"><i data-lucide="message-square"></i></div>
                         <div class="task-meta">
-                            <span class="task-name" id="task2Text">เข้าร่วม Discord / Join Discord</span>
-                            <span class="task-hint">เปิดลิงก์และรอระบบยืนยัน 5 วินาที</span>
+                            <span class="task-name" id="task2Text">Join Discord Community</span>
+                            <span class="task-hint" id="task2Hint">Open link and wait 5 seconds for verification</span>
                         </div>
                     </div>
                     <div class="task-status">
-                        <span class="status-pill wait-pill"><i data-lucide="lock"></i> รอดำเนินการ</span>
+                        <span class="status-pill wait-pill" id="task2Status"><i data-lucide="lock"></i> Pending</span>
                     </div>
                 </button>
 
@@ -337,12 +344,12 @@
                         <div class="task-badge">03</div>
                         <div class="task-icon-box"><i data-lucide="thumbs-up"></i></div>
                         <div class="task-meta">
-                            <span class="task-name" id="task3Text">กดไลค์ & คอมเมนต์ / Like & Comment</span>
-                            <span class="task-hint">เปิดคลิปและรอระบบยืนยัน 3 วินาที</span>
+                            <span class="task-name" id="task3Text">Like & Comment on Video</span>
+                            <span class="task-hint" id="task3Hint">Open video and wait 3 seconds for verification</span>
                         </div>
                     </div>
                     <div class="task-status">
-                        <span class="status-pill wait-pill"><i data-lucide="lock"></i> รอดำเนินการ</span>
+                        <span class="status-pill wait-pill" id="task3Status"><i data-lucide="lock"></i> Pending</span>
                     </div>
                 </button>
             </div>
@@ -350,7 +357,7 @@
             <!-- Footer Lock Notice -->
             <div class="locked-footer-label" id="lockedLabel">
                 <i data-lucide="shield-alert"></i>
-                <span id="lockedStatusText">สคริปต์ถูกล็อคอยู่ • ทำภารกิจให้ครบเพื่อเปิดใช้งาน</span>
+                <span id="lockedStatusText">Script is locked • Complete all tasks to unlock</span>
             </div>
 
             <!-- Unlocked View (Shows after all tasks complete) -->
@@ -360,8 +367,8 @@
                         <i data-lucide="check-circle-2"></i>
                     </div>
                     <div class="unlocked-texts">
-                        <h4>ปลดล็อคสำเร็จแล้ว! 🎉</h4>
-                        <p>สามารถคัดลอกโค้ดสคริปต์ไปรันในเกมได้ทันที</p>
+                        <h4 id="lblUnlockedTitle">Unlocked Successfully! 🎉</h4>
+                        <p id="lblUnlockedDesc">You can now copy the script code and run it in your game</p>
                     </div>
                 </div>
 
@@ -380,46 +387,42 @@
 
                 <button class="btn-copy-script" id="btnCopyScript">
                     <i data-lucide="copy"></i>
-                    <span>คัดลอกสคริปต์ (Copy Code)</span>
+                    <span id="lblBtnCopy">Copy Script (Copy Code)</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="toast-bar" id="toastBar">คัดลอกสคริปต์แล้ว!</div>
+    <div class="toast-bar" id="toastBar">Script copied to clipboard!</div>
 
     <!-- =======================================================================
-         MODAL POPUP: ประกาศ / ติดต่อ Discord เมื่อพบปัญหา (Discord Support Popup)
+         MODAL POPUP: Discord Support Popup
          ======================================================================= -->
     <div class="site-popup-overlay" id="siteNoticePopup" style="display: none;">
         <div class="site-popup-box">
-            <!-- ปุ่มปิด X มุมบนขวา -->
-            <button type="button" class="site-popup-close" id="sitePopupCloseBtn" aria-label="ปิดหน้าต่าง">
+            <button type="button" class="site-popup-close" id="sitePopupCloseBtn" aria-label="Close modal">
                 <i data-lucide="x"></i>
             </button>
 
-            <!-- รูปภาพคลิกได้ ลิงก์ตรงเข้า Discord -->
             <a href="https://discord.gg/6x67MrtfbX" target="_blank" rel="noopener noreferrer"
                 class="site-popup-img-wrap" id="sitePopupLink">
-                <img src="popup.png" alt="พบปัญหา? สคริป หรือเว็บไซต์ ติดต่อผ่าน Discord ได้เลย!"
-                    class="site-popup-img">
+                <img src="popup.png" alt="Need Help? Contact Support on Discord!" class="site-popup-img">
             </a>
 
-            <!-- แถบปุ่มด้านล่าง พร้อมปุ่มไม่แสดงอีก 24 ชั่วโมง -->
             <div class="site-popup-footer">
                 <button type="button" class="btn-popup-dismiss-24h" id="sitePopupDismiss24hBtn">
                     <i data-lucide="clock"></i>
-                    <span>ไม่ต้องแสดงอีก 24 ชั่วโมง</span>
+                    <span id="lblPopup24h">Don't show again for 24 hours</span>
                 </button>
                 <button type="button" class="btn-popup-close-now" id="sitePopupCloseNowBtn">
-                    <span>ปิดหน้าต่าง</span>
+                    <span id="lblPopupClose">Close Window</span>
                 </button>
             </div>
         </div>
     </div>
 
     <!-- =======================================================================
-         MODAL ล็อคป้องกันการ Bypass (LootLabs Anti-Bypass Security Gate)
+         MODAL Security Access Gate
          ======================================================================= -->
     <div class="lootlabs-gate-overlay" id="lootlabsGateOverlay" style="display: none;">
         <div class="lootlabs-gate-box">
@@ -431,47 +434,45 @@
                 <i data-lucide="lock"></i>
             </div>
 
-            <h2 class="lootlabs-gate-title">สิทธิ์เข้าใช้งานถูกจำกัด</h2>
+            <h2 class="lootlabs-gate-title" id="lblGateTitle">Access Restricted</h2>
             <p class="lootlabs-gate-desc" id="gateMessageText">
-                กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าชมเว็บไซต์และรับสคริปต์ฟรี
+                Please complete the support link to unlock access to the website and receive free scripts
             </p>
 
             <a href="#" class="btn-gate-lootlabs" id="gateLootlabsBtn" target="_blank" rel="noopener noreferrer">
                 <i data-lucide="external-link"></i>
-                <span>กดผ่าน LootLabs เพื่อปลดล็อคเข้าเว็บ</span>
+                <span id="lblGateBtn">Complete Link to Unlock</span>
             </a>
 
-            <!-- กล่องแสดงสถานะตรวจจับอัตโนมัติ -->
             <div id="gateAutoDetectBox" class="gate-auto-detect" style="display: none;">
                 <span class="gate-spinner"></span>
-                <span id="gateAutoDetectText">กำลังรอคุณทำ LootLabs... (ระบบจะปลดล็อคให้อัตโนมัติทันทีที่เสร็จ)</span>
+                <span id="gateAutoDetectText">Waiting for completion... (Unlocks automatically when finished)</span>
             </div>
 
             <button type="button" id="gateCheckStatusBtn" class="btn-gate-check">
                 <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
-                <span>ตรวจสอบสถานะทันที</span>
+                <span id="lblGateCheck">Check Status Now</span>
             </button>
 
             <div class="gate-divider">
-                <span>หรือยืนยันด้วย ACCESS TOKEN</span>
+                <span id="lblGateDivider">OR VERIFY WITH ACCESS TOKEN</span>
             </div>
 
             <div class="gate-token-form">
-                <input type="text" id="gateTokenInput" class="gate-token-input" placeholder="กรอก Access Token">
-                <button type="button" id="gateTokenSubmitBtn" class="btn-gate-token">ปลดล็อค</button>
+                <input type="text" id="gateTokenInput" class="gate-token-input" placeholder="Enter Access Token">
+                <button type="button" id="gateTokenSubmitBtn" class="btn-gate-token"><span id="lblGateTokenSubmit">Unlock</span></button>
             </div>
-            <div class="gate-error-msg" id="gateErrorMsg" style="display: none;">Token ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง
-            </div>
+            <div class="gate-error-msg" id="gateErrorMsg" style="display: none;">Invalid Token. Please try again.</div>
 
             <div class="gate-footer-hint">
                 <i data-lucide="info"></i>
-                <span>เมื่อผ่าน LootLabs หรือยืนยันสำเร็จ ระบบจะจดจำเครื่องนี้ไว้ให้เข้าได้ตลอด 24 ชั่วโมง</span>
+                <span id="lblGateHint">Once verified, this device will be remembered for 24 hours</span>
             </div>
         </div>
     </div>
 
     <!-- =======================================================================
-         MODAL ระงับสิทธิ์การใช้งาน (BANNED SCREEN OVERLAY)
+         MODAL BANNED SCREEN OVERLAY
          ======================================================================= -->
     <div class="banned-screen-overlay" id="bannedScreenOverlay" style="display: none;">
         <div class="banned-screen-box">
@@ -481,74 +482,72 @@
             <div class="banned-icon-pulse">
                 <i data-lucide="ban"></i>
             </div>
-            <h2 class="banned-title">⛔ คุณถูกระงับสิทธิ์การเข้าใช้งาน</h2>
+            <h2 class="banned-title" id="lblBannedTitle">⛔ Access Suspended</h2>
             <p class="banned-subtitle" id="bannedReasonText">
-                ตรวจพบพฤติกรรมพยายาม Bypass ระบบความปลอดภัย หรือถูกระงับโดยผู้ดูแลระบบ
+                Suspicious behavior or security bypass attempt detected by administrator.
             </p>
 
-            <!-- กล่องแสดงเวลานับถอยหลัง Real-time -->
             <div class="banned-countdown-box">
                 <div class="countdown-label">
                     <i data-lucide="clock"></i>
-                    <span>เหลือเวลาระงับการใช้งานอีก:</span>
+                    <span id="lblBannedCountdown">Time remaining:</span>
                 </div>
                 <div class="countdown-timer" id="bannedCountdownTimer">
                     <div class="countdown-item">
                         <span class="countdown-num" id="bannedHours">00</span>
-                        <span class="countdown-sub">ชั่วโมง</span>
+                        <span class="countdown-sub" id="lblBannedHoursSub">Hours</span>
                     </div>
                     <span class="countdown-sep">:</span>
                     <div class="countdown-item">
                         <span class="countdown-num" id="bannedMinutes">00</span>
-                        <span class="countdown-sub">นาที</span>
+                        <span class="countdown-sub" id="lblBannedMinutesSub">Minutes</span>
                     </div>
                     <span class="countdown-sep">:</span>
                     <div class="countdown-item">
                         <span class="countdown-num" id="bannedSeconds">00</span>
-                        <span class="countdown-sub">วินาที</span>
+                        <span class="countdown-sub" id="lblBannedSecondsSub">Seconds</span>
                     </div>
                 </div>
             </div>
 
-            <!-- ข้อมูลทางเทคนิค -->
             <div class="banned-info-card">
                 <div class="banned-info-row">
-                    <span>🌐 IP เครื่องของคุณ:</span>
-                    <code id="bannedClientIp">กำลังตรวจสอบ...</code>
+                    <span id="lblBannedIp">🌐 Your Client IP:</span>
+                    <code id="bannedClientIp">Checking...</code>
                 </div>
                 <div class="banned-info-row">
-                    <span>⏳ ระยะเวลาที่ระงับ:</span>
-                    <span id="bannedDurationText">-- ชั่วโมง</span>
+                    <span id="lblBannedDuration">⏳ Duration:</span>
+                    <span id="bannedDurationText">-- Hours</span>
                 </div>
                 <div class="banned-info-row">
-                    <span>⏰ ปลดล็อคเมื่อ:</span>
+                    <span id="lblBannedUnlock">⏰ Unlocks At:</span>
                     <span id="bannedExpireTimeText" class="text-amber">--:--</span>
                 </div>
             </div>
 
-            <p class="banned-footer-notice">
-                ระบบรักษาความปลอดภัยจะทำการปลดล็อคหน้าเว็บให้อัตโนมัติเมื่อหมดเวลาที่กำหนด กรุณาอย่าพยายามปิดหน้าต่างนี้
+            <p class="banned-footer-notice" id="lblBannedFooter">
+                Access will be automatically restored once the countdown ends. Please do not close this window.
             </p>
         </div>
     </div>
 
-    <!-- Mobile Bottom Navigation Bar (แสดงเฉพาะบนมือถือ) -->
+    <!-- Mobile Bottom Navigation Bar -->
     <nav class="mobile-bottom-nav" id="mobileBottomNav">
         <button class="bottom-nav-item active" data-nav="home">
             <i data-lucide="home"></i>
-            <span>หน้าแรก</span>
+            <span id="lblMobileNavHome">Home</span>
         </button>
         <button class="bottom-nav-item" data-nav="feed" data-filter="all">
             <i data-lucide="folder"></i>
-            <span>สคริปต์</span>
+            <span id="lblMobileNavScripts">Scripts</span>
         </button>
         <button class="bottom-nav-item" data-nav="exploits">
             <i data-lucide="cpu"></i>
-            <span>ตัวรัน & sUNC</span>
+            <span id="lblMobileNavExploits">Executors</span>
         </button>
         <button class="bottom-nav-item" id="bottomNavMenuBtn">
             <i data-lucide="grid"></i>
-            <span>หมวดหมู่</span>
+            <span id="lblMobileNavCats">Categories</span>
         </button>
     </nav>
 

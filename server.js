@@ -119,6 +119,22 @@ const server = http.createServer(async (req, res) => {
     }
 
     // =========================================================================
+    // API: Geo Country Detection
+    // =========================================================================
+    if (pathname === '/api/geo') {
+        await executeServerless('./api/geo.js', req, res, parsedUrl);
+        return;
+    }
+
+    // =========================================================================
+    // API: ShrinkEarn Auto Shortener
+    // =========================================================================
+    if (pathname === '/api/shrinkearn-shorten' || pathname === '/api/shrinkearn') {
+        await executeServerless('./api/shrinkearn.js', req, res, parsedUrl);
+        return;
+    }
+
+    // =========================================================================
     // API: Database Tools (/api/db/stats, /api/db/clear, /api/db/reset)
     // =========================================================================
     if (pathname === '/api/db/stats' && req.method === 'GET') {

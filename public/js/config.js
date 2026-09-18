@@ -46,13 +46,16 @@ const SITE_CONFIG = {
         tiktok: "https://www.tiktok.com/@YOUR_TIKTOK"
     },
 
-    // ระบบป้องกัน Bypass ด้วย LootLabs Token Gate
+    // ระบบสร้างรายได้และป้องกัน Bypass (ShrinkEarn / LootLabs Gate)
     lootlabsGate: {
         enabled: true,
+        provider: "shrinkearn", // "shrinkearn" | "lootlabs" | "custom"
         token: "blacklist_vip",
+        shrinkearnUrl: "https://srnky.com/aehfqq0",
+        shrinkearnApiToken: "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
         lootlabsUrl: "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
         expiryHours: 24, // จดจำเครื่องไว้ 24 ชั่วโมง
-        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
     }
 };
 
@@ -125,6 +128,12 @@ window.mergeSiteConfig = function (source) {
             if (parsed.lootlabsGate) {
                 if (!parsed.lootlabsGate.lootlabsUrl || parsed.lootlabsGate.lootlabsUrl.includes("s?example")) {
                     parsed.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh";
+                }
+                if (!parsed.lootlabsGate.provider) {
+                    parsed.lootlabsGate.provider = "shrinkearn";
+                }
+                if (parsed.lootlabsGate.bypassMessage && parsed.lootlabsGate.bypassMessage.includes("LootLabs")) {
+                    parsed.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์";
                 }
             }
             // อัปเดต firebaseConfig เสมอ

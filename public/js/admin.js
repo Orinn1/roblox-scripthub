@@ -54,11 +54,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const linkVideo = document.getElementById("linkVideo");
     const linkDiscord = document.getElementById("linkDiscord");
 
-    // LootLabs Gate Elements
+    // Monetization & Gate Elements (ShrinkEarn / LootLabs)
     const gateEnableCheckbox = document.getElementById("gateEnableCheckbox");
+    const adminGateProvider = document.getElementById("adminGateProvider");
     const adminGateToken = document.getElementById("adminGateToken");
+    const btnRandomizeToken = document.getElementById("btnRandomizeToken");
     const adminGateUrl = document.getElementById("adminGateUrl");
     const adminGateExpiryHours = document.getElementById("adminGateExpiryHours");
+    const lblAdminGateUrl = document.getElementById("lblAdminGateUrl");
+    const descAdminGateUrl = document.getElementById("descAdminGateUrl");
+    const adminShrinkearnApiToken = document.getElementById("adminShrinkearnApiToken");
+    const btnAutoShortenShrinkearn = document.getElementById("btnAutoShortenShrinkearn");
+    const shrinkearnGuideBox = document.getElementById("shrinkearnGuideBox");
+    const lootlabsGuideBox = document.getElementById("lootlabsGuideBox");
+    const shrinkearnTargetUrlHelper = document.getElementById("shrinkearnTargetUrlHelper");
+    const btnCopyShrinkearnHelper = document.getElementById("btnCopyShrinkearnHelper");
+    const btnRandomizeShrinkearnUrl = document.getElementById("btnRandomizeShrinkearnUrl");
     const lootlabsTargetUrlHelper = document.getElementById("lootlabsTargetUrlHelper");
     const btnCopyLootlabsHelper = document.getElementById("btnCopyLootlabsHelper");
     const lootlabsPostbackUrlHelper = document.getElementById("lootlabsPostbackUrlHelper");
@@ -365,8 +376,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <td style="color:#fff; font-weight:600;">${escapeHtml(s.game)}</td>
                     <td style="color:var(--text-primary); font-weight:500;">
                         ${escapeHtml(s.title)}
+                        ${s.title_en ? `<div style="font-size:11px; color:#38bdf8; margin-top:2px;">🇺🇸 ${escapeHtml(s.title_en)}</div>` : ''}
                         <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
                             ${escapeHtml(s.version || 'v1.0')} • 👁 ${(s.views || 0).toLocaleString()} ครั้ง • 👍 ${(s.likes || 0).toLocaleString()} ถูกใจ
+                            ${s.thumbnail_en ? ' • <span style="color:#a855f7;">🖼 มีปก EN</span>' : ''}
                         </div>
                     </td>
                     <td><span class="tag-badge" style="font-size:11px;">${escapeHtml(s.category || 'all')}</span></td>
@@ -604,6 +617,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (targets.titleInput && !targets.titleInput.value.trim()) {
                 targets.titleInput.value = `${data.cleanName || data.name} - Script`;
             }
+            if (targets.titleEnInput && !targets.titleEnInput.value.trim()) {
+                targets.titleEnInput.value = `${data.cleanName || data.name} Script - Auto Farm & Hub`;
+            }
             if (targets.thumbInput) {
                 targets.thumbInput.value = data.thumbnail || data.iconUrl || "";
                 targets.thumbInput.dispatchEvent(new Event("input"));
@@ -657,6 +673,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     gameInput: document.getElementById("sGame"),
                     categoryInput: document.getElementById("sCategory"),
                     titleInput: document.getElementById("sTitle"),
+                    titleEnInput: document.getElementById("sTitleEn"),
                     thumbInput: document.getElementById("sThumb"),
                     descInput: document.getElementById("sDesc")
                 }
@@ -678,6 +695,7 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
 
         const title = document.getElementById("sTitle").value.trim();
+        const titleEn = document.getElementById("sTitleEn") ? document.getElementById("sTitleEn").value.trim() : "";
         const game = document.getElementById("sGame").value.trim();
         let category = document.getElementById("sCategory").value.trim().toLowerCase();
         if (!category) {
@@ -685,7 +703,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const version = document.getElementById("sVersion").value.trim() || "v1.0";
         const desc = document.getElementById("sDesc").value.trim() || "สคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี";
+        const descEn = document.getElementById("sDescEn") ? document.getElementById("sDescEn").value.trim() : "";
         const thumb = document.getElementById("sThumb").value.trim() || "Logo.png";
+        const thumbEn = document.getElementById("sThumbEn") ? document.getElementById("sThumbEn").value.trim() : "";
         const code = document.getElementById("sCode").value.trim();
 
         const isKeyless = document.getElementById("sKeyless").checked;
@@ -700,6 +720,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const newScript = {
             id: "script-" + Date.now(),
             title: title,
+            title_en: titleEn,
             game: game,
             category: category,
             version: version,
@@ -712,7 +733,9 @@ document.addEventListener("DOMContentLoaded", () => {
             status: "working",
             badge: "มาใหม่",
             thumbnail: thumb,
+            thumbnail_en: thumbEn,
             description: desc,
+            description_en: descEn,
             loadstring: code
         };
 
@@ -731,6 +754,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         addScriptForm.reset();
+        if (document.getElementById("sTitleEn")) document.getElementById("sTitleEn").value = "";
+        if (document.getElementById("sDescEn")) document.getElementById("sDescEn").value = "";
+        if (document.getElementById("sThumbEn")) document.getElementById("sThumbEn").value = "";
         if (robloxPlaceInput) robloxPlaceInput.value = "";
         if (robloxFetchStatus) robloxFetchStatus.style.display = "none";
         if (sThumbPreviewBox) sThumbPreviewBox.style.display = "none";
@@ -797,20 +823,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const editScriptId = document.getElementById("editScriptId");
         const editTitle = document.getElementById("editTitle");
+        const editTitleEn = document.getElementById("editTitleEn");
         const editGame = document.getElementById("editGame");
         const editCategory = document.getElementById("editCategory");
         const editVersion = document.getElementById("editVersion");
         const editDesc = document.getElementById("editDesc");
+        const editDescEn = document.getElementById("editDescEn");
         const editThumb = document.getElementById("editThumb");
+        const editThumbEn = document.getElementById("editThumbEn");
         const editCode = document.getElementById("editCode");
 
         if (editScriptId) editScriptId.value = item.id;
         if (editTitle) editTitle.value = item.title || "";
+        if (editTitleEn) editTitleEn.value = item.title_en || "";
         if (editGame) editGame.value = item.game || "";
         if (editCategory) editCategory.value = item.category || "";
         if (editVersion) editVersion.value = item.version || "v1.0";
         if (editDesc) editDesc.value = item.description || "";
+        if (editDescEn) editDescEn.value = item.description_en || "";
         if (editThumb) editThumb.value = item.thumbnail || "";
+        if (editThumbEn) editThumbEn.value = item.thumbnail_en || "";
         if (editCode) editCode.value = item.loadstring || "";
 
         const editViews = document.getElementById("editViews");
@@ -863,6 +895,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const editThumbFile = document.getElementById("editThumbFile");
         if (editThumbFile) editThumbFile.value = "";
+        const editThumbEn = document.getElementById("editThumbEn");
+        if (editThumbEn) editThumbEn.value = "";
+        const editTitleEn = document.getElementById("editTitleEn");
+        if (editTitleEn) editTitleEn.value = "";
+        const editDescEn = document.getElementById("editDescEn");
+        if (editDescEn) editDescEn.value = "";
         const editRobloxPlaceInput = document.getElementById("editRobloxPlaceInput");
         if (editRobloxPlaceInput) editRobloxPlaceInput.value = "";
         const editRobloxFetchStatus = document.getElementById("editRobloxFetchStatus");
@@ -944,6 +982,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     gameInput: document.getElementById("editGame"),
                     categoryInput: document.getElementById("editCategory"),
                     titleInput: null,
+                    titleEnInput: document.getElementById("editTitleEn"),
                     thumbInput: document.getElementById("editThumb"),
                     descInput: null
                 }
@@ -971,6 +1010,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const title = document.getElementById("editTitle").value.trim();
+            const titleEn = document.getElementById("editTitleEn") ? document.getElementById("editTitleEn").value.trim() : "";
             const game = document.getElementById("editGame").value.trim();
             let category = document.getElementById("editCategory").value.trim().toLowerCase();
             if (!category) {
@@ -978,7 +1018,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             const version = document.getElementById("editVersion").value.trim() || "v1.0";
             const description = document.getElementById("editDesc").value.trim() || `สคริปต์ ${game} อัปเดตล่าสุด ฟังก์ชันครบ ใช้งานง่าย ปลอดภัย`;
+            const descriptionEn = document.getElementById("editDescEn") ? document.getElementById("editDescEn").value.trim() : "";
             const thumbnail = document.getElementById("editThumb").value.trim() || scripts[index].thumbnail || "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80";
+            const thumbnailEn = document.getElementById("editThumbEn") ? document.getElementById("editThumbEn").value.trim() : "";
             const loadstring = document.getElementById("editCode").value.trim();
             const isKeyless = document.getElementById("editKeyless") ? document.getElementById("editKeyless").checked : true;
             const isMobile = document.getElementById("editMobile") ? document.getElementById("editMobile").checked : true;
@@ -992,11 +1034,14 @@ document.addEventListener("DOMContentLoaded", () => {
             scripts[index] = {
                 ...scripts[index],
                 title,
+                title_en: titleEn,
                 game,
                 category,
                 version,
                 description,
+                description_en: descriptionEn,
                 thumbnail,
+                thumbnail_en: thumbnailEn,
                 loadstring,
                 isKeyless,
                 isMobile,
@@ -1115,17 +1160,156 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     // 6. ลิงก์ Sub2Unlock
     // =========================================================================
+    // =========================================================================
+    // 6. ลิงก์สร้างรายได้ & ป้องกัน Bypass (ShrinkEarn / LootLabs)
+    // =========================================================================
     const btnRandomizeTargetUrl = document.getElementById("btnRandomizeTargetUrl");
     let currentRandomParam = "";
+    let currentShrinkearnRandomParam = "";
 
     function updateGateHelperUrl() {
         const origin = window.location.origin || "https://blacklistscripty.vercel.app";
+        const token = (adminGateToken && adminGateToken.value.trim()) ? adminGateToken.value.trim() : "blacklist_vip";
+
+        // ลิงก์ปลายทางสำหรับ ShrinkEarn (มี Token + พารามิเตอร์กันซ้ำ)
+        if (shrinkearnTargetUrlHelper) {
+            shrinkearnTargetUrlHelper.value = `${origin}/?token=${encodeURIComponent(token)}${currentShrinkearnRandomParam}`;
+        }
+
+        // ลิงก์สำหรับ LootLabs
         if (lootlabsTargetUrlHelper) {
             lootlabsTargetUrlHelper.value = `${origin}/${currentRandomParam}`;
         }
         if (lootlabsPostbackUrlHelper) {
             lootlabsPostbackUrlHelper.value = `${origin}/api/lootlabs-postback?click_id={CLICK_ID}&ip={IP}&unique_id={UNIQUE_ID}`;
         }
+    }
+
+    // สุ่มรหัส Token ใหม่
+    if (btnRandomizeToken) {
+        btnRandomizeToken.addEventListener("click", () => {
+            const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+            let randStr = "";
+            for (let i = 0; i < 8; i++) {
+                randStr += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            const newToken = `bl_${randStr}`;
+            if (adminGateToken) adminGateToken.value = newToken;
+            updateGateHelperUrl();
+            showToast(`🎲 สุ่มรหัส Token ใหม่: "${newToken}" (อย่าลืมกดบันทึกด้านล่าง)`);
+        });
+    }
+
+    // สุ่มพารามิเตอร์ป้องกันลิงก์ซ้ำใน ShrinkEarn
+    if (btnRandomizeShrinkearnUrl) {
+        btnRandomizeShrinkearnUrl.addEventListener("click", () => {
+            const randomVal = Math.floor(Math.random() * 9000 + 1000);
+            currentShrinkearnRandomParam = `&v=${randomVal}`;
+            updateGateHelperUrl();
+            showToast(`สุ่ม URL ใหม่สำเร็จ: &v=${randomVal} (คัดลอกไปสร้างใน ShrinkEarn ได้เลย)`);
+        });
+    }
+
+    // คัดลอกลิงก์สำหรับ ShrinkEarn
+    if (btnCopyShrinkearnHelper) {
+        btnCopyShrinkearnHelper.addEventListener("click", () => {
+            if (!shrinkearnTargetUrlHelper) return;
+            shrinkearnTargetUrlHelper.select();
+            navigator.clipboard.writeText(shrinkearnTargetUrlHelper.value).then(() => {
+                showToast("📋 คัดลอกลิงก์ Target URL สำหรับ ShrinkEarn แล้ว!");
+            }).catch(() => {
+                document.execCommand("copy");
+                showToast("📋 คัดลอกลิงก์เรียบร้อยแล้ว!");
+            });
+        });
+    }
+
+    // สั่งย่อลิงก์อัตโนมัติด้วย ShrinkEarn API ทันที 1 คลิก
+    if (btnAutoShortenShrinkearn) {
+        btnAutoShortenShrinkearn.addEventListener("click", async () => {
+            const targetUrl = (shrinkearnTargetUrlHelper && shrinkearnTargetUrlHelper.value) || "";
+            const apiToken = (adminShrinkearnApiToken && adminShrinkearnApiToken.value.trim()) || "3ce8c70d0c1e31404164f66164ea8f9117b29b69";
+
+            if (!targetUrl) {
+                showToast("⚠️ ไม่พบ URL ปลายทาง กรุณาลองใหม่อีกครั้ง");
+                return;
+            }
+
+            const originalBtnHtml = btnAutoShortenShrinkearn.innerHTML;
+            btnAutoShortenShrinkearn.disabled = true;
+            btnAutoShortenShrinkearn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width: 14px; height: 14px;"></i> <span>กำลังเชื่อมต่อ ShrinkEarn API...</span>`;
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+            try {
+                const res = await fetch("/api/shrinkearn-shorten", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url: targetUrl, apiToken: apiToken })
+                });
+                const data = await res.json();
+                if (data && data.success && data.shortenedUrl) {
+                    if (adminGateUrl) adminGateUrl.value = data.shortenedUrl;
+                    if (SITE_CONFIG.lootlabsGate) {
+                        SITE_CONFIG.lootlabsGate.shrinkearnUrl = data.shortenedUrl;
+                        SITE_CONFIG.lootlabsGate.shrinkearnApiToken = apiToken;
+                    }
+                    showToast(`🎉 ย่อลิงก์สำเร็จ! ได้ลิงก์: ${data.shortenedUrl}`);
+
+                    // สั่งบันทึกฟอร์มลงระบบทันที
+                    adminLinksForm.dispatchEvent(new Event("submit"));
+                } else {
+                    showToast("⚠️ API ShrinkEarn ตอบกลับผิดพลาด: " + (data.rawError || "กรุณาตรวจสอบ Token"));
+                }
+            } catch (err) {
+                showToast("⚠️ เชื่อมต่อ API ไม่สำเร็จ: " + err.message);
+            } finally {
+                btnAutoShortenShrinkearn.disabled = false;
+                btnAutoShortenShrinkearn.innerHTML = originalBtnHtml;
+                if (window.lucide && lucide.createIcons) lucide.createIcons();
+            }
+        });
+    }
+
+    // เมื่อพิมพ์เปลี่ยน Token ให้อัปเดต Target URL ทันที
+    if (adminGateToken) {
+        adminGateToken.addEventListener("input", () => {
+            updateGateHelperUrl();
+        });
+    }
+
+    // สลับหน้าจอแนะนำเมื่อเลือก Provider ต่างกัน
+    function handleGateProviderChange() {
+        const provider = adminGateProvider ? adminGateProvider.value : "shrinkearn";
+        if (provider === "shrinkearn") {
+            if (shrinkearnGuideBox) shrinkearnGuideBox.style.display = "flex";
+            if (lootlabsGuideBox) lootlabsGuideBox.style.display = "none";
+            if (lblAdminGateUrl) lblAdminGateUrl.textContent = "ลิงก์สำหรับให้ผู้ใช้กด (Shortened Link จาก ShrinkEarn)";
+            if (descAdminGateUrl) descAdminGateUrl.textContent = "นำลิงก์ย่อที่ได้จาก ShrinkEarn มาใส่ในช่องนี้";
+            if (adminGateUrl) {
+                adminGateUrl.placeholder = "https://shrinkearn.com/xxxx";
+                adminGateUrl.value = (SITE_CONFIG.lootlabsGate && (SITE_CONFIG.lootlabsGate.shrinkearnUrl || (SITE_CONFIG.lootlabsGate.provider === "shrinkearn" ? SITE_CONFIG.lootlabsGate.lootlabsUrl : ""))) || "https://srnky.com/aehfqq0";
+            }
+        } else if (provider === "lootlabs") {
+            if (shrinkearnGuideBox) shrinkearnGuideBox.style.display = "none";
+            if (lootlabsGuideBox) lootlabsGuideBox.style.display = "flex";
+            if (lblAdminGateUrl) lblAdminGateUrl.textContent = "ลิงก์ LootLabs Anti-Bypass (สำหรับให้ผู้ใช้กด)";
+            if (descAdminGateUrl) descAdminGateUrl.textContent = "ลิงก์ที่สร้างจากช่อง Redirect Link ใน LootLabs";
+            if (adminGateUrl) {
+                adminGateUrl.placeholder = "https://loot-link.com/s?xxxx";
+                adminGateUrl.value = (SITE_CONFIG.lootlabsGate && SITE_CONFIG.lootlabsGate.lootlabsUrl) || "";
+            }
+        } else {
+            // custom
+            if (shrinkearnGuideBox) shrinkearnGuideBox.style.display = "flex";
+            if (lootlabsGuideBox) lootlabsGuideBox.style.display = "none";
+            if (lblAdminGateUrl) lblAdminGateUrl.textContent = "ลิงก์ย่อสำหรับให้ผู้ใช้กด (Custom Shortened Link)";
+            if (descAdminGateUrl) descAdminGateUrl.textContent = "นำลิงก์ย่อที่คุณสร้างมาใส่ในช่องนี้";
+        }
+        updateGateHelperUrl();
+    }
+
+    if (adminGateProvider) {
+        adminGateProvider.addEventListener("change", handleGateProviderChange);
     }
 
     if (btnRandomizeTargetUrl) {
@@ -1163,7 +1347,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // ปุ่มล้างการจำเครื่องเพื่อทดสอบระบบ LootLabs
+    // ปุ่มล้างการจำเครื่องเพื่อทดสอบระบบ
     const btnResetDeviceLock = document.getElementById("btnResetDeviceLock");
     if (btnResetDeviceLock) {
         btnResetDeviceLock.addEventListener("click", async () => {
@@ -1176,6 +1360,8 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.removeItem("blacklist_lootlabs_puid");
             localStorage.removeItem("blacklist_lootlabs_unlocked_event");
             sessionStorage.removeItem("blacklist_lootlabs_auth");
+            sessionStorage.removeItem("blacklist_gate_clicked");
+            sessionStorage.removeItem("blacklist_gate_click_time");
 
             // 2. เรียก API ลบ IP จากฐานข้อมูล Server
             try {
@@ -1197,9 +1383,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!SITE_CONFIG.lootlabsGate) {
             SITE_CONFIG.lootlabsGate = {
                 enabled: true,
+                provider: "shrinkearn",
                 token: "blacklist_vip",
+                shrinkearnUrl: "https://srnky.com/aehfqq0",
+                shrinkearnApiToken: "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
                 lootlabsUrl: "",
-                bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+                bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
             };
         }
 
@@ -1214,11 +1403,15 @@ document.addEventListener("DOMContentLoaded", () => {
         linkVideo.value = SITE_CONFIG.unlockTasks.latestVideoUrl || "";
         linkDiscord.value = SITE_CONFIG.socialLinks.discord || "";
 
-        // Populate LootLabs Gate settings
-        if (gateEnableCheckbox) gateEnableCheckbox.checked = Boolean(SITE_CONFIG.lootlabsGate.enabled);
-        if (adminGateToken) adminGateToken.value = SITE_CONFIG.lootlabsGate.token || "blacklist_vip";
-        if (adminGateUrl) adminGateUrl.value = SITE_CONFIG.lootlabsGate.lootlabsUrl || "";
-        if (adminGateExpiryHours) adminGateExpiryHours.value = SITE_CONFIG.lootlabsGate.expiryHours || 24;
+        // Populate Monetization Gate settings
+        const gate = SITE_CONFIG.lootlabsGate;
+        if (gateEnableCheckbox) gateEnableCheckbox.checked = Boolean(gate.enabled);
+        if (adminGateProvider) adminGateProvider.value = gate.provider || "shrinkearn";
+        if (adminGateToken) adminGateToken.value = gate.token || "blacklist_vip";
+        if (adminGateExpiryHours) adminGateExpiryHours.value = gate.expiryHours || 24;
+        if (adminShrinkearnApiToken) adminShrinkearnApiToken.value = gate.shrinkearnApiToken || "3ce8c70d0c1e31404164f66164ea8f9117b29b69";
+
+        handleGateProviderChange();
         updateGateHelperUrl();
     }
 
@@ -1231,13 +1424,22 @@ document.addEventListener("DOMContentLoaded", () => {
         SITE_CONFIG.socialLinks.discord = linkDiscord.value.trim();
 
         if (gateEnableCheckbox) {
+            const provider = adminGateProvider ? adminGateProvider.value : "shrinkearn";
+            const enteredUrl = adminGateUrl ? adminGateUrl.value.trim() : "";
+            const currentGate = SITE_CONFIG.lootlabsGate || {};
+
             SITE_CONFIG.lootlabsGate = {
-                ...SITE_CONFIG.lootlabsGate,
+                ...currentGate,
                 enabled: gateEnableCheckbox.checked,
+                provider: provider,
                 token: (adminGateToken ? adminGateToken.value.trim() : "blacklist_vip") || "blacklist_vip",
-                lootlabsUrl: adminGateUrl ? adminGateUrl.value.trim() : "",
+                shrinkearnUrl: provider === "shrinkearn" ? enteredUrl : (currentGate.shrinkearnUrl || enteredUrl),
+                shrinkearnApiToken: (adminShrinkearnApiToken ? adminShrinkearnApiToken.value.trim() : "3ce8c70d0c1e31404164f66164ea8f9117b29b69") || "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
+                lootlabsUrl: provider === "lootlabs" ? enteredUrl : (currentGate.lootlabsUrl || enteredUrl),
                 expiryHours: adminGateExpiryHours ? (Number(adminGateExpiryHours.value) || 24) : 24,
-                bypassMessage: (SITE_CONFIG.lootlabsGate && SITE_CONFIG.lootlabsGate.bypassMessage) || "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+                bypassMessage: provider === "shrinkearn"
+                    ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+                    : "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
             };
         }
 

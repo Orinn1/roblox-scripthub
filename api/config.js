@@ -62,6 +62,14 @@ module.exports = async (req, res) => {
                 const data = await fbRes.json();
                 if (data.fields && data.fields.configJson && data.fields.configJson.stringValue) {
                     const parsed = JSON.parse(data.fields.configJson.stringValue);
+                    if (parsed.lootlabsGate) {
+                        if (!parsed.lootlabsGate.provider) {
+                            parsed.lootlabsGate.provider = "shrinkearn";
+                        }
+                        if (parsed.lootlabsGate.provider === "shrinkearn" && parsed.lootlabsGate.bypassMessage && parsed.lootlabsGate.bypassMessage.includes("LootLabs")) {
+                            parsed.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์";
+                        }
+                    }
                     return res.status(200).json(parsed);
                 }
             }
@@ -78,10 +86,12 @@ module.exports = async (req, res) => {
         return res.status(200).json({
             lootlabsGate: {
                 enabled: true,
+                provider: "shrinkearn",
                 token: "blacklist_vip",
+                shrinkearnUrl: "",
                 lootlabsUrl: "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
                 expiryHours: 24,
-                bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+                bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
             }
         });
     }

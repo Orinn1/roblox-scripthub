@@ -122,6 +122,529 @@ document.addEventListener("DOMContentLoaded", () => {
     const sideYtBtn = document.getElementById("sideYtBtn");
     const sideDcBtn = document.getElementById("sideDcBtn");
 
+    // =========================================================================
+    // Multi-Language Localization (i18n) - Auto Detect Thai vs Foreigners
+    // =========================================================================
+    function getInitialLanguage() {
+        // 1. ถ้าผู้ใช้เคยกดเลือกภาษาเอง ให้จำค่านั้นไว้เสมอ
+        const manualChoice = localStorage.getItem("blacklist_lang_manual");
+        if (manualChoice === "true") {
+            const saved = localStorage.getItem("blacklist_lang");
+            if (saved === "th" || saved === "en") return saved;
+        }
+
+        // 2. ตรวจสอบเบื้องต้นแบบเรียลไทม์ทันที (Timezone ไทย หรือภาษาเครื่องภาษาไทย)
+        try {
+            const tz = (Intl.DateTimeFormat().resolvedOptions().timeZone || "").toLowerCase();
+            const navLang = (navigator.language || "").toLowerCase();
+            const navLangs = (navigator.languages || []).map(l => l.toLowerCase());
+            if (tz === "asia/bangkok" || navLang.startsWith("th") || navLangs.some(l => l.startsWith("th"))) {
+                return "th";
+            }
+        } catch (e) {}
+
+        return "en";
+    }
+
+    let currentLang = getInitialLanguage();
+    const langBtnEn = document.getElementById("langBtnEn");
+    const langBtnTh = document.getElementById("langBtnTh");
+
+    const I18N = {
+        en: {
+            pageTitle: "BlacklistScriptX - Roblox Scripts & Exploit Hub",
+            searchPlaceholder: "Search games, scripts, or executors...",
+            mainMenu: "Main Menu",
+            navHome: "Home",
+            navAll: "All Scripts",
+            navKeyless: "Keyless",
+            navMobile: "Mobile Supported",
+            navExploits: "Executor Status & sUNC",
+            gameCat: "Game Categories",
+            sideYt: "YouTube Channel",
+            sideDc: "Join Discord",
+            spotBadge: "#1 Trending Script",
+            spotDesc: "The most stable level farming script. Auto farm, quests, dual katanas, fully awakened fruits. Mobile & PC supported.",
+            spotGet: "Get This Script",
+            spotAll: "View All Scripts",
+            trendingHead: "Trending Scripts",
+            seeAllScripts: "View All ➔",
+            executorsHead: "Live Executor Status & sUNC (WEAO)",
+            seeAllExploits: "View All 30+ Executors ➔",
+            loadingExploits: "Loading executor status from WEAO API...",
+            viewTitleAll: "All Scripts",
+            viewDescAll: "Select a script to unlock its code",
+            viewTitleKeyless: "Keyless Scripts",
+            viewDescKeyless: "No keys required, execute immediately",
+            viewTitleMobile: "Mobile Supported Scripts",
+            viewDescMobile: "Supports Delta, Codex, Hydrogen on Android/iOS",
+            viewTitleGame: (g) => `Scripts for ${g}`,
+            viewDescGame: (g) => `All verified scripts and exploits for ${g}`,
+            chipAll: "All",
+            chipKeyless: "Keyless",
+            chipMobile: "Mobile",
+            noScriptsFound: "No scripts found matching your search. Try another category.",
+            noScriptsAdmin: "No scripts in system yet. Admins can add new scripts via Admin Panel.",
+            exploitsTitle: "Top Executor Status & sUNC Data",
+            exploitsDesc: "Live status of top executors (Delta, Codex, Solara, Wave, etc.) with sUNC scores and official downloads",
+            platAll: "All",
+            loadingAllExploits: "Loading data from WEAO API...",
+            noExploitsFound: "No prominent executors found for the selected device.",
+            weaoOffline: "Unable to connect to WEAO API at this time.",
+            // Script card items
+            tagKeyless: "Keyless",
+            tagHasKey: "Key Required",
+            tagMobilePc: "Mobile / PC",
+            tagStatusNormal: "Status: Working",
+            statViews: (n) => `${n} views`,
+            statLikes: (n) => `${n} likes`,
+            btnGetScript: "Get Script",
+            toastCopied: "Script copied to clipboard!",
+            toastLiked: "Thanks for liking this script!",
+            toastUnliked: "Unliked script",
+            // Executor card items
+            badgePopular: "Popular",
+            statusWorking: "Working",
+            statusUpdating: "Updating",
+            priceFree: "Free",
+            pricePaid: "Paid",
+            suncNoData: "No Data",
+            typePrice: "Type / Price",
+            safetyStatus: "Safety Status",
+            statusDetected: "Detected",
+            statusUndetected: "Undetected (Safe)",
+            lastUpdated: "Last Updated",
+            btnDownloadOfficial: "Official Website / Download",
+            btnViewSunc: "View sUNC Results",
+            btnNoSunc: "No sUNC Results",
+            // sUNC Modal
+            suncVer: "Version:",
+            suncTime: "Tested:",
+            suncPass: "Passed:",
+            suncFail: "Failed:",
+            suncSearchPlaceholder: "Search functions e.g. getrawmetatable, hookmetamethod...",
+            suncLoading: "Loading function benchmark results...",
+            suncModalTitle: (title) => `${title} - sUNC Benchmark Data`,
+            suncDownloading: "Downloading sUNC data from WEAO API...",
+            suncLoadError: "Unable to load sUNC data or API unresponsive.",
+            suncNotFound: (q) => `No functions matching "${q}"`,
+            suncReason: "Reason:",
+            suncFailBadge: "Failed",
+            suncPassBadge: "Passed",
+            // Locker Modal
+            lockerTitle: "Unlock Script Code",
+            lockerDesc: "Complete the 3 support tasks below to receive the free script code",
+            step1: "Task 1",
+            step2: "Task 2",
+            step3: "Task 3",
+            task1Name: "Subscribe to YouTube Channel",
+            task1Hint: "Open link and wait 5 seconds for verification",
+            task2Name: "Join Discord Community",
+            task2Hint: "Open link and wait 5 seconds for verification",
+            task3Name: "Like & Comment on Video",
+            task3Hint: "Open video and wait 3 seconds for verification",
+            pillStart: "Start",
+            pillPending: "Pending",
+            pillDone: "Completed",
+            lockedNotice: "Script is locked • Complete all tasks to unlock",
+            lockedRemaining: (n) => `Script locked • Complete ${n} more task(s) to unlock`,
+            lockedFinished: "Unlocked successfully!",
+            verifyingTask: (sec) => `Verifying task... (${sec} seconds)`,
+            taskWaitPrev1: "Please complete Task 1 first!",
+            taskWaitPrev2: "Please complete Task 2 first!",
+            taskDoneHint: "Task completed",
+            unlockedTitle: "Unlocked Successfully! 🎉",
+            unlockedDesc: "You can now copy the script code and run it in your game",
+            btnCopyCode: "Copy Script (Copy Code)",
+            unlockedToast: "Congratulations! Script unlocked successfully.",
+            copiedBtn: "Copied successfully!",
+            gateAccessRestrictedToast: "⚠️ Access restricted! Please complete LootLabs link first.",
+            // Popup
+            popupDismiss24h: "Don't show again for 24 hours",
+            popupClose: "Close Window",
+            // Gate
+            gateTitle: "Access Restricted",
+            gateDesc: "Please complete the support link to unlock access to the website and receive free scripts",
+            gateBtn: "Complete Link to Unlock",
+            gateDetect: "Waiting for completion... (Unlocks automatically when finished)",
+            gateCheck: "Check Status Now",
+            gateDivider: "OR VERIFY WITH ACCESS TOKEN",
+            gateTokenPlaceholder: "Enter Access Token",
+            gateTokenSubmit: "Unlock",
+            gateHint: "Once verified, this device will be remembered for 24 hours",
+            // Mobile Nav
+            mobHome: "Home",
+            mobScripts: "Scripts",
+            mobExploits: "Executors",
+            mobCats: "Categories"
+        },
+        th: {
+            pageTitle: "BlacklistScriptX แจกสคริป Roblox & สถานะตัวรัน",
+            searchPlaceholder: "ค้นหาชื่อเกม, สคริปต์, หรือตัวรัน...",
+            mainMenu: "เมนูหลัก",
+            navHome: "หน้าหลัก",
+            navAll: "สคริปต์ทั้งหมด",
+            navKeyless: "ไร้คีย์ (Keyless)",
+            navMobile: "รองรับมือถือ",
+            navExploits: "สถานะตัวรัน & sUNC",
+            gameCat: "หมวดหมู่เกม",
+            sideYt: "ช่อง YouTube",
+            sideDc: "เข้า Discord",
+            spotBadge: "สคริปต์ยอดนิยมอันดับ 1",
+            spotDesc: "สคริปต์ฟาร์มเลเวลที่เสถียรที่สุด ฟาร์มออโต้ เควสต์ ดาบคู่โซโร ผลตื่นครบทุกสาย ไม่หลุดง่าย รองรับทั้งมือถือและ PC",
+            spotGet: "รับสคริปต์นี้",
+            spotAll: "ดูสคริปต์ทั้งหมด",
+            trendingHead: "สคริปต์มาแรงล่าสุด",
+            seeAllScripts: "ดูทั้งหมด ➔",
+            executorsHead: "สถานะตัวรันยอดนิยม & sUNC (Live WEAO)",
+            seeAllExploits: "ดูตัวรันทั้งหมด 30+ ตัว ➔",
+            loadingExploits: "กำลังโหลดข้อมูลสถานะตัวรันจาก WEAO API...",
+            viewTitleAll: "สคริปต์ทั้งหมด",
+            viewDescAll: "เลือกสคริปต์ที่ต้องการเพื่อปลดล็อคโค้ด",
+            viewTitleKeyless: "สคริปต์ไร้คีย์ (Keyless)",
+            viewDescKeyless: "ไม่ต้องใส่คีย์ เปิดแล้วรันได้ทันที",
+            viewTitleMobile: "สคริปต์รองรับมือถือ",
+            viewDescMobile: "รองรับ Delta, Codex, Hydrogen บน Android/iOS",
+            viewTitleGame: (g) => `สคริปต์เกม ${g}`,
+            viewDescGame: (g) => `รวมสคริปต์ฟาร์มออโต้สำหรับ ${g}`,
+            chipAll: "ทั้งหมด",
+            chipKeyless: "ไร้คีย์",
+            chipMobile: "มือถือ",
+            noScriptsFound: "ไม่พบสคริปต์ที่ค้นหา ลองเลือกหมวดหมู่อื่นดูนะครับ",
+            noScriptsAdmin: "ยังไม่มีสคริปต์ในระบบ แอดมินสามารถเพิ่มสคริปต์ใหม่ได้ที่หน้าหลังบ้าน (Admin Panel)",
+            exploitsTitle: "ตรวจสอบสถานะตัวรันยอดนิยม & sUNC Data",
+            exploitsDesc: "สถานะสดตัวรันระดับท็อป (Delta, Codex, Solara, Wave ฯลฯ) พร้อมคะแนน sUNC และลิงก์ดาวน์โหลดทางการ",
+            platAll: "ทั้งหมด",
+            loadingAllExploits: "กำลังดึงข้อมูลจาก WEAO API...",
+            noExploitsFound: "ไม่พบตัวรันยอดนิยมสำหรับอุปกรณ์ที่เลือกในขณะนี้",
+            weaoOffline: "ไม่สามารถเชื่อมต่อ WEAO API ได้ในขณะนี้",
+            // Script card items
+            tagKeyless: "ไร้คีย์",
+            tagHasKey: "มีคีย์",
+            tagMobilePc: "รองรับมือถือ / PC",
+            tagStatusNormal: "สถานะ: ปกติ",
+            statViews: (n) => `${n} ครั้ง`,
+            statLikes: (n) => `${n} ถูกใจ`,
+            btnGetScript: "รับสคริปต์",
+            toastCopied: "คัดลอกสคริปต์แล้ว!",
+            toastLiked: "ขอบคุณที่กดถูกใจสคริปต์นี้!",
+            toastUnliked: "ยกเลิกการถูกใจแล้ว",
+            // Executor card items
+            badgePopular: "ยอดนิยม",
+            statusWorking: "พร้อมใช้งาน",
+            statusUpdating: "รออัปเดต",
+            priceFree: "ฟรี",
+            pricePaid: "มีค่าบริการ",
+            suncNoData: "ไม่มีข้อมูล",
+            typePrice: "ประเภท / ราคา",
+            safetyStatus: "สถานะความปลอดภัย",
+            statusDetected: "ตรวจพบ (Detected)",
+            statusUndetected: "ปลอดภัย (Undetected)",
+            lastUpdated: "อัปเดตล่าสุด",
+            btnDownloadOfficial: "เว็บไซต์หลัก / ดาวน์โหลด",
+            btnViewSunc: "ดูผลทดสอบ sUNC",
+            btnNoSunc: "ไม่มีผลทดสอบ sUNC",
+            // sUNC Modal
+            suncVer: "เวอร์ชั่น:",
+            suncTime: "เวลาทดสอบ:",
+            suncPass: "ผ่าน:",
+            suncFail: "ไม่ผ่าน:",
+            suncSearchPlaceholder: "ค้นหาฟังก์ชัน เช่น getrawmetatable, hookmetamethod...",
+            suncLoading: "กำลังโหลดผลการทดสอบฟังก์ชัน...",
+            suncModalTitle: (title) => `${title} - ข้อมูลผลทดสอบ sUNC`,
+            suncDownloading: "กำลังดาวน์โหลดข้อมูล sUNC จาก WEAO API...",
+            suncLoadError: "ไม่สามารถโหลดข้อมูล sUNC ได้ หรือ API ไม่ตอบสนอง",
+            suncNotFound: (q) => `ไม่พบฟังก์ชันที่ตรงกับ "${q}"`,
+            suncReason: "เหตุผล:",
+            suncFailBadge: "ไม่ผ่าน",
+            suncPassBadge: "ผ่าน",
+            // Locker Modal
+            lockerTitle: "ปลดล็อคโค้ดสคริปต์",
+            lockerDesc: "ทำภารกิจสนับสนุน 3 ขั้นตอนด้านล่างเพื่อรับโค้ดสคริปต์ฟรี",
+            step1: "ภารกิจ 1",
+            step2: "ภารกิจ 2",
+            step3: "ภารกิจ 3",
+            task1Name: "กดติดตาม YouTube / Subscribe",
+            task1Hint: "เปิดลิงก์และรอระบบยืนยัน 5 วินาที",
+            task2Name: "เข้าร่วม Discord / Join Discord",
+            task2Hint: "เปิดลิงก์และรอระบบยืนยัน 5 วินาที",
+            task3Name: "กดไลค์ & คอมเมนต์ / Like & Comment",
+            task3Hint: "เปิดคลิปและรอระบบยืนยัน 3 วินาที",
+            pillStart: "เริ่มทำ",
+            pillPending: "รอดำเนินการ",
+            pillDone: "สำเร็จ",
+            lockedNotice: "สคริปต์ถูกล็อคอยู่ • ทำภารกิจให้ครบเพื่อเปิดใช้งาน",
+            lockedRemaining: (n) => `สคริปต์ถูกล็อคอยู่ • เหลืออีก ${n} ภารกิจเพื่อปลดล็อค`,
+            lockedFinished: "ปลดล็อคเรียบร้อยแล้ว!",
+            verifyingTask: (sec) => `กำลังตรวจสอบภารกิจ... (${sec} วินาที)`,
+            taskWaitPrev1: "กรุณาทำภารกิจที่ 1 ให้เสร็จก่อนครับ",
+            taskWaitPrev2: "กรุณาทำภารกิจที่ 2 ให้เสร็จก่อนครับ",
+            taskDoneHint: "ภารกิจเสร็จสิ้นแล้ว",
+            unlockedTitle: "ปลดล็อคสำเร็จแล้ว! 🎉",
+            unlockedDesc: "สามารถคัดลอกโค้ดสคริปต์ไปรันในเกมได้ทันที",
+            btnCopyCode: "คัดลอกสคริปต์ (Copy Code)",
+            unlockedToast: "ยินดีด้วย! คุณปลดล็อคสคริปต์สำเร็จแล้ว",
+            copiedBtn: "คัดลอกสำเร็จแล้ว!",
+            gateAccessRestrictedToast: "⚠️ สิทธิ์เข้าใช้งานถูกจำกัด! กรุณาผ่าน LootLabs ก่อนรับสคริปต์",
+            // Popup
+            popupDismiss24h: "ไม่ต้องแสดงอีก 24 ชั่วโมง",
+            popupClose: "ปิดหน้าต่าง",
+            // Gate
+            gateTitle: "สิทธิ์เข้าใช้งานถูกจำกัด",
+            gateDesc: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน เพื่อปลดล็อคการเข้าชมเว็บไซต์และรับสคริปต์ฟรี",
+            gateBtn: "กดผ่านลิงก์เพื่อปลดล็อคเข้าเว็บ",
+            gateDetect: "กำลังรอคุณทำภารกิจ... (ระบบจะปลดล็อคให้อัตโนมัติทันทีที่เสร็จ)",
+            gateCheck: "ตรวจสอบสถานะทันที",
+            gateDivider: "หรือยืนยันด้วย ACCESS TOKEN",
+            gateTokenPlaceholder: "กรอก Access Token",
+            gateTokenSubmit: "ปลดล็อค",
+            gateHint: "เมื่อยืนยันสำเร็จ ระบบจะจดจำเครื่องนี้ไว้ให้เข้าได้ตลอด 24 ชั่วโมง",
+            // Mobile Nav
+            mobHome: "หน้าแรก",
+            mobScripts: "สคริปต์",
+            mobExploits: "ตัวรัน & sUNC",
+            mobCats: "หมวดหมู่"
+        }
+    };
+
+    function applyTranslations() {
+        const t = I18N[currentLang] || I18N.en;
+
+        if (SITE_CONFIG.siteName) {
+            document.title = `${SITE_CONFIG.siteName} - ${currentLang === 'th' ? 'Roblox Script Hub & สถานะตัวรัน' : 'Roblox Script Hub & Exploit Status'}`;
+        }
+
+        const lblMainMenu = document.getElementById("lblMainMenu");
+        if (lblMainMenu) lblMainMenu.textContent = t.mainMenu;
+        const lblNavHome = document.getElementById("lblNavHome");
+        if (lblNavHome) lblNavHome.textContent = t.navHome;
+        const lblNavAll = document.getElementById("lblNavAll");
+        if (lblNavAll) lblNavAll.textContent = t.navAll;
+        const lblNavKeyless = document.getElementById("lblNavKeyless");
+        if (lblNavKeyless) lblNavKeyless.textContent = t.navKeyless;
+        const lblNavMobile = document.getElementById("lblNavMobile");
+        if (lblNavMobile) lblNavMobile.textContent = t.navMobile;
+        const lblNavExploits = document.getElementById("lblNavExploits");
+        if (lblNavExploits) lblNavExploits.textContent = t.navExploits;
+        const lblGameCat = document.getElementById("lblGameCat");
+        if (lblGameCat) lblGameCat.textContent = t.gameCat;
+        const lblSideYt = document.getElementById("lblSideYt");
+        if (lblSideYt) lblSideYt.textContent = t.sideYt;
+        const lblSideDc = document.getElementById("lblSideDc");
+        if (lblSideDc) lblSideDc.textContent = t.sideDc;
+
+        if (globalSearch) globalSearch.placeholder = t.searchPlaceholder;
+
+        const lblSpotBadge = document.getElementById("lblSpotBadge");
+        if (lblSpotBadge) lblSpotBadge.textContent = t.spotBadge;
+        const lblSpotDesc = document.getElementById("lblSpotDesc");
+        if (lblSpotDesc) lblSpotDesc.textContent = t.spotDesc;
+        const lblSpotGet = document.getElementById("lblSpotGet");
+        if (lblSpotGet) lblSpotGet.textContent = t.spotGet;
+        const lblSpotAll = document.getElementById("lblSpotAll");
+        if (lblSpotAll) lblSpotAll.textContent = t.spotAll;
+
+        const lblTrendingHead = document.getElementById("lblTrendingHead");
+        if (lblTrendingHead) lblTrendingHead.textContent = t.trendingHead;
+        const lblSeeAllScripts = document.getElementById("lblSeeAllScripts");
+        if (lblSeeAllScripts) lblSeeAllScripts.textContent = t.seeAllScripts;
+        const lblExecutorsHead = document.getElementById("lblExecutorsHead");
+        if (lblExecutorsHead) lblExecutorsHead.textContent = t.executorsHead;
+        const lblSeeAllExploits = document.getElementById("lblSeeAllExploits");
+        if (lblSeeAllExploits) lblSeeAllExploits.textContent = t.seeAllExploits;
+        const lblLoadingExploits = document.getElementById("lblLoadingExploits");
+        if (lblLoadingExploits) lblLoadingExploits.innerHTML = `<i data-lucide="loader-2" class="spin"></i> ${t.loadingExploits}`;
+
+        if (!activeGame) {
+            if (currentViewTitle) {
+                if (activeFilter === "keyless") currentViewTitle.textContent = t.viewTitleKeyless;
+                else if (activeFilter === "mobile") currentViewTitle.textContent = t.viewTitleMobile;
+                else currentViewTitle.textContent = t.viewTitleAll;
+            }
+            if (currentViewDesc) {
+                if (activeFilter === "keyless") currentViewDesc.textContent = t.viewDescKeyless;
+                else if (activeFilter === "mobile") currentViewDesc.textContent = t.viewDescMobile;
+                else currentViewDesc.textContent = t.viewDescAll;
+            }
+        } else {
+            if (currentViewTitle) currentViewTitle.textContent = t.viewTitleGame(activeGame);
+            if (currentViewDesc) currentViewDesc.textContent = t.viewDescGame(activeGame);
+        }
+
+        const lblChipAll = document.getElementById("lblChipAll");
+        if (lblChipAll) lblChipAll.textContent = t.chipAll;
+        const lblChipKeyless = document.getElementById("lblChipKeyless");
+        if (lblChipKeyless) lblChipKeyless.textContent = t.chipKeyless;
+        const lblChipMobile = document.getElementById("lblChipMobile");
+        if (lblChipMobile) lblChipMobile.textContent = t.chipMobile;
+
+        const lblExploitsViewTitle = document.getElementById("lblExploitsViewTitle");
+        if (lblExploitsViewTitle) lblExploitsViewTitle.textContent = t.exploitsTitle;
+        const lblExploitsViewDesc = document.getElementById("lblExploitsViewDesc");
+        if (lblExploitsViewDesc) lblExploitsViewDesc.textContent = t.exploitsDesc;
+        const lblPlatAll = document.getElementById("lblPlatAll");
+        if (lblPlatAll) lblPlatAll.textContent = t.platAll;
+
+        const lblLockerTitle = document.getElementById("lblLockerTitle");
+        if (lblLockerTitle) lblLockerTitle.textContent = t.lockerTitle;
+        const lblLockerDesc = document.getElementById("lblLockerDesc");
+        if (lblLockerDesc) lblLockerDesc.textContent = t.lockerDesc;
+        const lblStep1 = document.getElementById("lblStep1");
+        if (lblStep1) lblStep1.textContent = t.step1;
+        const lblStep2 = document.getElementById("lblStep2");
+        if (lblStep2) lblStep2.textContent = t.step2;
+        const lblStep3 = document.getElementById("lblStep3");
+        if (lblStep3) lblStep3.textContent = t.step3;
+        const task1Text = document.getElementById("task1Text");
+        if (task1Text) task1Text.textContent = t.task1Name;
+        const task1Hint = document.getElementById("task1Hint");
+        if (task1Hint) task1Hint.textContent = t.task1Hint;
+        const task2Text = document.getElementById("task2Text");
+        if (task2Text) task2Text.textContent = t.task2Name;
+        const task2Hint = document.getElementById("task2Hint");
+        if (task2Hint) task2Hint.textContent = t.task2Hint;
+        const task3Text = document.getElementById("task3Text");
+        if (task3Text) task3Text.textContent = t.task3Name;
+        const task3Hint = document.getElementById("task3Hint");
+        if (task3Hint) task3Hint.textContent = t.task3Hint;
+
+        const lockedStatusText = document.getElementById("lockedStatusText");
+        if (lockedStatusText && !tasks.t1 && !tasks.t2 && !tasks.t3) lockedStatusText.textContent = t.lockedNotice;
+
+        const lblUnlockedTitle = document.getElementById("lblUnlockedTitle");
+        if (lblUnlockedTitle) lblUnlockedTitle.textContent = t.unlockedTitle;
+        const lblUnlockedDesc = document.getElementById("lblUnlockedDesc");
+        if (lblUnlockedDesc) lblUnlockedDesc.textContent = t.unlockedDesc;
+        const lblBtnCopy = document.getElementById("lblBtnCopy");
+        if (lblBtnCopy) lblBtnCopy.textContent = t.btnCopyCode;
+
+        const lblPopup24h = document.getElementById("lblPopup24h");
+        if (lblPopup24h) lblPopup24h.textContent = t.popupDismiss24h;
+        const lblPopupClose = document.getElementById("lblPopupClose");
+        if (lblPopupClose) lblPopupClose.textContent = t.popupClose;
+
+        const lblGateTitle = document.getElementById("lblGateTitle");
+        if (lblGateTitle) lblGateTitle.textContent = t.gateTitle;
+        const lblGateBtn = document.getElementById("lblGateBtn");
+        if (lblGateBtn) lblGateBtn.textContent = t.gateBtn;
+        const gateAutoDetectText = document.getElementById("gateAutoDetectText");
+        if (gateAutoDetectText) gateAutoDetectText.textContent = t.gateDetect;
+        const lblGateCheck = document.getElementById("lblGateCheck");
+        if (lblGateCheck) lblGateCheck.textContent = t.gateCheck;
+        const lblGateDivider = document.getElementById("lblGateDivider");
+        if (lblGateDivider) lblGateDivider.textContent = t.gateDivider;
+        const gateTokenInput = document.getElementById("gateTokenInput");
+        if (gateTokenInput) gateTokenInput.placeholder = t.gateTokenPlaceholder;
+        const lblGateTokenSubmit = document.getElementById("lblGateTokenSubmit");
+        if (lblGateTokenSubmit) lblGateTokenSubmit.textContent = t.gateTokenSubmit;
+        const lblGateHint = document.getElementById("lblGateHint");
+        if (lblGateHint) lblGateHint.textContent = t.gateHint;
+        if (gateErrorMsg) gateErrorMsg.textContent = currentLang === 'th' ? "Token ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง" : "Invalid Token. Please try again.";
+
+        const lblMobileNavHome = document.getElementById("lblMobileNavHome");
+        if (lblMobileNavHome) lblMobileNavHome.textContent = t.mobHome;
+        const lblMobileNavScripts = document.getElementById("lblMobileNavScripts");
+        if (lblMobileNavScripts) lblMobileNavScripts.textContent = t.mobScripts;
+        const lblMobileNavExploits = document.getElementById("lblMobileNavExploits");
+        if (lblMobileNavExploits) lblMobileNavExploits.textContent = t.mobExploits;
+        const lblMobileNavCats = document.getElementById("lblMobileNavCats");
+        if (lblMobileNavCats) lblMobileNavCats.textContent = t.mobCats;
+
+        const lblSuncVer = document.getElementById("lblSuncVer");
+        if (lblSuncVer) {
+            const vStrong = document.getElementById("suncVersion")?.textContent || "-";
+            lblSuncVer.innerHTML = `${t.suncVer} <strong id="suncVersion">${vStrong}</strong>`;
+        }
+        const lblSuncTime = document.getElementById("lblSuncTime");
+        if (lblSuncTime) {
+            const tStrong = document.getElementById("suncTime")?.textContent || "-";
+            lblSuncTime.innerHTML = `${t.suncTime} <strong id="suncTime">${tStrong}</strong>`;
+        }
+        const lblSuncPass = document.getElementById("lblSuncPass");
+        if (lblSuncPass) {
+            const pStrong = document.getElementById("suncPassedCount")?.textContent || "0";
+            lblSuncPass.innerHTML = `${t.suncPass} <strong id="suncPassedCount">${pStrong}</strong>`;
+        }
+        const lblSuncFail = document.getElementById("lblSuncFail");
+        if (lblSuncFail) {
+            const fStrong = document.getElementById("suncFailedCount")?.textContent || "0";
+            lblSuncFail.innerHTML = `${t.suncFail} <strong id="suncFailedCount">${fStrong}</strong>`;
+        }
+        if (searchSuncFunc) searchSuncFunc.placeholder = t.suncSearchPlaceholder;
+    }
+
+    function setLanguage(lang, isManual = false) {
+        currentLang = lang === "th" ? "th" : "en";
+        localStorage.setItem("blacklist_lang", currentLang);
+        if (isManual) {
+            localStorage.setItem("blacklist_lang_manual", "true");
+        }
+        document.documentElement.lang = currentLang;
+
+        if (langBtnEn && langBtnTh) {
+            if (currentLang === "en") {
+                langBtnEn.classList.add("active");
+                langBtnTh.classList.remove("active");
+            } else {
+                langBtnTh.classList.add("active");
+                langBtnEn.classList.remove("active");
+            }
+        }
+
+        applyTranslations();
+        renderHomeRecent();
+        if (currentView === "feed") renderFeed();
+        renderHomeExecutors();
+        if (currentView === "exploits") renderExploits();
+        refreshIcons();
+    }
+
+    if (langBtnEn) {
+        langBtnEn.addEventListener("click", () => setLanguage("en", true));
+    }
+    if (langBtnTh) {
+        langBtnTh.addEventListener("click", () => setLanguage("th", true));
+    }
+
+    // ระบบตรวจจับประเทศผ่าน IP (Auto Geo-Language Detection)
+    // ถ้าผู้ใช้มาจากประเทศไทย (TH) ให้ตั้งภาษาไทยอัตโนมัติ / ต่างชาติให้เป็นภาษาอังกฤษ (EN)
+    async function autoDetectGeoLanguage() {
+        // หากผู้ใช้เคยกดเลือกภาษาเอง จะไม่บังคับเปลี่ยน
+        if (localStorage.getItem("blacklist_lang_manual") === "true") return;
+
+        try {
+            let country = "";
+
+            // 1. ดึงข้อมูลผ่าน Endpoint ของเราเอง (/api/geo จาก Vercel / Cloudflare Header)
+            const res = await fetch("/api/geo").catch(() => null);
+            if (res && res.ok) {
+                const data = await res.json().catch(() => null);
+                if (data && data.country) country = data.country;
+            }
+
+            // 2. หากยังไม่ได้ประเทศ ให้ดึงจากบริการ GeoIP ฟรี (api.country.is)
+            if (!country) {
+                const pubRes = await fetch("https://api.country.is").catch(() => null);
+                if (pubRes && pubRes.ok) {
+                    const pubData = await pubRes.json().catch(() => null);
+                    if (pubData && pubData.country) country = pubData.country;
+                }
+            }
+
+            if (country) {
+                const isThai = country.toUpperCase() === "TH";
+                const targetLang = isThai ? "th" : "en";
+                if (targetLang !== currentLang) {
+                    setLanguage(targetLang, false);
+                }
+            }
+        } catch (e) {
+            console.debug("Geo-language auto-detect notice:", e);
+        }
+    }
+
+    autoDetectGeoLanguage();
+
     // Helper: Refresh Lucide Icons
     function refreshIcons() {
         if (window.lucide && window.lucide.icons && !window.lucide.icons.Youtube) {
@@ -491,11 +1014,66 @@ document.addEventListener("DOMContentLoaded", () => {
         const incomingToken = (urlParams.get("auth") || urlParams.get("token") || urlParams.get("key") || "").trim().toLowerCase();
 
         if (incomingToken && incomingToken === requiredToken) {
+            const provider = gate.provider || "shrinkearn";
+
+            // Anti-Bypass Check 1: Known Bypass Referrers
+            if (document.referrer) {
+                try {
+                    const refUrl = new URL(document.referrer);
+                    const refHost = refUrl.hostname.toLowerCase();
+                    const knownBypassHosts = ["bypass.vip", "thebypasser.com", "linkvertisebypasser.com", "adlinkfly.com", "freebypass.com", "bypass-city.com"];
+                    if (knownBypassHosts.some(d => refHost === d || refHost.endsWith("." + d))) {
+                        reportBypassAttempt("พยายามเปิดเว็บไซต์ผ่านบริการ Bypass อัตโนมัติ", `Referrer: ${refHost}`);
+                        showToast("⚠️ ตรวจพบการเปิดผ่านเครื่องมือ Bypass กรุณาผ่านลิงก์อย่างถูกต้อง");
+                        try {
+                            const cleanUrl = window.location.origin + window.location.pathname;
+                            window.history.replaceState({}, document.title, cleanUrl);
+                        } catch (e) {}
+                        return;
+                    }
+                } catch (e) {}
+            }
+
+            // Anti-Bypass Check 2: Handshake Check (ห้ามก๊อปลิงก์ Token ไปแจกใน Discord หรือเปิดตรง)
+            const clickedHandshake = sessionStorage.getItem("blacklist_gate_clicked") === "true";
+            const isManualInput = sessionStorage.getItem("blacklist_manual_token_verify") === "true";
+
+            // ถ้าเป็น ShrinkEarn หรือ Custom และไม่ใช่การกรอกด้วยมือ: ต้องมีประวัติการกดปุ่มจากเว็บเรามาก่อนเท่านั้น!
+            if (!clickedHandshake && !isManualInput && provider !== "lootlabs") {
+                showToast("⚠️ ไม่อนุญาตให้เปิดลิงก์ปลดล็อคข้ามโดยตรง กรุณากดปุ่มผ่าน ShrinkEarn จากหน้าเว็บ");
+                reportBypassAttempt("พยายามเปิดลิงก์ Token โดยไม่เคยกดปุ่มจากเว็บ (Direct/Shared Link)", `Token: ${incomingToken}`);
+                try {
+                    const cleanUrl = window.location.origin + window.location.pathname;
+                    window.history.replaceState({}, document.title, cleanUrl);
+                } catch (e) {}
+                return;
+            }
+
+            // Anti-Bypass Check 3: Speed Check (มนุษย์จริงต้องใช้เวลาอย่างน้อย 10 วินาทีใน ShrinkEarn)
+            const clickTime = Number(sessionStorage.getItem("blacklist_gate_click_time") || 0);
+            if (clickTime > 0 && !isManualInput && provider !== "lootlabs") {
+                const elapsedSec = (Date.now() - clickTime) / 1000;
+                if (elapsedSec < 10) {
+                    showToast(`⚠️ ตรวจพบความเร็วผิดปกติ (${elapsedSec.toFixed(1)}s - เร็วเกินมนุษย์) กรุณารอสักครู่แล้วลองใหม่`);
+                    reportBypassAttempt("พยายามใช้บอท Bypass ลิงก์ (Speed Check)", `ใช้เวลาเพียง ${elapsedSec.toFixed(1)} วินาที`);
+                    try {
+                        const cleanUrl = window.location.origin + window.location.pathname;
+                        window.history.replaceState({}, document.title, cleanUrl);
+                    } catch (e) {}
+                    return;
+                }
+            }
+
+            // ผ่านการตรวจสอบความปลอดภัยทั้งหมด!
+            sessionStorage.removeItem("blacklist_gate_clicked");
+            sessionStorage.removeItem("blacklist_gate_click_time");
+            sessionStorage.removeItem("blacklist_manual_token_verify");
             grantDeviceAccess();
             try {
                 const cleanUrl = window.location.origin + window.location.pathname;
                 window.history.replaceState({}, document.title, cleanUrl);
             } catch (e) {}
+            showToast("🎉 ยืนยันสิทธิ์สำเร็จ! ปลดล็อคการเข้าใช้งาน 24 ชั่วโมง");
             return;
         }
 
@@ -528,7 +1106,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // 4. Otherwise show gate overlay and setup LootLabs dynamic link
+        // 4. Otherwise show gate overlay and setup dynamic link
         if (lootlabsGateOverlay) {
             isInternalGateChange = true;
             lootlabsGateOverlay.style.display = "flex";
@@ -541,37 +1119,87 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }, 600);
 
+            const provider = gate.provider || "shrinkearn";
             const puid = getOrCreateLootlabsPuid();
 
             if (gateLootlabsBtn) {
-                let baseLink = (gate.lootlabsUrl || "https://loot-link.com/s?example").trim();
-                // ลบ puid เดิมออกถ้ามี แล้วแปะ puid ของเครื่องนี้เข้าไปใหม่
-                baseLink = baseLink.replace(/[?&]puid=[^&]+/, '');
-                const separator = baseLink.includes("?") ? "&" : "?";
-                gateLootlabsBtn.href = `${baseLink}${separator}puid=${encodeURIComponent(puid)}`;
+                if (provider === "shrinkearn") {
+                    const shrinkLink = (gate.shrinkearnUrl || gate.lootlabsUrl || "").trim();
+                    gateLootlabsBtn.href = shrinkLink || "#";
+                    if (lblGateBtn) {
+                        lblGateBtn.textContent = currentLang === "th" ? "🔓 เข้าใช้งานผ่าน ShrinkEarn (รอ 10-15 วินาที)" : "Unlock via ShrinkEarn (10-15s)";
+                    }
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
+                    if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
+                } else if (provider === "lootlabs") {
+                    let baseLink = (gate.lootlabsUrl || "https://loot-link.com/s?example").trim();
+                    baseLink = baseLink.replace(/[?&]puid=[^&]+/, '');
+                    const separator = baseLink.includes("?") ? "&" : "?";
+                    gateLootlabsBtn.href = `${baseLink}${separator}puid=${encodeURIComponent(puid)}`;
+                    if (lblGateBtn) {
+                        lblGateBtn.textContent = currentLang === "th" ? "เข้าใช้งานผ่าน LootLabs เพื่อปลดล็อค" : "Complete LootLabs to Unlock";
+                    }
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "inline-flex";
+                    // เริ่มระบบตรวจจับอัตโนมัติเบื้องหลัง
+                    startGatePolling(false);
+                    verifyLootlabsSession(true);
+                } else {
+                    const customLink = (gate.shrinkearnUrl || gate.lootlabsUrl || "").trim();
+                    gateLootlabsBtn.href = customLink || "#";
+                    if (lblGateBtn) {
+                        lblGateBtn.textContent = currentLang === "th" ? "กดลิงก์สนับสนุนเพื่อปลดล็อค" : "Complete Link to Unlock";
+                    }
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
+                }
             }
 
-            if (gateMessageText && gate.bypassMessage) {
-                gateMessageText.textContent = gate.bypassMessage;
+            if (gateMessageText) {
+                if (provider === "shrinkearn") {
+                    gateMessageText.textContent = (gate.bypassMessage && !gate.bypassMessage.includes("LootLabs"))
+                        ? gate.bypassMessage
+                        : (currentLang === "th"
+                            ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+                            : "Please complete the ShrinkEarn support link to unlock access to the website");
+                } else if (provider === "lootlabs") {
+                    gateMessageText.textContent = (gate.bypassMessage && !gate.bypassMessage.includes("ShrinkEarn"))
+                        ? gate.bypassMessage
+                        : (currentLang === "th"
+                            ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+                            : "Please complete the LootLabs support link to unlock access to the website");
+                } else {
+                    gateMessageText.textContent = gate.bypassMessage || "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์";
+                }
+            }
+
+            const lblGateTitleEl = document.getElementById("lblGateTitle");
+            if (lblGateTitleEl) {
+                lblGateTitleEl.textContent = currentLang === "th" ? "ปลดล็อคเพื่อเข้าสู่เว็บไซต์" : "Access Restricted";
             }
             refreshIcons();
-
-            // เริ่มระบบตรวจจับอัตโนมัติเบื้องหลังทันที
-            startGatePolling(false);
-            verifyLootlabsSession(true);
         }
     }
 
-    // เมื่อคลิกปุ่มเปิด LootLabs ให้เปิดกล่องสถานะและเริ่มตรวจจับแบบถี่สูงทันที
+    // เมื่อคลิกปุ่มเปิดลิงก์สร้างรายได้ บันทึก Handshake + Timestamp ป้องกัน Bypass
     if (gateLootlabsBtn) {
         gateLootlabsBtn.addEventListener("click", () => {
-            if (gateAutoDetectBox) {
-                gateAutoDetectBox.style.display = "flex";
-                if (gateAutoDetectText) {
-                    gateAutoDetectText.textContent = "กำลังรอคุณทำ LootLabs... (ระบบจะปลดล็อคให้อัตโนมัติทันทีที่เสร็จ)";
+            const gate = SITE_CONFIG.lootlabsGate || {};
+            const provider = gate.provider || "shrinkearn";
+
+            // 1. บันทึก Session Handshake และเวลาที่คลิก สำหรับป้องกัน Bypass และป้องกันแชร์ลิงก์ตรง
+            sessionStorage.setItem("blacklist_gate_clicked", "true");
+            sessionStorage.setItem("blacklist_gate_click_time", String(Date.now()));
+            sessionStorage.setItem("blacklist_gate_provider", provider);
+
+            if (provider === "lootlabs") {
+                if (gateAutoDetectBox) {
+                    gateAutoDetectBox.style.display = "flex";
+                    if (gateAutoDetectText) {
+                        const t = I18N[currentLang] || I18N.en;
+                        gateAutoDetectText.textContent = t.gateDetect || "Waiting for completion... (Unlocks automatically when finished)";
+                    }
                 }
+                startGatePolling(true);
             }
-            startGatePolling(true);
         });
     }
 
@@ -596,7 +1224,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // 2. หากไม่ตรง ให้ลองดึงคีย์ล่าสุดจาก Firebase / Server มาตรวจสอบทันที (ป้องกันกรณีแอดมินเพิ่งแก้ หรือเครื่องยังไม่ได้ซิงก์)
             const originalBtnHtml = gateTokenSubmitBtn.innerHTML;
             gateTokenSubmitBtn.disabled = true;
-            gateTokenSubmitBtn.innerHTML = `<span>กำลังตรวจสอบ...</span>`;
+            gateTokenSubmitBtn.innerHTML = `<span>${currentLang === 'th' ? "กำลังตรวจสอบ..." : "Verifying..."}</span>`;
 
             try {
                 let latestConfig = null;
@@ -1008,41 +1636,166 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================================================
+    // Auto-Translation & Bilingual Display Logic (EN / TH)
+    // =========================================================================
+    function autoTranslateTitle(title, gameName = "") {
+        if (!title || typeof title !== "string") return title || "";
+        if (!/[\u0E00-\u0E7F]/.test(title)) return title; // Already English/non-Thai
+
+        let s = title;
+
+        // Clean YouTube prefixes
+        s = s.replace(/Roblox\s*แจกสคริปต์?\s*ฟรี!?\s*/gi, "Roblox Script - ");
+        s = s.replace(/Roblox\s*แจกสคริปต์?\s*/gi, "Roblox Script - ");
+        s = s.replace(/แจกสคริปต์?\s*ฟรี!?\s*/gi, "Script - ");
+        s = s.replace(/แจกสคริปต์?\s*/gi, "Script - ");
+        s = s.replace(/แจกสคริป\s*/gi, "Script - ");
+        s = s.replace(/แจกโปร\s*/gi, "Script - ");
+
+        // Specific combined phrases
+        s = s.replace(/ไม่มีคีย์\s*พร้อมฟาร์มออโต้/gi, "Keyless & Auto Farm");
+        s = s.replace(/ไม่มีคีย์\s*ออโต้ทุกอย่าง/gi, "Keyless & Auto All");
+        s = s.replace(/AFK\s*24\s*ชั่วโมง\s*ชิวๆ/gi, "24/7 Easy AFK");
+        s = s.replace(/AFK\s*24\s*ชั่วโมง/gi, "24/7 AFK");
+        s = s.replace(/24\s*ชั่วโมง\s*ชิวๆ/gi, "24/7 Easy");
+        s = s.replace(/24\s*ชั่วโมง/gi, "24/7");
+        s = s.replace(/24\s*ชม\.?/gi, "24/7");
+
+        // Keys
+        s = s.replace(/ไม่มีคีย์/gi, "Keyless");
+        s = s.replace(/ไม่ต้องใส่คีย์/gi, "Keyless");
+        s = s.replace(/ไม่ต้องใช้คีย์/gi, "Keyless");
+        s = s.replace(/ไร้คีย์/gi, "Keyless");
+
+        // Features
+        s = s.replace(/ฟาร์มไข่อัตโนมัติ/gi, "Auto Hatch & Farm");
+        s = s.replace(/พร้อมฟาร์มออโต้/gi, "Auto Farm");
+        s = s.replace(/ฟาร์มออโต้/gi, "Auto Farm");
+        s = s.replace(/ฟาร์มอัตโนมัติ/gi, "Auto Farm");
+        s = s.replace(/ออโต้ทุกอย่าง/gi, "Auto All");
+        s = s.replace(/ฟาร์มชิวๆ/gi, "Fast & Easy Farm");
+        s = s.replace(/ฟาร์มไว/gi, "Fast Farm");
+        s = s.replace(/วิ่งไว/gi, "Speed Boost");
+        s = s.replace(/วาป/gi, "Teleport");
+        s = s.replace(/ชิวๆ/gi, "Easy");
+        s = s.replace(/พร้อมฟาร์ม/gi, "Auto Farm");
+        s = s.replace(/สอนใช้/gi, "Showcase");
+        s = s.replace(/อัปเดตใหม่/gi, "Updated");
+        s = s.replace(/อัปเดตล่าสุด/gi, "Latest");
+        s = s.replace(/ฟรี!?/gi, "Free");
+
+        // Remove leftover Thai characters
+        s = s.replace(/[\u0E00-\u0E7F]+/g, "");
+
+        // Clean up formatting & spacing
+        s = s.replace(/\s*-\s*-\s*/g, " - ")
+             .replace(/^\s*-\s*/, "")
+             .replace(/\s*-\s*$/, "")
+             .replace(/\s+/g, " ")
+             .trim();
+
+        // If gameName is given and title starts with Script - [Game], reorder cleanly to [Game] Script
+        if (gameName) {
+            const escapedGame = gameName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const pattern = new RegExp(`^(?:Roblox\\s+)?Script\\s*[-:]?\\s*${escapedGame}`, "i");
+            if (pattern.test(s)) {
+                s = s.replace(pattern, `${gameName} Script -`);
+            }
+            const hasGame = new RegExp(escapedGame, "i").test(s);
+            if (!hasGame) {
+                s = `${gameName} Script - ${s}`;
+            }
+        }
+
+        // Final clean
+        s = s.replace(/\s*-\s*-\s*/g, " - ")
+             .replace(/\s*-\s*$/, "")
+             .replace(/\s+/g, " ")
+             .trim();
+
+        return s;
+    }
+
+    function autoTranslateDesc(desc, gameName = "") {
+        if (!desc || typeof desc !== "string") return desc || "";
+        if (!/[\u0E00-\u0E7F]/.test(desc)) return desc;
+
+        let s = desc;
+        s = s.replace(/สคริปต์\s*([a-zA-Z0-9\s]+)\s*อัปเดตล่าสุด\s*ฟังก์ชันครบ\s*ใช้งานง่าย\s*ปลอดภัย/gi, "$1 script - Fully featured, easy to use & 100% safe.");
+        s = s.replace(/สคริปต์\s*Roblox\s*อัปเดตล่าสุด\s*ปลอดภัย\s*ปลดล็อคฟรี/gi, "Latest Roblox script, 100% safe & verified. Free unlock.");
+        s = s.replace(/สคริปต์\s*Roblox\s*อัปเดตล่าสุด/gi, "Latest updated Roblox script");
+        s = s.replace(/ปลอดภัย\s*ปลดล็อคฟรี/gi, "Safe & free to unlock");
+        s = s.replace(/ฟังก์ชันครบ/gi, "Fully featured");
+        s = s.replace(/ใช้งานง่าย/gi, "Easy to use");
+        s = s.replace(/ปลอดภัย/gi, "Safe & undetected");
+        s = s.replace(/อัปเดตล่าสุด/gi, "Latest update");
+
+        return s.replace(/\s+/g, " ").trim();
+    }
+
+    function getScriptDisplay(item, lang = currentLang) {
+        if (!item) return { title: "", description: "", thumbnail: "Logo.png" };
+        if (lang === "th") {
+            return {
+                title: item.title || "",
+                description: item.description || "",
+                thumbnail: item.thumbnail || "Logo.png"
+            };
+        }
+
+        // English mode
+        const title = item.title_en || autoTranslateTitle(item.title, item.game);
+        const description = item.description_en || autoTranslateDesc(item.description, item.game);
+        const thumbnail = item.thumbnail_en || item.thumbnail || "Logo.png";
+
+        return { title, description, thumbnail };
+    }
+
+    // =========================================================================
     // Scripts Feed Rendering
     // =========================================================================
     function createScriptRow(item) {
         const isLiked = localStorage.getItem("liked_script_" + item.id) === "true";
+        const t = I18N[currentLang] || I18N.en;
+        const display = getScriptDisplay(item, currentLang);
         return `
             <div class="script-row" data-script-id="${escapeHtml(item.id)}">
                 <div class="row-left">
-                    <img class="row-thumb" src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}">
+                    <div class="row-thumb-wrap" onclick="openLocker('${escapeHtml(item.id)}')" title="${escapeHtml(display.title)}">
+                        <img class="row-thumb" src="${escapeHtml(display.thumbnail)}" alt="${escapeHtml(display.title)}" loading="lazy">
+                        <div class="thumb-play-overlay">
+                            <div class="thumb-play-btn">
+                                <i data-lucide="play" style="width: 18px; height: 18px; fill: #fff; margin-left: 2px;"></i>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row-meta">
                         <div class="row-game-badge">
                             <i data-lucide="gamepad-2"></i> ${escapeHtml(item.game)} • ${escapeHtml(item.version || 'v1.0')}
                         </div>
-                        <div class="row-title">${escapeHtml(item.title)}</div>
-                        <div class="row-features">${escapeHtml(item.description)}</div>
+                        <div class="row-title" onclick="openLocker('${escapeHtml(item.id)}')">${escapeHtml(display.title)}</div>
+                        <div class="row-features">${escapeHtml(display.description)}</div>
                         <div class="row-tags">
                             <span class="tag-badge ${item.isKeyless ? 'green' : ''}">
-                                ${item.isKeyless ? 'ไร้คีย์' : 'มีคีย์'}
+                                ${item.isKeyless ? t.tagKeyless : t.tagHasKey}
                             </span>
-                            <span class="tag-badge">รองรับมือถือ / PC</span>
-                            <span class="tag-badge" style="color: #4ade80;">สถานะ: ปกติ</span>
+                            <span class="tag-badge">${t.tagMobilePc}</span>
+                            <span class="tag-badge" style="color: #4ade80;">${t.tagStatusNormal}</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="row-right">
                     <div class="row-stats">
-                        <div class="stat-views-badge" data-view-id="${escapeHtml(item.id)}" title="จำนวนการเข้าชม">
-                            <i data-lucide="eye"></i> <span>${formatNumber(item.views || 0)} ครั้ง</span>
+                        <div class="stat-views-badge" data-view-id="${escapeHtml(item.id)}" title="${currentLang === 'th' ? 'จำนวนการเข้าชม' : 'Total Views'}">
+                            <i data-lucide="eye"></i> <span>${t.statViews(formatNumber(item.views || 0))}</span>
                         </div>
-                        <div class="stat-likes-badge ${isLiked ? 'liked' : ''}" data-like-id="${escapeHtml(item.id)}" onclick="toggleScriptLike(event, '${escapeHtml(item.id)}')" title="${isLiked ? 'ยกเลิกการถูกใจ' : 'กดถูกใจสคริปต์นี้'}">
-                            <i data-lucide="thumbs-up"></i> <span>${formatNumber(item.likes || 0)} ถูกใจ</span>
+                        <div class="stat-likes-badge ${isLiked ? 'liked' : ''}" data-like-id="${escapeHtml(item.id)}" onclick="toggleScriptLike(event, '${escapeHtml(item.id)}')" title="${isLiked ? (currentLang === 'th' ? 'ยกเลิกการถูกใจ' : 'Unlike') : (currentLang === 'th' ? 'กดถูกใจสคริปต์นี้' : 'Like this script')}">
+                            <i data-lucide="thumbs-up"></i> <span>${t.statLikes(formatNumber(item.likes || 0))}</span>
                         </div>
                     </div>
                     <button class="btn-get" onclick="openLocker('${escapeHtml(item.id)}')">
-                        <span>รับสคริปต์</span>
+                        <span>${t.btnGetScript}</span>
                         <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -1061,11 +1814,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!item) return;
 
         item.views = (Number(item.views) || 0) + 1;
+        const t = I18N[currentLang] || I18N.en;
 
         // อัปเดตตัวเลขบนหน้าจอทันทีทุกจุดที่แสดง
         document.querySelectorAll(`[data-view-id="${id}"]`).forEach(el => {
             const span = el.querySelector("span");
-            if (span) span.textContent = `${formatNumber(item.views)} ครั้ง`;
+            if (span) span.textContent = t.statViews(formatNumber(item.views));
         });
 
         // บันทึกเก็บลงแคชเครื่อง
@@ -1091,31 +1845,32 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!item) return;
 
         const isLiked = localStorage.getItem("liked_script_" + id) === "true";
+        const t = I18N[currentLang] || I18N.en;
         let delta = 1;
 
         if (isLiked) {
             localStorage.removeItem("liked_script_" + id);
             item.likes = Math.max(0, (Number(item.likes) || 1) - 1);
             delta = -1;
-            showToast("ยกเลิกการถูกใจแล้ว");
+            showToast(t.toastUnliked);
         } else {
             localStorage.setItem("liked_script_" + id, "true");
             item.likes = (Number(item.likes) || 0) + 1;
             delta = 1;
-            showToast("ขอบคุณที่กดถูกใจสคริปต์นี้!");
+            showToast(t.toastLiked);
         }
 
         // อัปเดตไอคอนและตัวเลขถูกใจในหน้าจอทันที
         document.querySelectorAll(`[data-like-id="${id}"]`).forEach(el => {
             if (!isLiked) {
                 el.classList.add("liked");
-                el.setAttribute("title", "ยกเลิกการถูกใจ");
+                el.setAttribute("title", currentLang === 'th' ? "ยกเลิกการถูกใจ" : "Unlike");
             } else {
                 el.classList.remove("liked");
-                el.setAttribute("title", "กดถูกใจสคริปต์นี้");
+                el.setAttribute("title", currentLang === 'th' ? "กดถูกใจสคริปต์นี้" : "Like this script");
             }
             const span = el.querySelector("span");
-            if (span) span.textContent = `${formatNumber(item.likes)} ถูกใจ`;
+            if (span) span.textContent = t.statLikes(formatNumber(item.likes));
         });
 
         // บันทึกเก็บลงแคชเครื่อง
@@ -1141,6 +1896,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const spotlightTitle = document.querySelector(".spotlight-title");
         const spotlightDesc = document.querySelector(".spotlight-desc");
         const btnSpotlight = document.querySelector(".btn-spotlight");
+        const t = I18N[currentLang] || I18N.en;
 
         if (scripts.length === 0) {
             if (homeSpotlight) homeSpotlight.style.display = "none";
@@ -1148,8 +1904,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 homeRecentScripts.innerHTML = `
                     <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); background: var(--bg-card); border-radius: 12px; border: 1px dashed var(--border);">
                         <i data-lucide="inbox" style="width: 32px; height: 32px; margin-bottom: 8px; opacity: 0.5;"></i>
-                        <p style="font-size: 14px; font-weight: 500;">ยังไม่มีสคริปต์ในระบบ</p>
-                        <p style="font-size: 12px; margin-top: 4px;">แอดมินสามารถเพิ่มสคริปต์ใหม่ได้ที่หน้าหลังบ้าน (Admin Panel)</p>
+                        <p style="font-size: 14px; font-weight: 500;">${t.noScriptsAdmin}</p>
                     </div>
                 `;
             }
@@ -1160,8 +1915,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (homeSpotlight) {
             homeSpotlight.style.display = "block";
             const top = scripts[0];
-            if (spotlightTitle) spotlightTitle.textContent = top.title;
-            if (spotlightDesc) spotlightDesc.textContent = top.description || "";
+            const topDisplay = getScriptDisplay(top, currentLang);
+            if (spotlightTitle) spotlightTitle.textContent = topDisplay.title;
+            if (spotlightDesc) spotlightDesc.textContent = topDisplay.description || "";
             if (btnSpotlight) {
                 btnSpotlight.onclick = () => openLocker(top.id);
             }
@@ -1187,18 +1943,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (searchQuery) {
                 const q = searchQuery.toLowerCase();
-                const mTitle = (item.title || "").toLowerCase().includes(q);
+                const display = getScriptDisplay(item, currentLang);
+                const mTitle = (item.title || "").toLowerCase().includes(q) || (display.title || "").toLowerCase().includes(q);
                 const mGame = (item.game || "").toLowerCase().includes(q);
-                const mDesc = (item.description || "").toLowerCase().includes(q);
+                const mDesc = (item.description || "").toLowerCase().includes(q) || (display.description || "").toLowerCase().includes(q);
                 if (!mTitle && !mGame && !mDesc) return false;
             }
             return true;
         });
 
         if (filtered.length === 0) {
+            const t = I18N[currentLang] || I18N.en;
             scriptsFeed.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: var(--text-muted); background: var(--bg-card); border-radius: 10px;">
-                    ไม่พบสคริปต์ที่ค้นหา ลองเลือกหมวดหมู่อื่นดูนะครับ
+                    ${t.noScriptsFound}
                 </div>
             `;
             return;
@@ -1228,17 +1986,18 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } catch (err) {
             console.error("Failed to load WEAO exploits:", err);
+            const t = I18N[currentLang] || I18N.en;
             if (homeExecutorsGrid) {
                 homeExecutorsGrid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--text-muted);">
-                        ไม่สามารถเชื่อมต่อ WEAO API ได้ในขณะนี้
+                        ${t.weaoOffline}
                     </div>
                 `;
             }
             if (exploitsGrid) {
                 exploitsGrid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
-                        ไม่สามารถดึงข้อมูลตัวรันจาก WEAO API ได้
+                        ${t.weaoOffline}
                     </div>
                 `;
             }
@@ -1282,6 +2041,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderHomeExecutors() {
         if (!homeExecutorsGrid) return;
         if (allExploits.length === 0) return;
+        const t = I18N[currentLang] || I18N.en;
 
         // ดึงเฉพาะตัวรันยอดนิยมและเรียงตามลำดับ Priority
         const famousList = allExploits.filter(exp => getFamousInfo(exp));
@@ -1295,17 +2055,17 @@ document.addEventListener("DOMContentLoaded", () => {
         homeExecutorsGrid.innerHTML = topExecutors.map(exp => {
             const isOnline = !!exp.updateStatus;
             const statusClass = isOnline ? "status-working" : "status-outdated";
-            const statusText = isOnline ? "พร้อมใช้งาน" : "รออัปเดต";
-            const suncScore = typeof exp.suncPercentage === "number" ? `${exp.suncPercentage}%` : (typeof exp.uncPercentage === "number" ? `${exp.uncPercentage}%` : "N/A");
+            const statusText = isOnline ? t.statusWorking : t.statusUpdating;
+            const suncScore = typeof exp.suncPercentage === "number" ? `${exp.suncPercentage}%` : (typeof exp.uncPercentage === "number" ? `${exp.uncPercentage}%` : t.suncNoData);
             const platform = exp.platform || "Multi";
-            const price = exp.free ? "ฟรี" : (exp.cost || "มีค่าบริการ");
+            const price = exp.free ? t.priceFree : (exp.cost || t.pricePaid);
 
             return `
                 <div class="executor-card" style="cursor: pointer;" onclick="openExploitsView()">
                     <div class="executor-info">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <h4>${escapeHtml(exp.title)}</h4>
-                            <span class="badge-popular"><i data-lucide="star" style="width: 10px; height: 10px;"></i> ยอดนิยม</span>
+                            <span class="badge-popular"><i data-lucide="star" style="width: 10px; height: 10px;"></i> ${t.badgePopular}</span>
                             <span class="exploit-status-badge ${statusClass}" style="font-size: 10px; padding: 1px 6px;">${statusText}</span>
                         </div>
                         <p style="margin-top: 4px; display: flex; gap: 8px; font-size: 11px;">
@@ -1326,10 +2086,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // Render full list in Exploits View (คัดกรองเฉพาะตัวรันยอดนิยมที่มีชื่อเสียง)
     function renderExploits() {
         if (!exploitsGrid) return;
+        const t = I18N[currentLang] || I18N.en;
+
         if (allExploits.length === 0) {
             exploitsGrid.innerHTML = `
                 <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
-                    <i data-lucide="loader-2" class="spin"></i> กำลังโหลดข้อมูลสถานะตัวรัน...
+                    <i data-lucide="loader-2" class="spin"></i> ${t.loadingAllExploits}
                 </div>
             `;
             refreshIcons();
@@ -1364,7 +2126,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (filtered.length === 0) {
             exploitsGrid.innerHTML = `
                 <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
-                    ไม่พบตัวรันยอดนิยมสำหรับอุปกรณ์ที่เลือกในขณะนี้
+                    ${t.noExploitsFound}
                 </div>
             `;
             return;
@@ -1373,11 +2135,11 @@ document.addEventListener("DOMContentLoaded", () => {
         exploitsGrid.innerHTML = filtered.map(exp => {
             const isOnline = !!exp.updateStatus;
             const statusClass = isOnline ? "status-working" : "status-outdated";
-            const statusText = isOnline ? "พร้อมใช้งาน" : "รออัปเดต";
+            const statusText = isOnline ? t.statusWorking : t.statusUpdating;
             const isDetected = !!exp.detected;
             const suncScore = typeof exp.suncPercentage === "number" ? exp.suncPercentage : (typeof exp.uncPercentage === "number" ? exp.uncPercentage : null);
             const suncFillClass = suncScore !== null && suncScore < 70 ? "low" : (suncScore !== null && suncScore < 90 ? "medium" : "");
-            const price = exp.free ? "ฟรี" : (exp.cost || "มีค่าบริการ");
+            const price = exp.free ? t.priceFree : (exp.cost || t.pricePaid);
             const hasSuncData = exp.sunc && exp.sunc.suncScrap && exp.sunc.suncKey;
             const famousInfo = getFamousInfo(exp);
             const officialUrl = famousInfo?.officialUrl || exp.websitelink || "#";
@@ -1389,10 +2151,10 @@ document.addEventListener("DOMContentLoaded", () => {
                             <div>
                                 <div style="display: flex; align-items: center; gap: 6px;">
                                     <div class="exploit-name">${escapeHtml(exp.title)}</div>
-                                    <span class="badge-popular"><i data-lucide="star" style="width: 10px; height: 10px;"></i> ยอดนิยม</span>
+                                    <span class="badge-popular"><i data-lucide="star" style="width: 10px; height: 10px;"></i> ${t.badgePopular}</span>
                                 </div>
                                 <div class="exploit-platform">
-                                    <i data-lucide="monitor" style="width: 12px; height: 12px;"></i> ${escapeHtml(exp.platform || 'Multi')} • v${escapeHtml(exp.version || 'ล่าสุด')}
+                                    <i data-lucide="monitor" style="width: 12px; height: 12px;"></i> ${escapeHtml(exp.platform || 'Multi')} • v${escapeHtml(exp.version || (currentLang === 'th' ? 'ล่าสุด' : 'Latest'))}
                                 </div>
                             </div>
                             <span class="exploit-status-badge ${statusClass}">
@@ -1404,7 +2166,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="sunc-score-wrap">
                             <div class="sunc-label-row">
                                 <span>sUNC Benchmark Score</span>
-                                <span class="sunc-score-val">${suncScore !== null ? suncScore + '%' : 'ไม่มีข้อมูล'}</span>
+                                <span class="sunc-score-val">${suncScore !== null ? suncScore + '%' : t.suncNoData}</span>
                             </div>
                             <div class="sunc-bar-bg">
                                 <div class="sunc-bar-fill ${suncFillClass}" style="width: ${suncScore !== null ? suncScore : 0}%;"></div>
@@ -1413,18 +2175,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <!-- Details Rows -->
                         <div class="exploit-details-row">
-                            <span>ประเภท / ราคา</span>
+                            <span>${t.typePrice}</span>
                             <span style="color: #fff; font-weight: 500;">${escapeHtml(price)}</span>
                         </div>
                         <div class="exploit-details-row">
-                            <span>สถานะความปลอดภัย</span>
+                            <span>${t.safetyStatus}</span>
                             <span style="color: ${isDetected ? '#f87171' : '#4ade80'};">
-                                ${isDetected ? 'ตรวจพบ (Detected)' : 'ปลอดภัย (Undetected)'}
+                                ${isDetected ? t.statusDetected : t.statusUndetected}
                             </span>
                         </div>
                         ${exp.updatedDate ? `
                         <div class="exploit-details-row">
-                            <span>อัปเดตล่าสุด</span>
+                            <span>${t.lastUpdated}</span>
                             <span style="font-size: 11px; color: var(--text-muted);">${escapeHtml(exp.updatedDate)}</span>
                         </div>
                         ` : ''}
@@ -1433,16 +2195,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
                         ${officialUrl && officialUrl !== '#' ? `
                             <a href="${escapeHtml(officialUrl)}" target="_blank" rel="noopener noreferrer" class="btn-download-executor">
-                                <i data-lucide="download"></i> เว็บไซต์หลัก / ดาวน์โหลด
+                                <i data-lucide="download"></i> ${t.btnDownloadOfficial}
                             </a>
                         ` : ''}
                         ${hasSuncData ? `
                             <button class="btn-view-sunc" onclick="openSuncDetails('${escapeHtml(exp.title)}', '${escapeHtml(exp.version || '')}', '${escapeHtml(exp.sunc.suncScrap)}', '${escapeHtml(exp.sunc.suncKey)}')">
-                                <i data-lucide="bar-chart-2"></i> ดูผลทดสอบ sUNC
+                                <i data-lucide="bar-chart-2"></i> ${t.btnViewSunc}
                             </button>
                         ` : `
                             <button class="btn-view-sunc" disabled style="opacity: 0.45; cursor: not-allowed;">
-                                <i data-lucide="info"></i> ไม่มีผลทดสอบ sUNC
+                                <i data-lucide="info"></i> ${t.btnNoSunc}
                             </button>
                         `}
                     </div>
@@ -1455,7 +2217,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Open sUNC Benchmark Details Modal
     window.openSuncDetails = async function(title, version, scrap, key) {
         if (!suncModal) return;
-        suncModalTitle.textContent = `${title} - ข้อมูลผลทดสอบ sUNC`;
+        const t = I18N[currentLang] || I18N.en;
+        suncModalTitle.textContent = typeof t.suncModalTitle === "function" ? t.suncModalTitle(title) : `${title} - sUNC Data`;
         suncVersion.textContent = version || "-";
         suncTime.textContent = "...";
         suncPassedCount.textContent = "0";
@@ -1466,7 +2229,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         suncTestList.innerHTML = `
             <div style="text-align: center; padding: 24px; color: var(--text-muted);">
-                <i data-lucide="loader-2" class="spin"></i> กำลังดาวน์โหลดข้อมูล sUNC จาก WEAO API...
+                <i data-lucide="loader-2" class="spin"></i> ${t.suncDownloading}
             </div>
         `;
         refreshIcons();
@@ -1492,7 +2255,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Error loading sUNC details:", err);
             suncTestList.innerHTML = `
                 <div style="text-align: center; padding: 24px; color: #f87171;">
-                    ไม่สามารถโหลดข้อมูล sUNC ได้ หรือ API ไม่ตอบสนอง
+                    ${t.suncLoadError}
                 </div>
             `;
         }
@@ -1500,6 +2263,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderSuncTests() {
         if (!currentSuncData || !currentSuncData.tests) return;
+        const t = I18N[currentLang] || I18N.en;
         const passedList = currentSuncData.tests.passed || [];
         const failedList = currentSuncData.tests.failed || [];
         const q = currentSuncFilter.toLowerCase().trim();
@@ -1510,36 +2274,36 @@ document.addEventListener("DOMContentLoaded", () => {
         if (filteredPassed.length === 0 && filteredFailed.length === 0) {
             suncTestList.innerHTML = `
                 <div style="text-align: center; padding: 20px; color: var(--text-muted);">
-                    ไม่พบฟังก์ชันที่ตรงกับ "${escapeHtml(currentSuncFilter)}"
+                    ${typeof t.suncNotFound === "function" ? t.suncNotFound(escapeHtml(currentSuncFilter)) : 'No functions found'}
                 </div>
             `;
             return;
         }
 
         let html = "";
-        filteredFailed.forEach(t => {
+        filteredFailed.forEach(item => {
             html += `
                 <div class="sunc-test-item failed">
                     <div>
-                        <div class="sunc-func-name" style="color: #f87171;">${escapeHtml(t.name)}</div>
-                        <div class="sunc-func-lib">${escapeHtml(t.library || 'General')} • เหตุผล: ${escapeHtml(t.reason || 'Not supported')}</div>
+                        <div class="sunc-func-name" style="color: #f87171;">${escapeHtml(item.name)}</div>
+                        <div class="sunc-func-lib">${escapeHtml(item.library || 'General')} • ${t.suncReason} ${escapeHtml(item.reason || 'Not supported')}</div>
                     </div>
                     <span class="exploit-status-badge status-outdated">
-                        <i data-lucide="x" style="width: 12px; height: 12px;"></i> ไม่ผ่าน
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i> ${t.suncFailBadge}
                     </span>
                 </div>
             `;
         });
 
-        filteredPassed.forEach(t => {
+        filteredPassed.forEach(item => {
             html += `
                 <div class="sunc-test-item passed">
                     <div>
-                        <div class="sunc-func-name">${escapeHtml(t.name)}</div>
-                        <div class="sunc-func-lib">${escapeHtml(t.library || 'General')}${t.description ? ' • ' + escapeHtml(t.description) : ''}</div>
+                        <div class="sunc-func-name">${escapeHtml(item.name)}</div>
+                        <div class="sunc-func-lib">${escapeHtml(item.library || 'General')}${item.description ? ' • ' + escapeHtml(item.description) : ''}</div>
                     </div>
                     <span class="exploit-status-badge status-working">
-                        <i data-lucide="check" style="width: 12px; height: 12px;"></i> ผ่าน
+                        <i data-lucide="check" style="width: 12px; height: 12px;"></i> ${t.suncPassBadge}
                     </span>
                 </div>
             `;
@@ -1595,8 +2359,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Sub2Unlock Locker Logic (Ultra Modern Gaming Locker)
     // =========================================================================
     window.openLocker = function(id) {
+        const t = I18N[currentLang] || I18N.en;
         if (!isGateAuthorized()) {
-            showToast("⚠️ สิทธิ์เข้าใช้งานถูกจำกัด! กรุณาผ่าน LootLabs ก่อนรับสคริปต์");
+            showToast(t.gateAccessRestrictedToast);
             checkLootlabsGate();
             return;
         }
@@ -1607,7 +2372,7 @@ document.addEventListener("DOMContentLoaded", () => {
         selectedScript = scripts.find(s => String(s.id) === String(id));
         if (!selectedScript) return;
 
-        // นับยอดการดูเพิ่มจริงทันทีเมื่อกดรับสคริปต์
+        // Increment view count immediately
         incrementScriptView(id);
 
         tasks = { t1: false, t2: false, t3: false };
@@ -1617,9 +2382,9 @@ document.addEventListener("DOMContentLoaded", () => {
         lockedLabel.style.display = "flex";
         unlockedView.classList.remove("show");
 
-        resetTaskBtn(task1Btn, "01", "youtube", "กดติดตาม YouTube / Subscribe", "เปิดช่อง YouTube และรอตรวจสอบ 5 วินาที", "primary-red", true);
-        resetTaskBtn(task2Btn, "02", "message-square", "เข้าร่วม Discord / Join Discord", "เปิดลิงก์และรอตรวจสอบ 5 วินาที", "", false);
-        resetTaskBtn(task3Btn, "03", "thumbs-up", "กดไลค์ & คอมเมนต์ / Like & Comment", "เปิดคลิปและรอตรวจสอบ 3 วินาที", "", false);
+        resetTaskBtn(task1Btn, "01", "youtube", t.task1Name, t.task1Hint, "primary-red", true);
+        resetTaskBtn(task2Btn, "02", "message-square", t.task2Name, t.task2Hint, "", false);
+        resetTaskBtn(task3Btn, "03", "thumbs-up", t.task3Name, t.task3Hint, "", false);
 
         updateDots();
         lockerModal.classList.add("active");
@@ -1627,11 +2392,12 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     function resetTaskBtn(btn, stepNum, icon, title, hint, extraClass, isReady) {
+        const t = I18N[currentLang] || I18N.en;
         btn.disabled = false;
         btn.className = `btn-task ${extraClass}`.trim();
         const statusHtml = isReady 
-            ? `<span class="status-pill active-pill">เริ่มทำ <i data-lucide="arrow-right"></i></span>`
-            : `<span class="status-pill wait-pill"><i data-lucide="lock"></i> รอดำเนินการ</span>`;
+            ? `<span class="status-pill active-pill">${t.pillStart} <i data-lucide="arrow-right"></i></span>`
+            : `<span class="status-pill wait-pill"><i data-lucide="lock"></i> ${t.pillPending}</span>`;
             
         btn.innerHTML = `
             <div class="task-left">
@@ -1649,6 +2415,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setTaskDone(btn, stepNum, title) {
+        const t = I18N[currentLang] || I18N.en;
         btn.disabled = true;
         btn.className = "btn-task done";
         btn.innerHTML = `
@@ -1657,11 +2424,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="task-icon-box done"><i data-lucide="check"></i></div>
                 <div class="task-meta">
                     <span class="task-name">${title}</span>
-                    <span class="task-hint done-hint">ภารกิจเสร็จสิ้นแล้ว</span>
+                    <span class="task-hint done-hint">${t.taskDoneHint}</span>
                 </div>
             </div>
             <div class="task-status">
-                <span class="status-pill done-pill"><i data-lucide="check"></i> สำเร็จ</span>
+                <span class="status-pill done-pill"><i data-lucide="check"></i> ${t.pillDone}</span>
             </div>
         `;
         refreshIcons();
@@ -1704,18 +2471,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Update Remaining Count
         if (lockedStatusText) {
+            const t = I18N[currentLang] || I18N.en;
             const completedCount = (tasks.t1 ? 1 : 0) + (tasks.t2 ? 1 : 0) + (tasks.t3 ? 1 : 0);
             const remaining = 3 - completedCount;
             if (remaining > 0) {
-                lockedStatusText.textContent = `สคริปต์ถูกล็อคอยู่ • เหลืออีก ${remaining} ภารกิจเพื่อปลดล็อค`;
+                lockedStatusText.textContent = typeof t.lockedRemaining === "function" ? t.lockedRemaining(remaining) : `Script is locked • Complete ${remaining} more task(s) to unlock`;
             } else {
-                lockedStatusText.textContent = `ปลดล็อคเรียบร้อยแล้ว!`;
+                lockedStatusText.textContent = t.lockedFinished;
             }
         }
     }
 
     function handleTaskClick(btn, link, waitSec, taskKey, stepNum, title, nextBtnToActivate, nextStepNum, nextIcon, nextTitle, nextHint) {
         if (tasks[taskKey]) return;
+        const t = I18N[currentLang] || I18N.en;
         if (currentTaskTimer) {
             clearInterval(currentTaskTimer);
             currentTaskTimer = null;
@@ -1731,7 +2500,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="task-icon-box loading"><i data-lucide="loader-2" class="spin"></i></div>
                 <div class="task-meta">
                     <span class="task-name">${title}</span>
-                    <span class="task-hint loading-hint">กำลังตรวจสอบภารกิจ... (${sec} วินาที)</span>
+                    <span class="task-hint loading-hint">${typeof t.verifyingTask === "function" ? t.verifyingTask(sec) : `Verifying task... (${sec}s)`}</span>
                 </div>
             </div>
             <div class="task-status">
@@ -1745,7 +2514,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (sec > 0) {
                 const hintEl = btn.querySelector(".task-hint");
                 const pillEl = btn.querySelector(".status-pill");
-                if (hintEl) hintEl.textContent = `กำลังตรวจสอบภารกิจ... (${sec} วินาที)`;
+                if (hintEl) hintEl.textContent = typeof t.verifyingTask === "function" ? t.verifyingTask(sec) : `Verifying task... (${sec}s)`;
                 if (pillEl) pillEl.innerHTML = `<i data-lucide="loader-2" class="spin"></i> ${sec}s`;
                 refreshIcons();
             } else {
@@ -1766,6 +2535,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     task1Btn.addEventListener("click", () => {
+        const t = I18N[currentLang] || I18N.en;
         let ytUrl = (SITE_CONFIG.unlockTasks && SITE_CONFIG.unlockTasks.youtubeChannelUrl) || "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1";
         if (ytUrl.includes("YOUR_CHANNEL")) ytUrl = "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1";
         handleTaskClick(
@@ -1774,18 +2544,19 @@ document.addEventListener("DOMContentLoaded", () => {
             5, 
             "t1", 
             "01", 
-            "กดติดตาม YouTube / Subscribe", 
+            t.task1Name, 
             task2Btn, 
             "02", 
             "message-square",
-            "เข้าร่วม Discord / Join Discord", 
-            "เปิดลิงก์และรอตรวจสอบ 5 วินาที"
+            t.task2Name, 
+            t.task2Hint
         );
     });
 
     task2Btn.addEventListener("click", () => {
+        const t = I18N[currentLang] || I18N.en;
         if (!tasks.t1) {
-            showToast("กรุณาทำภารกิจที่ 1 ให้เสร็จก่อนครับ");
+            showToast(t.taskWaitPrev1);
             return;
         }
         let discordUrl = (SITE_CONFIG.unlockTasks && SITE_CONFIG.unlockTasks.affiliateUrl) || "";
@@ -1798,18 +2569,19 @@ document.addEventListener("DOMContentLoaded", () => {
             5, 
             "t2", 
             "02", 
-            "เข้าร่วม Discord / Join Discord", 
+            t.task2Name, 
             task3Btn, 
             "03", 
             "thumbs-up",
-            "กดไลค์ & คอมเมนต์ / Like & Comment", 
-            "เปิดคลิปและรอตรวจสอบ 3 วินาที"
+            t.task3Name, 
+            t.task3Hint
         );
     });
 
     task3Btn.addEventListener("click", () => {
+        const t = I18N[currentLang] || I18N.en;
         if (!tasks.t2) {
-            showToast("กรุณาทำภารกิจที่ 2 ให้เสร็จก่อนครับ");
+            showToast(t.taskWaitPrev2);
             return;
         }
         handleTaskClick(
@@ -1818,7 +2590,7 @@ document.addEventListener("DOMContentLoaded", () => {
             3, 
             "t3", 
             "03", 
-            "กดไลค์ & คอมเมนต์ / Like & Comment", 
+            t.task3Name, 
             null, 
             null, 
             null,
@@ -1828,8 +2600,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function checkAllCompleted() {
+        const t = I18N[currentLang] || I18N.en;
         if (tasks.t1 && tasks.t2 && tasks.t3) {
-            showToast("ยินดีด้วย! คุณปลดล็อคสคริปต์สำเร็จแล้ว");
+            showToast(t.unlockedToast);
             setTimeout(() => {
                 tasksStack.style.display = "none";
                 lockedLabel.style.display = "none";
@@ -1841,14 +2614,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     btnCopyScript.addEventListener("click", () => {
         scriptCodeBox.select();
+        const t = I18N[currentLang] || I18N.en;
         const copySuccess = () => {
             btnCopyScript.className = "btn-copy-script copied";
-            btnCopyScript.innerHTML = `<i data-lucide="check"></i> <span>คัดลอกสำเร็จแล้ว!</span>`;
+            btnCopyScript.innerHTML = `<i data-lucide="check"></i> <span>${t.copiedBtn}</span>`;
             refreshIcons();
-            showToast("คัดลอกโค้ดสคริปต์เรียบร้อยแล้ว");
+            showToast(t.toastCopied);
             setTimeout(() => {
                 btnCopyScript.className = "btn-copy-script";
-                btnCopyScript.innerHTML = `<i data-lucide="copy"></i> <span>คัดลอกสคริปต์ (Copy Code)</span>`;
+                btnCopyScript.innerHTML = `<i data-lucide="copy"></i> <span>${t.btnCopyCode}</span>`;
                 refreshIcons();
             }, 2500);
         };
@@ -1952,15 +2726,16 @@ document.addEventListener("DOMContentLoaded", () => {
         activeGame = null;
         highlightSidebarItem("filter", activeFilter);
 
+        const t = I18N[currentLang] || I18N.en;
         if (activeFilter === "all") {
-            currentViewTitle.textContent = "สคริปต์ทั้งหมด";
-            currentViewDesc.textContent = "รวมสคริปต์ Roblox อัปเดตล่าสุดทุกเกม";
+            currentViewTitle.textContent = t.viewTitleAll;
+            currentViewDesc.textContent = t.viewDescAll;
         } else if (activeFilter === "keyless") {
-            currentViewTitle.textContent = "สคริปต์ไร้คีย์ (Keyless)";
-            currentViewDesc.textContent = "ไม่ต้องใส่คีย์ เปิดแล้วรันได้ทันที";
+            currentViewTitle.textContent = t.viewTitleKeyless;
+            currentViewDesc.textContent = t.viewDescKeyless;
         } else if (activeFilter === "mobile") {
-            currentViewTitle.textContent = "สคริปต์รองรับมือถือ";
-            currentViewDesc.textContent = "รองรับ Delta, Codex, Hydrogen บน Android/iOS";
+            currentViewTitle.textContent = t.viewTitleMobile;
+            currentViewDesc.textContent = t.viewDescMobile;
         }
 
         switchView("feed");
@@ -1975,9 +2750,10 @@ document.addEventListener("DOMContentLoaded", () => {
         activeFilter = "all";
         highlightSidebarItem("game", activeGame);
 
+        const t = I18N[currentLang] || I18N.en;
         const gameName = item.querySelector(".menu-left").textContent.trim();
-        currentViewTitle.textContent = `สคริปต์เกม ${gameName}`;
-        currentViewDesc.textContent = `รวมสคริปต์ฟาร์มออโต้สำหรับ ${gameName}`;
+        currentViewTitle.textContent = typeof t.viewTitleGame === "function" ? t.viewTitleGame(gameName) : `Scripts for ${gameName}`;
+        currentViewDesc.textContent = typeof t.viewDescGame === "function" ? t.viewDescGame(gameName) : `All scripts for ${gameName}`;
 
         switchView("feed");
     });
@@ -1992,9 +2768,10 @@ document.addEventListener("DOMContentLoaded", () => {
             activeFilter = "all";
             highlightSidebarItem("game", game);
 
+            const t = I18N[currentLang] || I18N.en;
             const name = tile.querySelector(".tile-name").textContent;
-            currentViewTitle.textContent = `สคริปต์เกม ${name}`;
-            currentViewDesc.textContent = `รวมสคริปต์ฟาร์มออโต้สำหรับ ${name}`;
+            currentViewTitle.textContent = typeof t.viewTitleGame === "function" ? t.viewTitleGame(name) : `Scripts for ${name}`;
+            currentViewDesc.textContent = typeof t.viewDescGame === "function" ? t.viewDescGame(name) : `All scripts for ${name}`;
 
             switchView("feed");
         });
@@ -2002,24 +2779,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Home Action Buttons
     if (btnGoFeedAll) btnGoFeedAll.addEventListener("click", () => {
+        const t = I18N[currentLang] || I18N.en;
         activeFilter = "all";
         activeGame = null;
         highlightSidebarItem("filter", "all");
-        currentViewTitle.textContent = "สคริปต์ทั้งหมด";
+        currentViewTitle.textContent = t.viewTitleAll;
+        currentViewDesc.textContent = t.viewDescAll;
         switchView("feed");
     });
 
     if (btnSeeAllGames) btnSeeAllGames.addEventListener("click", () => {
+        const t = I18N[currentLang] || I18N.en;
         activeFilter = "all";
         activeGame = null;
         highlightSidebarItem("filter", "all");
+        currentViewTitle.textContent = t.viewTitleAll;
+        currentViewDesc.textContent = t.viewDescAll;
         switchView("feed");
     });
 
     if (btnSeeAllScripts) btnSeeAllScripts.addEventListener("click", () => {
+        const t = I18N[currentLang] || I18N.en;
         activeFilter = "all";
         activeGame = null;
         highlightSidebarItem("filter", "all");
+        currentViewTitle.textContent = t.viewTitleAll;
+        currentViewDesc.textContent = t.viewDescAll;
         switchView("feed");
     });
 
@@ -2109,7 +2894,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (is24h) {
                 const next24h = Date.now() + (24 * 60 * 60 * 1000);
                 localStorage.setItem("blacklist_popup_dismissed_until", String(next24h));
-                showToast("บันทึกแล้ว: จะไม่แสดงป๊อปอัปนี้อีกใน 24 ชั่วโมง");
+                showToast(currentLang === 'th' ? "บันทึกแล้ว: จะไม่แสดงป๊อปอัปนี้อีกใน 24 ชั่วโมง" : "Saved: will not show this popup again for 24 hours");
             }
         }
 
@@ -2149,6 +2934,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Initialize App
+    setLanguage(currentLang);
     applySiteConfig();
     checkBanStatus();
     checkLootlabsGate();

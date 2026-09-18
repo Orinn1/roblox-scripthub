@@ -18,11 +18,8 @@
     "tiktok": "https://www.tiktok.com/@YOUR_TIKTOK"
   },
   "lootlabsGate": {
-    "enabled": true,
-    "token": "Niggapro",
-    "lootlabsUrl": "https://loot-link.com/s?gqupbmHb",
-    "bypassMessage": "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์",
-    "expiryHours": 24
+    "provider": "shrinkearn",
+    "bypassMessage": "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
   },
   "firebaseConfig": {
     "apiKey": "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI",
@@ -60,7 +57,7 @@
       "messageId": "1550102814699683972",
       "guildId": "1548669247998140438",
       "dealer": "all",
-      "updatedAt": 1789671755122
+      "updatedAt": 1789735537597
     }
   ]
 }
