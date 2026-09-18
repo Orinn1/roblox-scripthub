@@ -817,6 +817,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const vip = getVipData();
         const vipNavBtn = document.getElementById("vipNavBtn");
         const vipNavText = document.getElementById("vipNavText");
+        const vipBtnIcon = document.getElementById("vipBtnIcon");
         const vipActivePanel = document.getElementById("vipActivePanel");
         const vipInactivePanel = document.getElementById("vipInactivePanel");
         const vipUserName = document.getElementById("vipUserName");
@@ -827,6 +828,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (vipNavBtn) {
                 vipNavBtn.classList.add("is-active");
                 if (vipNavText) vipNavText.textContent = "VIP Active";
+                if (vipBtnIcon) vipBtnIcon.innerHTML = `<span class="vip-crown-icon">👑</span>`;
             }
             if (vipActivePanel) vipActivePanel.style.display = "block";
             if (vipInactivePanel) vipInactivePanel.style.display = "none";
@@ -847,7 +849,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (vipExpiryText && vip.expiresAt) {
                 const daysLeft = Math.max(1, Math.ceil((vip.expiresAt - Date.now()) / (24 * 60 * 60 * 1000)));
-                vipExpiryText.textContent = `หมดอายุในอีก: ~${daysLeft} วัน (ต่ออายุอัตโนมัติเมื่อกด /vip ใหม่)`;
+                vipExpiryText.textContent = `หมดอายุในอีก: ~${daysLeft} วัน`;
             }
 
             // Immediately close and suppress gate overlay if visible
@@ -855,7 +857,9 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             if (vipNavBtn) {
                 vipNavBtn.classList.remove("is-active");
-                if (vipNavText) vipNavText.textContent = "VIP No-Ads";
+                if (vipNavText) vipNavText.textContent = "Login";
+                if (vipBtnIcon) vipBtnIcon.innerHTML = `<i data-lucide="log-in" style="width: 14px; height: 14px;"></i>`;
+                if (typeof refreshIcons === "function") refreshIcons();
             }
             if (vipActivePanel) vipActivePanel.style.display = "none";
             if (vipInactivePanel) vipInactivePanel.style.display = "block";
