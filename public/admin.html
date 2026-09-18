@@ -470,7 +470,11 @@
         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 22px;">Admin & Database Management</p>
         
         <form id="loginForm">
-            <input type="password" id="pinInput" class="form-control" placeholder="ใส่รหัสผ่านผู้ดูแลระบบ" style="text-align: center; letter-spacing: 4px; font-size: 16px; margin-bottom: 16px;" autofocus>
+            <input type="password" id="pinInput" class="form-control" placeholder="ใส่รหัสผ่านผู้ดูแลระบบ" style="text-align: center; letter-spacing: 4px; font-size: 16px; margin-bottom: 12px;" autofocus>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px;">
+                <input type="checkbox" id="rememberAdminCheckbox" checked style="cursor: pointer;">
+                <label for="rememberAdminCheckbox" style="font-size: 12px; color: var(--text-muted); cursor: pointer; user-select: none;">จดจำการเข้าสู่ระบบบนเครื่องนี้ (ไม่ต้องใส่รหัสอีก)</label>
+            </div>
             <button type="submit" class="btn-submit" style="width: 100%; justify-content: center;">เข้าสู่ระบบ</button>
         </form>
     </div>
@@ -490,10 +494,16 @@
                     <span style="font-size: 12px; color: var(--text-muted);">บันทึกสคริปต์แบบ Realtime ทันที ไม่จำกัด</span>
                 </div>
             </div>
-            <a href="index.html" class="sidebar-btn" style="text-decoration: none; color: #fff; background: var(--bg-surface); padding: 8px 16px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
-                <span>ดูหน้าเว็บจริง</span>
-                <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-            </a>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <a href="index.html" class="sidebar-btn" style="text-decoration: none; color: #fff; background: var(--bg-surface); padding: 8px 16px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                    <span>ดูหน้าเว็บจริง</span>
+                    <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                </a>
+                <button type="button" id="btnAdminLogout" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #ef4444; padding: 8px 14px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; font-family: inherit; transition: 0.15s;">
+                    <i data-lucide="log-out" style="width: 14px; height: 14px;"></i>
+                    <span>ออกจากระบบ</span>
+                </button>
+            </div>
         </div>
 
         <!-- แท็บเมนู -->

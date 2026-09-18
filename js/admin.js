@@ -98,22 +98,47 @@ document.addEventListener("DOMContentLoaded", () => {
             .replace(/"/g, "&quot;");
     }
 
-    // 1. ตรวจสอบรหัสผ่าน Login
+    // 1. ตรวจสอบรหัสผ่าน Login & ระบบจดจำรหัสผ่านบนเครื่อง
     const ADMIN_PIN = "0927945086";
+    const rememberAdminCheckbox = document.getElementById("rememberAdminCheckbox");
+    const btnAdminLogout = document.getElementById("btnAdminLogout");
+
+    function unlockAdminDashboard() {
+        loginScreen.style.display = "none";
+        adminDashboard.style.display = "block";
+        initAdmin();
+    }
+
+    // ตรวจสอบสถานะการจดจำรหัสผ่านเดิม หากเคยเข้าสู่ระบบแล้วให้ผ่านทันทีโดยไม่ต้องใส่รหัสซ้ำ
+    if (localStorage.getItem("blacklist_admin_auth") === "true") {
+        unlockAdminDashboard();
+    }
 
     loginForm.addEventListener("submit", (e) => {
         e.preventDefault();
         if (pinInput.value.trim() === ADMIN_PIN) {
-            loginScreen.style.display = "none";
-            adminDashboard.style.display = "block";
-            initAdmin();
-            showToast("เข้าสู่ระบบหลังบ้านสำเร็จ!");
+            // บันทึกสิทธิ์เข้าใช้งานลง localStorage เพื่อไม่ต้องใส่รหัสอีก
+            if (!rememberAdminCheckbox || rememberAdminCheckbox.checked) {
+                localStorage.setItem("blacklist_admin_auth", "true");
+            }
+            unlockAdminDashboard();
+            showToast("เข้าสู่ระบบหลังบ้านสำเร็จ! (จดจำสิทธิ์บนเครื่องนี้เรียบร้อย)");
         } else {
             alert("รหัสผ่านไม่ถูกต้อง! กรุณาลองใหม่อีกครั้ง");
             pinInput.value = "";
             pinInput.focus();
         }
     });
+
+    // ปุ่มออกจากระบบ เพื่อให้แอดมินสามารถล้างการจำรหัสได้เมื่อต้องการ
+    if (btnAdminLogout) {
+        btnAdminLogout.addEventListener("click", () => {
+            if (confirm("คุณต้องการออกจากระบบหลังบ้านใช่หรือไม่? (ระบบจะลืมรหัสผ่านที่จำไว้)")) {
+                localStorage.removeItem("blacklist_admin_auth");
+                location.reload();
+            }
+        });
+    }
 
     async function initAdmin() {
         await Promise.all([loadSiteConfig(), loadScriptsFromServer(), loadDbStats()]);
