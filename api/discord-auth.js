@@ -1,4 +1,4 @@
-const { VIP_ROLE_ID, generateVipToken } = require('./_vip-helper.js');
+const { VIP_ROLE_ID, generateVipToken } = require('../lib/vip-helper.js');
 
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID || '1549395921228271686';
 const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || '_0r2E975KMdK9PRXYIiYat7ONK7xkIg3';
