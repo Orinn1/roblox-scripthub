@@ -317,7 +317,7 @@ const server = http.createServer(async (req, res) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     username: 'BlacklistScriptx Security',
-                    avatar_url: 'https://blacklistscripty.vercel.app/Logo.png',
+                    avatar_url: 'https://blacklistscripty.vercel.app/Logo.ico',
                     embeds: [{
                         title: '🎉 ปลดล็อคผ่าน LootLabs สำเร็จ!',
                         description: 'มีผู้ใช้งานทำภารกิจสนับสนุนบน LootLabs เสร็จสิ้น และได้รับสิทธิ์เข้าใช้งานเว็บไซต์',
@@ -329,7 +329,7 @@ const server = http.createServer(async (req, res) => {
                             { name: '⏰ วันที่และเวลา', value: `${new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })} (เวลาไทย)`, inline: true },
                             { name: '⏳ ระยะเวลาจดจำ', value: '24 ชั่วโมง', inline: true }
                         ],
-                        footer: { text: 'BlacklistScriptx • LootLabs Security Gate', icon_url: 'https://blacklistscripty.vercel.app/Logo.png' },
+                        footer: { text: 'BlacklistScriptx • LootLabs Security Gate', icon_url: 'https://blacklistscripty.vercel.app/Logo.ico' },
                         timestamp: new Date().toISOString()
                     }]
                 })

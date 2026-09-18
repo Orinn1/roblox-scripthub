@@ -730,7 +730,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const version = document.getElementById("sVersion").value.trim() || "v1.0";
         const desc = document.getElementById("sDesc").value.trim() || "สคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี";
         const descEn = document.getElementById("sDescEn") ? document.getElementById("sDescEn").value.trim() : "";
-        const thumb = document.getElementById("sThumb").value.trim() || "Logo.png";
+        const thumb = document.getElementById("sThumb").value.trim() || "Logo.ico";
         const thumbEn = document.getElementById("sThumbEn") ? document.getElementById("sThumbEn").value.trim() : "";
         const code = document.getElementById("sCode").value.trim();
 

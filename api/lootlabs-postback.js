@@ -130,17 +130,18 @@ async function sendDiscordLog({ clickId, ip, uniqueId }) {
             ],
             footer: {
                 text: "BlacklistScriptx • LootLabs Security Gate",
-                icon_url: "https://blacklistscripty.vercel.app/Logo.png"
+                icon_url: "https://blacklistscripty.vercel.app/Logo.ico"
             },
             timestamp: new Date().toISOString()
         };
 
-        await fetch(DISCORD_WEBHOOK_URL, {
+        const webhookUrl = process.env.DISCORD_WEBHOOK_URL || DEFAULT_WEBHOOK_URL;
+        await fetch(webhookUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                username: "BlacklistScriptx Security",
-                avatar_url: "https://blacklistscripty.vercel.app/Logo.png",
+                username: "BlacklistScriptx Gatekeeper",
+                avatar_url: "https://blacklistscripty.vercel.app/Logo.ico",
                 embeds: [embed]
             })
         });

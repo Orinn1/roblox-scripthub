@@ -4,6 +4,7 @@
   "outputDirectory": "public",
   "cleanUrls": true,
   "rewrites": [
+    { "source": "/favicon.ico", "destination": "/Logo.ico" },
     { "source": "/", "destination": "/index.html" },
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/api/discord-auth", "destination": "/api/vip" },

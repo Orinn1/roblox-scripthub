@@ -32,6 +32,7 @@ const itemsToCopy = [
     'data',
     'assets',
     'Logo.ico',
+    'favicon.ico',
     'Logo.png',
     'Banner.png',
     'popup.png'

@@ -343,7 +343,9 @@ function renderHtmlLayout(title, contentHtml) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${escapeHtml(title)} - BlacklistScriptx Security</title>
-    <link rel="icon" type="image/png" href="/Logo.png">
+    <link rel="icon" type="image/x-icon" href="/Logo.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/Logo.ico">
+    <link rel="apple-touch-icon" href="/Logo.ico">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {

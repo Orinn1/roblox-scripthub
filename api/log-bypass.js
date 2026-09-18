@@ -93,7 +93,7 @@ module.exports = async (req, res) => {
             ],
             footer: {
                 text: "BlacklistScriptx Anti-Bypass Defense • กดปุ่มด้านล่างเพื่อแบน 1-24 ชม.",
-                icon_url: `${baseUrl}/Logo.png`
+                icon_url: `${baseUrl}/Logo.ico`
             },
             timestamp: new Date().toISOString()
         };
@@ -168,7 +168,7 @@ module.exports = async (req, res) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 username: "BlacklistScriptx Security Guard",
-                avatar_url: `${baseUrl}/Logo.png`,
+                avatar_url: `${baseUrl}/Logo.ico`,
                 embeds: [embed],
                 components: components
             })

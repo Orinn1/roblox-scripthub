@@ -2196,19 +2196,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function getScriptDisplay(item, lang = currentLang) {
-        if (!item) return { title: "", description: "", thumbnail: "Logo.png" };
+        if (!item) return { title: "", description: "", thumbnail: "Logo.ico" };
         if (lang === "th") {
             return {
                 title: item.title || "",
                 description: item.description || "",
-                thumbnail: item.thumbnail || "Logo.png"
+                thumbnail: item.thumbnail || "Logo.ico"
             };
         }
 
         // English mode
         const title = item.title_en || autoTranslateTitle(item.title, item.game);
         const description = item.description_en || autoTranslateDesc(item.description, item.game);
-        const thumbnail = item.thumbnail_en || item.thumbnail || "Logo.png";
+        const thumbnail = item.thumbnail_en || item.thumbnail || "Logo.ico";
 
         return { title, description, thumbnail };
     }
