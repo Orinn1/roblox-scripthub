@@ -883,16 +883,13 @@ body {
 
 .locker-box {
     width: 100%;
-    max-width: 470px;
-    background: linear-gradient(180deg, #0d1322 0%, #06080e 100%);
-    border: 1px solid rgba(14, 165, 233, 0.35);
-    border-radius: 24px;
-    padding: 28px 22px 22px;
+    max-width: 460px;
+    background: #10131c;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 26px 22px 22px;
     position: relative;
-    box-shadow: 
-        0 25px 60px -15px rgba(0, 0, 0, 0.9),
-        0 0 40px rgba(14, 165, 233, 0.25),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7);
     text-align: center;
     overflow: hidden;
     transform: scale(0.96) translateY(10px);
@@ -904,15 +901,9 @@ body {
 }
 
 /* Ambient Blue Top Glow Line */
+/* Top accent line removed for cleaner look */
 .locker-box::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 15%;
-    right: 15%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #0284c7, #38bdf8, #0284c7, transparent);
-    box-shadow: 0 0 16px #0ea5e9;
+    display: none;
 }
 
 /* Close Button */
@@ -941,10 +932,9 @@ body {
 }
 
 .modal-close:hover {
-    background: rgba(14, 165, 233, 0.2);
-    border-color: rgba(14, 165, 233, 0.4);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
     color: #fff;
-    transform: rotate(90deg);
 }
 
 /* Hero Badge */
@@ -955,12 +945,11 @@ body {
 }
 
 .locker-hero-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.25) 0%, rgba(2, 132, 199, 0.08) 100%);
-    border: 1px solid rgba(14, 165, 233, 0.45);
-    box-shadow: 0 0 25px rgba(14, 165, 233, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: rgba(14, 165, 233, 0.1);
+    border: 1px solid rgba(14, 165, 233, 0.18);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1030,9 +1019,8 @@ body {
 
 .tracker-step.active .step-num {
     background: #0ea5e9;
-    border-color: #38bdf8;
+    border-color: #0ea5e9;
     color: #fff;
-    box-shadow: 0 0 12px rgba(14, 165, 233, 0.5);
 }
 
 .tracker-step.active .step-txt {
@@ -1041,9 +1029,8 @@ body {
 
 .tracker-step.done .step-num {
     background: #16a34a;
-    border-color: #22c55e;
+    border-color: #16a34a;
     color: #fff;
-    box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
 }
 
 .tracker-step.done .step-txt {
@@ -1060,7 +1047,6 @@ body {
 
 .tracker-line.done {
     background: #16a34a;
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
 }
 
 /* Tasks Stack */
@@ -1187,24 +1173,21 @@ body {
 .active-pill {
     background: #0ea5e9;
     color: #fff;
-    box-shadow: 0 2px 10px rgba(14, 165, 233, 0.5);
 }
 
 /* Primary Active Blue Card */
 .btn-task.primary-red, .task-button.primary-red {
     opacity: 1;
     cursor: pointer;
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(2, 132, 199, 0.3) 100%);
-    border: 1px solid rgba(14, 165, 233, 0.6);
-    box-shadow: 0 4px 20px rgba(14, 165, 233, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    background: rgba(14, 165, 233, 0.12);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    box-shadow: none;
     color: #ffffff;
 }
 
 .btn-task.primary-red:hover, .task-button.primary-red:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.3) 0%, rgba(2, 132, 199, 0.45) 100%);
-    border-color: #0ea5e9;
-    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.4);
+    background: rgba(14, 165, 233, 0.18);
+    border-color: rgba(14, 165, 233, 0.45);
 }
 
 .btn-task.primary-red .task-badge {
@@ -1338,12 +1321,11 @@ body {
 }
 
 .unlocked-glow-ring {
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
-    background: rgba(34, 197, 94, 0.2);
-    border: 1px solid #22c55e;
-    box-shadow: 0 0 18px rgba(34, 197, 94, 0.4);
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1898,15 +1880,15 @@ body {
 .lootlabs-gate-overlay {
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle at 50% 30%, rgba(139, 92, 246, 0.18), rgba(10, 11, 14, 0.98) 75%);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    background: rgba(6, 8, 14, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     z-index: 99999;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
-    animation: gateFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: gateFadeIn 0.25s ease-out;
     pointer-events: auto !important;
 }
 
@@ -1917,62 +1899,51 @@ body {
 
 .lootlabs-gate-box {
     width: 100%;
-    max-width: 480px;
-    background: linear-gradient(180deg, #161824 0%, #0d0f15 100%);
-    border: 1px solid rgba(139, 92, 246, 0.45);
-    border-radius: 24px;
-    padding: 34px 26px 26px;
+    max-width: 460px;
+    background: #12151e;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 32px 24px 24px;
     text-align: center;
     position: relative;
-    box-shadow:
-        0 30px 80px -15px rgba(0, 0, 0, 0.95),
-        0 0 50px rgba(14, 165, 233, 0.25),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7);
     overflow: hidden;
 }
 
 .lootlabs-gate-box::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 18%;
-    right: 18%;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, #0284c7, #38bdf8, #0284c7, transparent);
-    box-shadow: 0 0 20px #0ea5e9;
+    display: none;
 }
 
 .lootlabs-gate-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 5px 14px;
-    border-radius: 999px;
-    background: rgba(14, 165, 233, 0.15);
-    border: 1px solid rgba(14, 165, 233, 0.4);
-    color: #38bdf8;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    margin-bottom: 18px;
+    padding: 5px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    margin-bottom: 16px;
 }
 
 .lootlabs-gate-icon {
-    width: 64px;
-    height: 64px;
-    margin: 0 auto 16px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(2, 132, 199, 0.15));
-    border: 1px solid rgba(14, 165, 233, 0.45);
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 14px;
+    border-radius: 14px;
+    background: rgba(14, 165, 233, 0.1);
+    border: 1px solid rgba(14, 165, 233, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 10px 25px rgba(14, 165, 233, 0.25);
 }
 
 .lootlabs-gate-icon i, .lootlabs-gate-icon svg {
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
     color: #38bdf8;
 }
 
@@ -1997,22 +1968,22 @@ body {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #38bdf8 100%);
+    background: #0284c7;
     color: #fff;
-    font-size: 14.5px;
+    font-size: 14px;
     font-weight: 600;
-    padding: 13px 22px;
-    border-radius: 12px;
+    padding: 12px 20px;
+    border-radius: 10px;
     text-decoration: none;
     cursor: pointer;
-    box-shadow: 0 8px 24px rgba(14, 165, 233, 0.4);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: background 0.15s ease, box-shadow 0.15s ease;
     border: none;
 }
 
 .btn-gate-lootlabs:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(14, 165, 233, 0.6);
+    background: #0369a1;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
     color: #fff;
 }
 
@@ -2183,8 +2154,8 @@ body {
 .gate-auto-detect {
     margin-top: 12px;
     padding: 10px 14px;
-    background: rgba(59, 130, 246, 0.12);
-    border: 1px solid rgba(59, 130, 246, 0.35);
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.2);
     border-radius: 10px;
     color: #93c5fd;
     font-size: 12.5px;
@@ -2193,18 +2164,6 @@ body {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    animation: gatePulseBorder 2s infinite ease-in-out;
-}
-
-@keyframes gatePulseBorder {
-    0%, 100% {
-        border-color: rgba(59, 130, 246, 0.35);
-        box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
-    }
-    50% {
-        border-color: rgba(139, 92, 246, 0.65);
-        box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
-    }
 }
 
 .gate-spinner {
