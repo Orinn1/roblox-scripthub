@@ -546,6 +546,20 @@ document.addEventListener("DOMContentLoaded", () => {
         if (lblGateHint) lblGateHint.textContent = t.gateHint;
         if (gateErrorMsg) gateErrorMsg.textContent = currentLang === 'th' ? "Token ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง" : "Invalid Token. Please try again.";
 
+        const lblGateTutorial = document.getElementById("lblGateTutorial");
+        if (lblGateTutorial) {
+            const isOpened = gateTutorialPlayerBox && gateTutorialPlayerBox.style.display !== "none";
+            if (isOpened) {
+                lblGateTutorial.textContent = currentLang === 'th' ? "ซ่อนคลิปสอนวิธีผ่าน" : "Hide Tutorial";
+            } else {
+                lblGateTutorial.textContent = currentLang === 'th' ? "ดูคลิปสอนวิธีผ่านลิงก์ (คลิกที่นี่)" : "Watch Tutorial Guide (Click here)";
+            }
+        }
+        const lblGateTutorialHint = document.getElementById("lblGateTutorialHint");
+        if (lblGateTutorialHint) lblGateTutorialHint.textContent = currentLang === 'th' ? "คลิปสั้นเข้าใจง่าย ดูจบทำตามได้ทันที" : "Short & easy guide. Follow steps to unlock.";
+        const lblGateTutorialYt = document.getElementById("lblGateTutorialYt");
+        if (lblGateTutorialYt) lblGateTutorialYt.textContent = currentLang === 'th' ? "เปิดดูบน YouTube" : "Watch on YouTube";
+
         const lblMobileNavHome = document.getElementById("lblMobileNavHome");
         if (lblMobileNavHome) lblMobileNavHome.textContent = t.mobHome;
         const lblMobileNavScripts = document.getElementById("lblMobileNavScripts");
