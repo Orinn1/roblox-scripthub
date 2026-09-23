@@ -45,7 +45,7 @@
                             avatar: payload.avatar || ''
                         },
                         roles: payload.roles || [],
-                        primaryRole: payload.primaryRole || { id: '', name: 'Member', tag: '👤 Member', color: '#94a3b8', canBypass: false },
+                        primaryRole: payload.primaryRole || { id: '', name: 'Member', tag: 'Member', color: '#94a3b8', canBypass: false },
                         canBypass: canBypass,
                         expiresAt: 0 // Lifetime
                     };
@@ -223,10 +223,10 @@
 
                     <div class="lang-switcher" id="langSwitcher" role="group" aria-label="Language Switcher">
                         <button type="button" class="lang-btn active" id="langBtnEn" data-lang="en">
-                            <span class="flag-icon">🇺🇸</span> <span>EN</span>
+                            <i data-lucide="globe" style="width: 13px; height: 13px;"></i> <span>EN</span>
                         </button>
                         <button type="button" class="lang-btn" id="langBtnTh" data-lang="th">
-                            <span class="flag-icon">🇹🇭</span> <span>TH</span>
+                            <i data-lucide="languages" style="width: 13px; height: 13px;"></i> <span>TH</span>
                         </button>
                     </div>
                 </div>
@@ -262,7 +262,7 @@
                     <section>
                         <div class="section-head">
                             <h3><i data-lucide="zap"></i> <span id="lblTrendingHead">Trending Scripts</span></h3>
-                            <button class="btn-view-all" id="btnSeeAllScripts"><span id="lblSeeAllScripts">View All ➔</span></button>
+                            <button class="btn-view-all" id="btnSeeAllScripts"><span id="lblSeeAllScripts">View All</span> <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i></button>
                         </div>
                         <div class="scripts-feed" id="homeRecentScripts">
                             <!-- Loaded from JS -->
@@ -273,7 +273,7 @@
                     <section>
                         <div class="section-head">
                             <h3><i data-lucide="cpu"></i> <span id="lblExecutorsHead">Live Executor Status & sUNC (WEAO)</span></h3>
-                            <button class="btn-view-all" id="btnSeeAllExploits"><span id="lblSeeAllExploits">View All 30+ Executors ➔</span></button>
+                            <button class="btn-view-all" id="btnSeeAllExploits"><span id="lblSeeAllExploits">View All 30+ Executors</span> <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i></button>
                         </div>
                         <div class="executors-grid" id="homeExecutorsGrid">
                             <!-- Loaded from WEAO API -->
@@ -343,7 +343,7 @@
          ======================================================================= -->
     <div class="modal-overlay" id="suncModal">
         <div class="sunc-modal-box">
-            <button class="modal-close" id="closeSuncModalBtn">✕</button>
+            <button class="modal-close" id="closeSuncModalBtn" aria-label="Close"><i data-lucide="x"></i></button>
 
             <div style="margin-bottom: 12px;">
                 <span class="tag-badge" style="color: #38bdf8; background: rgba(56, 189, 248, 0.1);">sUNC Benchmark Test</span>
@@ -468,7 +468,7 @@
                         <i data-lucide="check-circle-2"></i>
                     </div>
                     <div class="unlocked-texts">
-                        <h4 id="lblUnlockedTitle">Unlocked Successfully! 🎉</h4>
+                        <h4 id="lblUnlockedTitle">Unlocked Successfully!</h4>
                         <p id="lblUnlockedDesc">You can now copy the script code and run it in your game</p>
                     </div>
                 </div>
@@ -593,7 +593,7 @@
 
             <!-- ลิงก์เข้าใช้งานสำหรับผู้มียศ VIP ใน Discord -->
             <div class="gate-vip-box">
-                <span class="gate-vip-crown">👑</span>
+                <i data-lucide="crown" class="gate-vip-crown" style="width: 18px; height: 18px; color: #fbbf24;"></i>
                 <span id="lblGateVipText">มียศ VIP ใน Discord?</span>
                 <a href="/api/discord-auth?action=login" class="gate-vip-link-btn" id="gateOpenVipModalBtn">
                     <span id="lblGateVipBtn">เข้าสู่ระบบด้วย Discord (ไร้โฆษณา 100%)</span>
@@ -607,9 +607,9 @@
          ======================================================================= -->
     <div class="vip-modal-overlay" id="vipModalOverlay" style="display: none;">
         <div class="vip-modal-box">
-            <button class="vip-modal-close" id="vipModalCloseBtn" aria-label="Close modal">&times;</button>
+            <button class="vip-modal-close" id="vipModalCloseBtn" aria-label="Close modal"><i data-lucide="x"></i></button>
             <div class="vip-modal-header">
-                <div class="vip-crown-badge" id="vipModalBadge">👑 DISCORD MEMBERSHIP</div>
+                <div class="vip-crown-badge" id="vipModalBadge"><i data-lucide="crown" style="width: 15px; height: 15px;"></i> DISCORD MEMBERSHIP</div>
                 <h3 id="vipModalTitle">ระบบสมาชิก Discord & บทบาท</h3>
                 <p id="vipModalSubtitle">เข้าสู่ระบบเพื่อแสดงโปรไฟล์และยศของคุณบนเว็บไซต์</p>
             </div>
@@ -617,21 +617,21 @@
             <!-- VIP Active State -->
             <div class="vip-active-panel" id="vipActivePanel" style="display: none;">
                 <div class="vip-active-card">
-                    <div class="vip-avatar" id="vipUserAvatar">👑</div>
+                    <div class="vip-avatar" id="vipUserAvatar"><i data-lucide="crown" style="width: 24px; height: 24px; color: #fbbf24;"></i></div>
                     <div class="vip-details">
                         <div class="vip-name-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <span class="vip-name" id="vipUserName">Discord User</span>
-                            <span class="user-role-badge" id="vipUserRoleBadge">⚡ Bypass</span>
+                            <span class="user-role-badge" id="vipUserRoleBadge"><i data-lucide="shield-check" style="width: 13px; height: 13px;"></i> Bypass</span>
                         </div>
-                        <div class="vip-badge-tag" id="vipStatusBadgeTag">🟢 ACTIVE • BYPASS ADS 100%</div>
+                        <div class="vip-badge-tag" id="vipStatusBadgeTag"><i data-lucide="check-circle" style="width: 13px; height: 13px; color: #4ade80;"></i> ACTIVE • BYPASS ADS 100%</div>
                     </div>
                 </div>
                 <div class="vip-features-list" id="vipFeaturesList">
-                    <div>✅ ปิดโฆษณา Adsterra และป๊อปอัปทั้งหมด 100%</div>
-                    <div>✅ ข้ามเกทโฆษณา ShrinkEarn / LootLabs ถาวร</div>
-                    <div>✅ เข้าถึงโค้ดสคริปต์ได้ทันทีไม่ต้องรอ</div>
+                    <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> ปิดโฆษณา Adsterra และป๊อปอัปทั้งหมด 100%</div>
+                    <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> ข้ามเกทโฆษณา ShrinkEarn / LootLabs ถาวร</div>
+                    <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> เข้าถึงโค้ดสคริปต์ได้ทันทีไม่ต้องรอ</div>
                 </div>
-                <div class="vip-expiry-note" id="vipExpiryText">✨ สถานะ: สมาชิกตลอดชีพ</div>
+                <div class="vip-expiry-note" id="vipExpiryText"><i data-lucide="sparkles" style="width: 14px; height: 14px; color: #fbbf24;"></i> สถานะ: สมาชิกตลอดชีพ</div>
                 <button type="button" class="btn-vip-logout" id="vipLogoutBtn">ออกจากระบบบนเครื่องนี้</button>
             </div>
 
@@ -664,7 +664,7 @@
             <div class="banned-icon-pulse">
                 <i data-lucide="ban"></i>
             </div>
-            <h2 class="banned-title" id="lblBannedTitle">⛔ Access Suspended</h2>
+            <h2 class="banned-title" id="lblBannedTitle">Access Suspended</h2>
             <p class="banned-subtitle" id="bannedReasonText">
                 Suspicious behavior or security bypass attempt detected by administrator.
             </p>
@@ -694,15 +694,15 @@
 
             <div class="banned-info-card">
                 <div class="banned-info-row">
-                    <span id="lblBannedIp">🌐 Your Client IP:</span>
+                    <span id="lblBannedIp"><i data-lucide="globe" style="width: 14px; height: 14px; vertical-align: middle;"></i> Your Client IP:</span>
                     <code id="bannedClientIp">Checking...</code>
                 </div>
                 <div class="banned-info-row">
-                    <span id="lblBannedDuration">⏳ Duration:</span>
+                    <span id="lblBannedDuration"><i data-lucide="clock" style="width: 14px; height: 14px; vertical-align: middle;"></i> Duration:</span>
                     <span id="bannedDurationText">-- Hours</span>
                 </div>
                 <div class="banned-info-row">
-                    <span id="lblBannedUnlock">⏰ Unlocks At:</span>
+                    <span id="lblBannedUnlock"><i data-lucide="calendar" style="width: 14px; height: 14px; vertical-align: middle;"></i> Unlocks At:</span>
                     <span id="bannedExpireTimeText" class="text-amber">--:--</span>
                 </div>
             </div>
