@@ -117,7 +117,7 @@
         })();
     </script>
 
-    <link rel="stylesheet" href="css/style.css?v=20260923_v2">
+    <link rel="stylesheet" href="css/style.css?v=20260919_v7">
     <link rel="stylesheet" href="css/sunc.css?v=20260919_v5">
     <!-- Favicon Logo.ico -->
     <link rel="icon" type="image/x-icon" href="Logo.ico">
@@ -185,7 +185,7 @@
                     id="sideYtBtn">
                     <i data-lucide="youtube"></i> <span id="lblSideYt">YouTube Channel</span>
                 </a>
-                <a href="https://discord.gg/6x67MrtfbX" target="_blank" class="sidebar-btn dc-btn" id="sideDcBtn">
+                <a href="https://discord.gg" target="_blank" class="sidebar-btn dc-btn" id="sideDcBtn">
                     <i data-lucide="message-square"></i> <span id="lblSideDc">Join Discord</span>
                 </a>
             </div>
@@ -237,52 +237,49 @@
                      VIEW 1: หน้าหลัก (HOME VIEW)
                      ======================================================= -->
                 <div class="home-view" id="homeView">
-                    <!-- Spotlight Hero Banner -->
+                    <!-- Spotlight Banner -->
                     <section class="home-spotlight">
                         <div class="spotlight-content">
                             <span class="spotlight-badge">
-                                <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i> <span id="lblSpotBadge">Featured Script</span>
+                                <i data-lucide="flame" style="width: 13px; height: 13px;"></i> <span id="lblSpotBadge">#1 Trending Script</span>
                             </span>
-                            <h2 class="spotlight-title">Blox Fruits - Redz Hub (Auto Farm)</h2>
-                            <p class="spotlight-desc" id="lblSpotDesc">Automated level farming, mob aura, and quest progression. Compatible with PC and Mobile executors.</p>
+                            <h2 class="spotlight-title">Blox Fruits - Redz Hub (Auto Farm 1-Max)</h2>
+                            <p class="spotlight-desc" id="lblSpotDesc">The most stable level farming script. Auto farm, quests, dual katanas, fully awakened fruits. Mobile & PC supported.</p>
                             <div class="spotlight-actions">
                                 <button class="btn-spotlight" onclick="openLocker('blox-fruits-redz')">
                                     <i data-lucide="unlock" style="width: 14px; height: 14px;"></i>
-                                    <span id="lblSpotGet">Get Script</span>
+                                    <span id="lblSpotGet">Get This Script</span>
                                 </button>
                                 <button class="btn-spotlight-secondary" id="btnGoFeedAll">
-                                    <span id="lblSpotAll">Browse All</span>
+                                    <span id="lblSpotAll">View All Scripts</span>
                                     <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
                                 </button>
                             </div>
                         </div>
                     </section>
 
-                    <!-- Featured Scripts -->
+                    <!-- Trending Scripts -->
                     <section>
                         <div class="section-head">
-                            <h3><i data-lucide="flame"></i> <span id="lblTrendingHead">Featured Scripts</span></h3>
+                            <h3><i data-lucide="zap"></i> <span id="lblTrendingHead">Trending Scripts</span></h3>
                             <button class="btn-view-all" id="btnSeeAllScripts"><span id="lblSeeAllScripts">View All ➔</span></button>
                         </div>
                         <div class="scripts-feed" id="homeRecentScripts">
-                            <div class="skeleton-box" style="height: 92px; border-radius: 8px;"></div>
-                            <div class="skeleton-box" style="height: 92px; border-radius: 8px;"></div>
-                            <div class="skeleton-box" style="height: 92px; border-radius: 8px;"></div>
+                            <!-- Loaded from JS -->
                         </div>
                     </section>
 
-                    <!-- Compact Executor Status -->
+                    <!-- Executors Live from WEAO API -->
                     <section>
                         <div class="section-head">
-                            <h3><i data-lucide="cpu"></i> <span id="lblExecutorsHead">Executor Status & Benchmarks</span></h3>
-                            <button class="btn-view-all" id="btnSeeAllExploits"><span id="lblSeeAllExploits">View All Executors ➔</span></button>
+                            <h3><i data-lucide="cpu"></i> <span id="lblExecutorsHead">Live Executor Status & sUNC (WEAO)</span></h3>
+                            <button class="btn-view-all" id="btnSeeAllExploits"><span id="lblSeeAllExploits">View All 30+ Executors ➔</span></button>
                         </div>
                         <div class="executors-grid" id="homeExecutorsGrid">
-                            <div id="lblLoadingExploits" style="display: contents;">
-                                <div class="skeleton-box" style="height: 56px; border-radius: 8px;"></div>
-                                <div class="skeleton-box" style="height: 56px; border-radius: 8px;"></div>
-                                <div class="skeleton-box" style="height: 56px; border-radius: 8px;"></div>
-                                <div class="skeleton-box" style="height: 56px; border-radius: 8px;"></div>
+                            <!-- Loaded from WEAO API -->
+                            <div
+                                style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--text-muted);" id="lblLoadingExploits">
+                                <i data-lucide="loader-2" class="spin"></i> Loading executor status from WEAO API...
                             </div>
                         </div>
                     </section>
@@ -332,27 +329,11 @@
 
                     <!-- Exploits grid -->
                     <div class="exploits-grid" id="exploitsGrid">
-                        <div id="lblLoadingAllExploits" style="grid-column: 1/-1; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-                            <div class="skeleton-box" style="height: 140px; border-radius: 8px;"></div>
-                            <div class="skeleton-box" style="height: 140px; border-radius: 8px;"></div>
-                            <div class="skeleton-box" style="height: 140px; border-radius: 8px;"></div>
-                            <div class="skeleton-box" style="height: 140px; border-radius: 8px;"></div>
+                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);" id="lblLoadingAllExploits">
+                            <i data-lucide="loader-2" class="spin"></i> Loading data from WEAO API...
                         </div>
                     </div>
                 </div>
-
-                <!-- Technical Footer -->
-                <footer class="app-footer">
-                    <div class="footer-left">
-                        <div class="footer-brand">Blacklist<span>Scriptx</span></div>
-                        <p class="footer-copy">Tested scripts and verified executor status benchmarks.</p>
-                    </div>
-                    <div class="footer-links">
-                        <a href="https://discord.gg/6x67MrtfbX" target="_blank" rel="noopener noreferrer"><i data-lucide="message-square"></i> Discord</a>
-                        <a href="https://www.youtube.com/@Blacklistxyx" target="_blank" rel="noopener noreferrer"><i data-lucide="youtube"></i> YouTube</a>
-                        <span class="footer-note">Independent community platform.</span>
-                    </div>
-                </footer>
             </main>
         </div>
     </div>
@@ -547,16 +528,16 @@
     <div class="lootlabs-gate-overlay" id="lootlabsGateOverlay" style="display: none;">
         <div class="lootlabs-gate-box">
             <div class="lootlabs-gate-badge">
-                <i data-lucide="shield-check"></i> <span>ACCESS VERIFICATION</span>
+                <i data-lucide="shield-alert"></i> <span>SECURITY ACCESS GATE</span>
             </div>
 
             <div class="lootlabs-gate-icon">
                 <i data-lucide="lock"></i>
             </div>
 
-            <h2 class="lootlabs-gate-title" id="lblGateTitle">Verification Required</h2>
+            <h2 class="lootlabs-gate-title" id="lblGateTitle">Access Restricted</h2>
             <p class="lootlabs-gate-desc" id="gateMessageText">
-                Complete the short verification to access the website and script library.
+                Please complete the support link to unlock access to the website and receive free scripts
             </p>
             <!-- ปุ่มเข้าใช้งานผ่าน ShrinkEarn / LootLabs -->
             <a href="#" class="btn-gate-lootlabs" id="gateLootlabsBtn" rel="noopener noreferrer">
@@ -680,14 +661,14 @@
     <div class="banned-screen-overlay" id="bannedScreenOverlay" style="display: none;">
         <div class="banned-screen-box">
             <div class="banned-badge">
-                <i data-lucide="shield-alert"></i> <span>SECURITY ALERT</span>
+                <i data-lucide="shield-x"></i> <span>SECURITY ENFORCEMENT</span>
             </div>
             <div class="banned-icon-pulse">
                 <i data-lucide="ban"></i>
             </div>
-            <h2 class="banned-title" id="lblBannedTitle">Access Suspended</h2>
+            <h2 class="banned-title" id="lblBannedTitle">⛔ Access Suspended</h2>
             <p class="banned-subtitle" id="bannedReasonText">
-                Automated rate-limiting or suspicious verification bypass detected.
+                Suspicious behavior or security bypass attempt detected by administrator.
             </p>
 
             <div class="banned-countdown-box">
