@@ -19,7 +19,7 @@
     "thumbnail_en": "",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua\"))()",
-    "created_at": 1790173280117
+    "created_at": 1790174330362
   },
   {
     "id": "script-1789400876314",
@@ -41,7 +41,7 @@
     "thumbnail_en": "",
     "description_en": "",
     "loadstring": "GravityHub = {\n    Key = \"\",\n    Team = \"Pirates\",\n    Color = \"Red\",\n    SaveSetting = false,\n    AutoExecute = false\n}\nloadstring(game:HttpGet(\"https://raw.githubusercontent.com/Dev-GravityHub/BloxFruit/refs/heads/main/MainPremium.lua\"))()",
-    "created_at": 1790173280113
+    "created_at": 1790174330357
   },
   {
     "id": "script-1789490850185",
@@ -63,7 +63,7 @@
     "thumbnail_en": "https://i.postimg.cc/ydn5BLQh/Chat-GPT-Image-Sep-18-2026-09-25-03-PM.png",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://zeroinhub.com/api/script\"))()",
-    "created_at": 1790173280108
+    "created_at": 1790174330353
   },
   {
     "id": "script-1789655182421",
@@ -85,7 +85,7 @@
     "thumbnail_en": "",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua\"))()",
-    "created_at": 1790173280102
+    "created_at": 1790174330347
   },
   {
     "id": "script-1789880768357",
@@ -94,7 +94,7 @@
     "category": "slayers 2",
     "version": "v1.0",
     "updated": "วันนี้",
-    "views": 371,
+    "views": 373,
     "likes": 1,
     "isKeyless": true,
     "isMobile": true,
@@ -107,7 +107,7 @@
     "thumbnail_en": "",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://api.luarmor.net/files/v4/loaders/aa4e52f143ce2264c6fc74475781d247.lua\"))()",
-    "created_at": 1790173280096
+    "created_at": 1790174330341
   },
   {
     "id": "script-1789880900671",
@@ -116,7 +116,7 @@
     "category": "slayers 2",
     "version": "v1.0",
     "updated": "วันนี้",
-    "views": 1690,
+    "views": 1696,
     "likes": 3,
     "isKeyless": true,
     "isMobile": false,
@@ -129,6 +129,6 @@
     "thumbnail_en": "",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/gather1231-source/Freemium/refs/heads/main/FreemiumLoader\"))()",
-    "created_at": 1790173280090
+    "created_at": 1790174330332
   }
 ]

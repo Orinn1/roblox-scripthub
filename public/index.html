@@ -5,6 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BlacklistScriptX - Roblox Scripts & Exploit Hub</title>
+    
+    <!-- Instant Dark Mode to avoid white screen flash on iOS / Mobile WebKit -->
+    <style>
+        html, body {
+            background-color: #06080e !important;
+            color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+
+    <!-- Google Fonts Non-blocking Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
     <meta name="description"
         content="Free & 100% safe Roblox scripts, updated daily with executor status and sUNC score benchmarks.">
 
@@ -126,6 +142,17 @@
 </head>
 
 <body>
+
+    <!-- In-App Browser (Messenger/FB/LINE) Notice Bar -->
+    <div id="iabNoticeBar" class="iab-notice-bar" style="display: none;">
+        <div class="iab-notice-content">
+            <i data-lucide="compass" style="width: 18px; height: 18px; color: #38bdf8;"></i>
+            <span>กำลังเปิดในแอป แนะนำแตะ <strong>เข็มทิศ 🧭 (มุมขวาล่าง)</strong> เพื่อเปิดใน Safari</span>
+        </div>
+        <button type="button" class="iab-close-btn" id="iabCloseBtn" aria-label="Close notice">
+            <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+    </div>
 
     <!-- Backdrop สำหรับเมนูสไลด์บนมือถือ -->
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
@@ -744,34 +771,68 @@
     <script src="js/scripts-data.js?v=20260919_v7"></script>
     <script src="js/app.js?v=20260919_v7"></script>
 
-    <!-- Adsterra Ads (Loaded ONLY for Guest users - NEVER for VIP) -->
+    <!-- In-App Browser Notice Logic -->
     <script>
         (function() {
-            // Comprehensive check across all VIP indicators
-            if (window.__IS_VIP__) return;
-
             try {
-                var vip = localStorage.getItem('blacklist_vip_pass');
-                if (vip) {
-                    var data = JSON.parse(vip);
-                    if (data && (data.token || data.user)) {
-                        var exp = Number(data.expiresAt || 0);
-                        if (exp === 0 || Date.now() < exp) return;
+                var ua = navigator.userAgent || '';
+                var isIos = /iPhone|iPad|iPod/i.test(ua);
+                var isIab = /FBAN|FBAV|Messenger|Line|Instagram/i.test(ua);
+                if (isIos && isIab && !sessionStorage.getItem('blacklist_iab_closed')) {
+                    var bar = document.getElementById('iabNoticeBar');
+                    if (bar) {
+                        bar.style.display = 'flex';
+                        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                            window.lucide.createIcons();
+                        }
+                    }
+                    var btn = document.getElementById('iabCloseBtn');
+                    if (btn) {
+                        btn.addEventListener('click', function() {
+                            if (bar) bar.style.display = 'none';
+                            sessionStorage.setItem('blacklist_iab_closed', '1');
+                        });
                     }
                 }
-                var p = new URLSearchParams(window.location.search);
-                if (p.has('vip_token') || p.has('vip_code') || p.has('auth_success')) return;
             } catch(e) {}
-
-            // Strictly non-VIP guest: load Adsterra
-            var s1 = document.createElement('script');
-            s1.src = 'https://pl31372064.profitableratecpmnetwork.com/b1/28/5a/b1285aa73b09eccedfae325c60ae2c62.js';
-            document.body.appendChild(s1);
-
-            var s2 = document.createElement('script');
-            s2.src = 'https://pl31372187.profitableratecpmnetwork.com/60/bc/1b/60bc1b6927b2e11658d89c4b5655cbde.js';
-            document.body.appendChild(s2);
         })();
+    </script>
+
+    <!-- Adsterra Ads (Loaded after window load to prevent render blocking on iOS/Mobile) -->
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                if (window.__IS_VIP__) return;
+
+                try {
+                    var vip = localStorage.getItem('blacklist_vip_pass');
+                    if (vip) {
+                        var data = JSON.parse(vip);
+                        if (data && (data.token || data.user)) {
+                            var exp = Number(data.expiresAt || 0);
+                            if (exp === 0 || Date.now() < exp) return;
+                        }
+                    }
+                    var p = new URLSearchParams(window.location.search);
+                    if (p.has('vip_token') || p.has('vip_code') || p.has('auth_success')) return;
+
+                    // In-app browsers on iOS (Messenger/FB) don't support popunders and get stuck/frozen
+                    var ua = navigator.userAgent || '';
+                    if (/FBAN|FBAV|Messenger/i.test(ua)) return;
+                } catch(e) {}
+
+                // Strictly non-VIP guest: load Adsterra safely
+                var s1 = document.createElement('script');
+                s1.src = 'https://pl31372064.profitableratecpmnetwork.com/b1/28/5a/b1285aa73b09eccedfae325c60ae2c62.js';
+                s1.async = true;
+                document.body.appendChild(s1);
+
+                var s2 = document.createElement('script');
+                s2.src = 'https://pl31372187.profitableratecpmnetwork.com/60/bc/1b/60bc1b6927b2e11658d89c4b5655cbde.js';
+                s2.async = true;
+                document.body.appendChild(s2);
+            }, 500);
+        });
     </script>
 </body>
 
