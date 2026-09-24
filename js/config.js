@@ -12,13 +12,13 @@ const SITE_CONFIG = {
     
     // Firebase Cloud Firestore (50,000 Reads/วัน ฟรีตลอดชีพ)
     firebaseConfig: {
-        apiKey: "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI",
-        authDomain: "blacklistscripts.firebaseapp.com",
-        projectId: "blacklistscripts",
-        storageBucket: "blacklistscripts.firebasestorage.app",
-        messagingSenderId: "337802433479",
-        appId: "1:337802433479:web:d0758311bfd6bd02983fe2",
-        measurementId: "G-KJVSN73QYR"
+        apiKey: "AIzaSyBCZdUq2gEmz_Zhc7XAnY0oa9Uds3hk1lI",
+        authDomain: "rocketscriptz-hub.firebaseapp.com",
+        projectId: "rocketscriptz-hub",
+        storageBucket: "rocketscriptz-hub.firebasestorage.app",
+        messagingSenderId: "651082006114",
+        appId: "1:651082006114:web:dfdfd5820505cc561e1b3b",
+        measurementId: "G-M4HSN14WTH"
     },
 
     // Cloud Database Backup (JSONBin.io)

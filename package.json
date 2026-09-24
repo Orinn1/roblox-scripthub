@@ -9,6 +9,7 @@
     "bot": "node bot/index.js",
     "bot:deploy": "node bot/deploy-commands.js",
     "build": "node build.js",
+    "simple": "node simple-hub/server.js",
     "zip:discloud": "powershell -NoProfile -Command \"Compress-Archive -Path 'index.js', 'discloud.config', 'package.json', 'package-lock.json', 'db.js', '.env', 'bot', 'data' -DestinationPath 'discloud-bot.zip' -Force\""
   },
   "engines": {

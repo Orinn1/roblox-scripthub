@@ -6,3 +6,5 @@ public/data/database.sqlite*
 scratch/
 *.zip
 temp_api/
+simple-hub/
+build-len.js

@@ -6,8 +6,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const FIREBASE_PROJECT_ID = "blacklistscripts";
-const FIREBASE_API_KEY = "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI";
+const FIREBASE_PROJECT_ID = "rocketscriptz-hub";
+const FIREBASE_API_KEY = "AIzaSyBCZdUq2gEmz_Zhc7XAnY0oa9Uds3hk1lI";
 
 function deepMerge(target, source) {
     if (!source || typeof source !== "object") return target;

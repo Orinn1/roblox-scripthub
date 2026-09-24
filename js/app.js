@@ -751,7 +751,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Helper: วนลูปตรวจจับสถานะจาก LootLabs อัตโนมัติ (ไม่ต้องกดปุ่มเอง)
     function startGatePolling(fast = false) {
         if (gatePollTimer) clearInterval(gatePollTimer);
-        const intervalMs = fast ? 1500 : 2500;
+        const intervalMs = fast ? 4000 : 8000;
         gatePollTimer = setInterval(async () => {
             if (!lootlabsGateOverlay || lootlabsGateOverlay.style.display === "none") {
                 stopGatePolling();
@@ -3422,6 +3422,10 @@ document.addEventListener("DOMContentLoaded", () => {
     initSiteNoticePopup();
     refreshIcons();
 
-    // Check ban status periodically (every 45s)
-    setInterval(checkBanStatus, 45000);
+    // Check ban status on tab focus instead of aggressive polling
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            checkBanStatus();
+        }
+    });
 });
