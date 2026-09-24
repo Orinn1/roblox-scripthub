@@ -751,7 +751,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Helper: วนลูปตรวจจับสถานะจาก LootLabs อัตโนมัติ (ไม่ต้องกดปุ่มเอง)
     function startGatePolling(fast = false) {
         if (gatePollTimer) clearInterval(gatePollTimer);
-        const intervalMs = fast ? 1500 : 2500;
+        const intervalMs = fast ? 4000 : 8000;
         gatePollTimer = setInterval(async () => {
             if (!lootlabsGateOverlay || lootlabsGateOverlay.style.display === "none") {
                 stopGatePolling();
@@ -1325,12 +1325,17 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const refUrl = new URL(document.referrer);
                 const host = refUrl.hostname.toLowerCase();
-                const knownBypassHosts = ["bypass.vip", "thebypasser.com", "linkvertisebypasser.com", "adlinkfly.com"];
+                const knownBypassHosts = [
+                    "bypass.vip", "thebypasser.com", "linkvertisebypasser.com", "adlinkfly.com",
+                    "freebypass.com", "bypass-city.com", "bypass.city", "linkvertise.download",
+                    "sub2unlock.io", "bypass.pm", "keyrblx.com", "workinkbypasser.com",
+                    "bypasser.me", "bypasser.net", "adbypass.org", "bypass.lol", "fastforward.team"
+                ];
                 const isBypass = knownBypassHosts.some(d => host === d || host.endsWith("." + d));
                 if (isBypass) {
                     sessionStorage.setItem("blacklist_bypass_ref_logged", "true");
                     reportBypassAttempt("เปิดเว็บไซต์ผ่านเครื่องมือ Bypass อัตโนมัติ", `Referrer Host: ${host}`);
-                    showToast("ตรวจพบการเปิดผ่านเครื่องมือ Bypass กรุณาทำภารกิจผ่าน LootLabs อย่างถูกต้อง");
+                    showToast("ตรวจพบการเปิดผ่านเครื่องมือ Bypass กรุณาทำภารกิจผ่าน ShrinkEarn อย่างถูกต้อง");
                 }
             } catch (e) {}
         }
@@ -1376,7 +1381,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 try {
                     const refUrl = new URL(document.referrer);
                     const refHost = refUrl.hostname.toLowerCase();
-                    const knownBypassHosts = ["bypass.vip", "thebypasser.com", "linkvertisebypasser.com", "adlinkfly.com", "freebypass.com", "bypass-city.com"];
+                    const knownBypassHosts = [
+                        "bypass.vip", "thebypasser.com", "linkvertisebypasser.com", "adlinkfly.com",
+                        "freebypass.com", "bypass-city.com", "bypass.city", "linkvertise.download",
+                        "sub2unlock.io", "bypass.pm", "keyrblx.com", "workinkbypasser.com",
+                        "bypasser.me", "bypasser.net", "adbypass.org", "bypass.lol", "fastforward.team"
+                    ];
                     if (knownBypassHosts.some(d => refHost === d || refHost.endsWith("." + d))) {
                         reportBypassAttempt("พยายามเปิดเว็บไซต์ผ่านบริการ Bypass อัตโนมัติ", `Referrer: ${refHost}`);
                         showToast("ตรวจพบการเปิดผ่านเครื่องมือ Bypass กรุณาผ่านลิงก์อย่างถูกต้อง");
@@ -1419,11 +1429,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // Anti-Bypass Check 3: Speed Check (ดักจับบอทที่ตอบกลับเร็วเกินไป < 3 วินาที)
+            // Anti-Bypass Check 3: Speed Check (ดักจับบอทที่ตอบกลับเร็วเกินไป < 10 วินาที)
             if (clickTime > 0 && !isManualInput && provider !== "lootlabs") {
                 const elapsedSec = (Date.now() - clickTime) / 1000;
-                if (elapsedSec < 3) {
-                    showToast(`ตรวจพบความเร็วผิดปกติ (${elapsedSec.toFixed(1)}s) กรุณารอสักครู่แล้วลองใหม่`);
+                if (elapsedSec < 10) {
+                    showToast(`ตรวจพบความเร็วผิดปกติ (${elapsedSec.toFixed(1)}s) กรุณาผ่านลิงก์ ShrinkEarn อย่างถูกต้อง`);
+                    reportBypassAttempt("บอทข้ามลิงก์เร็วผิดปกติ (Bypass Speed Detection)", `Elapsed: ${elapsedSec.toFixed(1)}s (Minimum 10s required)`);
                     try {
                         const cleanUrl = window.location.origin + window.location.pathname;
                         window.history.replaceState({}, document.title, cleanUrl);
@@ -1827,7 +1838,66 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             banTamperObserver.observe(bannedScreenOverlay, { attributes: true, attributeFilter: ["style", "class", "hidden"] });
         }
+
+        // ตรวจจับกรณีใช้ DevTools สั่งลบ Node ออกจาก DOM โดยตรง (document.body.removeChild หรือ element.remove())
+        const bodyTamperObserver = new MutationObserver((mutations) => {
+            if (!pageReadyForTamperCheck || isInternalGateChange || !isGateActivelyEnforced) return;
+            if (isGateAuthorized() || isCurrentlyBanned) return;
+
+            for (const mutation of mutations) {
+                if (mutation.type === "childList" && mutation.removedNodes) {
+                    for (const node of mutation.removedNodes) {
+                        if (node && (node.id === "lootlabsGateOverlay" || node.id === "bannedScreenOverlay")) {
+                            reportBypassAttempt("พยายามลบ Element กล่องล็อกออกจาก DOM ผ่าน DevTools", `Removed node: #${node.id}`);
+                            window.location.reload();
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+        bodyTamperObserver.observe(document.body, { childList: true });
     }
+
+    // =========================================================================
+    // ANTI-DEVTOOLS & ANTI-INSPECT PROTECTION (ป้องกันการกด F12 / Inspect หน้าต่างล็อก)
+    // =========================================================================
+    window.addEventListener("keydown", (e) => {
+        if (isVipMember()) return;
+
+        // ปิดปุ่ม F12
+        if (e.key === "F12" || e.keyCode === 123) {
+            e.preventDefault();
+            e.stopPropagation();
+            showToast("การตรวจสอบโค้ด (DevTools) ถูกปิดใช้งานเพื่อความปลอดภัย");
+            return false;
+        }
+
+        // ปิด Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && ["I", "i", "J", "j", "C", "c"].includes(e.key)) {
+            e.preventDefault();
+            e.stopPropagation();
+            showToast("การตรวจสอบโค้ด (DevTools) ถูกปิดใช้งานเพื่อความปลอดภัย");
+            return false;
+        }
+
+        // ปิด Ctrl+U (View Page Source)
+        if ((e.ctrlKey || e.metaKey) && (e.key === "u" || e.key === "U")) {
+            e.preventDefault();
+            e.stopPropagation();
+            showToast("การดูต้นฉบับโค้ดถูกปิดใช้งานเพื่อความปลอดภัย");
+            return false;
+        }
+    }, true);
+
+    // ปิดการคลิกขวา (Context Menu) ในขณะที่หน้าเว็บยังติดสถานะล็อกอยู่
+    window.addEventListener("contextmenu", (e) => {
+        if (isVipMember()) return;
+        if (!isGateAuthorized()) {
+            e.preventDefault();
+            return false;
+        }
+    }, true);
 
     // แผนผังไอคอนของเกมยอดนิยม
     const GAME_ICONS = {
@@ -3426,6 +3496,10 @@ document.addEventListener("DOMContentLoaded", () => {
     initSiteNoticePopup();
     refreshIcons();
 
-    // Check ban status periodically (every 45s)
-    setInterval(checkBanStatus, 45000);
+    // Check ban status on tab focus instead of aggressive polling
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            checkBanStatus();
+        }
+    });
 });

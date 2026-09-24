@@ -680,11 +680,12 @@
                 <span id="lblGateCheck">Check Status Now</span>
             </button>
 
-            <div class="gate-divider">
+            <!-- Manual token input hidden to prevent token leaks and bypasses -->
+            <div class="gate-divider" style="display: none;">
                 <span id="lblGateDivider">OR VERIFY WITH ACCESS TOKEN</span>
             </div>
 
-            <div class="gate-token-form">
+            <div class="gate-token-form" style="display: none;">
                 <input type="text" id="gateTokenInput" class="gate-token-input" placeholder="Enter Access Token">
                 <button type="button" id="gateTokenSubmitBtn" class="btn-gate-token"><span
                         id="lblGateTokenSubmit">Unlock</span></button>
