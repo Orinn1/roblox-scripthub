@@ -962,6 +962,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (canBypass) {
                 hideGateOverlay(false);
+                const nativeAdWrapper = document.getElementById("nativeAdWrapper");
+                if (nativeAdWrapper) nativeAdWrapper.style.display = "none";
             }
         } else {
             if (vipNavBtn) {
@@ -972,6 +974,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             if (vipActivePanel) vipActivePanel.style.display = "none";
             if (vipInactivePanel) vipInactivePanel.style.display = "block";
+            const nativeAdWrapper = document.getElementById("nativeAdWrapper");
+            if (nativeAdWrapper && !window.__IS_VIP__) nativeAdWrapper.style.display = "block";
         }
     }
 
