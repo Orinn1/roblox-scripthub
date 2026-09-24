@@ -3185,6 +3185,20 @@ document.addEventListener("DOMContentLoaded", () => {
             document.execCommand("copy");
             copySuccess();
         }
+
+        // Trigger Adsterra Smartlink in a new tab for non-VIP users (สร้างรายได้เด้งที่ 2)
+        if (!window.__IS_VIP__ && !isVipMember()) {
+            const now = Date.now();
+            if (!window.__lastSmartlinkClick || (now - window.__lastSmartlinkClick > 25000)) {
+                window.__lastSmartlinkClick = now;
+                const smartlink = (SITE_CONFIG && SITE_CONFIG.adsterraSmartlinkUrl) || "https://ardance.org/4/e3ec5ce0a3e835feea94318ff293b6a2";
+                if (smartlink) {
+                    try {
+                        window.open(smartlink, "_blank");
+                    } catch (e) {}
+                }
+            }
+        }
     });
 
     closeLockerBtn.addEventListener("click", () => {

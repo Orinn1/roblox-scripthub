@@ -57,7 +57,10 @@ const SITE_CONFIG = {
         lootlabsUrl: "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
         expiryHours: 24, // จดจำเครื่องไว้ 24 ชั่วโมง
         bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
-    }
+    },
+
+    // Adsterra Smartlink (Direct Link สำหรับสร้างรายได้ตอนคัดลอกโค้ดสคริปต์)
+    adsterraSmartlinkUrl: "https://ardance.org/4/e3ec5ce0a3e835feea94318ff293b6a2"
 };
 
 // Make SITE_CONFIG globally available on window

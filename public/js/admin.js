@@ -53,6 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const linkShopee = document.getElementById("linkShopee");
     const linkVideo = document.getElementById("linkVideo");
     const linkDiscord = document.getElementById("linkDiscord");
+    const linkSmartlink = document.getElementById("linkSmartlink");
 
     // Monetization & Gate Elements (ShrinkEarn / LootLabs)
     const gateEnableCheckbox = document.getElementById("gateEnableCheckbox");
@@ -1437,6 +1438,7 @@ document.addEventListener("DOMContentLoaded", () => {
         linkShopee.value = SITE_CONFIG.unlockTasks.affiliateUrl || "";
         linkVideo.value = SITE_CONFIG.unlockTasks.latestVideoUrl || "";
         linkDiscord.value = SITE_CONFIG.socialLinks.discord || "";
+        if (linkSmartlink) linkSmartlink.value = SITE_CONFIG.adsterraSmartlinkUrl || "https://ardance.org/4/e3ec5ce0a3e835feea94318ff293b6a2";
 
         // Populate Monetization Gate settings
         const gate = SITE_CONFIG.lootlabsGate;
@@ -1458,6 +1460,7 @@ document.addEventListener("DOMContentLoaded", () => {
         SITE_CONFIG.unlockTasks.affiliateUrl = linkShopee.value.trim();
         SITE_CONFIG.unlockTasks.latestVideoUrl = linkVideo.value.trim();
         SITE_CONFIG.socialLinks.discord = linkDiscord.value.trim();
+        if (linkSmartlink) SITE_CONFIG.adsterraSmartlinkUrl = linkSmartlink.value.trim();
 
         if (gateEnableCheckbox) {
             const provider = adminGateProvider ? adminGateProvider.value : "shrinkearn";

@@ -100,7 +100,7 @@
                 Element.prototype.appendChild = function (el) {
                     if (el && el.tagName === 'SCRIPT' && el.src) {
                         var s = el.src.toLowerCase();
-                        if (s.includes('accountut') || s.includes('bellnewyork') || s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm') || s.includes('highcpmgate') || s.includes('quge5') || s.includes('5gvci') || s.includes('monetag')) {
+                        if (s.includes('accountut') || s.includes('bellnewyork') || s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm') || s.includes('highcpmgate') || s.includes('quge5') || s.includes('5gvci') || s.includes('monetag') || s.includes('ardance')) {
                             console.warn('[VIP Shield] Ad script injection blocked:', el.src);
                             return document.createElement('script');
                         }
@@ -112,7 +112,7 @@
                 Element.prototype.insertBefore = function (el, ref) {
                     if (el && el.tagName === 'SCRIPT' && el.src) {
                         var s = el.src.toLowerCase();
-                        if (s.includes('accountut') || s.includes('bellnewyork') || s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm') || s.includes('highcpmgate') || s.includes('quge5') || s.includes('5gvci') || s.includes('monetag')) {
+                        if (s.includes('accountut') || s.includes('bellnewyork') || s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm') || s.includes('highcpmgate') || s.includes('quge5') || s.includes('5gvci') || s.includes('monetag') || s.includes('ardance')) {
                             console.warn('[VIP Shield] Ad script insert blocked:', el.src);
                             return document.createElement('script');
                         }
@@ -125,7 +125,7 @@
                 window.open = function (url, target, features) {
                     if (typeof url === 'string') {
                         var u = url.toLowerCase();
-                        if (u.includes('accountut') || u.includes('bellnewyork') || u.includes('profitableratecpmnetwork') || u.includes('alwingulla') || u.includes('adsterra') || u.includes('highcpmgate') || u.includes('quge5') || u.includes('5gvci') || u.includes('monetag')) {
+                        if (u.includes('accountut') || u.includes('bellnewyork') || u.includes('profitableratecpmnetwork') || u.includes('alwingulla') || u.includes('adsterra') || u.includes('highcpmgate') || u.includes('quge5') || u.includes('5gvci') || u.includes('monetag') || u.includes('ardance')) {
                             console.warn('[VIP Shield] Ad popup blocked:', url);
                             return null;
                         }
