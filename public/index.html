@@ -7,6 +7,9 @@
     <title>BlacklistScriptX - Roblox Scripts & Exploit Hub</title>
     <meta name="monetag" content="8ccfd3d350cd543a8b35c2e730da4bcc">
     
+    <!-- Monetag Multitag (Anti-AdBlock & AI Ad Engine) -->
+    <script src="https://quge5.com/88/tag.min.js" data-zone="285881" async data-cfasync="false"></script>
+    
     <!-- Instant Dark Mode to avoid white screen flash on iOS / Mobile WebKit -->
     <style>
         html, body {
@@ -98,7 +101,7 @@
                 Element.prototype.appendChild = function(el) {
                     if (el && el.tagName === 'SCRIPT' && el.src) {
                         var s = el.src.toLowerCase();
-                        if (s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm')) {
+                        if (s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm') || s.includes('quge5') || s.includes('5gvci') || s.includes('monetag')) {
                             console.warn('[VIP Shield] Ad script injection blocked:', el.src);
                             return document.createElement('script');
                         }
@@ -110,7 +113,7 @@
                 Element.prototype.insertBefore = function(el, ref) {
                     if (el && el.tagName === 'SCRIPT' && el.src) {
                         var s = el.src.toLowerCase();
-                        if (s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm')) {
+                        if (s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm') || s.includes('quge5') || s.includes('5gvci') || s.includes('monetag')) {
                             console.warn('[VIP Shield] Ad script insert blocked:', el.src);
                             return document.createElement('script');
                         }
@@ -123,7 +126,7 @@
                 window.open = function(url, target, features) {
                     if (typeof url === 'string') {
                         var u = url.toLowerCase();
-                        if (u.includes('profitableratecpmnetwork') || u.includes('alwingulla') || u.includes('adsterra') || u.includes('highcpmgate')) {
+                        if (u.includes('profitableratecpmnetwork') || u.includes('alwingulla') || u.includes('adsterra') || u.includes('highcpmgate') || u.includes('quge5') || u.includes('5gvci')) {
                             console.warn('[VIP Shield] Ad popup blocked:', url);
                             return null;
                         }
