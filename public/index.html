@@ -5,11 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BlacklistScriptX - Roblox Scripts & Exploit Hub</title>
-    <meta name="monetag" content="8ccfd3d350cd543a8b35c2e730da4bcc">
-    
+
     <!-- Instant Dark Mode to avoid white screen flash on iOS / Mobile WebKit -->
     <style>
-        html, body {
+        html,
+        body {
             background-color: #06080e !important;
             color: #f3f4f6;
             margin: 0;
@@ -20,7 +20,9 @@
     <!-- Google Fonts Non-blocking Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
 
     <meta name="description"
         content="Free & 100% safe Roblox scripts, updated daily with executor status and sUNC score benchmarks.">
@@ -44,7 +46,7 @@
 
     <!-- VIP Shield: Immediately check VIP and block all Adsterra/popunder networks before anything loads -->
     <script>
-        (function() {
+        (function () {
             try {
                 // 1. Immediately decode and save VIP token from URL parameters synchronously
                 var params = new URLSearchParams(window.location.search);
@@ -72,7 +74,7 @@
                         sessionStorage.setItem('blacklist_lootlabs_auth', 'true');
                     }
                 }
-            } catch(e) {}
+            } catch (e) { }
 
             // 2. Check if user has ad bypass permission
             var isVip = false;
@@ -87,7 +89,7 @@
                         }
                     }
                 }
-            } catch(e) {}
+            } catch (e) { }
 
             window.__IS_VIP__ = isVip;
 
@@ -95,10 +97,10 @@
             if (isVip) {
                 // Intercept document.createElement('script') append
                 var origAppend = Element.prototype.appendChild;
-                Element.prototype.appendChild = function(el) {
+                Element.prototype.appendChild = function (el) {
                     if (el && el.tagName === 'SCRIPT' && el.src) {
                         var s = el.src.toLowerCase();
-                        if (s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm') || s.includes('quge5') || s.includes('5gvci') || s.includes('monetag')) {
+                        if (s.includes('accountut') || s.includes('bellnewyork') || s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm') || s.includes('highcpmgate') || s.includes('quge5') || s.includes('5gvci') || s.includes('monetag')) {
                             console.warn('[VIP Shield] Ad script injection blocked:', el.src);
                             return document.createElement('script');
                         }
@@ -107,10 +109,10 @@
                 };
 
                 var origInsert = Element.prototype.insertBefore;
-                Element.prototype.insertBefore = function(el, ref) {
+                Element.prototype.insertBefore = function (el, ref) {
                     if (el && el.tagName === 'SCRIPT' && el.src) {
                         var s = el.src.toLowerCase();
-                        if (s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm') || s.includes('quge5') || s.includes('5gvci') || s.includes('monetag')) {
+                        if (s.includes('accountut') || s.includes('bellnewyork') || s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm') || s.includes('highcpmgate') || s.includes('quge5') || s.includes('5gvci') || s.includes('monetag')) {
                             console.warn('[VIP Shield] Ad script insert blocked:', el.src);
                             return document.createElement('script');
                         }
@@ -120,10 +122,10 @@
 
                 // Intercept window.open against ad popunders
                 var origOpen = window.open;
-                window.open = function(url, target, features) {
+                window.open = function (url, target, features) {
                     if (typeof url === 'string') {
                         var u = url.toLowerCase();
-                        if (u.includes('profitableratecpmnetwork') || u.includes('alwingulla') || u.includes('adsterra') || u.includes('highcpmgate') || u.includes('quge5') || u.includes('5gvci')) {
+                        if (u.includes('accountut') || u.includes('bellnewyork') || u.includes('profitableratecpmnetwork') || u.includes('alwingulla') || u.includes('adsterra') || u.includes('highcpmgate') || u.includes('quge5') || u.includes('5gvci') || u.includes('monetag')) {
                             console.warn('[VIP Shield] Ad popup blocked:', url);
                             return null;
                         }
@@ -132,24 +134,31 @@
                 };
             }
 
-            // 4. Load Monetag Multitag ONLY for non-VIP users!
+            // 4. Load Adsterra ads ONLY for non-VIP users!
             if (!isVip) {
-                var mTag = document.createElement('script');
-                mTag.src = 'https://quge5.com/88/tag.min.js';
-                mTag.setAttribute('data-zone', '285881');
-                mTag.async = true;
-                mTag.setAttribute('data-cfasync', 'false');
-                document.head.appendChild(mTag);
+                var s1 = document.createElement('script');
+                s1.src = 'https://accountut.com/1/60bc1b6927b2e11658d89c4b5655cbde';
+                s1.setAttribute('data-cfasync', 'false');
+                s1.async = true;
+                document.head.appendChild(s1);
+
+                var s2 = document.createElement('script');
+                s2.src = 'https://bellnewyork.org/14/b1285aa73b09eccedfae325c60ae2c62';
+                s2.setAttribute('data-cfasync', 'false');
+                s2.async = true;
+                document.head.appendChild(s2);
             } else {
-                console.log('[VIP Shield] VIP Bypass active: Monetag ads & service workers blocked 100%.');
-                try {
-                    if ('serviceWorker' in navigator) {
-                        navigator.serviceWorker.getRegistrations().then(function(regs) {
-                            regs.forEach(function(r) { r.unregister(); });
-                        });
-                    }
-                } catch(e) {}
+                console.log('[VIP Shield] VIP Bypass active: All Adsterra ads and popups blocked 100%.');
             }
+
+            // Clean up any remaining Monetag service workers
+            try {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function (regs) {
+                        regs.forEach(function (r) { r.unregister(); });
+                    });
+                }
+            } catch (e) { }
         })();
     </script>
 
@@ -200,18 +209,22 @@
                             <div class="menu-left"><i data-lucide="home"></i> <span id="lblNavHome">Home</span></div>
                         </li>
                         <li class="menu-item" data-nav="feed" data-filter="all">
-                            <div class="menu-left"><i data-lucide="folder"></i> <span id="lblNavAll">All Scripts</span></div>
+                            <div class="menu-left"><i data-lucide="folder"></i> <span id="lblNavAll">All Scripts</span>
+                            </div>
                             <span class="menu-badge" id="totalCount">8</span>
                         </li>
                         <li class="menu-item" data-nav="feed" data-filter="keyless">
-                            <div class="menu-left"><i data-lucide="key"></i> <span id="lblNavKeyless">Keyless</span></div>
+                            <div class="menu-left"><i data-lucide="key"></i> <span id="lblNavKeyless">Keyless</span>
+                            </div>
                         </li>
                         <li class="menu-item" data-nav="feed" data-filter="mobile">
-                            <div class="menu-left"><i data-lucide="smartphone"></i> <span id="lblNavMobile">Mobile Supported</span></div>
+                            <div class="menu-left"><i data-lucide="smartphone"></i> <span id="lblNavMobile">Mobile
+                                    Supported</span></div>
                         </li>
                         <!-- เมนู WEAO API: สถานะตัวรัน & sUNC -->
                         <li class="menu-item" data-nav="exploits">
-                            <div class="menu-left"><i data-lucide="cpu"></i> <span id="lblNavExploits">Executor Status & sUNC</span></div>
+                            <div class="menu-left"><i data-lucide="cpu"></i> <span id="lblNavExploits">Executor Status &
+                                    sUNC</span></div>
                             <span class="menu-badge"
                                 style="background: rgba(34, 197, 94, 0.2); color: #4ade80;">WEAO</span>
                         </li>
@@ -263,7 +276,8 @@
                     <!-- VIP Member Status / Login Button -->
                     <div id="vipNavContainer" class="vip-nav-container">
                         <button type="button" class="vip-badge-btn" id="vipNavBtn" aria-label="Login">
-                            <span class="vip-btn-icon" id="vipBtnIcon"><i data-lucide="log-in" style="width: 14px; height: 14px;"></i></span>
+                            <span class="vip-btn-icon" id="vipBtnIcon"><i data-lucide="log-in"
+                                    style="width: 14px; height: 14px;"></i></span>
                             <span id="vipNavText">Login</span>
                         </button>
                     </div>
@@ -288,10 +302,12 @@
                     <section class="home-spotlight">
                         <div class="spotlight-content">
                             <span class="spotlight-badge">
-                                <i data-lucide="flame" style="width: 13px; height: 13px;"></i> <span id="lblSpotBadge">#1 Trending Script</span>
+                                <i data-lucide="flame" style="width: 13px; height: 13px;"></i> <span
+                                    id="lblSpotBadge">#1 Trending Script</span>
                             </span>
                             <h2 class="spotlight-title">Blox Fruits - Redz Hub (Auto Farm 1-Max)</h2>
-                            <p class="spotlight-desc" id="lblSpotDesc">The most stable level farming script. Auto farm, quests, dual katanas, fully awakened fruits. Mobile & PC supported.</p>
+                            <p class="spotlight-desc" id="lblSpotDesc">The most stable level farming script. Auto farm,
+                                quests, dual katanas, fully awakened fruits. Mobile & PC supported.</p>
                             <div class="spotlight-actions">
                                 <button class="btn-spotlight" onclick="openLocker('blox-fruits-redz')">
                                     <i data-lucide="unlock" style="width: 14px; height: 14px;"></i>
@@ -309,7 +325,9 @@
                     <section>
                         <div class="section-head">
                             <h3><i data-lucide="zap"></i> <span id="lblTrendingHead">Trending Scripts</span></h3>
-                            <button class="btn-view-all" id="btnSeeAllScripts"><span id="lblSeeAllScripts">View All</span> <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i></button>
+                            <button class="btn-view-all" id="btnSeeAllScripts"><span id="lblSeeAllScripts">View
+                                    All</span> <i data-lucide="arrow-right"
+                                    style="width: 14px; height: 14px;"></i></button>
                         </div>
                         <div class="scripts-feed" id="homeRecentScripts">
                             <!-- Loaded from JS -->
@@ -319,13 +337,16 @@
                     <!-- Executors Live from WEAO API -->
                     <section>
                         <div class="section-head">
-                            <h3><i data-lucide="cpu"></i> <span id="lblExecutorsHead">Live Executor Status & sUNC (WEAO)</span></h3>
-                            <button class="btn-view-all" id="btnSeeAllExploits"><span id="lblSeeAllExploits">View All 30+ Executors</span> <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i></button>
+                            <h3><i data-lucide="cpu"></i> <span id="lblExecutorsHead">Live Executor Status & sUNC
+                                    (WEAO)</span></h3>
+                            <button class="btn-view-all" id="btnSeeAllExploits"><span id="lblSeeAllExploits">View All
+                                    30+ Executors</span> <i data-lucide="arrow-right"
+                                    style="width: 14px; height: 14px;"></i></button>
                         </div>
                         <div class="executors-grid" id="homeExecutorsGrid">
                             <!-- Loaded from WEAO API -->
-                            <div
-                                style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--text-muted);" id="lblLoadingExploits">
+                            <div style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--text-muted);"
+                                id="lblLoadingExploits">
                                 <i data-lucide="loader-2" class="spin"></i> Loading executor status from WEAO API...
                             </div>
                         </div>
@@ -344,8 +365,10 @@
 
                         <div class="view-filter-chips">
                             <span class="chip active" data-tag="all" id="lblChipAll">All</span>
-                            <span class="chip" data-tag="keyless"><i data-lucide="key"></i> <span id="lblChipKeyless">Keyless</span></span>
-                            <span class="chip" data-tag="mobile"><i data-lucide="smartphone"></i> <span id="lblChipMobile">Mobile</span></span>
+                            <span class="chip" data-tag="keyless"><i data-lucide="key"></i> <span
+                                    id="lblChipKeyless">Keyless</span></span>
+                            <span class="chip" data-tag="mobile"><i data-lucide="smartphone"></i> <span
+                                    id="lblChipMobile">Mobile</span></span>
                         </div>
                     </div>
 
@@ -360,8 +383,10 @@
                 <div class="feed-view" id="exploitsView" style="display: none;">
                     <div class="view-toolbar">
                         <div class="view-title-group">
-                            <h2><i data-lucide="cpu"></i> <span id="lblExploitsViewTitle">Top Executor Status & sUNC Data</span></h2>
-                            <p id="lblExploitsViewDesc">Live status of top executors (Delta, Codex, Solara, Wave, etc.) with sUNC scores and official downloads</p>
+                            <h2><i data-lucide="cpu"></i> <span id="lblExploitsViewTitle">Top Executor Status & sUNC
+                                    Data</span></h2>
+                            <p id="lblExploitsViewDesc">Live status of top executors (Delta, Codex, Solara, Wave, etc.)
+                                with sUNC scores and official downloads</p>
                         </div>
 
                         <!-- Platform filter chips -->
@@ -376,7 +401,8 @@
 
                     <!-- Exploits grid -->
                     <div class="exploits-grid" id="exploitsGrid">
-                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);" id="lblLoadingAllExploits">
+                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);"
+                            id="lblLoadingAllExploits">
                             <i data-lucide="loader-2" class="spin"></i> Loading data from WEAO API...
                         </div>
                     </div>
@@ -393,14 +419,18 @@
             <button class="modal-close" id="closeSuncModalBtn" aria-label="Close"><i data-lucide="x"></i></button>
 
             <div style="margin-bottom: 12px;">
-                <span class="tag-badge" style="color: #38bdf8; background: rgba(56, 189, 248, 0.1);">sUNC Benchmark Test</span>
-                <h3 id="suncModalTitle" style="font-size: 18px; color: #fff; margin-top: 4px;">Potassium - sUNC Data</h3>
+                <span class="tag-badge" style="color: #38bdf8; background: rgba(56, 189, 248, 0.1);">sUNC Benchmark
+                    Test</span>
+                <h3 id="suncModalTitle" style="font-size: 18px; color: #fff; margin-top: 4px;">Potassium - sUNC Data
+                </h3>
                 <div id="suncModalMeta"
                     style="font-size: 12px; color: var(--text-muted); display: flex; gap: 12px; margin-top: 4px;">
                     <span id="lblSuncVer">Version: <strong id="suncVersion">-</strong></span>
                     <span id="lblSuncTime">Tested: <strong id="suncTime">-</strong></span>
-                    <span style="color: #4ade80;" id="lblSuncPass">Passed: <strong id="suncPassedCount">0</strong></span>
-                    <span style="color: #f87171;" id="lblSuncFail">Failed: <strong id="suncFailedCount">0</strong></span>
+                    <span style="color: #4ade80;" id="lblSuncPass">Passed: <strong
+                            id="suncPassedCount">0</strong></span>
+                    <span style="color: #f87171;" id="lblSuncFail">Failed: <strong
+                            id="suncFailedCount">0</strong></span>
                 </div>
             </div>
 
@@ -437,7 +467,8 @@
             </div>
 
             <h3 class="locker-title" id="lblLockerTitle">Unlock Script Code</h3>
-            <p class="locker-desc" id="lblLockerDesc">Complete the 3 support tasks below to receive the free script code</p>
+            <p class="locker-desc" id="lblLockerDesc">Complete the 3 support tasks below to receive the free script code
+            </p>
 
             <!-- Step Progress Tracker -->
             <div class="locker-steps-tracker">
@@ -469,7 +500,8 @@
                         </div>
                     </div>
                     <div class="task-status">
-                        <span class="status-pill active-pill" id="task1Status">Start <i data-lucide="arrow-right"></i></span>
+                        <span class="status-pill active-pill" id="task1Status">Start <i
+                                data-lucide="arrow-right"></i></span>
                     </div>
                 </button>
 
@@ -595,18 +627,23 @@
                 <button type="button" class="btn-gate-tutorial" id="btnToggleGateTutorial">
                     <i data-lucide="play-circle" style="width: 16px; height: 16px; color: #ef4444;"></i>
                     <span id="lblGateTutorial">ดูคลิปสอนวิธีผ่านลิงก์ (คลิกที่นี่)</span>
-                    <i data-lucide="chevron-down" id="gateTutorialChevron" style="width: 14px; height: 14px; transition: transform 0.2s ease;"></i>
+                    <i data-lucide="chevron-down" id="gateTutorialChevron"
+                        style="width: 14px; height: 14px; transition: transform 0.2s ease;"></i>
                 </button>
             </div>
 
             <!-- กล่องแสดงวิดีโอ YouTube สอนวิธีผ่านลิงก์ (พับเก็บ/เปิดดูได้) -->
             <div class="gate-tutorial-player-box" id="gateTutorialPlayerBox" style="display: none;">
                 <div class="gate-tutorial-video-wrapper">
-                    <iframe id="gateTutorialIframe" src="" title="วิธีผ่านลิงก์ ShrinkEarn" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    <iframe id="gateTutorialIframe" src="" title="วิธีผ่านลิงก์ ShrinkEarn" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
                 </div>
                 <div class="gate-tutorial-actions">
-                    <span style="font-size: 11px; color: var(--text-muted);" id="lblGateTutorialHint">คลิปสั้นเข้าใจง่าย ดูจบทำตามได้ทันที</span>
-                    <a href="https://youtu.be/FdXsvivWhOw" target="_blank" rel="noopener noreferrer" class="gate-tutorial-yt-link" id="gateTutorialYtDirectLink">
+                    <span style="font-size: 11px; color: var(--text-muted);" id="lblGateTutorialHint">คลิปสั้นเข้าใจง่าย
+                        ดูจบทำตามได้ทันที</span>
+                    <a href="https://youtu.be/FdXsvivWhOw" target="_blank" rel="noopener noreferrer"
+                        class="gate-tutorial-yt-link" id="gateTutorialYtDirectLink">
                         <i data-lucide="youtube" style="width: 14px; height: 14px; color: #ef4444;"></i>
                         <span id="lblGateTutorialYt">เปิดดูบน YouTube</span>
                     </a>
@@ -629,7 +666,8 @@
 
             <div class="gate-token-form">
                 <input type="text" id="gateTokenInput" class="gate-token-input" placeholder="Enter Access Token">
-                <button type="button" id="gateTokenSubmitBtn" class="btn-gate-token"><span id="lblGateTokenSubmit">Unlock</span></button>
+                <button type="button" id="gateTokenSubmitBtn" class="btn-gate-token"><span
+                        id="lblGateTokenSubmit">Unlock</span></button>
             </div>
             <div class="gate-error-msg" id="gateErrorMsg" style="display: none;">Invalid Token. Please try again.</div>
 
@@ -654,9 +692,11 @@
          ======================================================================= -->
     <div class="vip-modal-overlay" id="vipModalOverlay" style="display: none;">
         <div class="vip-modal-box">
-            <button class="vip-modal-close" id="vipModalCloseBtn" aria-label="Close modal"><i data-lucide="x"></i></button>
+            <button class="vip-modal-close" id="vipModalCloseBtn" aria-label="Close modal"><i
+                    data-lucide="x"></i></button>
             <div class="vip-modal-header">
-                <div class="vip-crown-badge" id="vipModalBadge"><i data-lucide="crown" style="width: 15px; height: 15px;"></i> DISCORD MEMBERSHIP</div>
+                <div class="vip-crown-badge" id="vipModalBadge"><i data-lucide="crown"
+                        style="width: 15px; height: 15px;"></i> DISCORD MEMBERSHIP</div>
                 <h3 id="vipModalTitle">ระบบสมาชิก Discord & บทบาท</h3>
                 <p id="vipModalSubtitle">เข้าสู่ระบบเพื่อแสดงโปรไฟล์และยศของคุณบนเว็บไซต์</p>
             </div>
@@ -664,21 +704,29 @@
             <!-- VIP Active State -->
             <div class="vip-active-panel" id="vipActivePanel" style="display: none;">
                 <div class="vip-active-card">
-                    <div class="vip-avatar" id="vipUserAvatar"><i data-lucide="crown" style="width: 24px; height: 24px; color: #fbbf24;"></i></div>
+                    <div class="vip-avatar" id="vipUserAvatar"><i data-lucide="crown"
+                            style="width: 24px; height: 24px; color: #fbbf24;"></i></div>
                     <div class="vip-details">
-                        <div class="vip-name-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <div class="vip-name-row"
+                            style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <span class="vip-name" id="vipUserName">Discord User</span>
-                            <span class="user-role-badge" id="vipUserRoleBadge"><i data-lucide="shield-check" style="width: 13px; height: 13px;"></i> Bypass</span>
+                            <span class="user-role-badge" id="vipUserRoleBadge"><i data-lucide="shield-check"
+                                    style="width: 13px; height: 13px;"></i> Bypass</span>
                         </div>
-                        <div class="vip-badge-tag" id="vipStatusBadgeTag"><i data-lucide="check-circle" style="width: 13px; height: 13px; color: #4ade80;"></i> ACTIVE • BYPASS ADS 100%</div>
+                        <div class="vip-badge-tag" id="vipStatusBadgeTag"><i data-lucide="check-circle"
+                                style="width: 13px; height: 13px; color: #4ade80;"></i> ACTIVE • BYPASS ADS 100%</div>
                     </div>
                 </div>
                 <div class="vip-features-list" id="vipFeaturesList">
-                    <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> ปิดโฆษณาและป๊อปอัปทั้งหมด 100%</div>
-                    <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> ข้ามเกทโฆษณา ShrinkEarn / LootLabs ถาวร</div>
-                    <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> เข้าถึงโค้ดสคริปต์ได้ทันทีไม่ต้องรอ</div>
+                    <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i>
+                        ปิดโฆษณาและป๊อปอัปทั้งหมด 100%</div>
+                    <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> ข้ามเกทโฆษณา
+                        ShrinkEarn / LootLabs ถาวร</div>
+                    <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i>
+                        เข้าถึงโค้ดสคริปต์ได้ทันทีไม่ต้องรอ</div>
                 </div>
-                <div class="vip-expiry-note" id="vipExpiryText"><i data-lucide="sparkles" style="width: 14px; height: 14px; color: #fbbf24;"></i> สถานะ: สมาชิกตลอดชีพ</div>
+                <div class="vip-expiry-note" id="vipExpiryText"><i data-lucide="sparkles"
+                        style="width: 14px; height: 14px; color: #fbbf24;"></i> สถานะ: สมาชิกตลอดชีพ</div>
                 <button type="button" class="btn-vip-logout" id="vipLogoutBtn">ออกจากระบบบนเครื่องนี้</button>
             </div>
 
@@ -686,13 +734,20 @@
             <div class="vip-inactive-panel" id="vipInactivePanel">
                 <div class="vip-oauth-card">
                     <div class="vip-oauth-icon">
-                        <svg width="44" height="44" viewBox="0 0 24 24" fill="#5865f2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                        <svg width="44" height="44" viewBox="0 0 24 24" fill="#5865f2">
+                            <path
+                                d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+                        </svg>
                     </div>
                     <h4 class="vip-oauth-title">เข้าสู่ระบบด้วยบัญชี Discord</h4>
-                    <p class="vip-oauth-desc">กดปุ่มด้านล่างเพื่อยืนยันตัวตนกับ Discord ระบบจะตรวจสอบยศ (Admin / Dev / Bypass / Verified) และแสดงโปรไฟล์บนเว็บให้อัตโนมัติ</p>
-                    
+                    <p class="vip-oauth-desc">กดปุ่มด้านล่างเพื่อยืนยันตัวตนกับ Discord ระบบจะตรวจสอบยศ (Admin / Dev /
+                        Bypass / Verified) และแสดงโปรไฟล์บนเว็บให้อัตโนมัติ</p>
+
                     <a href="/api/discord-auth?action=login" class="btn-discord-oauth-main" id="btnVipOauthLogin">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+                        </svg>
                         <span>เข้าสู่ระบบด้วย Discord</span>
                     </a>
                 </div>
@@ -741,15 +796,18 @@
 
             <div class="banned-info-card">
                 <div class="banned-info-row">
-                    <span id="lblBannedIp"><i data-lucide="globe" style="width: 14px; height: 14px; vertical-align: middle;"></i> Your Client IP:</span>
+                    <span id="lblBannedIp"><i data-lucide="globe"
+                            style="width: 14px; height: 14px; vertical-align: middle;"></i> Your Client IP:</span>
                     <code id="bannedClientIp">Checking...</code>
                 </div>
                 <div class="banned-info-row">
-                    <span id="lblBannedDuration"><i data-lucide="clock" style="width: 14px; height: 14px; vertical-align: middle;"></i> Duration:</span>
+                    <span id="lblBannedDuration"><i data-lucide="clock"
+                            style="width: 14px; height: 14px; vertical-align: middle;"></i> Duration:</span>
                     <span id="bannedDurationText">-- Hours</span>
                 </div>
                 <div class="banned-info-row">
-                    <span id="lblBannedUnlock"><i data-lucide="calendar" style="width: 14px; height: 14px; vertical-align: middle;"></i> Unlocks At:</span>
+                    <span id="lblBannedUnlock"><i data-lucide="calendar"
+                            style="width: 14px; height: 14px; vertical-align: middle;"></i> Unlocks At:</span>
                     <span id="bannedExpireTimeText" class="text-amber">--:--</span>
                 </div>
             </div>
@@ -793,7 +851,7 @@
 
     <!-- In-App Browser Notice Logic -->
     <script>
-        (function() {
+        (function () {
             try {
                 var ua = navigator.userAgent || '';
                 var isIos = /iPhone|iPad|iPod/i.test(ua);
@@ -808,13 +866,13 @@
                     }
                     var btn = document.getElementById('iabCloseBtn');
                     if (btn) {
-                        btn.addEventListener('click', function() {
+                        btn.addEventListener('click', function () {
                             if (bar) bar.style.display = 'none';
                             sessionStorage.setItem('blacklist_iab_closed', '1');
                         });
                     }
                 }
-            } catch(e) {}
+            } catch (e) { }
         })();
     </script>
 </body>
