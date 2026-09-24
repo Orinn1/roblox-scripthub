@@ -7,9 +7,6 @@
     <title>BlacklistScriptX - Roblox Scripts & Exploit Hub</title>
     <meta name="monetag" content="8ccfd3d350cd543a8b35c2e730da4bcc">
     
-    <!-- Monetag Multitag (Anti-AdBlock & AI Ad Engine) -->
-    <script src="https://quge5.com/88/tag.min.js" data-zone="285881" async data-cfasync="false"></script>
-    
     <!-- Instant Dark Mode to avoid white screen flash on iOS / Mobile WebKit -->
     <style>
         html, body {
@@ -133,6 +130,25 @@
                     }
                     return origOpen.apply(this, arguments);
                 };
+            }
+
+            // 4. Load Monetag Multitag ONLY for non-VIP users!
+            if (!isVip) {
+                var mTag = document.createElement('script');
+                mTag.src = 'https://quge5.com/88/tag.min.js';
+                mTag.setAttribute('data-zone', '285881');
+                mTag.async = true;
+                mTag.setAttribute('data-cfasync', 'false');
+                document.head.appendChild(mTag);
+            } else {
+                console.log('[VIP Shield] VIP Bypass active: Monetag ads & service workers blocked 100%.');
+                try {
+                    if ('serviceWorker' in navigator) {
+                        navigator.serviceWorker.getRegistrations().then(function(regs) {
+                            regs.forEach(function(r) { r.unregister(); });
+                        });
+                    }
+                } catch(e) {}
             }
         })();
     </script>
