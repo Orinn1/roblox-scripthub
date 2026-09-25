@@ -100,7 +100,8 @@ window.isGlobalDomain = function () {
         if (override === "hub") return false;
         if (window.location && window.location.hostname) {
             const host = window.location.hostname.toLowerCase();
-            if (host.includes("blacklisthub") || host.includes("workers.dev") || host.includes("global")) {
+            // ONLY hub.blacklisthub.workers.dev or explicit global subdomains are global/English
+            if (host.startsWith("hub.") || host.includes("global")) {
                 return true;
             }
         }

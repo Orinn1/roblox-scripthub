@@ -20,7 +20,8 @@
             }
             if (window.location && window.location.hostname) {
                 const host = window.location.hostname.toLowerCase();
-                if (host.includes("blacklisthub") || host.includes("workers.dev") || host.includes("global")) {
+                // ONLY hub.blacklisthub.workers.dev uses hub_global. Other domains (th., roblox-scripthub., vercel) use 'hub'
+                if (host.startsWith("hub.") || host.includes("global")) {
                     return "hub_global";
                 }
             }

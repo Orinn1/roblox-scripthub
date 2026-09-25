@@ -14,7 +14,8 @@ function getScriptsStorageKey() {
         if (override === "hub") return "nova_scripts_db";
         if (window.location && window.location.hostname) {
             const host = window.location.hostname.toLowerCase();
-            if (host.includes("blacklisthub") || host.includes("workers.dev") || host.includes("global")) {
+            // ONLY hub.blacklisthub.workers.dev uses nova_scripts_db_global
+            if (host.startsWith("hub.") || host.includes("global")) {
                 return "nova_scripts_db_global";
             }
         }
