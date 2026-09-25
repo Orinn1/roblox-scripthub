@@ -968,7 +968,15 @@ document.addEventListener("DOMContentLoaded", () => {
             sessionStorage.setItem("blacklist_lootlabs_auth", "true");
             window.__IS_VIP__ = true;
         } else {
+            // Discord authenticated member - grant 24h gate unlock
+            localStorage.setItem("blacklist_lootlabs_auth_expiry", String(Date.now() + 86400000));
+            sessionStorage.setItem("blacklist_lootlabs_auth", "true");
             window.__IS_VIP__ = false;
+        }
+        hideGateOverlay(false);
+        if (lootlabsGateOverlay) {
+            lootlabsGateOverlay.style.display = "none";
+            isGateActivelyEnforced = false;
         }
         updateVipUI();
     }
@@ -1146,8 +1154,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                         urlParams.delete("vip_token");
                         urlParams.delete("vip_code");
+                        urlParams.delete("auth_success");
                         const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "") + window.location.hash;
                         window.history.replaceState({}, document.title, newUrl);
+                        hideGateOverlay(false);
+                        if (lootlabsGateOverlay) {
+                            lootlabsGateOverlay.style.display = "none";
+                            isGateActivelyEnforced = false;
+                        }
                         return;
                     } else {
                         showToast(data.message || t.vipToastInvalidToken, "error");
@@ -1155,10 +1169,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            if (oauthSuccess === "true") {
+            if (oauthSuccess === "true" || urlParams.get("auth_success") === "1") {
                 urlParams.delete("vip_success");
+                urlParams.delete("auth_success");
                 const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "") + window.location.hash;
                 window.history.replaceState({}, document.title, newUrl);
+                hideGateOverlay(false);
+                if (lootlabsGateOverlay) {
+                    lootlabsGateOverlay.style.display = "none";
+                    isGateActivelyEnforced = false;
+                }
                 showToast(t.vipToastSuccess);
             } else if (oauthError) {
                 const checkedUser = urlParams.get("user") || "";
@@ -1236,7 +1256,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Helper: ตรวจสอบว่าเครื่องนี้มีสิทธิ์ผ่าน LootLabs หรือยัง
     function isGateAuthorized() {
-        if (isVipMember()) return true;
+        if (isVipMember() || isUserLoggedIn()) return true;
+        if (window.location.search.includes("auth_success") || window.location.search.includes("vip_token")) return true;
         const gate = SITE_CONFIG.lootlabsGate;
         if (!gate || !gate.enabled) return true;
         const savedExpiry = localStorage.getItem("blacklist_lootlabs_auth_expiry");
@@ -1452,7 +1473,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function checkLootlabsGate() {
         if (isCurrentlyBanned) return;
 
-        if (isVipMember()) {
+        if (isVipMember() || isUserLoggedIn() || isGateAuthorized()) {
             isGateActivelyEnforced = false;
             isInternalGateChange = true;
             if (lootlabsGateOverlay) lootlabsGateOverlay.style.display = "none";

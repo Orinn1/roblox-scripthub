@@ -233,6 +233,7 @@ module.exports = async (req, res) => {
 
             let memberFound = false;
             let memberRoles = [];
+            let isDiscordAdmin = false;
 
             // Check roles via user access token
             if (GUILD_ID) {
@@ -244,19 +245,38 @@ module.exports = async (req, res) => {
                     const memberData = await userMemberRes.json();
                     memberRoles = memberData.roles || [];
                     memberFound = true;
+                    try {
+                        const perms = BigInt(memberData.permissions || '0');
+                        if ((perms & 8n) === 8n || (perms & 0x20n) === 0x20n) {
+                            isDiscordAdmin = true;
+                        }
+                    } catch (e) {}
                 }
             }
 
             // Fallback via Bot Token
-            if (!memberFound && BOT_TOKEN && GUILD_ID) {
+            if (BOT_TOKEN && GUILD_ID) {
                 const botMemberRes = await fetch(`https://discord.com/api/guilds/${GUILD_ID}/members/${userId}`, {
                     headers: { Authorization: `Bot ${BOT_TOKEN}` }
                 }).catch(() => null);
 
                 if (botMemberRes && botMemberRes.ok) {
                     const memberData = await botMemberRes.json();
-                    memberRoles = memberData.roles || [];
-                    memberFound = true;
+                    if (!memberFound) {
+                        memberRoles = memberData.roles || [];
+                        memberFound = true;
+                    }
+                }
+
+                // Check if user is Server Owner
+                const guildRes = await fetch(`https://discord.com/api/guilds/${GUILD_ID}`, {
+                    headers: { Authorization: `Bot ${BOT_TOKEN}` }
+                }).catch(() => null);
+                if (guildRes && guildRes.ok) {
+                    const guildData = await guildRes.json();
+                    if (guildData.owner_id === userId) {
+                        isDiscordAdmin = true;
+                    }
                 }
             }
 
@@ -264,7 +284,11 @@ module.exports = async (req, res) => {
                 return res.redirect(302, `${targetBaseUrl}/?vip_error=not_in_guild&user=${encodeURIComponent(username)}`);
             }
 
-            const { primaryRole, canBypass } = resolveUserRoles(memberRoles);
+            let { primaryRole, canBypass } = resolveUserRoles(memberRoles);
+            if (isDiscordAdmin) {
+                canBypass = true;
+                primaryRole = { id: '1549057153585651923', name: 'Admin', tag: '🛡️ Admin', color: '#ef4444', canBypass: true, priority: 1 };
+            }
 
             const vipToken = generateVipToken({
                 userId,
