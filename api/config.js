@@ -56,6 +56,7 @@ module.exports = async (req, res) => {
     const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/hub/config?key=${FIREBASE_API_KEY}`;
 
     if (req.method === "GET") {
+        res.setHeader("Cache-Control", "public, max-age=60, s-maxage=180, stale-while-revalidate=3600");
         try {
             const fbRes = await fetch(firestoreUrl);
             if (fbRes.ok) {

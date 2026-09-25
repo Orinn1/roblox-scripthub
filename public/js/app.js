@@ -631,6 +631,20 @@ document.addEventListener("DOMContentLoaded", () => {
         // หากผู้ใช้เคยกดเลือกภาษาเอง จะไม่บังคับเปลี่ยน
         if (localStorage.getItem("blacklist_lang_manual") === "true") return;
 
+        // ตรวจสอบ Cache ในเครื่องก่อน (7 วัน) เพื่อประหยัดโควต้า Vercel Edge
+        try {
+            const cachedGeo = localStorage.getItem("blacklist_cached_geo");
+            const cachedGeoTime = Number(localStorage.getItem("blacklist_cached_geo_time") || 0);
+            if (cachedGeo && (Date.now() - cachedGeoTime < 7 * 24 * 60 * 60 * 1000)) {
+                const isThai = cachedGeo.toUpperCase() === "TH";
+                const targetLang = isThai ? "th" : "en";
+                if (targetLang !== currentLang) {
+                    setLanguage(targetLang, false);
+                }
+                return;
+            }
+        } catch (e) {}
+
         try {
             let country = "";
 
@@ -651,6 +665,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (country) {
+                try {
+                    localStorage.setItem("blacklist_cached_geo", country);
+                    localStorage.setItem("blacklist_cached_geo_time", String(Date.now()));
+                } catch (e) {}
                 const isThai = country.toUpperCase() === "TH";
                 const targetLang = isThai ? "th" : "en";
                 if (targetLang !== currentLang) {
@@ -751,9 +769,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Helper: วนลูปตรวจจับสถานะจาก LootLabs อัตโนมัติ (ไม่ต้องกดปุ่มเอง)
     function startGatePolling(fast = false) {
         if (gatePollTimer) clearInterval(gatePollTimer);
-        const intervalMs = fast ? 4000 : 8000;
+        const intervalMs = fast ? 8000 : 16000;
         gatePollTimer = setInterval(async () => {
-            if (!lootlabsGateOverlay || lootlabsGateOverlay.style.display === "none") {
+            if (!lootlabsGateOverlay || lootlabsGateOverlay.style.display === "none" || document.hidden) {
                 stopGatePolling();
                 return;
             }
@@ -1277,7 +1295,14 @@ document.addEventListener("DOMContentLoaded", () => {
         checkLootlabsGate();
     }
 
-    async function checkBanStatus() {
+    let lastBanCheckTimestamp = 0;
+    async function checkBanStatus(force = false) {
+        const now = Date.now();
+        // ประหยัด Request: ตรวจสอบไม่เกิน 1 ครั้งทุกๆ 5 นาที เว้นแต่ถูกแบนอยู่แล้วหรือสั่งบังคับ
+        if (!force && !isCurrentlyBanned && (now - lastBanCheckTimestamp < 5 * 60 * 1000)) {
+            return false;
+        }
+        lastBanCheckTimestamp = now;
         try {
             const res = await fetch("/api/check-ban");
             if (res.ok) {
@@ -2051,9 +2076,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // 2. Fallback to local server / static file
+            const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
             let [cfgRes, scpRes] = await Promise.all([
                 fetch('/api/config').catch(() => null),
-                fetch('/api/scripts').catch(() => null)
+                isLocal ? fetch('/api/scripts').catch(() => null) : Promise.resolve(null)
             ]);
 
             // Fallback for static hosting (e.g. GitHub Pages or Vercel)
@@ -2507,8 +2533,24 @@ document.addEventListener("DOMContentLoaded", () => {
     // WEAO Exploits & sUNC Data API Integration
     // =========================================================================
     async function fetchExploits() {
+        // Cache WEAO exploits in sessionStorage for 10 minutes to save edge requests
         try {
-            let res = await fetch("/api/exploits").catch(() => null);
+            const cached = sessionStorage.getItem("blacklist_cached_exploits");
+            const cachedTime = Number(sessionStorage.getItem("blacklist_cached_exploits_time") || 0);
+            if (cached && (Date.now() - cachedTime < 10 * 60 * 1000)) {
+                allExploits = JSON.parse(cached);
+                renderHomeExecutors();
+                if (currentView === "exploits") renderExploits();
+                return;
+            }
+        } catch (e) {}
+
+        try {
+            const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+            let res = null;
+            if (isLocal) {
+                res = await fetch("/api/exploits").catch(() => null);
+            }
             if (!res || !res.ok) {
                 res = await fetch("https://weao.xyz/api/status/exploits").catch(() => null);
             }
@@ -2516,6 +2558,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await res.json();
             if (Array.isArray(data)) {
                 allExploits = data;
+                try {
+                    sessionStorage.setItem("blacklist_cached_exploits", JSON.stringify(data));
+                    sessionStorage.setItem("blacklist_cached_exploits_time", String(Date.now()));
+                } catch (e) {}
                 renderHomeExecutors();
                 if (currentView === "exploits") {
                     renderExploits();
@@ -3510,10 +3556,10 @@ document.addEventListener("DOMContentLoaded", () => {
     initSiteNoticePopup();
     refreshIcons();
 
-    // Check ban status on tab focus instead of aggressive polling
+    // Check ban status on tab focus instead of aggressive polling (throttled to at most once per 5 minutes)
     document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
-            checkBanStatus();
+            checkBanStatus(false);
         }
     });
 });
