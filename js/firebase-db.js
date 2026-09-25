@@ -91,7 +91,7 @@
                 if (hasCache && (Date.now() - cachedTime < CACHE_DURATION_MS)) {
                     try {
                         const parsed = JSON.parse(hasCache);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
+                        if (Array.isArray(parsed)) {
                             return parsed;
                         }
                     } catch (e) {}
@@ -105,31 +105,18 @@
                     const docSnap = await db.collection(col).doc("database").get();
                     if (docSnap.exists) {
                         const data = docSnap.data();
-                        let result = [];
+                        let result = null;
                         if (Array.isArray(data.scripts)) {
                             result = data.scripts;
                         } else if (typeof data.scriptsJson === "string") {
-                            result = JSON.parse(data.scriptsJson);
+                            try { result = JSON.parse(data.scriptsJson); } catch (e) {}
                         }
-                        if (Array.isArray(result) && result.length > 0) {
+                        if (Array.isArray(result)) {
                             localStorage.setItem(cacheKey, JSON.stringify(result));
                             sessionStorage.setItem(timeKey, Date.now().toString());
                             console.log(`[Firebase] [${col}] Successfully loaded scripts via SDK. Total:`, result.length);
                             return result;
                         }
-                    } else if (col === "hub_global") {
-                        // If hub_global does not exist yet, clone initial scripts from default data/scripts.json
-                        console.log("[Firebase] [hub_global] First time initialization from default scripts...");
-                        try {
-                            const initRes = await fetch("data/scripts.json").catch(() => null);
-                            if (initRes && initRes.ok) {
-                                const initScripts = await initRes.json();
-                                if (Array.isArray(initScripts) && initScripts.length > 0) {
-                                    this.saveScripts(initScripts);
-                                    return initScripts;
-                                }
-                            }
-                        } catch (e) {}
                     }
                 } catch (sdkErr) {
                     console.warn(`[Firebase] [${col}] SDK fetch warning, trying REST API:`, sdkErr);
@@ -144,11 +131,11 @@
                     const res = await fetch(url);
                     if (res.ok) {
                         const json = await res.json();
-                        let result = [];
+                        let result = null;
                         if (json.fields && json.fields.scriptsJson && json.fields.scriptsJson.stringValue) {
-                            result = JSON.parse(json.fields.scriptsJson.stringValue);
+                            try { result = JSON.parse(json.fields.scriptsJson.stringValue); } catch (e) {}
                         }
-                        if (Array.isArray(result) && result.length > 0) {
+                        if (Array.isArray(result)) {
                             localStorage.setItem(cacheKey, JSON.stringify(result));
                             sessionStorage.setItem(timeKey, Date.now().toString());
                             console.log(`[Firebase] [${col}] Successfully loaded scripts via REST API. Total:`, result.length);

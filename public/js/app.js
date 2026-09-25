@@ -2025,7 +2025,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         applySiteConfig();
                         checkLootlabsGate();
                     }
-                    if (Array.isArray(fbScripts) && fbScripts.length > 0) {
+                    if (Array.isArray(fbScripts)) {
                         scripts = fbScripts;
                         renderHomeRecent();
                         if (currentView === "feed") renderFeed();

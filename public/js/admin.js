@@ -317,7 +317,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
             try {
                 const fbScripts = await window.FirebaseDB.getScripts(true);
-                if (Array.isArray(fbScripts) && fbScripts.length > 0) {
+                if (Array.isArray(fbScripts)) {
                     scripts = fbScripts;
                     saveScriptsData(scripts);
                     selectedIds.clear();
