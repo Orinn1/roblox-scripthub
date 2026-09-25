@@ -130,7 +130,28 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     // Multi-Language Localization (i18n) - Auto Detect Thai vs Foreigners
     // =========================================================================
+    function isGlobalDomain() {
+        if (typeof window !== "undefined") {
+            if (typeof window.isGlobalDomain === "function") return window.isGlobalDomain();
+            const override = sessionStorage.getItem("blacklist_active_db_target");
+            if (override === "hub_global") return true;
+            if (override === "hub") return false;
+            if (window.location && window.location.hostname) {
+                const host = window.location.hostname.toLowerCase();
+                if (host.includes("blacklisthub") || host.includes("workers.dev") || host.includes("global")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     function getInitialLanguage() {
+        // 0. โดเมน Global (เช่น hub.blacklisthub.workers.dev) บังคับภาษาอังกฤษ 100% เสมอ
+        if (isGlobalDomain()) {
+            return "en";
+        }
+
         // 1. ถ้าผู้ใช้เคยกดเลือกภาษาเอง ให้จำค่านั้นไว้เสมอ
         const manualChoice = localStorage.getItem("blacklist_lang_manual");
         if (manualChoice === "true") {
@@ -263,7 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
             btnCopyCode: "Copy Script (Copy Code)",
             unlockedToast: "Congratulations! Script unlocked successfully.",
             copiedBtn: "Copied successfully!",
-            gateAccessRestrictedToast: "Access restricted! Please complete LootLabs link first.",
+            gateAccessRestrictedToast: "Access restricted! Please complete support link first.",
             // Popup
             popupDismiss24h: "Don't show again for 24 hours",
             popupClose: "Close Window",
@@ -277,6 +298,36 @@ document.addEventListener("DOMContentLoaded", () => {
             gateTokenPlaceholder: "Enter Access Token",
             gateTokenSubmit: "Unlock",
             gateHint: "Once verified, this device will be remembered for 24 hours",
+            // VIP & Gate
+            gateVipText: "Have VIP role on Discord?",
+            gateVipBtn: "Login with Discord (100% Ad-Free)",
+            vipModalBadge: "DISCORD MEMBERSHIP",
+            vipModalTitle: "Discord Membership & Roles",
+            vipModalSubtitle: "Log in to display your profile and roles on the website",
+            vipOauthTitle: "Login with Discord Account",
+            vipOauthDesc: "Click the button below to verify your Discord account. Your roles (Admin / Dev / Bypass / Verified) will be automatically detected.",
+            btnVipOauthLogin: "Login with Discord",
+            vipLogoutBtn: "Log out on this device",
+            vipFeatureAdFree: "100% Ad-free & no popups",
+            vipFeatureBypassGate: "Permanent bypass for ShrinkEarn / LootLabs gate",
+            vipFeatureInstantAccess: "Instant access to all script codes",
+            vipFeatureDiscordConnected: (role) => `Connected Discord account (${role}) successfully`,
+            vipFeatureShowRoleBadge: "Role badge displayed on profile",
+            vipFeatureBypassReq: "Bypass permission: Requires Bypass role in Discord to disable ads",
+            vipExpiryLifetime: "Bypass Status: Lifetime (No expiration)",
+            vipExpiryNoRole: "Your account does not have the Bypass role in Discord yet",
+            vipStatusActiveTag: "ACTIVE • BYPASS ADS 100%",
+            vipStatusMemberTag: "CONNECTED • MEMBER",
+            vipToastWelcomeBypass: (name, role) => `Welcome ${name} [${role}]! 100% Ad-free unlocked.`,
+            vipToastWelcomeMember: (name, role) => `Welcome ${name} [${role}]! Account connected.`,
+            vipToastInvalidToken: "Invalid or expired login code",
+            vipToastSuccess: "Discord authentication successful!",
+            vipToastNotGuild: "You have not joined our Discord server yet (Please join first)",
+            vipToastNoRole: (user) => `Account ${user ? '(' + user + ') ' : ''}does not have access permissions`,
+            vipToastError: "Unable to authenticate",
+            vipToastLogout: "Logged out of VIP on this device",
+            vipToastInstantUnlock: "VIP Member: Script unlocked instantly!",
+            emptyCategories: "No game categories yet",
             // Mobile Nav
             mobHome: "Home",
             mobScripts: "Scripts",
@@ -404,6 +455,36 @@ document.addEventListener("DOMContentLoaded", () => {
             gateTokenPlaceholder: "กรอก Access Token",
             gateTokenSubmit: "ปลดล็อค",
             gateHint: "เมื่อยืนยันสำเร็จ ระบบจะจดจำเครื่องนี้ไว้ให้เข้าได้ตลอด 24 ชั่วโมง",
+            // VIP & Gate
+            gateVipText: "มียศ VIP ใน Discord?",
+            gateVipBtn: "เข้าสู่ระบบด้วย Discord (ไร้โฆษณา 100%)",
+            vipModalBadge: "ระบบสมาชิก DISCORD",
+            vipModalTitle: "ระบบสมาชิก Discord & บทบาท",
+            vipModalSubtitle: "เข้าสู่ระบบเพื่อแสดงโปรไฟล์และยศของคุณบนเว็บไซต์",
+            vipOauthTitle: "เข้าสู่ระบบด้วยบัญชี Discord",
+            vipOauthDesc: "กดปุ่มด้านล่างเพื่อยืนยันตัวตนกับ Discord ระบบจะตรวจสอบยศ (Admin / Dev / Bypass / Verified) และแสดงโปรไฟล์บนเว็บให้อัตโนมัติ",
+            btnVipOauthLogin: "เข้าสู่ระบบด้วย Discord",
+            vipLogoutBtn: "ออกจากระบบบนเครื่องนี้",
+            vipFeatureAdFree: "ปิดโฆษณา Adsterra และป๊อปอัปทั้งหมด 100%",
+            vipFeatureBypassGate: "ข้ามเกทโฆษณา ShrinkEarn / LootLabs ถาวร",
+            vipFeatureInstantAccess: "เข้าถึงโค้ดสคริปต์ได้ทันทีไม่ต้องรอ",
+            vipFeatureDiscordConnected: (role) => `เชื่อมต่อบัญชี Discord (${role}) สำเร็จ`,
+            vipFeatureShowRoleBadge: "แสดงป้ายยศบนโปรไฟล์เว็บ",
+            vipFeatureBypassReq: "สิทธิ์ Bypass: ต้องมียศ Bypass ใน Discord จึงจะปิดโฆษณาได้",
+            vipExpiryLifetime: "สิทธิ์ Bypass: ตลอดชีพ (ไม่มีวันหมดอายุ)",
+            vipExpiryNoRole: "บัญชีของคุณยังไม่มียศ Bypass ใน Discord",
+            vipStatusActiveTag: "ใช้งานอยู่ • ไร้โฆษณา 100%",
+            vipStatusMemberTag: "เชื่อมต่อแล้ว • สมาชิก",
+            vipToastWelcomeBypass: (name, role) => `ยินดีต้อนรับ ${name} [${role}]! ปลดล็อคระบบไร้โฆษณา 100%`,
+            vipToastWelcomeMember: (name, role) => `ยินดีต้อนรับ ${name} [${role}]! เชื่อมต่อบัญชีเรียบร้อย`,
+            vipToastInvalidToken: "รหัสเข้าสู่ระบบไม่ถูกต้องหรือหมดอายุแล้ว",
+            vipToastSuccess: "ยืนยันตัวตนผ่าน Discord สำเร็จ!",
+            vipToastNotGuild: "คุณยังไม่ได้เข้าร่วม Discord เซิร์ฟเวอร์ของเรา (กรุณาเข้าร่วมเซิร์ฟเวอร์ก่อน)",
+            vipToastNoRole: (user) => `บัญชี ${user ? '(' + user + ') ' : ''}ไม่มีสิทธิ์เข้าใช้งาน`,
+            vipToastError: "ไม่สามารถยืนยันตัวตนได้",
+            vipToastLogout: "ออกจากระบบ VIP บนเครื่องนี้เรียบร้อยแล้ว",
+            vipToastInstantUnlock: "สมาชิก VIP: ปลดล็อคโค้ดสคริปต์ทันที!",
+            emptyCategories: "ยังไม่มีหมวดหมู่เกม",
             // Mobile Nav
             mobHome: "หน้าแรก",
             mobScripts: "สคริปต์",
@@ -590,15 +671,50 @@ document.addEventListener("DOMContentLoaded", () => {
             lblSuncFail.innerHTML = `${t.suncFail} <strong id="suncFailedCount">${fStrong}</strong>`;
         }
         if (searchSuncFunc) searchSuncFunc.placeholder = t.suncSearchPlaceholder;
+
+        // VIP Modal & Gate Elements Localization
+        const lblGateVipText = document.getElementById("lblGateVipText");
+        if (lblGateVipText) lblGateVipText.textContent = t.gateVipText;
+        const lblGateVipBtn = document.getElementById("lblGateVipBtn");
+        if (lblGateVipBtn) lblGateVipBtn.textContent = t.gateVipBtn;
+        const vipModalBadge = document.getElementById("vipModalBadge");
+        if (vipModalBadge) vipModalBadge.innerHTML = `<i data-lucide="crown" style="width: 15px; height: 15px;"></i> ${t.vipModalBadge}`;
+        const vipModalTitle = document.getElementById("vipModalTitle");
+        if (vipModalTitle) vipModalTitle.textContent = t.vipModalTitle;
+        const vipModalSubtitle = document.getElementById("vipModalSubtitle");
+        if (vipModalSubtitle) vipModalSubtitle.textContent = t.vipModalSubtitle;
+        const lblVipOauthTitle = document.getElementById("lblVipOauthTitle");
+        if (lblVipOauthTitle) lblVipOauthTitle.textContent = t.vipOauthTitle;
+        const lblVipOauthDesc = document.getElementById("lblVipOauthDesc");
+        if (lblVipOauthDesc) lblVipOauthDesc.textContent = t.vipOauthDesc;
+        const lblBtnVipOauthLogin = document.getElementById("lblBtnVipOauthLogin");
+        if (lblBtnVipOauthLogin) lblBtnVipOauthLogin.textContent = t.btnVipOauthLogin;
+        const vipLogoutBtn = document.getElementById("vipLogoutBtn");
+        if (vipLogoutBtn) vipLogoutBtn.textContent = t.vipLogoutBtn;
+        const lblInAppNotice = document.getElementById("lblInAppNotice");
+        if (lblInAppNotice) {
+            lblInAppNotice.innerHTML = currentLang === 'th'
+                ? `กำลังเปิดในแอป แนะนำแตะ <strong>เข็มทิศ 🧭 (มุมขวาล่าง)</strong> เพื่อเปิดใน Safari`
+                : `Opened in in-app browser. Tap <strong>Compass 🧭 (bottom right)</strong> to open in Safari`;
+        }
     }
 
     function setLanguage(lang, isManual = false) {
-        currentLang = lang === "th" ? "th" : "en";
+        if (isGlobalDomain()) {
+            currentLang = "en";
+        } else {
+            currentLang = lang === "th" ? "th" : "en";
+        }
         localStorage.setItem("blacklist_lang", currentLang);
         if (isManual) {
             localStorage.setItem("blacklist_lang_manual", "true");
         }
         document.documentElement.lang = currentLang;
+
+        const langSwitcher = document.getElementById("langSwitcher");
+        if (isGlobalDomain() && langSwitcher) {
+            langSwitcher.style.display = "none";
+        }
 
         if (langBtnEn && langBtnTh) {
             if (currentLang === "en") {
@@ -628,6 +744,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // ระบบตรวจจับประเทศผ่าน IP (Auto Geo-Language Detection)
     // ถ้าผู้ใช้มาจากประเทศไทย (TH) ให้ตั้งภาษาไทยอัตโนมัติ / ต่างชาติให้เป็นภาษาอังกฤษ (EN)
     async function autoDetectGeoLanguage() {
+        if (isGlobalDomain()) return;
         // หากผู้ใช้เคยกดเลือกภาษาเอง จะไม่บังคับเปลี่ยน
         if (localStorage.getItem("blacklist_lang_manual") === "true") return;
 
@@ -762,7 +879,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (withToast) {
             const gate = SITE_CONFIG.lootlabsGate || {};
             const durationHours = Number(gate.expiryHours || 24);
-            showToast(`ปลดล็อคสำเร็จ! จดจำเครื่องนี้ไว้ ${durationHours} ชั่วโมง`);
+            showToast(currentLang === 'th' ? `ปลดล็อคสำเร็จ! จดจำเครื่องนี้ไว้ ${durationHours} ชั่วโมง` : `Unlocked successfully! Device remembered for ${durationHours} hours.`);
         }
     }
 
@@ -934,27 +1051,29 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (vipStatusBadgeTag) {
+                const t = I18N[currentLang] || I18N.en;
                 if (canBypass) {
-                    vipStatusBadgeTag.innerHTML = `<i data-lucide="check-circle" style="width: 13px; height: 13px; color: #4ade80;"></i> ACTIVE • BYPASS ADS 100%`;
+                    vipStatusBadgeTag.innerHTML = `<i data-lucide="check-circle" style="width: 13px; height: 13px; color: #4ade80;"></i> ${escapeHtml(t.vipStatusActiveTag || "ACTIVE • BYPASS ADS 100%")}`;
                     vipStatusBadgeTag.className = "vip-badge-tag is-active";
                 } else {
-                    vipStatusBadgeTag.innerHTML = `<i data-lucide="user-check" style="width: 13px; height: 13px; color: #94a3b8;"></i> CONNECTED • MEMBER`;
+                    vipStatusBadgeTag.innerHTML = `<i data-lucide="user-check" style="width: 13px; height: 13px; color: #94a3b8;"></i> ${escapeHtml(t.vipStatusMemberTag || "CONNECTED • MEMBER")}`;
                     vipStatusBadgeTag.className = "vip-badge-tag is-standard";
                 }
             }
 
             if (vipFeaturesList) {
+                const t = I18N[currentLang] || I18N.en;
                 if (canBypass) {
                     vipFeaturesList.innerHTML = `
-                        <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> ปิดโฆษณา Adsterra และป๊อปอัปทั้งหมด 100%</div>
-                        <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> ข้ามเกทโฆษณา ShrinkEarn / LootLabs ถาวร</div>
-                        <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> เข้าถึงโค้ดสคริปต์ได้ทันทีไม่ต้องรอ</div>
+                        <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> ${escapeHtml(t.vipFeatureAdFree)}</div>
+                        <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> ${escapeHtml(t.vipFeatureBypassGate)}</div>
+                        <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> ${escapeHtml(t.vipFeatureInstantAccess)}</div>
                     `;
                 } else {
                     vipFeaturesList.innerHTML = `
-                        <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> เชื่อมต่อบัญชี Discord (${escapeHtml(role.name)}) สำเร็จ</div>
-                        <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> แสดงป้ายยศบนโปรไฟล์เว็บ</div>
-                        <div style="color: #fbbf24;"><i data-lucide="lock" style="width: 14px; height: 14px;"></i> สิทธิ์ Bypass: ต้องมียศ Bypass ใน Discord จึงจะปิดโฆษณาได้</div>
+                        <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> ${t.vipFeatureDiscordConnected(escapeHtml(role.name))}</div>
+                        <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> ${escapeHtml(t.vipFeatureShowRoleBadge)}</div>
+                        <div style="color: #fbbf24;"><i data-lucide="lock" style="width: 14px; height: 14px;"></i> ${escapeHtml(t.vipFeatureBypassReq)}</div>
                     `;
                 }
             }
@@ -968,11 +1087,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (vipExpiryText) {
+                const t = I18N[currentLang] || I18N.en;
                 if (canBypass) {
-                    vipExpiryText.innerHTML = `<i data-lucide="sparkles" style="width: 14px; height: 14px; color: #fbbf24;"></i> สิทธิ์ Bypass: <strong>ตลอดชีพ (ไม่มีวันหมดอายุ)</strong>`;
+                    vipExpiryText.innerHTML = `<i data-lucide="sparkles" style="width: 14px; height: 14px; color: #fbbf24;"></i> ${escapeHtml(t.vipExpiryLifetime)}`;
                     vipExpiryText.style.display = "block";
                 } else {
-                    vipExpiryText.innerHTML = `<i data-lucide="info" style="width: 14px; height: 14px;"></i> บัญชีของคุณยังไม่มียศ Bypass ใน Discord`;
+                    vipExpiryText.innerHTML = `<i data-lucide="info" style="width: 14px; height: 14px;"></i> ${escapeHtml(t.vipExpiryNoRole)}`;
                     vipExpiryText.style.display = "block";
                 }
             }
@@ -999,6 +1119,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function checkUrlForVipToken() {
         try {
+            const t = I18N[currentLang] || I18N.en;
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get("vip_token") || urlParams.get("vip_code");
             const oauthSuccess = urlParams.get("vip_success");
@@ -1018,9 +1139,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         const roleName = data.primaryRole ? data.primaryRole.tag : "Member";
                         const welcomeName = data.user ? (data.user.global_name || data.user.username) : "";
                         if (data.canBypass) {
-                            showToast(`ยินดีต้อนรับ ${welcomeName} [${roleName}]! ปลดล็อคระบบไร้โฆษณา 100%`);
+                            showToast(t.vipToastWelcomeBypass(welcomeName, roleName));
                         } else {
-                            showToast(`ยินดีต้อนรับ ${welcomeName} [${roleName}]! เชื่อมต่อบัญชีเรียบร้อย`);
+                            showToast(t.vipToastWelcomeMember(welcomeName, roleName));
                         }
                         urlParams.delete("vip_token");
                         urlParams.delete("vip_code");
@@ -1028,7 +1149,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         window.history.replaceState({}, document.title, newUrl);
                         return;
                     } else {
-                        showToast(data.message || "รหัสเข้าสู่ระบบไม่ถูกต้องหรือหมดอายุแล้ว", "error");
+                        showToast(data.message || t.vipToastInvalidToken, "error");
                     }
                 }
             }
@@ -1037,12 +1158,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 urlParams.delete("vip_success");
                 const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "") + window.location.hash;
                 window.history.replaceState({}, document.title, newUrl);
-                showToast("ยืนยันตัวตนผ่าน Discord สำเร็จ!");
+                showToast(t.vipToastSuccess);
             } else if (oauthError) {
                 const checkedUser = urlParams.get("user") || "";
-                let msg = "ไม่สามารถยืนยันตัวตนได้";
-                if (oauthError === "not_in_guild") msg = "คุณยังไม่ได้เข้าร่วม Discord เซิร์ฟเวอร์ของเรา (กรุณาเข้าร่วมเซิร์ฟเวอร์ก่อน)";
-                else if (oauthError === "no_role") msg = `บัญชี ${checkedUser ? '(' + checkedUser + ') ' : ''}ไม่มีสิทธิ์เข้าใช้งาน`;
+                let msg = t.vipToastError;
+                if (oauthError === "not_in_guild") msg = t.vipToastNotGuild;
+                else if (oauthError === "no_role") msg = t.vipToastNoRole(checkedUser);
                 urlParams.delete("vip_error");
                 urlParams.delete("user");
                 const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "") + window.location.hash;
@@ -1105,7 +1226,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 e.stopPropagation();
                 clearVipSession();
                 closeVipModal();
-                showToast("ออกจากระบบ VIP บนเครื่องนี้เรียบร้อยแล้ว");
+                const t = I18N[currentLang] || I18N.en;
+                showToast(t.vipToastLogout || (currentLang === 'th' ? "ออกจากระบบ VIP บนเครื่องนี้เรียบร้อยแล้ว" : "Logged out of VIP on this device"));
                 checkLootlabsGate();
             });
         }
@@ -1143,7 +1265,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     if (gateAutoDetectBox) {
                         gateAutoDetectBox.style.display = "flex";
-                        gateAutoDetectBox.innerHTML = '<i data-lucide="check-circle" style="color: #4ade80; width: 16px; height: 16px;"></i> <span style="color: #4ade80; font-weight: 600;">ปลดล็อคสำเร็จ! กำลังเปิดหน้าเว็บ...</span>';
+                        const unlockedMsg = currentLang === 'th' ? 'ปลดล็อคสำเร็จ! กำลังเปิดหน้าเว็บ...' : 'Unlocked! Opening website...';
+                        gateAutoDetectBox.innerHTML = `<i data-lucide="check-circle" style="color: #4ade80; width: 16px; height: 16px;"></i> <span style="color: #4ade80; font-weight: 600;">${unlockedMsg}</span>`;
                         refreshIcons();
                     }
 
@@ -1169,7 +1292,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         if (gateAutoDetectBox) {
                             gateAutoDetectBox.style.display = "flex";
-                            gateAutoDetectBox.innerHTML = '<i data-lucide="check-circle" style="color: #4ade80; width: 16px; height: 16px;"></i> <span style="color: #4ade80; font-weight: 600;">ปลดล็อคสำเร็จ! กำลังเปิดหน้าเว็บ...</span>';
+                            const unlockedMsg = currentLang === 'th' ? 'ปลดล็อคสำเร็จ! กำลังเปิดหน้าเว็บ...' : 'Unlocked! Opening website...';
+                            gateAutoDetectBox.innerHTML = `<i data-lucide="check-circle" style="color: #4ade80; width: 16px; height: 16px;"></i> <span style="color: #4ade80; font-weight: 600;">${unlockedMsg}</span>`;
                             refreshIcons();
                         }
 
@@ -1185,7 +1309,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (!silent) {
-            showToast("ยังไม่พบการยืนยันจาก LootLabs กรุณาทำภารกิจให้ครบ");
+            showToast(currentLang === 'th' ? "ยังไม่พบการยืนยันจาก LootLabs กรุณาทำภารกิจให้ครบ" : "Verification not found yet. Please complete the tasks.");
         }
         return false;
     }
@@ -1246,11 +1370,12 @@ document.addEventListener("DOMContentLoaded", () => {
             bannedClientIp.textContent = banData.ip;
         }
         if (bannedDurationText && banData.durationHours) {
-            bannedDurationText.textContent = `${banData.durationHours} ชั่วโมง`;
+            bannedDurationText.textContent = `${banData.durationHours} ${currentLang === 'th' ? 'ชั่วโมง' : 'Hours'}`;
         }
         if (bannedExpireTimeText && banData.bannedUntil) {
             const expDate = new Date(banData.bannedUntil);
-            bannedExpireTimeText.textContent = expDate.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) + " (" + expDate.toLocaleDateString("th-TH") + ")";
+            const locale = currentLang === 'th' ? "th-TH" : "en-US";
+            bannedExpireTimeText.textContent = expDate.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }) + " (" + expDate.toLocaleDateString(locale) + ")";
         }
 
         refreshIcons();
@@ -1360,7 +1485,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (isBypass) {
                     sessionStorage.setItem("blacklist_bypass_ref_logged", "true");
                     reportBypassAttempt("เปิดเว็บไซต์ผ่านเครื่องมือ Bypass อัตโนมัติ", `Referrer Host: ${host}`);
-                    showToast("ตรวจพบการเปิดผ่านเครื่องมือ Bypass กรุณาทำภารกิจผ่าน ShrinkEarn อย่างถูกต้อง");
+                    showToast(currentLang === 'th' ? "ตรวจพบการเปิดผ่านเครื่องมือ Bypass กรุณาทำภารกิจผ่าน ShrinkEarn อย่างถูกต้อง" : "Bypass tool detected. Please complete the tasks properly.");
                 }
             } catch (e) {}
         }
@@ -1393,7 +1518,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const cleanUrl = window.location.origin + window.location.pathname;
                 window.history.replaceState({}, document.title, cleanUrl);
             } catch (e) {}
-            showToast("รีเซ็ตสถานะเป็นเครื่องใหม่ (ล็อคหน้าเว็บ) เรียบร้อยแล้ว");
+            showToast(currentLang === 'th' ? "รีเซ็ตสถานะเป็นเครื่องใหม่ (ล็อคหน้าเว็บ) เรียบร้อยแล้ว" : "Reset device status (locked) successfully.");
         }
 
         const incomingToken = (urlParams.get("auth") || urlParams.get("token") || urlParams.get("key") || "").trim().toLowerCase();
@@ -1414,7 +1539,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     ];
                     if (knownBypassHosts.some(d => refHost === d || refHost.endsWith("." + d))) {
                         reportBypassAttempt("พยายามเปิดเว็บไซต์ผ่านบริการ Bypass อัตโนมัติ", `Referrer: ${refHost}`);
-                        showToast("ตรวจพบการเปิดผ่านเครื่องมือ Bypass กรุณาผ่านลิงก์อย่างถูกต้อง");
+                        showToast(currentLang === 'th' ? "ตรวจพบการเปิดผ่านเครื่องมือ Bypass กรุณาผ่านลิงก์อย่างถูกต้อง" : "Bypass tool detected. Please complete the link properly.");
                         try {
                             const cleanUrl = window.location.origin + window.location.pathname;
                             window.history.replaceState({}, document.title, cleanUrl);
@@ -1446,7 +1571,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const isAuthorizedSource = isRecentClick || clickedHandshake || isFromShortener || isManualInput || provider === "lootlabs";
 
             if (!isAuthorizedSource) {
-                showToast("กรุณากดปุ่มเพื่อรับสิทธิ์ผ่าน ShrinkEarn ก่อนเข้าใช้งาน");
+                showToast(currentLang === 'th' ? "กรุณากดปุ่มเพื่อรับสิทธิ์ผ่าน ShrinkEarn ก่อนเข้าใช้งาน" : "Please click the button to complete the link before accessing.");
                 try {
                     const cleanUrl = window.location.origin + window.location.pathname;
                     window.history.replaceState({}, document.title, cleanUrl);
@@ -1458,7 +1583,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (clickTime > 0 && !isManualInput && provider !== "lootlabs") {
                 const elapsedSec = (Date.now() - clickTime) / 1000;
                 if (elapsedSec < 10) {
-                    showToast(`ตรวจพบความเร็วผิดปกติ (${elapsedSec.toFixed(1)}s) กรุณาผ่านลิงก์ ShrinkEarn อย่างถูกต้อง`);
+                    showToast(currentLang === 'th' ? `ตรวจพบความเร็วผิดปกติ (${elapsedSec.toFixed(1)}s) กรุณาผ่านลิงก์ ShrinkEarn อย่างถูกต้อง` : `Abnormal speed detected (${elapsedSec.toFixed(1)}s). Please complete the link legitimately.`);
                     reportBypassAttempt("บอทข้ามลิงก์เร็วผิดปกติ (Bypass Speed Detection)", `Elapsed: ${elapsedSec.toFixed(1)}s (Minimum 10s required)`);
                     try {
                         const cleanUrl = window.location.origin + window.location.pathname;
@@ -1480,7 +1605,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const cleanUrl = window.location.origin + window.location.pathname;
                 window.history.replaceState({}, document.title, cleanUrl);
             } catch (e) {}
-            showToast("ยืนยันสิทธิ์สำเร็จ! ปลดล็อคการเข้าใช้งาน 24 ชั่วโมง");
+            showToast(currentLang === 'th' ? "ยืนยันสิทธิ์สำเร็จ! ปลดล็อคการเข้าใช้งาน 24 ชั่วโมง" : "Access verified! Unlocked for 24 hours.");
             return;
         }
 
@@ -1563,20 +1688,22 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (gateMessageText) {
-                if (provider === "shrinkearn") {
-                    gateMessageText.textContent = (gate.bypassMessage && !gate.bypassMessage.includes("LootLabs"))
-                        ? gate.bypassMessage
-                        : (currentLang === "th"
-                            ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
-                            : "Please complete the ShrinkEarn support link to unlock access to the website");
-                } else if (provider === "lootlabs") {
-                    gateMessageText.textContent = (gate.bypassMessage && !gate.bypassMessage.includes("ShrinkEarn"))
-                        ? gate.bypassMessage
-                        : (currentLang === "th"
-                            ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
-                            : "Please complete the LootLabs support link to unlock access to the website");
+                if (currentLang === "en") {
+                    gateMessageText.textContent = provider === "lootlabs"
+                        ? "Please complete the LootLabs support link to unlock access to the website"
+                        : "Please complete the support link to unlock access to the website";
                 } else {
-                    gateMessageText.textContent = gate.bypassMessage || "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์";
+                    if (provider === "shrinkearn") {
+                        gateMessageText.textContent = (gate.bypassMessage && !gate.bypassMessage.includes("LootLabs"))
+                            ? gate.bypassMessage
+                            : "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์";
+                    } else if (provider === "lootlabs") {
+                        gateMessageText.textContent = (gate.bypassMessage && !gate.bypassMessage.includes("ShrinkEarn"))
+                            ? gate.bypassMessage
+                            : "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์";
+                    } else {
+                        gateMessageText.textContent = gate.bypassMessage || "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์";
+                    }
                 }
             }
 
@@ -1834,7 +1961,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     setTimeout(() => { isInternalGateChange = false; }, 300);
 
                     reportBypassAttempt("พยายามลบ/ซ่อนกล่อง LootLabs Gate ผ่าน DevTools", "ตรวจพบการซ่อน #lootlabsGateOverlay");
-                    showToast("ตรวจพบการพยายามบายพาส! ระบบทำการล็อคหน้าเว็บและส่งบันทึก");
+                    showToast(currentLang === 'th' ? "ตรวจพบการพยายามบายพาส! ระบบทำการล็อคหน้าเว็บและส่งบันทึก" : "Bypass attempt detected! Access locked.");
                 }
             });
             tamperObserver.observe(lootlabsGateOverlay, { attributes: true, attributeFilter: ["style", "class", "hidden"] });
@@ -1894,7 +2021,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (e.key === "F12" || e.keyCode === 123) {
             e.preventDefault();
             e.stopPropagation();
-            showToast("การตรวจสอบโค้ด (DevTools) ถูกปิดใช้งานเพื่อความปลอดภัย");
+            showToast(currentLang === 'th' ? "การตรวจสอบโค้ด (DevTools) ถูกปิดใช้งานเพื่อความปลอดภัย" : "DevTools inspection is disabled for security.");
             return false;
         }
 
@@ -1902,7 +2029,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if ((e.ctrlKey || e.metaKey) && e.shiftKey && ["I", "i", "J", "j", "C", "c"].includes(e.key)) {
             e.preventDefault();
             e.stopPropagation();
-            showToast("การตรวจสอบโค้ด (DevTools) ถูกปิดใช้งานเพื่อความปลอดภัย");
+            showToast(currentLang === 'th' ? "การตรวจสอบโค้ด (DevTools) ถูกปิดใช้งานเพื่อความปลอดภัย" : "DevTools inspection is disabled for security.");
             return false;
         }
 
@@ -1910,7 +2037,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if ((e.ctrlKey || e.metaKey) && (e.key === "u" || e.key === "U")) {
             e.preventDefault();
             e.stopPropagation();
-            showToast("การดูต้นฉบับโค้ดถูกปิดใช้งานเพื่อความปลอดภัย");
+            showToast(currentLang === 'th' ? "การดูต้นฉบับโค้ดถูกปิดใช้งานเพื่อความปลอดภัย" : "Viewing source code is disabled for security.");
             return false;
         }
     }, true);
@@ -1983,7 +2110,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (gameMap.size === 0) {
             gameMenu.innerHTML = `
                 <li style="padding: 10px 16px; font-size: 12px; color: var(--text-muted); list-style: none;">
-                    ยังไม่มีหมวดหมู่เกม
+                    ${(I18N[currentLang] || I18N.en).emptyCategories || "No game categories yet"}
                 </li>
             `;
             return;
@@ -2973,7 +3100,7 @@ document.addEventListener("DOMContentLoaded", () => {
             unlockedView.classList.add("show");
             lockerModal.classList.add("active");
             refreshIcons();
-            showToast("สมาชิก VIP: ปลดล็อคโค้ดสคริปต์ทันที!");
+            showToast(t.vipToastInstantUnlock || "VIP Member: Script unlocked instantly!");
             return;
         }
 

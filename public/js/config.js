@@ -93,22 +93,50 @@ function deepMergeConfig(target, source) {
     return target;
 }
 
+window.isGlobalDomain = function () {
+    if (typeof window !== "undefined") {
+        const override = sessionStorage.getItem("blacklist_active_db_target");
+        if (override === "hub_global") return true;
+        if (override === "hub") return false;
+        if (window.location && window.location.hostname) {
+            const host = window.location.hostname.toLowerCase();
+            if (host.includes("blacklisthub") || host.includes("workers.dev") || host.includes("global")) {
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
+// Apply English defaults immediately if running on Global Hub domain
+if (window.isGlobalDomain()) {
+    SITE_CONFIG.siteTagline = "Ultimate Roblox Script Hub - Safe, Updated & Free Keyless Exploits";
+    if (SITE_CONFIG.unlockTasks) {
+        SITE_CONFIG.unlockTasks.youtubeChannelName = "Blacklistxyx Channel";
+        SITE_CONFIG.unlockTasks.affiliateTitle = "Join Discord Community";
+        SITE_CONFIG.unlockTasks.latestVideoTitle = "Like & Comment Latest Showcase Video";
+    }
+    if (SITE_CONFIG.lootlabsGate) {
+        SITE_CONFIG.lootlabsGate.bypassMessage = "Please complete the support link to unlock access to the website.";
+    }
+}
+
 window.mergeSiteConfig = function (source) {
     deepMergeConfig(SITE_CONFIG, source);
+    if (window.isGlobalDomain()) {
+        if (SITE_CONFIG.siteTagline && /[\u0E00-\u0E7F]/.test(SITE_CONFIG.siteTagline)) {
+            SITE_CONFIG.siteTagline = "Ultimate Roblox Script Hub - Safe, Updated & Free Keyless Exploits";
+        }
+        if (SITE_CONFIG.lootlabsGate && /[\u0E00-\u0E7F]/.test(SITE_CONFIG.lootlabsGate.bypassMessage || "")) {
+            SITE_CONFIG.lootlabsGate.bypassMessage = "Please complete the support link to unlock access to the website.";
+        }
+    }
     return SITE_CONFIG;
 };
 
 window.getSiteConfigStorageKey = function () {
-    if (typeof window !== "undefined") {
-        const override = sessionStorage.getItem("blacklist_active_db_target");
-        if (override === "hub_global") return "nova_site_config_global";
-        if (override === "hub") return "nova_site_config";
-        if (window.location && window.location.hostname) {
-            const host = window.location.hostname.toLowerCase();
-            if (host.includes("blacklisthub") || host.includes("workers.dev") || host.includes("global")) {
-                return "nova_site_config_global";
-            }
-        }
+    if (window.isGlobalDomain()) {
+        return "nova_site_config_global";
     }
     return "nova_site_config";
 };
@@ -137,7 +165,11 @@ window.getSiteConfigStorageKey = function () {
                 if (!parsed.unlockTasks.latestVideoUrl || parsed.unlockTasks.latestVideoUrl.includes("YOUR_CHANNEL") || parsed.unlockTasks.latestVideoUrl.includes("dQw4w9WgXcQ")) {
                     parsed.unlockTasks.latestVideoUrl = "https://www.youtube.com/@Blacklistxyx";
                 }
-                parsed.unlockTasks.youtubeChannelName = "ช่อง Blacklistxyx";
+                parsed.unlockTasks.youtubeChannelName = window.isGlobalDomain() ? "Blacklistxyx Channel" : "ช่อง Blacklistxyx";
+                if (window.isGlobalDomain()) {
+                    parsed.unlockTasks.affiliateTitle = "Join Discord Community";
+                    parsed.unlockTasks.latestVideoTitle = "Like & Comment Latest Showcase Video";
+                }
             }
             if (parsed.socialLinks) {
                 if (!parsed.socialLinks.youtube || parsed.socialLinks.youtube.includes("YOUR_CHANNEL")) {
@@ -152,12 +184,17 @@ window.getSiteConfigStorageKey = function () {
                 if (!parsed.lootlabsGate.provider) {
                     parsed.lootlabsGate.provider = "shrinkearn";
                 }
-                if (parsed.lootlabsGate.bypassMessage && parsed.lootlabsGate.bypassMessage.includes("LootLabs")) {
+                if (window.isGlobalDomain()) {
+                    parsed.lootlabsGate.bypassMessage = "Please complete the support link to unlock access to the website.";
+                } else if (parsed.lootlabsGate.bypassMessage && parsed.lootlabsGate.bypassMessage.includes("LootLabs")) {
                     parsed.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์";
                 }
             }
             // อัปเดต firebaseConfig เสมอ
             parsed.firebaseConfig = SITE_CONFIG.firebaseConfig;
+            if (window.isGlobalDomain()) {
+                parsed.siteTagline = "Ultimate Roblox Script Hub - Safe, Updated & Free Keyless Exploits";
+            }
             deepMergeConfig(SITE_CONFIG, parsed);
             localStorage.setItem(storageKey, JSON.stringify(SITE_CONFIG));
         }
