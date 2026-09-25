@@ -157,6 +157,7 @@ module.exports = async (req, res) => {
     }
 
     // =========================================================================
+    // =========================================================================
     // 2. Discord OAuth2 Redirect (/api/discord-auth?action=login)
     // =========================================================================
     if (action === 'login' || (!code && !action)) {
@@ -164,7 +165,11 @@ module.exports = async (req, res) => {
             return res.status(500).send('<h3>ข้อผิดพลาด: ไม่พบ DISCORD_CLIENT_ID</h3>');
         }
 
-        const discordAuthUrl = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=identify%20guilds.members.read`;
+        const returnTo = req.query?.return_to || req.query?.state || '';
+        let discordAuthUrl = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=identify%20guilds.members.read`;
+        if (returnTo) {
+            discordAuthUrl += `&state=${encodeURIComponent(returnTo)}`;
+        }
         return res.redirect(302, discordAuthUrl);
     }
 
@@ -172,8 +177,19 @@ module.exports = async (req, res) => {
     // 3. Discord OAuth2 Callback (/api/discord-auth?code=...)
     // =========================================================================
     if (code) {
+        const state = req.query?.state || '';
+        let targetBaseUrl = baseUrl;
+        if (state) {
+            try {
+                const parsedState = new URL(state);
+                if (parsedState.hostname.includes('workers.dev') || parsedState.hostname.includes('vercel.app') || parsedState.hostname.includes('localhost') || parsedState.hostname.includes('blacklisthub')) {
+                    targetBaseUrl = `${parsedState.protocol}//${parsedState.host}`;
+                }
+            } catch (e) {}
+        }
+
         if (!CLIENT_SECRET) {
-            return res.redirect(302, `${baseUrl}/?vip_error=missing_secret`);
+            return res.redirect(302, `${targetBaseUrl}/?vip_error=missing_secret`);
         }
 
         try {
@@ -194,7 +210,7 @@ module.exports = async (req, res) => {
             if (!tokenRes.ok) {
                 const errText = await tokenRes.text();
                 console.error('[Discord Auth] Token exchange failed:', errText);
-                return res.redirect(302, `${baseUrl}/?vip_error=token_exchange_failed`);
+                return res.redirect(302, `${targetBaseUrl}/?vip_error=token_exchange_failed`);
             }
 
             const tokenData = await tokenRes.json();
@@ -205,7 +221,7 @@ module.exports = async (req, res) => {
             });
 
             if (!userRes.ok) {
-                return res.redirect(302, `${baseUrl}/?vip_error=user_fetch_failed`);
+                return res.redirect(302, `${targetBaseUrl}/?vip_error=user_fetch_failed`);
             }
 
             const userData = await userRes.json();
@@ -245,7 +261,7 @@ module.exports = async (req, res) => {
             }
 
             if (!memberFound) {
-                return res.redirect(302, `${baseUrl}/?vip_error=not_in_guild&user=${encodeURIComponent(username)}`);
+                return res.redirect(302, `${targetBaseUrl}/?vip_error=not_in_guild&user=${encodeURIComponent(username)}`);
             }
 
             const { primaryRole, canBypass } = resolveUserRoles(memberRoles);
@@ -259,10 +275,10 @@ module.exports = async (req, res) => {
                 canBypass
             });
 
-            return res.redirect(302, `${baseUrl}/?vip_token=${encodeURIComponent(vipToken)}&auth_success=1`);
+            return res.redirect(302, `${targetBaseUrl}/?vip_token=${encodeURIComponent(vipToken)}&auth_success=1`);
         } catch (err) {
             console.error('[Discord Auth Error]:', err);
-            return res.redirect(302, `${baseUrl}/?vip_error=${encodeURIComponent(err.message)}`);
+            return res.redirect(302, `${targetBaseUrl}/?vip_error=${encodeURIComponent(err.message)}`);
         }
     }
 
