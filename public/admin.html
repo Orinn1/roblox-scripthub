@@ -503,9 +503,16 @@
                 </h1>
                 <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px; flex-wrap: wrap;">
                     <span class="badge" style="background: rgba(255, 153, 0, 0.15); color: #ffa000; border: 1px solid rgba(255, 153, 0, 0.35); padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
-                        <i data-lucide="flame" style="width: 12px; height: 12px;"></i> Firebase Firestore ออนไลน์ (ฟรี 50,000 Reads/วัน)
+                        <i data-lucide="flame" style="width: 12px; height: 12px;"></i> Firebase Firestore ออนไลน์
                     </span>
-                    <span style="font-size: 12px; color: var(--text-muted);">บันทึกสคริปต์แบบ Realtime ทันที ไม่จำกัด</span>
+                    <div id="dbTargetSelectorWrapper" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(56, 189, 248, 0.12); padding: 3px 10px; border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.3);">
+                        <i data-lucide="layers" style="width: 13px; height: 13px; color: #38bdf8;"></i>
+                        <span style="font-size: 11px; color: #94a3b8; font-weight: 500;">ฐานข้อมูลเป้าหมาย:</span>
+                        <select id="selectDbTarget" style="background: transparent; color: #38bdf8; border: none; font-size: 12px; font-weight: 700; cursor: pointer; outline: none; font-family: inherit;">
+                            <option value="hub" style="background: #111; color: #fff;">🇹🇭 hub (เว็บไทย / Vercel)</option>
+                            <option value="hub_global" style="background: #111; color: #38bdf8;">🌐 hub_global (เว็บสากล / Workers)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">

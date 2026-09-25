@@ -1,15 +1,40 @@
 /**
  * Firebase Firestore Manager for BlacklistScriptx
  * Connects directly to Google Cloud Firebase Firestore (50,000 free reads/day)
- * Supports both Firebase JS SDK and REST API fallback with client caching.
+ * Supports Multi-Database Isolation:
+ *  - 'hub' for Thai site (Vercel / default)
+ *  - 'hub_global' for Global site (Cloudflare Workers / blacklisthub)
  */
 
 (function () {
-    const CACHE_KEY = "nova_scripts_db";
-    const TIME_KEY = "nova_scripts_cache_time";
-    const CACHE_DURATION_MS = 60 * 1000; // 60 วินาที client-side cache
+    const CACHE_DURATION_MS = 60 * 1000; // 60 seconds client-side cache
 
     let dbInstance = null;
+
+    // Detect which database collection to use based on hostname or manual override
+    function getHubCollectionName() {
+        if (typeof window !== "undefined") {
+            const override = sessionStorage.getItem("blacklist_active_db_target");
+            if (override === "hub" || override === "hub_global") {
+                return override;
+            }
+            if (window.location && window.location.hostname) {
+                const host = window.location.hostname.toLowerCase();
+                if (host.includes("blacklisthub") || host.includes("workers.dev") || host.includes("global")) {
+                    return "hub_global";
+                }
+            }
+        }
+        return "hub";
+    }
+
+    function getScriptsCacheKey() {
+        return getHubCollectionName() === "hub_global" ? "nova_scripts_db_global" : "nova_scripts_db";
+    }
+
+    function getScriptsTimeKey() {
+        return getHubCollectionName() === "hub_global" ? "nova_scripts_cache_time_global" : "nova_scripts_cache_time";
+    }
 
     function getFirestore() {
         if (dbInstance) return dbInstance;
@@ -32,16 +57,41 @@
             return Boolean(window.SITE_CONFIG && window.SITE_CONFIG.firebaseConfig && window.SITE_CONFIG.firebaseConfig.projectId);
         },
 
-        // โหลดข้อมูลสคริปต์ทั้งหมด
+        getCollectionName: function () {
+            return getHubCollectionName();
+        },
+
+        getScriptsCacheKey: function () {
+            return getScriptsCacheKey();
+        },
+
+        getScriptsTimeKey: function () {
+            return getScriptsTimeKey();
+        },
+
+        setTargetCollection: function (colName) {
+            if (colName === "hub" || colName === "hub_global") {
+                sessionStorage.setItem("blacklist_active_db_target", colName);
+                console.log("[Firebase] Target DB collection switched to:", colName);
+                return true;
+            }
+            return false;
+        },
+
+        // โหลดข้อมูลสคริปต์ทั้งหมดตาม Collection ประจำโดเมน (hub หรือ hub_global)
         getScripts: async function (forceRefresh = false) {
+            const cacheKey = getScriptsCacheKey();
+            const timeKey = getScriptsTimeKey();
+            const col = getHubCollectionName();
+
             // 1. ตรวจสอบ Smart Cache
             if (!forceRefresh) {
-                const cachedTime = parseInt(sessionStorage.getItem(TIME_KEY) || "0", 10);
-                const hasCache = localStorage.getItem(CACHE_KEY);
+                const cachedTime = parseInt(sessionStorage.getItem(timeKey) || "0", 10);
+                const hasCache = localStorage.getItem(cacheKey);
                 if (hasCache && (Date.now() - cachedTime < CACHE_DURATION_MS)) {
                     try {
                         const parsed = JSON.parse(hasCache);
-                        if (Array.isArray(parsed)) {
+                        if (Array.isArray(parsed) && parsed.length > 0) {
                             return parsed;
                         }
                     } catch (e) {}
@@ -52,7 +102,7 @@
             const db = getFirestore();
             if (db) {
                 try {
-                    const docSnap = await db.collection("hub").doc("database").get();
+                    const docSnap = await db.collection(col).doc("database").get();
                     if (docSnap.exists) {
                         const data = docSnap.data();
                         let result = [];
@@ -61,21 +111,36 @@
                         } else if (typeof data.scriptsJson === "string") {
                             result = JSON.parse(data.scriptsJson);
                         }
-                        localStorage.setItem(CACHE_KEY, JSON.stringify(result));
-                        sessionStorage.setItem(TIME_KEY, Date.now().toString());
-                        console.log("[Firebase] Successfully loaded scripts via SDK. Total:", result.length);
-                        return result;
+                        if (Array.isArray(result) && result.length > 0) {
+                            localStorage.setItem(cacheKey, JSON.stringify(result));
+                            sessionStorage.setItem(timeKey, Date.now().toString());
+                            console.log(`[Firebase] [${col}] Successfully loaded scripts via SDK. Total:`, result.length);
+                            return result;
+                        }
+                    } else if (col === "hub_global") {
+                        // If hub_global does not exist yet, clone initial scripts from default data/scripts.json
+                        console.log("[Firebase] [hub_global] First time initialization from default scripts...");
+                        try {
+                            const initRes = await fetch("data/scripts.json").catch(() => null);
+                            if (initRes && initRes.ok) {
+                                const initScripts = await initRes.json();
+                                if (Array.isArray(initScripts) && initScripts.length > 0) {
+                                    this.saveScripts(initScripts);
+                                    return initScripts;
+                                }
+                            }
+                        } catch (e) {}
                     }
                 } catch (sdkErr) {
-                    console.warn("[Firebase] SDK fetch warning, trying REST API:", sdkErr);
+                    console.warn(`[Firebase] [${col}] SDK fetch warning, trying REST API:`, sdkErr);
                 }
             }
 
-            // 3. Fallback: Firebase REST API (กรณี SDK ไม่โหลดหรือโดนบล็อก)
+            // 3. Fallback: Firebase REST API
             if (this.isAvailable()) {
                 try {
                     const { projectId, apiKey } = window.SITE_CONFIG.firebaseConfig;
-                    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/hub/database?key=${apiKey}`;
+                    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${col}/database?key=${apiKey}`;
                     const res = await fetch(url);
                     if (res.ok) {
                         const json = await res.json();
@@ -83,18 +148,20 @@
                         if (json.fields && json.fields.scriptsJson && json.fields.scriptsJson.stringValue) {
                             result = JSON.parse(json.fields.scriptsJson.stringValue);
                         }
-                        localStorage.setItem(CACHE_KEY, JSON.stringify(result));
-                        sessionStorage.setItem(TIME_KEY, Date.now().toString());
-                        console.log("[Firebase] Successfully loaded scripts via REST API. Total:", result.length);
-                        return result;
+                        if (Array.isArray(result) && result.length > 0) {
+                            localStorage.setItem(cacheKey, JSON.stringify(result));
+                            sessionStorage.setItem(timeKey, Date.now().toString());
+                            console.log(`[Firebase] [${col}] Successfully loaded scripts via REST API. Total:`, result.length);
+                            return result;
+                        }
                     }
                 } catch (restErr) {
-                    console.warn("[Firebase] REST fetch warning:", restErr);
+                    console.warn(`[Firebase] [${col}] REST fetch warning:`, restErr);
                 }
             }
 
             // 4. Fallback ไปที่ LocalStorage หรือค่าเริ่มต้น
-            const localSaved = localStorage.getItem(CACHE_KEY);
+            const localSaved = localStorage.getItem(cacheKey);
             if (localSaved) {
                 try {
                     return JSON.parse(localSaved);
@@ -104,13 +171,17 @@
             return [];
         },
 
-        // บันทึกข้อมูลสคริปต์ทั้งหมดขึ้น Firebase Firestore
+        // บันทึกข้อมูลสคริปต์ทั้งหมดขึ้น Firebase Firestore ตาม Collection ประจำโดเมน
         saveScripts: async function (scriptsArray) {
             if (!Array.isArray(scriptsArray)) return false;
 
+            const cacheKey = getScriptsCacheKey();
+            const timeKey = getScriptsTimeKey();
+            const col = getHubCollectionName();
+
             // อัปเดตแคชในเครื่องทันที
-            localStorage.setItem(CACHE_KEY, JSON.stringify(scriptsArray));
-            sessionStorage.setItem(TIME_KEY, Date.now().toString());
+            localStorage.setItem(cacheKey, JSON.stringify(scriptsArray));
+            sessionStorage.setItem(timeKey, Date.now().toString());
 
             let savedSuccessfully = false;
 
@@ -118,15 +189,15 @@
             const db = getFirestore();
             if (db) {
                 try {
-                    await db.collection("hub").doc("database").set({
+                    await db.collection(col).doc("database").set({
                         scripts: scriptsArray,
                         scriptsJson: JSON.stringify(scriptsArray),
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
-                    console.log("[Firebase] Successfully saved scripts via SDK");
+                    console.log(`[Firebase] [${col}] Successfully saved scripts via SDK`);
                     savedSuccessfully = true;
                 } catch (sdkErr) {
-                    console.warn("[Firebase] SDK save warning, trying REST API:", sdkErr);
+                    console.warn(`[Firebase] [${col}] SDK save warning, trying REST API:`, sdkErr);
                 }
             }
 
@@ -134,7 +205,7 @@
             if (!savedSuccessfully && this.isAvailable()) {
                 try {
                     const { projectId, apiKey } = window.SITE_CONFIG.firebaseConfig;
-                    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/hub/database?key=${apiKey}`;
+                    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${col}/database?key=${apiKey}`;
                     const res = await fetch(url, {
                         method: "PATCH",
                         headers: { "Content-Type": "application/json" },
@@ -146,11 +217,11 @@
                         })
                     });
                     if (res.ok) {
-                        console.log("[Firebase] Successfully saved scripts via REST API");
+                        console.log(`[Firebase] [${col}] Successfully saved scripts via REST API`);
                         savedSuccessfully = true;
                     }
                 } catch (restErr) {
-                    console.warn("[Firebase] REST save error:", restErr);
+                    console.warn(`[Firebase] [${col}] REST save error:`, restErr);
                 }
             }
 
@@ -160,21 +231,24 @@
         // เพิ่มยอดการดูสคริปต์ (View Counter)
         incrementView: async function (scriptId) {
             if (!scriptId) return;
+            const cacheKey = getScriptsCacheKey();
+            const col = getHubCollectionName();
+
             try {
                 let cached = [];
-                const localSaved = localStorage.getItem(CACHE_KEY);
+                const localSaved = localStorage.getItem(cacheKey);
                 if (localSaved) {
                     try { cached = JSON.parse(localSaved); } catch (e) {}
                 }
                 const target = cached.find(s => String(s.id) === String(scriptId));
                 if (target) {
                     target.views = (Number(target.views) || 0) + 1;
-                    localStorage.setItem(CACHE_KEY, JSON.stringify(cached));
+                    localStorage.setItem(cacheKey, JSON.stringify(cached));
                 }
 
                 const db = getFirestore();
                 if (db) {
-                    const docRef = db.collection("hub").doc("database");
+                    const docRef = db.collection(col).doc("database");
                     await db.runTransaction(async (transaction) => {
                         const doc = await transaction.get(docRef);
                         if (!doc.exists) return;
@@ -199,28 +273,31 @@
                     await this.saveScripts(cached);
                 }
             } catch (err) {
-                console.warn("[Firebase] incrementView error:", err);
+                console.warn(`[Firebase] [${col}] View increment notice:`, err);
             }
         },
 
-        // เพิ่ม/ลด ยอดถูกใจสคริปต์ (Like Counter)
-        incrementLike: async function (scriptId, delta = 1) {
+        // กดถูกใจ / ยกเลิกถูกใจ (Like Toggle)
+        toggleLike: async function (scriptId, increment = true) {
             if (!scriptId) return;
+            const cacheKey = getScriptsCacheKey();
+            const col = getHubCollectionName();
+
             try {
                 let cached = [];
-                const localSaved = localStorage.getItem(CACHE_KEY);
+                const localSaved = localStorage.getItem(cacheKey);
                 if (localSaved) {
                     try { cached = JSON.parse(localSaved); } catch (e) {}
                 }
                 const target = cached.find(s => String(s.id) === String(scriptId));
                 if (target) {
-                    target.likes = Math.max(0, (Number(target.likes) || 0) + delta);
-                    localStorage.setItem(CACHE_KEY, JSON.stringify(cached));
+                    target.likes = Math.max(0, (Number(target.likes) || 0) + (increment ? 1 : -1));
+                    localStorage.setItem(cacheKey, JSON.stringify(cached));
                 }
 
                 const db = getFirestore();
                 if (db) {
-                    const docRef = db.collection("hub").doc("database");
+                    const docRef = db.collection(col).doc("database");
                     await db.runTransaction(async (transaction) => {
                         const doc = await transaction.get(docRef);
                         if (!doc.exists) return;
@@ -231,7 +308,7 @@
 
                         const item = currentScripts.find(s => String(s.id) === String(scriptId));
                         if (item) {
-                            item.likes = Math.max(0, (Number(item.likes) || 0) + delta);
+                            item.likes = Math.max(0, (Number(item.likes) || 0) + (increment ? 1 : -1));
                             transaction.update(docRef, {
                                 scripts: currentScripts,
                                 scriptsJson: JSON.stringify(currentScripts)
@@ -245,17 +322,19 @@
                     await this.saveScripts(cached);
                 }
             } catch (err) {
-                console.warn("[Firebase] incrementLike error:", err);
+                console.warn(`[Firebase] [${col}] Like toggle notice:`, err);
             }
         },
 
         // โหลดการตั้งค่าเว็บไซต์ (Site Config) จาก Firestore
         getConfig: async function () {
+            const col = getHubCollectionName();
+
             // 1. ลองโหลดผ่าน Firebase SDK
             const db = getFirestore();
             if (db) {
                 try {
-                    const docSnap = await db.collection("hub").doc("config").get();
+                    const docSnap = await db.collection(col).doc("config").get();
                     if (docSnap.exists) {
                         const data = docSnap.data();
                         let result = {};
@@ -266,19 +345,19 @@
                         }
                         result = { ...result, ...data };
                         delete result.configJson;
-                        console.log("[Firebase] Successfully loaded config via SDK");
+                        console.log(`[Firebase] [${col}] Successfully loaded config via SDK`);
                         return result;
                     }
                 } catch (e) {
-                    console.warn("[Firebase] Failed to load config via SDK, trying REST API fallback:", e);
+                    console.warn(`[Firebase] [${col}] Failed to load config via SDK, trying REST API fallback:`, e);
                 }
             }
 
-            // 2. Fallback: Firebase REST API (กรณี SDK ไม่โหลดหรือโดน adblock บล็อก)
+            // 2. Fallback: Firebase REST API
             if (this.isAvailable()) {
                 try {
                     const { projectId, apiKey } = window.SITE_CONFIG.firebaseConfig;
-                    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/hub/config?key=${apiKey}`;
+                    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${col}/config?key=${apiKey}`;
                     const res = await fetch(url);
                     if (res.ok) {
                         const json = await res.json();
@@ -288,20 +367,21 @@
                                 result = JSON.parse(json.fields.configJson.stringValue);
                             } catch (e) {}
                         }
-                        console.log("[Firebase] Successfully loaded config via REST API fallback");
+                        console.log(`[Firebase] [${col}] Successfully loaded config via REST API fallback`);
                         return result;
                     }
                 } catch (restErr) {
-                    console.warn("[Firebase] REST fetch config warning:", restErr);
+                    console.warn(`[Firebase] [${col}] REST fetch config warning:`, restErr);
                 }
             }
 
             return null;
         },
 
-        // บันทึกการตั้งค่าเว็บไซต์ขึ้น Firestore
+        // บันทึกการตั้งค่าเว็บไซต์ขึ้น Firestore ตาม Collection ประจำโดเมน
         saveConfig: async function (configData) {
             if (!configData || typeof configData !== "object") return false;
+            const col = getHubCollectionName();
 
             let savedSuccessfully = false;
             let clean = {};
@@ -326,11 +406,11 @@
                     } else {
                         payload.updatedAt = new Date().toISOString();
                     }
-                    await db.collection("hub").doc("config").set(payload, { merge: true });
-                    console.log("[Firebase] Successfully saved config to Firestore via SDK");
+                    await db.collection(col).doc("config").set(payload, { merge: true });
+                    console.log(`[Firebase] [${col}] Successfully saved config to Firestore via SDK`);
                     savedSuccessfully = true;
                 } catch (e) {
-                    console.warn("[Firebase] Failed to save config via SDK, trying REST API fallback:", e);
+                    console.warn(`[Firebase] [${col}] Failed to save config via SDK, trying REST API fallback:`, e);
                 }
             }
 
@@ -338,7 +418,7 @@
             if (!savedSuccessfully && this.isAvailable()) {
                 try {
                     const { projectId, apiKey } = window.SITE_CONFIG.firebaseConfig;
-                    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/hub/config?key=${apiKey}`;
+                    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${col}/config?key=${apiKey}`;
                     const res = await fetch(url, {
                         method: "PATCH",
                         headers: { "Content-Type": "application/json" },
@@ -350,11 +430,11 @@
                         })
                     });
                     if (res.ok) {
-                        console.log("[Firebase] Successfully saved config to Firestore via REST API fallback");
+                        console.log(`[Firebase] [${col}] Successfully saved config to Firestore via REST API fallback`);
                         savedSuccessfully = true;
                     }
                 } catch (restErr) {
-                    console.warn("[Firebase] REST save config warning:", restErr);
+                    console.warn(`[Firebase] [${col}] REST save config warning:`, restErr);
                 }
             }
 

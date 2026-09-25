@@ -143,6 +143,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function initAdmin() {
+        const selectDbTarget = document.getElementById("selectDbTarget");
+        if (selectDbTarget && window.FirebaseDB) {
+            selectDbTarget.value = window.FirebaseDB.getCollectionName();
+            selectDbTarget.addEventListener("change", (e) => {
+                const newCol = e.target.value;
+                window.FirebaseDB.setTargetCollection(newCol);
+                showToast(`สลับฐานข้อมูลไปยัง: ${newCol} กำลังโหลดใหม่...`);
+                setTimeout(() => location.reload(), 600);
+            });
+        }
+
         await Promise.all([loadSiteConfig(), loadScriptsFromServer(), loadDbStats()]);
         refreshIcons();
     }
@@ -176,8 +187,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // =========================================================================
     // 3. ตั้งค่าชื่อเว็บไซต์ (Site Name & Brand Config)
-    // 3. ตั้งค่าชื่อเว็บไซต์ (Site Name & Brand Config)
     async function loadSiteConfig() {
+        const storageKey = window.getSiteConfigStorageKey ? window.getSiteConfigStorageKey() : "nova_site_config";
         let loadedFromFirebase = false;
         if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
             try {
@@ -185,7 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (fbConfig && Object.keys(fbConfig).length > 0) {
                     if (window.mergeSiteConfig) window.mergeSiteConfig(fbConfig);
                     else Object.assign(SITE_CONFIG, fbConfig);
-                    localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
+                    localStorage.setItem(storageKey, JSON.stringify(SITE_CONFIG));
                     loadedFromFirebase = true;
                 }
             } catch (e) {
@@ -199,7 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!loadedFromFirebase) {
                     if (window.mergeSiteConfig) window.mergeSiteConfig(config);
                     else Object.assign(SITE_CONFIG, config);
-                    localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
+                    localStorage.setItem(storageKey, JSON.stringify(SITE_CONFIG));
                 }
             }
         } catch (e) {
@@ -241,7 +252,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (window.mergeSiteConfig) window.mergeSiteConfig(updates);
         else Object.assign(SITE_CONFIG, updates);
-        localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
+        const storageKey = window.getSiteConfigStorageKey ? window.getSiteConfigStorageKey() : "nova_site_config";
+        localStorage.setItem(storageKey, JSON.stringify(SITE_CONFIG));
 
         try {
             await fetch("/api/config", {
@@ -1483,7 +1495,8 @@ document.addEventListener("DOMContentLoaded", () => {
             };
         }
 
-        localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
+        const storageKey = window.getSiteConfigStorageKey ? window.getSiteConfigStorageKey() : "nova_site_config";
+        localStorage.setItem(storageKey, JSON.stringify(SITE_CONFIG));
 
         const updates = {
             unlockTasks: SITE_CONFIG.unlockTasks,

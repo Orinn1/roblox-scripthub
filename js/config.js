@@ -98,10 +98,26 @@ window.mergeSiteConfig = function (source) {
     return SITE_CONFIG;
 };
 
+window.getSiteConfigStorageKey = function () {
+    if (typeof window !== "undefined") {
+        const override = sessionStorage.getItem("blacklist_active_db_target");
+        if (override === "hub_global") return "nova_site_config_global";
+        if (override === "hub") return "nova_site_config";
+        if (window.location && window.location.hostname) {
+            const host = window.location.hostname.toLowerCase();
+            if (host.includes("blacklisthub") || host.includes("workers.dev") || host.includes("global")) {
+                return "nova_site_config_global";
+            }
+        }
+    }
+    return "nova_site_config";
+};
+
 // ตรวจสอบว่าเคยบันทึกการตั้งค่าไว้ใน LocalStorage หรือไม่
 (function loadSavedConfig() {
     try {
-        const saved = localStorage.getItem("nova_site_config");
+        const storageKey = window.getSiteConfigStorageKey();
+        const saved = localStorage.getItem(storageKey);
         if (saved) {
             const parsed = JSON.parse(saved);
             // คลาย configJson เก่าที่อาจจะค้างอยู่ใน localStorage
@@ -143,7 +159,7 @@ window.mergeSiteConfig = function (source) {
             // อัปเดต firebaseConfig เสมอ
             parsed.firebaseConfig = SITE_CONFIG.firebaseConfig;
             deepMergeConfig(SITE_CONFIG, parsed);
-            localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
+            localStorage.setItem(storageKey, JSON.stringify(SITE_CONFIG));
         }
     } catch (e) {
         console.warn("Could not load custom config from localStorage", e);

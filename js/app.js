@@ -2017,10 +2017,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         window.FirebaseDB.getScripts(),
                         window.FirebaseDB.getConfig().catch(() => null)
                     ]);
+                    const cfgStorageKey = window.getSiteConfigStorageKey ? window.getSiteConfigStorageKey() : "nova_site_config";
                     if (fbConfig) {
                         if (window.mergeSiteConfig) window.mergeSiteConfig(fbConfig);
                         else Object.assign(SITE_CONFIG, fbConfig);
-                        localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
+                        localStorage.setItem(cfgStorageKey, JSON.stringify(SITE_CONFIG));
                         applySiteConfig();
                         checkLootlabsGate();
                     }
@@ -2038,8 +2039,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // 2. Secondary Priority: JSONBin.io Cloud Database with Smart Caching (ประหยัดโควตา Request ไม่ให้หมดไว)
             if (SITE_CONFIG.cloudDb && SITE_CONFIG.cloudDb.enabled && SITE_CONFIG.cloudDb.binId) {
-                const CACHE_KEY = "nova_scripts_db";
-                const TIME_KEY = "nova_scripts_cache_time";
+                const CACHE_KEY = (typeof getScriptsStorageKey === "function") ? getScriptsStorageKey() : "nova_scripts_db";
+                const TIME_KEY = (window.FirebaseDB && window.FirebaseDB.getScriptsTimeKey) ? window.FirebaseDB.getScriptsTimeKey() : "nova_scripts_cache_time";
                 const CACHE_DURATION_MS = 60 * 1000; // แคชไว้ 60 วินาทีต่อผู้ใช้
                 const cachedTime = parseInt(sessionStorage.getItem(TIME_KEY) || "0", 10);
                 const hasCache = localStorage.getItem(CACHE_KEY);
@@ -2082,12 +2083,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 isLocal ? fetch('/api/scripts').catch(() => null) : Promise.resolve(null)
             ]);
 
+            const currentScriptsKey = (typeof getScriptsStorageKey === "function") ? getScriptsStorageKey() : "nova_scripts_db";
+            const currentConfigKey = window.getSiteConfigStorageKey ? window.getSiteConfigStorageKey() : "nova_site_config";
+
             // Fallback for static hosting (e.g. GitHub Pages or Vercel)
             if (!cfgRes || !cfgRes.ok) {
                 cfgRes = await fetch('data/config.json').catch(() => null);
             }
             if (!scpRes || !scpRes.ok) {
-                if (localStorage.getItem("nova_scripts_db") === null) {
+                if (localStorage.getItem(currentScriptsKey) === null) {
                     scpRes = await fetch('data/scripts.json').catch(() => null);
                 }
             }
@@ -2096,7 +2100,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const cfg = await cfgRes.json();
                 if (window.mergeSiteConfig) window.mergeSiteConfig(cfg);
                 else Object.assign(SITE_CONFIG, cfg);
-                localStorage.setItem("nova_site_config", JSON.stringify(SITE_CONFIG));
+                localStorage.setItem(currentConfigKey, JSON.stringify(SITE_CONFIG));
                 applySiteConfig();
                 checkLootlabsGate();
             }
@@ -2105,9 +2109,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 const scp = await scpRes.json();
                 if (Array.isArray(scp)) {
                     const isFromApi = scpRes.url && scpRes.url.includes('/api/scripts');
-                    if (isFromApi || localStorage.getItem("nova_scripts_db") === null) {
+                    if (isFromApi || localStorage.getItem(currentScriptsKey) === null) {
                         scripts = scp;
-                        localStorage.setItem("nova_scripts_db", JSON.stringify(scripts));
+                        localStorage.setItem(currentScriptsKey, JSON.stringify(scripts));
                         renderHomeRecent();
                         if (currentView === "feed") renderFeed();
                         updateCategoryBadges();
@@ -2121,7 +2125,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Listen for storage events (e.g. from admin tab)
     window.addEventListener("storage", (e) => {
-        if (e.key === "nova_site_config") {
+        const activeCfgKey = window.getSiteConfigStorageKey ? window.getSiteConfigStorageKey() : "nova_site_config";
+        const activeScpKey = (typeof getScriptsStorageKey === "function") ? getScriptsStorageKey() : "nova_scripts_db";
+
+        if (e.key === activeCfgKey || e.key === "nova_site_config") {
             try {
                 const parsedConfig = JSON.parse(e.newValue);
                 if (window.mergeSiteConfig) window.mergeSiteConfig(parsedConfig);
@@ -2130,7 +2137,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 checkLootlabsGate();
             } catch (err) {}
         }
-        if (e.key === "nova_scripts_db") {
+        if (e.key === activeScpKey || e.key === "nova_scripts_db") {
             try {
                 scripts = JSON.parse(e.newValue);
                 renderHomeRecent();
