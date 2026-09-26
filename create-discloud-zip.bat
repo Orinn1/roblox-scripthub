@@ -8,7 +8,7 @@ echo   กำลังสร้างไฟล์ discloud-bot.zip สำหร�
 echo ========================================================
 echo.
 
-powershell -NoProfile -Command "Compress-Archive -Path 'discloud.config', 'package.json', 'package-lock.json', 'db.js', '.env', 'bot', 'data' -DestinationPath 'discloud-bot.zip' -Force"
+powershell -NoProfile -Command "Compress-Archive -Path 'index.js', 'discloud.config', 'package.json', 'package-lock.json', 'db.js', '.env', 'bot', 'data' -DestinationPath 'discloud-bot.zip' -Force"
 
 if exist discloud-bot.zip (
     echo.

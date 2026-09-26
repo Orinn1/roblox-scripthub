@@ -43,16 +43,26 @@ function getSecretKey() {
  * @returns {string} Signed token
  */
 function generateVipToken(data) {
+    // Keep avatar short (omit CDN domain if present)
+    let avatarStr = String(data.avatar || '');
+    if (avatarStr.includes('/avatars/')) {
+        avatarStr = avatarStr.split('/avatars/')[1];
+    }
+
     const payload = {
         userId: String(data.userId || 'unknown'),
-        username: String(data.username || 'Discord User'),
-        avatar: String(data.avatar || ''),
-        roles: Array.isArray(data.roles) ? data.roles : [],
-        primaryRole: data.primaryRole || { id: '', name: 'Member', tag: '👤 Member', color: '#94a3b8', canBypass: false },
+        username: String(data.username || 'Discord User').slice(0, 32),
+        avatar: avatarStr.slice(0, 60),
+        // Filter to only known VIP/Staff roles instead of all server roles
+        roles: (Array.isArray(data.roles) ? data.roles : []).filter(id => ROLE_DEFINITIONS[id]),
+        primaryRole: {
+            id: data.primaryRole?.id || '',
+            tag: data.primaryRole?.tag || data.primaryRole?.name || '👤 Member',
+            canBypass: Boolean(data.canBypass)
+        },
         canBypass: Boolean(data.canBypass),
-        exp: 0, // 0 = Lifetime (Never expires)
-        createdAt: Date.now(),
-        nonce: crypto.randomBytes(6).toString('hex')
+        exp: 0, // 0 = Lifetime
+        createdAt: Date.now()
     };
 
     const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString('base64url');

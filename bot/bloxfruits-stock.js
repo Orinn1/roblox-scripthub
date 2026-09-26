@@ -21,6 +21,8 @@ const RARITY_COLORS = {
     'Mythical': 0xef4444
 };
 
+let lastWarnTime = 0;
+
 function parseBalancedJson(str, startIndex = 0) {
     const start = str.indexOf('{', startIndex);
     if (start === -1) return null;
@@ -96,7 +98,7 @@ async function getBloxFruitsStock(forceRefresh = false) {
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
                 'Accept-Language': 'th,en-US;q=0.9,en;q=0.8'
             },
-            signal: AbortSignal.timeout(10000)
+            signal: AbortSignal.timeout(18000)
         });
 
         if (!res.ok) {
@@ -129,7 +131,11 @@ async function getBloxFruitsStock(forceRefresh = false) {
         lastFetchTime = now;
         return cachedStock;
     } catch (err) {
-        console.warn(`⚠️ [BloxFruits Stock] ดึงข้อมูลสดไม่สำเร็จ (${err.message}) กำลังใช้ข้อมูลสำรอง...`);
+        lastFetchTime = now;
+        if (now - lastWarnTime > 15 * 60 * 1000) {
+            console.warn(`⚠️ [BloxFruits Stock] ดึงข้อมูลสดไม่สำเร็จ (${err.message}) กำลังใช้ข้อมูลสำรอง...`);
+            lastWarnTime = now;
+        }
         if (cachedStock) return cachedStock;
 
         // Fallback data หากเชื่อมต่อไม่ได้

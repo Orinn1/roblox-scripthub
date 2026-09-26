@@ -70,6 +70,7 @@ const { startYouTubeMonitor } = require('./youtube-monitor.js');
 const { startRobloxMonitor } = require('./roblox-monitor.js');
 const { startStockMonitor } = require('./stock-monitor.js');
 const { handleBypassMessage } = require('./bypass-helper.js');
+const { handleAntiRaidMessage } = require('./anti-raid.js');
 
 client.once(Events.ClientReady, async (readyClient) => {
     const scripts = await getScripts();
@@ -202,18 +203,22 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 });
 
-// Auto-Bypass Handler (ทำงานเฉพาะห้องที่กำหนด)
+// Message Event Handler (Anti-Raid Guard & Auto-Bypass)
 client.on(Events.MessageCreate, async (message) => {
     try {
-        if (message.author.bot) return;
+        if (!message || message.author?.bot) return;
 
-        // ตรวจสอบว่าส่งในห้องที่กำหนดไว้หรือไม่ (ค่าเริ่มต้น: 1549758071734140958)
+        // 1. 🛡️ Hardcore Anti-Raid Guard (ลบข้อความสแปม / ตัวอักษรยาว / Copypasta / Fast Spam / ปิดปากทันที)
+        const isRaid = await handleAntiRaidMessage(message);
+        if (isRaid) return; // ถ้าเป็นข้อความยิง จัดการทิ้งแล้วข้ามทันที
+
+        // 2. Auto-Bypass Handler (ทำงานเฉพาะห้องที่กำหนด)
         const allowedChannelId = botConfig.bypassChannelId || '1549758071734140958';
-        if (message.channelId !== allowedChannelId) return;
-
-        await handleBypassMessage(message);
+        if (message.channelId === allowedChannelId) {
+            await handleBypassMessage(message);
+        }
     } catch (err) {
-        console.error('[MessageCreate Bypass Error]:', err);
+        console.error('[MessageCreate Error]:', err);
     }
 });
 

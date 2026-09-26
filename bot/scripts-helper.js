@@ -26,13 +26,32 @@ try {
 
 let cachedScripts = [];
 let lastFetchTime = 0;
-const CACHE_TTL = 30 * 1000; // Cache for 30 seconds
+const CACHE_TTL = 5 * 60 * 1000; // Cache for 5 minutes (reduced from 30s to prevent 429 quota exhaustion)
 let syncListeners = [];
+let firestoreCooldownUntil = 0;
+let hasLogged429 = false;
+
+// Preload cached scripts from local storage on startup
+try {
+    const jsonPath = path.join(__dirname, '..', 'data', 'scripts.json');
+    if (fs.existsSync(jsonPath)) {
+        const raw = fs.readFileSync(jsonPath, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+            cachedScripts = parsed;
+        }
+    }
+} catch (e) {}
 
 /**
  * Fetch scripts directly from Google Firebase Firestore REST API
  */
 async function fetchFromFirestore() {
+    // If we are currently in 429 cooldown, do not query Firestore
+    if (Date.now() < firestoreCooldownUntil) {
+        return null;
+    }
+
     try {
         const url = `https://firestore.googleapis.com/v1/projects/${firebaseProjectId}/databases/(default)/documents/hub/database?key=${firebaseApiKey}`;
         const controller = new AbortController();
@@ -42,7 +61,17 @@ async function fetchFromFirestore() {
         clearTimeout(timeoutId);
 
         if (!res.ok) {
-            console.warn(`[ScriptsHelper] Firestore returned status ${res.status}`);
+            if (res.status === 429) {
+                // Rate limited / Quota exhausted -> Cooldown 10 minutes
+                firestoreCooldownUntil = Date.now() + 10 * 60 * 1000;
+                if (!hasLogged429) {
+                    console.warn(`[ScriptsHelper] ⚠️ Firestore Status 429 (Too Many Requests / โควต้าเต็มชั่วคราว) -> พักการเชื่อมต่อ 10 นาที และใช้ข้อมูลแคชแทน`);
+                    hasLogged429 = true;
+                    setTimeout(() => { hasLogged429 = false; }, 10 * 60 * 1000);
+                }
+            } else {
+                console.warn(`[ScriptsHelper] Firestore returned status ${res.status}`);
+            }
             return null;
         }
 
@@ -61,7 +90,9 @@ async function fetchFromFirestore() {
             return list;
         }
     } catch (err) {
-        console.warn('[ScriptsHelper] Failed to fetch scripts from Firebase Firestore:', err.message);
+        if (err.name !== 'AbortError') {
+            console.warn('[ScriptsHelper] Failed to fetch scripts from Firebase Firestore:', err.message);
+        }
     }
     return null;
 }
@@ -128,6 +159,9 @@ async function getScripts(forceRefresh = false) {
         }
         return cachedScripts;
     }
+
+    // Set lastFetchTime so we don't immediately retry every millisecond if Firestore is down/throttled
+    lastFetchTime = now;
 
     // 3. Fallback: If we already have memory cache (even if expired), use it
     if (cachedScripts.length > 0) {
@@ -200,12 +234,14 @@ function onScriptsSynced(callback) {
     }
 }
 
-// Background auto-refresh loop (every 30 seconds)
+// Background auto-refresh loop (every 5 minutes instead of 30 seconds)
 const autoRefreshTimer = setInterval(async () => {
     try {
-        await forceSyncScripts();
+        if (Date.now() >= firestoreCooldownUntil) {
+            await forceSyncScripts();
+        }
     } catch (e) {}
-}, 30 * 1000);
+}, 5 * 60 * 1000);
 if (autoRefreshTimer && typeof autoRefreshTimer.unref === 'function') {
     autoRefreshTimer.unref();
 }

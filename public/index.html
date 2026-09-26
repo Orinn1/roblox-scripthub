@@ -151,6 +151,10 @@
                 document.head.appendChild(s2);
             } else {
                 console.log('[VIP Shield] VIP Bypass active: All Adsterra ads and popups blocked 100%.');
+                document.addEventListener('DOMContentLoaded', function () {
+                    var adBox = document.getElementById('adBanner300x250');
+                    if (adBox) adBox.style.display = 'none';
+                });
             }
 
             // Clean up any remaining Monetag service workers
@@ -322,6 +326,20 @@
                             </div>
                         </div>
                     </section>
+
+                    <!-- Adsterra 300x250 Banner Unit -->
+                    <div class="ad-banner-container" id="adBanner300x250" style="display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 24px auto 16px; padding: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; max-width: 320px; min-height: 260px; overflow: hidden; text-align: center;">
+                        <script type="text/javascript">
+                            atOptions = {
+                                'key' : 'c0324045a39e9268482b13d656effbb2',
+                                'format' : 'iframe',
+                                'height' : 250,
+                                'width' : 300,
+                                'params' : {}
+                            };
+                        </script>
+                        <script type="text/javascript" src="https://bellnewyork.org/22/c0324045a39e9268482b13d656effbb2"></script>
+                    </div>
 
                     <!-- Trending Scripts -->
                     <section>

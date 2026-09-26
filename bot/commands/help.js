@@ -21,7 +21,8 @@ module.exports = {
                 { name: '📊 `/stats`', value: 'ตรวจสอบสถิติรวมของเว็บไซต์ จำนวนสคริปต์ ยอดวิว และสถานะระบบ' },
                 { name: '🧪 `/testyt` *(Admin)*', value: 'ทดสอบส่งการ์ดแจ้งเตือนคลิป YouTube ล่าสุด' },
                 { name: '🧪 `/testroblox` *(Admin)*', value: 'ทดสอบส่งการ์ดแจ้งเตือน Roblox Update หรือ Banwave' },
-                { name: '💎 `/lootlabs` *(Admin)*', value: 'ดูสถิติจำนวนผู้ใช้งานที่ปลดล็อคผ่าน LootLabs วันนี้' },
+                { name: '🧹 `/purge <จำนวน>` *(Admin)*', value: 'ล้างข้อความขยะ/สแปมในห้องแชตรวดเดียว 1 - 100 ข้อความ' },
+                { name: '🔒 `/lockdown <lock/unlock>` *(Admin)*', value: 'ล็อกห้องฉุกเฉินไม่ให้พิมพ์ หรือปลดล็อกห้องเมื่อปลอดภัย' },
                 { name: '📖 `/help`', value: 'เปิดหน้านี้เพื่อดูคำสั่งทั้งหมด' }
             )
             .setFooter({ text: 'BlacklistScriptx Discord Assistant' })

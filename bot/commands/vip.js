@@ -41,7 +41,7 @@ module.exports = {
         });
 
         const baseUrl = (botConfig.websiteUrl || 'https://blacklistscripty.vercel.app').replace(/\/$/, '');
-        const vipAccessUrl = `${baseUrl}/?vip_token=${encodeURIComponent(token)}`;
+        let vipAccessUrl = `${baseUrl}/?vip_token=${encodeURIComponent(token)}`;
 
         const embed = new EmbedBuilder()
             .setColor(canBypass ? 0xffd700 : 0x5865f2)
@@ -68,16 +68,24 @@ module.exports = {
             .setFooter({ text: '⚡ BlacklistScriptx System • ใช้งานได้บนทุกอุปกรณ์ (PC / มือถือ)' })
             .setTimestamp();
 
-        const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setLabel('🚀 คลิกเพื่อเข้าสู่ระบบเว็บทันที')
-                .setStyle(ButtonStyle.Link)
-                .setURL(vipAccessUrl),
+        const buttons = [];
+        if (vipAccessUrl.length <= 512) {
+            buttons.push(
+                new ButtonBuilder()
+                    .setLabel('🚀 คลิกเพื่อเข้าสู่ระบบเว็บทันที')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL(vipAccessUrl)
+            );
+        }
+
+        buttons.push(
             new ButtonBuilder()
                 .setLabel('🌐 เข้าชมเว็บไซต์หลัก')
                 .setStyle(ButtonStyle.Link)
                 .setURL(baseUrl)
         );
+
+        const row = new ActionRowBuilder().addComponents(buttons);
 
         return interaction.reply({
             embeds: [embed],
