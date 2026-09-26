@@ -3,8 +3,17 @@
   "name": "hub",
   "main": "worker.js",
   "compatibility_date": "2026-09-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "assets": {
     "directory": "./public",
     "binding": "ASSETS"
+  },
+  "vars": {
+    "DISCORD_CLIENT_ID": "1549395921228271686",
+    "DISCORD_CLIENT_SECRET": "_0r2E975KMdK9PRXYIiYat7ONK7xkIg3",
+    "DISCORD_GUILD_ID": "1548669247998140438",
+    "VIP_SECRET_KEY": "a53db45fa4ed7ec5e4126e9ff14e625cfe010938a411fc44b73015f9fa20c56c"
   }
 }
