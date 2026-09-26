@@ -3104,6 +3104,275 @@ body {
     background: rgba(255, 255, 255, 0.1);
 }
 
+/* ==========================================================================
+   Gentle Anti-Adblock Components (In-Place Card & Floating Toast)
+   ========================================================================== */
+
+/* 1. In-Place Fallback Card inside 300x250 Banner */
+.adblock-fallback-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    min-height: 240px;
+    padding: 16px 14px;
+    background: radial-gradient(circle at 50% 20%, rgba(234, 179, 8, 0.1) 0%, rgba(15, 23, 42, 0.6) 80%);
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInSmooth 0.35s ease-out;
+}
+
+.adblock-fallback-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(234, 179, 8, 0.15);
+    border: 1px solid rgba(234, 179, 8, 0.4);
+    color: #facc15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    box-shadow: 0 0 18px rgba(234, 179, 8, 0.25);
+}
+
+.adblock-fallback-icon i, .adblock-fallback-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.adblock-fallback-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 6px;
+    letter-spacing: 0.2px;
+}
+
+.adblock-fallback-desc {
+    font-size: 11.5px;
+    color: #94a3b8;
+    line-height: 1.5;
+    margin-bottom: 14px;
+    max-width: 280px;
+}
+
+.adblock-fallback-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 260px;
+}
+
+.btn-adblock-discord {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 9px 12px;
+    background: linear-gradient(135deg, #5865f2 0%, #4752c4 100%);
+    color: #ffffff !important;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(88, 101, 242, 0.35);
+}
+
+.btn-adblock-discord:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(88, 101, 242, 0.5);
+    filter: brightness(1.08);
+}
+
+.btn-adblock-refresh {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 7px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #cbd5e1;
+    border-radius: 8px;
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-adblock-refresh:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* 2. Floating Gentle Toast Banner (Bottom-Right corner) */
+.gentle-adblock-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: calc(100% - 32px);
+    max-width: 370px;
+    background: rgba(13, 19, 32, 0.94);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(234, 179, 8, 0.32);
+    border-radius: 16px;
+    padding: 16px 18px 16px 18px;
+    box-shadow: 0 16px 40px -6px rgba(0, 0, 0, 0.75), 0 0 24px rgba(234, 179, 8, 0.18);
+    z-index: 9999;
+    animation: adblockSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform-origin: bottom right;
+}
+
+@keyframes adblockSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.adblock-toast-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: #94a3b8;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.adblock-toast-close:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.15);
+    transform: rotate(90deg);
+}
+
+.adblock-toast-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    background: rgba(234, 179, 8, 0.15);
+    border: 1px solid rgba(234, 179, 8, 0.35);
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #facc15;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.gentle-adblock-toast h4 {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 5px;
+    line-height: 1.35;
+    padding-right: 20px;
+}
+
+.gentle-adblock-toast p {
+    font-size: 12px;
+    color: #94a3b8;
+    line-height: 1.5;
+    margin-bottom: 14px;
+}
+
+.gentle-adblock-toast p strong {
+    color: #38bdf8;
+}
+
+.adblock-toast-btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.adblock-btn-dc {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #5865f2 0%, #4752c4 100%);
+    color: #ffffff !important;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
+}
+
+.adblock-btn-dc:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(88, 101, 242, 0.45);
+}
+
+.adblock-btn-dismiss {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #94a3b8;
+    border-radius: 8px;
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.adblock-btn-dismiss:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Mobile Responsiveness for Adblock Floating Toast */
+@media (max-width: 640px) {
+    .gentle-adblock-toast {
+        bottom: 74px; /* Float safely above the mobile bottom nav bar */
+        right: 14px;
+        left: 14px;
+        width: auto;
+        max-width: none;
+        padding: 14px 16px;
+    }
+
+    .adblock-toast-btns {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .adblock-btn-dc, .adblock-btn-dismiss {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+
 
 
 

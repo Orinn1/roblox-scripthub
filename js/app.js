@@ -329,6 +329,16 @@ document.addEventListener("DOMContentLoaded", () => {
             vipToastLogout: "Logged out of VIP on this device",
             vipToastInstantUnlock: "VIP Member: Script unlocked instantly!",
             emptyCategories: "No game categories yet",
+            // Gentle Anti-Adblock
+            adblockFallbackTitle: "AdBlock Detected",
+            adblockFallbackDesc: "This 1 small ad helps fund our bot and website hosting. Or login with Discord for 100% Ad-Free lifetime access! ❤️",
+            adblockDiscordBtn: "Login with Discord (Ad-Free)",
+            adblockRefreshBtn: "Disable AdBlock & Reload",
+            adblockToastBadge: "SUPPORT OUR HUB",
+            adblockToastTitle: "Support Us by Disabling AdBlock ❤️",
+            adblockToastDesc: "Or <strong>Login with Discord (Free)</strong> to instantly unlock a 100% Ad-Free lifetime experience!",
+            adblockToastBtnDc: "Login with Discord (Ad-Free)",
+            adblockToastBtnDismiss: "Dismiss / Got it",
             // Mobile Nav
             mobHome: "Home",
             mobScripts: "Scripts",
@@ -486,6 +496,16 @@ document.addEventListener("DOMContentLoaded", () => {
             vipToastLogout: "ออกจากระบบ VIP บนเครื่องนี้เรียบร้อยแล้ว",
             vipToastInstantUnlock: "สมาชิก VIP: ปลดล็อคโค้ดสคริปต์ทันที!",
             emptyCategories: "ยังไม่มีหมวดหมู่เกม",
+            // Gentle Anti-Adblock
+            adblockFallbackTitle: "ตรวจพบว่าคุณกำลังเปิด AdBlock",
+            adblockFallbackDesc: "โฆษณา 1 ตัวนี้ช่วยสนับสนุนเซิร์ฟเวอร์บอทและเว็บฟรี หรือล็อกอิน Discord เพื่อรับสิทธิ์ไร้โฆษณาตลอดชีพ ❤️",
+            adblockDiscordBtn: "ล็อกอิน Discord (ไร้โฆษณา 100%)",
+            adblockRefreshBtn: "ปิด AdBlock แล้วรีเฟรช",
+            adblockToastBadge: "SUPPORT BLACKLISTSCRIPT",
+            adblockToastTitle: "ช่วยสนับสนุนด้วยการปิด AdBlock ❤️",
+            adblockToastDesc: "หรือ <strong>เข้าสู่ระบบด้วย Discord (ฟรี)</strong> เพื่อปลดล็อคการใช้งานแบบไร้โฆษณา 100% ตลอดชีพ!",
+            adblockToastBtnDc: "เข้าสู่ระบบ Discord (ไร้โฆษณา)",
+            adblockToastBtnDismiss: "เข้าใจแล้ว / ปิด",
             // Mobile Nav
             mobHome: "หน้าแรก",
             mobScripts: "สคริปต์",
@@ -698,6 +718,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? `กำลังเปิดในแอป แนะนำแตะ <strong>เข็มทิศ 🧭 (มุมขวาล่าง)</strong> เพื่อเปิดใน Safari`
                 : `Opened in in-app browser. Tap <strong>Compass 🧭 (bottom right)</strong> to open in Safari`;
         }
+
+        // Gentle Anti-Adblock elements
+        const lblAdblockFallbackTitle = document.getElementById("lblAdblockFallbackTitle");
+        if (lblAdblockFallbackTitle) lblAdblockFallbackTitle.textContent = t.adblockFallbackTitle;
+        const lblAdblockFallbackDesc = document.getElementById("lblAdblockFallbackDesc");
+        if (lblAdblockFallbackDesc) lblAdblockFallbackDesc.textContent = t.adblockFallbackDesc;
+        const lblAdblockDiscord = document.getElementById("lblAdblockDiscord");
+        if (lblAdblockDiscord) lblAdblockDiscord.textContent = t.adblockDiscordBtn;
+        const lblAdblockRefresh = document.getElementById("lblAdblockRefresh");
+        if (lblAdblockRefresh) lblAdblockRefresh.textContent = t.adblockRefreshBtn;
+
+        const lblToastBadge = document.getElementById("lblToastBadge");
+        if (lblToastBadge) lblToastBadge.textContent = t.adblockToastBadge;
+        const lblToastTitle = document.getElementById("lblToastTitle");
+        if (lblToastTitle) lblToastTitle.textContent = t.adblockToastTitle;
+        const lblToastDesc = document.getElementById("lblToastDesc");
+        if (lblToastDesc) lblToastDesc.innerHTML = t.adblockToastDesc;
+        const lblToastBtnDc = document.getElementById("lblToastBtnDc");
+        if (lblToastBtnDc) lblToastBtnDc.textContent = t.adblockToastBtnDc;
+        const lblToastBtnDismiss = document.getElementById("lblToastBtnDismiss");
+        if (lblToastBtnDismiss) lblToastBtnDismiss.textContent = t.adblockToastBtnDismiss;
     }
 
     function setLanguage(lang, isManual = false) {
@@ -1111,6 +1152,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 hideGateOverlay(false);
                 const nativeAdWrapper = document.getElementById("nativeAdWrapper");
                 if (nativeAdWrapper) nativeAdWrapper.style.display = "none";
+                const adBanner = document.getElementById("adBanner300x250");
+                if (adBanner) adBanner.style.display = "none";
+                const adblockToast = document.getElementById("gentleAdblockToast");
+                if (adblockToast) adblockToast.style.display = "none";
             }
         } else {
             if (vipNavBtn) {
@@ -1123,6 +1168,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (vipInactivePanel) vipInactivePanel.style.display = "block";
             const nativeAdWrapper = document.getElementById("nativeAdWrapper");
             if (nativeAdWrapper && !window.__IS_VIP__) nativeAdWrapper.style.display = "block";
+            const adBanner = document.getElementById("adBanner300x250");
+            if (adBanner && !window.__IS_VIP__) adBanner.style.display = "flex";
         }
     }
 
@@ -3698,6 +3745,128 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // =========================================================================
+    // Gentle Anti-Adblock Detection & Conversion System
+    // =========================================================================
+    function initGentleAntiAdblock() {
+        // If user is already VIP with bypass permission, don't show any adblock alert
+        const session = getVipData();
+        if (session && session.canBypass) return;
+        if (window.__IS_VIP__) return;
+
+        const DISMISS_KEY = "blacklist_adblock_dismissed";
+        const dismissedTime = localStorage.getItem(DISMISS_KEY) || sessionStorage.getItem(DISMISS_KEY);
+        const isRecentlyDismissed = dismissedTime && (Date.now() - Number(dismissedTime) < 4 * 60 * 60 * 1000);
+
+        async function detectAdblockActive() {
+            if (window.__IS_VIP__ || (getVipData() && getVipData().canBypass)) return false;
+
+            let blocked = false;
+
+            // 1. Bait element test (Catches cosmetic/filter rules in uBlock, AdBlock, Brave, etc.)
+            try {
+                const bait = document.createElement("div");
+                bait.className = "adsbox ad-placement pub_300x250 pub_300x250m pub_728x90 text-ad textAd text_ad text_ads text-ads banner-ad";
+                bait.setAttribute("style", "position: absolute !important; left: -9999px !important; top: -9999px !important; width: 1px !important; height: 1px !important; pointer-events: none !important;");
+                document.body.appendChild(bait);
+
+                await new Promise(r => setTimeout(r, 120));
+
+                const style = window.getComputedStyle(bait);
+                if (
+                    bait.offsetParent === null ||
+                    bait.offsetHeight === 0 ||
+                    bait.clientHeight === 0 ||
+                    style.display === "none" ||
+                    style.visibility === "hidden"
+                ) {
+                    blocked = true;
+                }
+                bait.remove();
+            } catch (e) {}
+
+            // 2. Network request test to ad provider domain (Catches network-level block rules)
+            if (!blocked) {
+                try {
+                    await fetch(new Request("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js", {
+                        method: "HEAD",
+                        mode: "no-cors",
+                        cache: "no-store"
+                    }));
+                } catch (e) {
+                    blocked = true;
+                }
+            }
+
+            // 3. Adsterra slot inspection
+            if (!blocked) {
+                const adSlot = document.getElementById("adsterraSlot300x250");
+                if (adSlot) {
+                    const iframe = adSlot.querySelector("iframe");
+                    if (!iframe || iframe.offsetHeight === 0) {
+                        blocked = true;
+                    }
+                }
+            }
+
+            return blocked;
+        }
+
+        async function runAdblockCheck() {
+            const isBlocked = await detectAdblockActive();
+            if (!isBlocked || window.__IS_VIP__) return;
+
+            const fallbackCard = document.getElementById("adblockFallbackCard");
+            const adSlot = document.getElementById("adsterraSlot300x250");
+            const toast = document.getElementById("gentleAdblockToast");
+
+            // Activate in-place fallback card inside the 300x250 banner container
+            if (fallbackCard) {
+                fallbackCard.style.display = "flex";
+                if (adSlot) adSlot.style.display = "none";
+                if (typeof refreshIcons === "function") refreshIcons();
+            }
+
+            // Show floating gentle toast (if not dismissed within last 4 hours)
+            if (toast && !isRecentlyDismissed) {
+                setTimeout(() => {
+                    if (!window.__IS_VIP__) {
+                        toast.style.display = "block";
+                        if (typeof refreshIcons === "function") refreshIcons();
+                    }
+                }, 1800);
+            }
+        }
+
+        function dismissToast() {
+            const toast = document.getElementById("gentleAdblockToast");
+            if (toast) {
+                toast.style.animation = "none";
+                toast.style.transition = "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)";
+                toast.style.opacity = "0";
+                toast.style.transform = "translateY(24px) scale(0.95)";
+                setTimeout(() => { toast.style.display = "none"; }, 300);
+            }
+            localStorage.setItem(DISMISS_KEY, String(Date.now()));
+            sessionStorage.setItem(DISMISS_KEY, String(Date.now()));
+        }
+
+        const btnCloseToast = document.getElementById("btnCloseAdblockToast");
+        const btnDismissToast = document.getElementById("btnDismissAdblockToast");
+        if (btnCloseToast) btnCloseToast.addEventListener("click", dismissToast);
+        if (btnDismissToast) btnDismissToast.addEventListener("click", dismissToast);
+
+        const btnRefresh = document.getElementById("btnAdblockRefresh");
+        if (btnRefresh) {
+            btnRefresh.addEventListener("click", () => {
+                window.location.reload();
+            });
+        }
+
+        // Run check after initial page render with 1.8s delay
+        setTimeout(runAdblockCheck, 1800);
+    }
+
     // Initialize App
     setLanguage(currentLang);
     applySiteConfig();
@@ -3710,6 +3879,7 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchExploits();
     syncDataFromServer();
     initSiteNoticePopup();
+    initGentleAntiAdblock();
     refreshIcons();
 
     // Check ban status on tab focus instead of aggressive polling (throttled to at most once per 5 minutes)

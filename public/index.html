@@ -327,18 +327,44 @@
                         </div>
                     </section>
 
-                    <!-- Adsterra 300x250 Banner Unit -->
-                    <div class="ad-banner-container" id="adBanner300x250" style="display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 24px auto 16px; padding: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; max-width: 320px; min-height: 260px; overflow: hidden; text-align: center;">
-                        <script type="text/javascript">
-                            atOptions = {
-                                'key' : 'c0324045a39e9268482b13d656effbb2',
-                                'format' : 'iframe',
-                                'height' : 250,
-                                'width' : 300,
-                                'params' : {}
-                            };
-                        </script>
-                        <script type="text/javascript" src="https://bellnewyork.org/22/c0324045a39e9268482b13d656effbb2"></script>
+                    <!-- Adsterra 300x250 Banner Unit & Gentle Fallback -->
+                    <div class="ad-banner-container" id="adBanner300x250" style="display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 24px auto 16px; padding: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; max-width: 320px; min-height: 260px; overflow: hidden; text-align: center; position: relative;">
+                        <!-- Gentle Adblock Fallback Card (Shows only if ad is blocked) -->
+                        <div class="adblock-fallback-card" id="adblockFallbackCard" style="display: none;">
+                            <div class="adblock-fallback-icon">
+                                <i data-lucide="shield-alert"></i>
+                            </div>
+                            <div class="adblock-fallback-title" id="lblAdblockFallbackTitle">
+                                ตรวจพบการเปิด AdBlock
+                            </div>
+                            <div class="adblock-fallback-desc" id="lblAdblockFallbackDesc">
+                                โฆษณา 1 ตัวนี้ช่วยสนับสนุนเซิร์ฟเวอร์บอทและเว็บฟรี หรือล็อกอิน Discord เพื่อรับสิทธิ์ไร้โฆษณาตลอดชีพ ❤️
+                            </div>
+                            <div class="adblock-fallback-actions">
+                                <a href="/api/discord-auth?action=login" class="btn-adblock-discord" id="btnAdblockDiscord">
+                                    <i data-lucide="sparkles"></i>
+                                    <span id="lblAdblockDiscord">ล็อกอิน Discord (ไร้โฆษณา 100%)</span>
+                                </a>
+                                <button class="btn-adblock-refresh" id="btnAdblockRefresh">
+                                    <i data-lucide="rotate-cw"></i>
+                                    <span id="lblAdblockRefresh">ปิด AdBlock แล้วรีเฟรช</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Adsterra Ad Frame -->
+                        <div id="adsterraSlot300x250">
+                            <script type="text/javascript">
+                                atOptions = {
+                                    'key' : 'c0324045a39e9268482b13d656effbb2',
+                                    'format' : 'iframe',
+                                    'height' : 250,
+                                    'width' : 300,
+                                    'params' : {}
+                                };
+                            </script>
+                            <script type="text/javascript" src="https://bellnewyork.org/22/c0324045a39e9268482b13d656effbb2"></script>
+                        </div>
                     </div>
 
                     <!-- Trending Scripts -->
@@ -854,6 +880,29 @@
             <p class="banned-footer-notice" id="lblBannedFooter">
                 Access will be automatically restored once the countdown ends. Please do not close this window.
             </p>
+    </div>
+
+    <!-- Gentle Anti-Adblock Floating Toast -->
+    <div class="gentle-adblock-toast" id="gentleAdblockToast" style="display: none;">
+        <button class="adblock-toast-close" id="btnCloseAdblockToast" title="Close" aria-label="Close">
+            <i data-lucide="x"></i>
+        </button>
+        <div class="adblock-toast-badge">
+            <i data-lucide="shield-check"></i>
+            <span id="lblToastBadge">SUPPORT BLACKLISTSCRIPT</span>
+        </div>
+        <h4 id="lblToastTitle">ช่วยสนับสนุนด้วยการปิด AdBlock ❤️</h4>
+        <p id="lblToastDesc">
+            หรือ <strong>เข้าสู่ระบบด้วย Discord (ฟรี)</strong> เพื่อปลดล็อคการใช้งานแบบไร้โฆษณา 100% ตลอดชีพ!
+        </p>
+        <div class="adblock-toast-btns">
+            <a href="/api/discord-auth?action=login" class="adblock-btn-dc" id="btnToastDiscord">
+                <i data-lucide="sparkles"></i>
+                <span id="lblToastBtnDc">เข้าสู่ระบบ Discord (ไร้โฆษณา)</span>
+            </a>
+            <button class="adblock-btn-dismiss" id="btnDismissAdblockToast">
+                <span id="lblToastBtnDismiss">เข้าใจแล้ว / ปิด</span>
+            </button>
         </div>
     </div>
 
