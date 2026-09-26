@@ -71,6 +71,7 @@ const { startRobloxMonitor } = require('./roblox-monitor.js');
 const { startStockMonitor } = require('./stock-monitor.js');
 const { handleBypassMessage } = require('./bypass-helper.js');
 const { handleAntiRaidMessage } = require('./anti-raid.js');
+const { handleStickyMessage, postStickyMessage } = require('./sticky-message.js');
 
 client.once(Events.ClientReady, async (readyClient) => {
     const scripts = await getScripts();
@@ -90,6 +91,15 @@ client.once(Events.ClientReady, async (readyClient) => {
 
     // Start Blox Fruits Stock Monitor (Auto Stock Alert)
     startStockMonitor(client);
+
+    // Initialize Sticky Message for #รับยศไม่ได้
+    try {
+        const roleWaitChannelId = botConfig.roleWaitChannelId || '1553327513990860821';
+        const roleWaitChannel = await client.channels.fetch(roleWaitChannelId).catch(() => null);
+        if (roleWaitChannel) {
+            await postStickyMessage(roleWaitChannel);
+        }
+    } catch (e) {}
 });
 
 // Interaction Handling
@@ -216,6 +226,12 @@ client.on(Events.MessageCreate, async (message) => {
         const allowedChannelId = botConfig.bypassChannelId || '1549758071734140958';
         if (message.channelId === allowedChannelId) {
             await handleBypassMessage(message);
+        }
+
+        // 3. 📌 Sticky Message Handler (ห้องรับยศไม่ได้: 1553327513990860821)
+        const roleWaitChannelId = botConfig.roleWaitChannelId || '1553327513990860821';
+        if (message.channelId === roleWaitChannelId) {
+            await handleStickyMessage(message);
         }
     } catch (err) {
         console.error('[MessageCreate Error]:', err);
