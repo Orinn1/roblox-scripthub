@@ -76,17 +76,22 @@ async function postStickyMessage(channel) {
                 `• ระบุอาการที่พบ เช่น *"กดปุ่มแล้วไม่ไป"*, *"ติดหน้าไหน"*, *"ยืนยันตัวตนไม่ได้"*\n\n` +
                 `⏳ **สถานะการดำเนินการ:**\n` +
                 `แอดมินจะเข้ามาตรวจสอบและ **ทยอยเพิ่มยศให้ทุกคนตามลำดับ** ครับ\n` +
-                `*(โปรดใจเย็นๆ ไม่จำเป็นต้องแท็กแอดมินซ้ำ หรือพิมพ์รัวๆ นะครับ แอดมินเข้ามาดูเรื่อยๆ ครับ)*`
+                `*(โปรดใจเย็นๆ ไม่จำเป็นต้องแท็กแอดมินซ้ำ หรือพิมพ์รัวๆ นะครับ แอดมินเข้ามาดูเรื่อยๆ ครับ)*\n\n` +
+                `───────────────────────────────\n` +
+                `👑 **สิทธิ์ VIP Bypass (ไร้โฆษณา 100% + ข้ามเกทถาวร):**\n` +
+                `• ราคาเพียง **30 บาท** (สิทธิ์ถาวรตลอดชีพ)\n` +
+                `• **ต้องติดต่อซื้อยศกับแอดมินก่อน** (ทัก DM หาแอดมินได้เลย)\n` +
+                `• เมื่อแอดมินเพิ่มยศให้แล้ว สามารถกดปุ่ม **"ล็อกอิน VIP บนเว็บ"** เพื่อเริ่มใช้งานได้ทันที!`
             )
             .addFields(
                 {
-                    name: '🌐 เว็บหลัก Script Hub',
-                    value: 'https://th.blacklisthub.workers.dev',
+                    name: '🌐 เว็บไซต์ Script Hub',
+                    value: '[คลิกเข้าสู่เว็บไซต์](https://th.blacklisthub.workers.dev/)',
                     inline: true
                 },
                 {
-                    name: '⚡ เข้าสู่ระบบ VIP ผ่านเว็บ',
-                    value: 'ล็อกอิน Discord บนเว็บเพื่อรับสิทธิ์อัตโนมัติ',
+                    name: '⚡ ยศ VIP Bypass (30฿)',
+                    value: 'ซื้อกับแอดมิน → ล็อกอินบนเว็บ',
                     inline: true
                 }
             )
@@ -99,7 +104,7 @@ async function postStickyMessage(channel) {
         // 3. Build Action Buttons
         const actionRow = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
-                .setLabel('เข้าสู่ระบบ Discord บนเว็บ (ไร้โฆษณา)')
+                .setLabel('ล็อกอิน VIP บนเว็บ (หลังซื้อยศ 30฿)')
                 .setEmoji('⚡')
                 .setStyle(ButtonStyle.Link)
                 .setURL('https://th.blacklisthub.workers.dev/api/discord-auth?action=login'),
