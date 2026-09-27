@@ -39,6 +39,7 @@ const itemsToCopy = [
     'Logo.png',
     'Banner.png',
     'popup.png',
+    'sw.js',
     'gateflow'
 ];
 

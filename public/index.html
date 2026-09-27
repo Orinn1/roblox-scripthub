@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="monetag" content="006f5ad39e692eb6afe28008d13ae710">
+    <!-- Monetag Web Push Notifications (Zone 11905580) -->
+    <script src="https://5gvci.com/act/files/tag.min.js?z=11905580" data-cfasync="false" async></script>
     <title>BlacklistScriptX - Roblox Scripts & Exploit Hub</title>
 
     <!-- Instant Dark Mode to avoid white screen flash on iOS / Mobile WebKit -->
@@ -98,6 +100,15 @@
 
             // 3. If VIP, actively intercept and kill any ad script injection or popunders
             if (isVip) {
+                // Intercept Notification.requestPermission to prevent ad push prompts for VIPs
+                if (window.Notification) {
+                    try {
+                        window.Notification.requestPermission = function () {
+                            return Promise.resolve('denied');
+                        };
+                    } catch (e) { }
+                }
+
                 // Intercept document.createElement('script') append
                 var origAppend = Element.prototype.appendChild;
                 Element.prototype.appendChild = function (el) {

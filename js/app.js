@@ -3478,7 +3478,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const now = Date.now();
             if (!window.__lastSmartlinkClick || (now - window.__lastSmartlinkClick > 25000)) {
                 window.__lastSmartlinkClick = now;
-                const smartlink = (SITE_CONFIG && SITE_CONFIG.adsterraSmartlinkUrl) || "https://omg10.com/4/11905140";
+                const smartlink = (SITE_CONFIG && SITE_CONFIG.adsterraSmartlinkUrl) || "https://omg10.com/4/11905577";
                 if (smartlink) {
                     try {
                         window.open(smartlink, "_blank");
