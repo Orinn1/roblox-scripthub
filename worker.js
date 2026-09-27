@@ -378,6 +378,216 @@ export default {
         }
 
         // =========================================================================
+        // 2.5 BLACKPASS ANTI-BYPASS SERVER-SIDE VERIFICATION (/api/gate/*)
+        // =========================================================================
+        if (url.pathname === '/api/gate/start') {
+            const clientIp = request.headers.get('cf-connecting-ip') || '127.0.0.1';
+            const slug = url.searchParams.get('slug') || 'hub-access';
+            const minSec = 85; // 3 x 30s = 90s, allowing 5s margin for network
+
+            const sessionTicket = {
+                t: 'gate_ticket',
+                ip: clientIp,
+                slug,
+                minSec,
+                startedAt: Date.now(),
+                exp: Date.now() + (30 * 60 * 1000) // 30 min expiry
+            };
+
+            const payloadBase64 = utf8ToBase64Url(JSON.stringify(sessionTicket));
+            const sig = await hmacSha256(vipSecret, payloadBase64);
+            const ticket = `${payloadBase64}.${sig}`;
+
+            return new Response(JSON.stringify({
+                success: true,
+                ticket,
+                minSec: sessionTicket.minSec,
+                startedAt: sessionTicket.startedAt
+            }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+            });
+        }
+
+        if (url.pathname === '/api/gate/verify' && request.method === 'POST') {
+            const clientIp = request.headers.get('cf-connecting-ip') || '127.0.0.1';
+            let body = {};
+            try {
+                body = await request.json();
+            } catch (e) {}
+
+            const ticket = body?.ticket || '';
+
+            if (!ticket) {
+                return new Response(JSON.stringify({ success: false, error: 'Missing session ticket' }), {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            const parts = ticket.trim().split('.');
+            if (parts.length !== 2) {
+                return new Response(JSON.stringify({ success: false, error: 'Malformed session ticket' }), {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            const [ticketBase64, ticketSig] = parts;
+            let expectedSig = await hmacSha256(vipSecret, ticketBase64);
+            let sigValid = (expectedSig === ticketSig);
+            if (!sigValid && FALLBACK_VIP_SECRET) {
+                const fallbackSig = await hmacSha256(FALLBACK_VIP_SECRET, ticketBase64);
+                if (fallbackSig === ticketSig) sigValid = true;
+            }
+
+            if (!sigValid) {
+                return new Response(JSON.stringify({ success: false, error: 'Invalid ticket signature' }), {
+                    status: 403,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            let ticketData = null;
+            try {
+                ticketData = JSON.parse(base64UrlToUtf8(ticketBase64));
+            } catch (e) {
+                return new Response(JSON.stringify({ success: false, error: 'Failed to parse ticket data' }), {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            if (ticketData.t !== 'gate_ticket') {
+                return new Response(JSON.stringify({ success: false, error: 'Invalid ticket type' }), {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            if (ticketData.exp && Date.now() > ticketData.exp) {
+                return new Response(JSON.stringify({ success: false, error: 'Ticket session expired. Please refresh and try again.' }), {
+                    status: 403,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            // Server-Side Anti-Cheat & Dwell Time Verification
+            const elapsed = Math.floor((Date.now() - ticketData.startedAt) / 1000);
+            const minRequired = ticketData.minSec || 85;
+
+            if (elapsed < minRequired) {
+                return new Response(JSON.stringify({
+                    success: false,
+                    error: `Anti-Bypass Protection: คุณดูโฆษณาไปเพียง ${elapsed} วินาที (เซิร์ฟเวอร์กำหนดขั้นต่ำ ${minRequired} วินาที)`,
+                    elapsed,
+                    minRequired
+                }), {
+                    status: 403,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            // Issue Cryptographically Signed 24-Hour Pass Token
+            const expiry24h = Date.now() + (24 * 60 * 60 * 1000);
+            const passData = {
+                t: 'gate_pass',
+                ip: clientIp,
+                slug: ticketData.slug || 'hub-access',
+                exp: expiry24h,
+                createdAt: Date.now()
+            };
+
+            const passBase64 = utf8ToBase64Url(JSON.stringify(passData));
+            const passSig = await hmacSha256(vipSecret, passBase64);
+            const passToken = `${passBase64}.${passSig}`;
+
+            return new Response(JSON.stringify({
+                success: true,
+                passToken,
+                expiresAt: expiry24h,
+                redirectUrl: `/?pass_token=${encodeURIComponent(passToken)}`
+            }), {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Set-Cookie': `blackpass_token=${passToken}; Path=/; Max-Age=86400; SameSite=Lax`,
+                    ...corsHeaders()
+                }
+            });
+        }
+
+        if (url.pathname === '/api/gate/check-pass') {
+            let passToken = url.searchParams.get('token') || '';
+            if (!passToken) {
+                const authHeader = request.headers.get('Authorization') || '';
+                if (authHeader.startsWith('Bearer ')) {
+                    passToken = authHeader.slice(7).trim();
+                }
+            }
+            if (!passToken) {
+                const cookieHeader = request.headers.get('Cookie') || '';
+                const match = cookieHeader.match(/blackpass_token=([^;]+)/);
+                if (match) passToken = decodeURIComponent(match[1]);
+            }
+
+            if (!passToken) {
+                return new Response(JSON.stringify({ valid: false, error: 'No pass token provided' }), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            const parts = passToken.trim().split('.');
+            if (parts.length !== 2) {
+                return new Response(JSON.stringify({ valid: false, error: 'Invalid token format' }), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            const [passBase64, passSig] = parts;
+            let expectedSig = await hmacSha256(vipSecret, passBase64);
+            let valid = (expectedSig === passSig);
+            if (!valid && FALLBACK_VIP_SECRET) {
+                const fallbackSig = await hmacSha256(FALLBACK_VIP_SECRET, passBase64);
+                if (fallbackSig === passSig) valid = true;
+            }
+
+            if (!valid) {
+                return new Response(JSON.stringify({ valid: false, error: 'Invalid token signature' }), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            try {
+                const passData = JSON.parse(base64UrlToUtf8(passBase64));
+                if (passData.exp && Date.now() > passData.exp) {
+                    return new Response(JSON.stringify({ valid: false, error: 'Pass token expired' }), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                    });
+                }
+
+                return new Response(JSON.stringify({
+                    valid: true,
+                    verified: true,
+                    expiresAt: passData.exp,
+                    createdAt: passData.createdAt
+                }), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            } catch (e) {
+                return new Response(JSON.stringify({ valid: false, error: 'Failed to decode pass token' }), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+        }
+
+        // =========================================================================
         // 3. GEO LOCATION DETECTION (/api/geo)
         // =========================================================================
         if (url.pathname === '/api/geo') {

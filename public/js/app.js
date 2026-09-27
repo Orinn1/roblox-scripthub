@@ -1304,7 +1304,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Helper: ตรวจสอบว่าเครื่องนี้มีสิทธิ์ผ่าน LootLabs หรือยัง
     function isGateAuthorized() {
         if (isVipMember() || isUserLoggedIn()) return true;
-        if (window.location.search.includes("auth_success") || window.location.search.includes("vip_token")) return true;
+        if (window.location.search.includes("pass_token") || window.location.search.includes("vip_token")) return true;
         const gate = SITE_CONFIG.lootlabsGate;
         if (!gate || !gate.enabled) return true;
         const savedExpiry = localStorage.getItem("blacklist_lootlabs_auth_expiry");
@@ -1590,15 +1590,48 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast(currentLang === 'th' ? "รีเซ็ตสถานะเป็นเครื่องใหม่ (ล็อคหน้าเว็บ) เรียบร้อยแล้ว" : "Reset device status (locked) successfully.");
         }
 
-        // 0. Check BlackPass / Auth Success return (?auth_success=1)
+        // 0. Check BlackPass Server-Signed Pass Token (?pass_token=...)
+        const incomingPassToken = urlParams.get("pass_token") || "";
+        if (incomingPassToken && incomingPassToken.includes(".")) {
+            // Verify with Worker / Local Server HMAC Endpoint
+            fetch(`/api/gate/check-pass?token=${encodeURIComponent(incomingPassToken)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.valid) {
+                        const expiry = data.expiresAt || (Date.now() + durationMs);
+                        localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiry));
+                        sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+                        localStorage.setItem("blackpass_token", incomingPassToken);
+                        localStorage.setItem("blacklist_lootlabs_unlocked_event", String(Date.now()));
+                        hideGateOverlay(false);
+                        try {
+                            const cleanUrl = window.location.origin + window.location.pathname;
+                            window.history.replaceState({}, document.title, cleanUrl);
+                        } catch (e) {}
+                        showToast(currentLang === 'th' ? "ยืนยันตัวตนผ่าน BlackPass สำเร็จ! (มีลายเซ็นรับรอง 24 ชม.)" : "Access verified via BlackPass (24h Signed Pass)");
+                    } else {
+                        // Invalid or forged token
+                        localStorage.removeItem("blacklist_lootlabs_auth_expiry");
+                        sessionStorage.removeItem("blacklist_lootlabs_auth");
+                        localStorage.removeItem("blackpass_token");
+                        showToast(currentLang === 'th' ? "⛔ โทเค็นยืนยันตัวตนไม่ถูกต้องหรือหมดอายุ!" : "Invalid or expired access token!");
+                        checkLootlabsGate();
+                    }
+                })
+                .catch(() => {
+                    grantDeviceAccess();
+                });
+            return;
+        }
+
+        // Blind auth_success attempt without signed token -> REJECT!
         if (urlParams.get("auth_success") === "1" || urlParams.has("auth_success")) {
-            grantDeviceAccess();
+            showToast(currentLang === 'th' ? "⛔ ตรวจพบการพยายามบายพาส! ไม่มีลายเซ็นรับรองจากเซิร์ฟเวอร์" : "Bypass attempt detected! No server signature.");
             try {
                 const cleanUrl = window.location.origin + window.location.pathname;
                 window.history.replaceState({}, document.title, cleanUrl);
             } catch (e) {}
-            showToast(currentLang === 'th' ? "ยืนยันตัวตนผ่าน BlackPass สำเร็จ! ปลดล็อคการเข้าใช้งาน 24 ชั่วโมง" : "Access verified via BlackPass! Unlocked for 24 hours.");
-            return;
+            // Do not grant access, let gate overlay stay locked
         }
 
         const incomingToken = (urlParams.get("auth") || urlParams.get("token") || urlParams.get("key") || "").trim().toLowerCase();
