@@ -60,7 +60,7 @@ const SITE_CONFIG = {
     },
 
     // Adsterra Smartlink (Direct Link สำหรับสร้างรายได้ตอนคัดลอกโค้ดสคริปต์)
-    adsterraSmartlinkUrl: "https://ardance.org/4/e3ec5ce0a3e835feea94318ff293b6a2"
+    adsterraSmartlinkUrl: "https://asiafilm.org/4/1c188bbb2ce8a02bfa3ee2ad75de4c53"
 };
 
 // Make SITE_CONFIG globally available on window
