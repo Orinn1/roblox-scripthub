@@ -1388,7 +1388,7 @@ document.addEventListener("DOMContentLoaded", () => {
         linkShopee.value = SITE_CONFIG.unlockTasks.affiliateUrl || "";
         linkVideo.value = SITE_CONFIG.unlockTasks.latestVideoUrl || "";
         linkDiscord.value = SITE_CONFIG.socialLinks.discord || "";
-        if (linkSmartlink) linkSmartlink.value = SITE_CONFIG.adsterraSmartlinkUrl || "https://asiafilm.org/4/1c188bbb2ce8a02bfa3ee2ad75de4c53";
+        if (linkSmartlink) linkSmartlink.value = SITE_CONFIG.adsterraSmartlinkUrl || "https://omg10.com/4/11905140";
 
         // Populate Monetization Gate settings
         const gate = SITE_CONFIG.lootlabsGate;
