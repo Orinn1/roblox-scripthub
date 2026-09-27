@@ -718,6 +718,23 @@ export default {
         }
 
         // Clean URL route for BlackPass Locker & Dashboard
+        if (url.pathname.startsWith('/l/')) {
+            const slug = url.pathname.slice(3).trim();
+            if (slug) {
+                return Response.redirect(`${url.origin}/gateflow/locker.html?slug=${encodeURIComponent(slug)}${url.search ? '&' + url.search.slice(1) : ''}`, 302);
+            }
+        }
+
+        if (url.pathname === '/gate' || url.pathname === '/go' || url.pathname === '/short') {
+            const target = url.searchParams.get('url') || url.searchParams.get('to') || url.searchParams.get('redirect') || '';
+            const slug = url.searchParams.get('slug') || '';
+            const params = new URLSearchParams();
+            if (slug) params.set('slug', slug);
+            if (target) params.set('url', target);
+            const queryStr = params.toString();
+            return Response.redirect(`${url.origin}/gateflow/locker.html${queryStr ? '?' + queryStr : ''}`, 302);
+        }
+
         if (url.pathname === '/locker' || url.pathname === '/locker.html' || url.pathname === '/gateflow/locker') {
             return Response.redirect(`${url.origin}/gateflow/locker.html${url.search}`, 302);
         }
