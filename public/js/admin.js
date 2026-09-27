@@ -69,6 +69,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnAutoShortenShrinkearn = document.getElementById("btnAutoShortenShrinkearn");
     const shrinkearnGuideBox = document.getElementById("shrinkearnGuideBox");
     const lootlabsGuideBox = document.getElementById("lootlabsGuideBox");
+    const blackpassGuideBox = document.getElementById("blackpassGuideBox");
+    const blackpassLockerUrlHelper = document.getElementById("blackpassLockerUrlHelper");
+    const btnCopyBlackpassHelper = document.getElementById("btnCopyBlackpassHelper");
     const shrinkearnTargetUrlHelper = document.getElementById("shrinkearnTargetUrlHelper");
     const btnCopyShrinkearnHelper = document.getElementById("btnCopyShrinkearnHelper");
     const btnRandomizeShrinkearnUrl = document.getElementById("btnRandomizeShrinkearnUrl");
@@ -1207,8 +1210,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentShrinkearnRandomParam = "";
 
     function updateGateHelperUrl() {
-        const origin = window.location.origin || "https://blacklistscripty.vercel.app";
+        const origin = window.location.origin || "https://th.blacklisthub.workers.dev";
         const token = (adminGateToken && adminGateToken.value.trim()) ? adminGateToken.value.trim() : "blacklist_vip";
+
+        // ลิงก์สำหรับ BlackPass Content Locker
+        if (blackpassLockerUrlHelper) {
+            blackpassLockerUrlHelper.value = `${origin}/gateflow/locker.html?slug=hub-access`;
+        }
 
         // ลิงก์ปลายทางสำหรับ ShrinkEarn (มี Token + พารามิเตอร์กันซ้ำ)
         if (shrinkearnTargetUrlHelper) {
@@ -1224,38 +1232,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // สุ่มรหัส Token ใหม่
-    if (btnRandomizeToken) {
-        btnRandomizeToken.addEventListener("click", () => {
-            const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-            let randStr = "";
-            for (let i = 0; i < 8; i++) {
-                randStr += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            const newToken = `bl_${randStr}`;
-            if (adminGateToken) adminGateToken.value = newToken;
-            updateGateHelperUrl();
-            showToast(`🎲 สุ่มรหัส Token ใหม่: "${newToken}" (อย่าลืมกดบันทึกด้านล่าง)`);
-        });
-    }
-
-    // สุ่มพารามิเตอร์ป้องกันลิงก์ซ้ำใน ShrinkEarn
-    if (btnRandomizeShrinkearnUrl) {
-        btnRandomizeShrinkearnUrl.addEventListener("click", () => {
-            const randomVal = Math.floor(Math.random() * 9000 + 1000);
-            currentShrinkearnRandomParam = `&v=${randomVal}`;
-            updateGateHelperUrl();
-            showToast(`สุ่ม URL ใหม่สำเร็จ: &v=${randomVal} (คัดลอกไปสร้างใน ShrinkEarn ได้เลย)`);
-        });
-    }
-
-    // คัดลอกลิงก์สำหรับ ShrinkEarn
-    if (btnCopyShrinkearnHelper) {
-        btnCopyShrinkearnHelper.addEventListener("click", () => {
-            if (!shrinkearnTargetUrlHelper) return;
-            shrinkearnTargetUrlHelper.select();
-            navigator.clipboard.writeText(shrinkearnTargetUrlHelper.value).then(() => {
-                showToast("📋 คัดลอกลิงก์ Target URL สำหรับ ShrinkEarn แล้ว!");
+    // คัดลอกลิงก์ BlackPass Locker
+    if (btnCopyBlackpassHelper) {
+        btnCopyBlackpassHelper.addEventListener("click", () => {
+            if (!blackpassLockerUrlHelper) return;
+            blackpassLockerUrlHelper.select();
+            navigator.clipboard.writeText(blackpassLockerUrlHelper.value).then(() => {
+                showToast("📋 คัดลอกลิงก์ BlackPass Locker เรียบร้อยแล้ว!");
             }).catch(() => {
                 document.execCommand("copy");
                 showToast("📋 คัดลอกลิงก์เรียบร้อยแล้ว!");
@@ -1263,72 +1246,24 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // สั่งย่อลิงก์อัตโนมัติด้วย ShrinkEarn API ทันที 1 คลิก
-    if (btnAutoShortenShrinkearn) {
-        btnAutoShortenShrinkearn.addEventListener("click", async () => {
-            const targetUrl = (shrinkearnTargetUrlHelper && shrinkearnTargetUrlHelper.value) || "";
-            const apiToken = (adminShrinkearnApiToken && adminShrinkearnApiToken.value.trim()) || "3ce8c70d0c1e31404164f66164ea8f9117b29b69";
-
-            if (!targetUrl) {
-                showToast("⚠️ ไม่พบ URL ปลายทาง กรุณาลองใหม่อีกครั้ง");
-                return;
-            }
-
-            const originalBtnHtml = btnAutoShortenShrinkearn.innerHTML;
-            btnAutoShortenShrinkearn.disabled = true;
-            btnAutoShortenShrinkearn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width: 14px; height: 14px;"></i> <span>กำลังเชื่อมต่อ ShrinkEarn API...</span>`;
-            if (window.lucide && lucide.createIcons) lucide.createIcons();
-
-            try {
-                let res = await fetch("/api/shrinkearn", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ url: targetUrl, apiToken: apiToken })
-                }).catch(() => null);
-
-                if (!res || !res.ok) {
-                    res = await fetch("/api/shrinkearn-shorten", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ url: targetUrl, apiToken: apiToken })
-                    }).catch(() => null);
-                }
-
-                const data = res ? await res.json().catch(() => null) : null;
-                if (data && data.success && data.shortenedUrl) {
-                    if (adminGateUrl) adminGateUrl.value = data.shortenedUrl;
-                    if (SITE_CONFIG.lootlabsGate) {
-                        SITE_CONFIG.lootlabsGate.shrinkearnUrl = data.shortenedUrl;
-                        SITE_CONFIG.lootlabsGate.shrinkearnApiToken = apiToken;
-                    }
-                    showToast(`🎉 ย่อลิงก์สำเร็จ! ได้ลิงก์: ${data.shortenedUrl}`);
-
-                    // สั่งบันทึกฟอร์มลงระบบทันที
-                    adminLinksForm.dispatchEvent(new Event("submit"));
-                } else {
-                    showToast("⚠️ API ShrinkEarn ตอบกลับผิดพลาด: " + (data.rawError || "กรุณาตรวจสอบ Token"));
-                }
-            } catch (err) {
-                showToast("⚠️ เชื่อมต่อ API ไม่สำเร็จ: " + err.message);
-            } finally {
-                btnAutoShortenShrinkearn.disabled = false;
-                btnAutoShortenShrinkearn.innerHTML = originalBtnHtml;
-                if (window.lucide && lucide.createIcons) lucide.createIcons();
-            }
-        });
-    }
-
-    // เมื่อพิมพ์เปลี่ยน Token ให้อัปเดต Target URL ทันที
-    if (adminGateToken) {
-        adminGateToken.addEventListener("input", () => {
-            updateGateHelperUrl();
-        });
-    }
-
     // สลับหน้าจอแนะนำเมื่อเลือก Provider ต่างกัน
     function handleGateProviderChange() {
-        const provider = adminGateProvider ? adminGateProvider.value : "shrinkearn";
-        if (provider === "shrinkearn") {
+        const origin = window.location.origin || "https://th.blacklisthub.workers.dev";
+        const provider = adminGateProvider ? adminGateProvider.value : "blackpass";
+
+        if (provider === "blackpass") {
+            if (blackpassGuideBox) blackpassGuideBox.style.display = "flex";
+            if (shrinkearnGuideBox) shrinkearnGuideBox.style.display = "none";
+            if (lootlabsGuideBox) lootlabsGuideBox.style.display = "none";
+            if (lblAdminGateUrl) lblAdminGateUrl.textContent = "ลิงก์สำหรับให้ผู้ใช้กด (BlackPass Content Locker)";
+            if (descAdminGateUrl) descAdminGateUrl.textContent = "ลิงก์หน้า BlackPass Locker สำหรับทำภารกิจ 3 ด่าน (เช่น /gateflow/locker.html?slug=hub-access)";
+            if (adminGateUrl) {
+                adminGateUrl.placeholder = `${origin}/gateflow/locker.html?slug=hub-access`;
+                const saved = SITE_CONFIG.lootlabsGate?.blackpassLockerUrl || (SITE_CONFIG.lootlabsGate?.provider === "blackpass" ? SITE_CONFIG.lootlabsGate?.shrinkearnUrl : "");
+                adminGateUrl.value = saved || `${origin}/gateflow/locker.html?slug=hub-access`;
+            }
+        } else if (provider === "shrinkearn") {
+            if (blackpassGuideBox) blackpassGuideBox.style.display = "none";
             if (shrinkearnGuideBox) shrinkearnGuideBox.style.display = "flex";
             if (lootlabsGuideBox) lootlabsGuideBox.style.display = "none";
             if (lblAdminGateUrl) lblAdminGateUrl.textContent = "ลิงก์สำหรับให้ผู้ใช้กด (Shortened Link จาก ShrinkEarn)";
@@ -1338,6 +1273,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 adminGateUrl.value = (SITE_CONFIG.lootlabsGate && (SITE_CONFIG.lootlabsGate.shrinkearnUrl || (SITE_CONFIG.lootlabsGate.provider === "shrinkearn" ? SITE_CONFIG.lootlabsGate.lootlabsUrl : ""))) || "https://srnky.com/aehfqq0";
             }
         } else if (provider === "lootlabs") {
+            if (blackpassGuideBox) blackpassGuideBox.style.display = "none";
             if (shrinkearnGuideBox) shrinkearnGuideBox.style.display = "none";
             if (lootlabsGuideBox) lootlabsGuideBox.style.display = "flex";
             if (lblAdminGateUrl) lblAdminGateUrl.textContent = "ลิงก์ LootLabs Anti-Bypass (สำหรับให้ผู้ใช้กด)";
@@ -1348,6 +1284,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } else {
             // custom
+            if (blackpassGuideBox) blackpassGuideBox.style.display = "none";
             if (shrinkearnGuideBox) shrinkearnGuideBox.style.display = "flex";
             if (lootlabsGuideBox) lootlabsGuideBox.style.display = "none";
             if (lblAdminGateUrl) lblAdminGateUrl.textContent = "ลิงก์ย่อสำหรับให้ผู้ใช้กด (Custom Shortened Link)";
@@ -1431,12 +1368,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!SITE_CONFIG.lootlabsGate) {
             SITE_CONFIG.lootlabsGate = {
                 enabled: true,
-                provider: "shrinkearn",
+                provider: "blackpass",
                 token: "blacklist_vip",
+                blackpassLockerUrl: "/gateflow/locker.html?slug=hub-access",
                 shrinkearnUrl: "https://srnky.com/aehfqq0",
                 shrinkearnApiToken: "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
                 lootlabsUrl: "",
-                bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+                bypassMessage: "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
             };
         }
 
@@ -1450,12 +1388,12 @@ document.addEventListener("DOMContentLoaded", () => {
         linkShopee.value = SITE_CONFIG.unlockTasks.affiliateUrl || "";
         linkVideo.value = SITE_CONFIG.unlockTasks.latestVideoUrl || "";
         linkDiscord.value = SITE_CONFIG.socialLinks.discord || "";
-        if (linkSmartlink) linkSmartlink.value = SITE_CONFIG.adsterraSmartlinkUrl || "https://ardance.org/4/e3ec5ce0a3e835feea94318ff293b6a2";
+        if (linkSmartlink) linkSmartlink.value = SITE_CONFIG.adsterraSmartlinkUrl || "https://asiafilm.org/4/1c188bbb2ce8a02bfa3ee2ad75de4c53";
 
         // Populate Monetization Gate settings
         const gate = SITE_CONFIG.lootlabsGate;
         if (gateEnableCheckbox) gateEnableCheckbox.checked = Boolean(gate.enabled);
-        if (adminGateProvider) adminGateProvider.value = gate.provider || "shrinkearn";
+        if (adminGateProvider) adminGateProvider.value = gate.provider || "blackpass";
         if (adminGateToken) adminGateToken.value = gate.token || "blacklist_vip";
         if (adminGateExpiryHours) adminGateExpiryHours.value = gate.expiryHours || 24;
         if (adminShrinkearnApiToken) adminShrinkearnApiToken.value = gate.shrinkearnApiToken || "3ce8c70d0c1e31404164f66164ea8f9117b29b69";
@@ -1475,7 +1413,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (linkSmartlink) SITE_CONFIG.adsterraSmartlinkUrl = linkSmartlink.value.trim();
 
         if (gateEnableCheckbox) {
-            const provider = adminGateProvider ? adminGateProvider.value : "shrinkearn";
+            const provider = adminGateProvider ? adminGateProvider.value : "blackpass";
             const enteredUrl = adminGateUrl ? adminGateUrl.value.trim() : "";
             const currentGate = SITE_CONFIG.lootlabsGate || {};
 
@@ -1484,14 +1422,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 enabled: gateEnableCheckbox.checked,
                 provider: provider,
                 token: (adminGateToken ? adminGateToken.value.trim() : "blacklist_vip") || "blacklist_vip",
+                blackpassLockerUrl: provider === "blackpass" ? enteredUrl : (currentGate.blackpassLockerUrl || "/gateflow/locker.html?slug=hub-access"),
                 shrinkearnUrl: provider === "shrinkearn" ? enteredUrl : (currentGate.shrinkearnUrl || enteredUrl),
                 shrinkearnApiToken: (adminShrinkearnApiToken ? adminShrinkearnApiToken.value.trim() : "3ce8c70d0c1e31404164f66164ea8f9117b29b69") || "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
                 tutorialVideoUrl: (adminGateTutorialUrl ? adminGateTutorialUrl.value.trim() : "https://youtu.be/FdXsvivWhOw") || "https://youtu.be/FdXsvivWhOw",
                 lootlabsUrl: provider === "lootlabs" ? enteredUrl : (currentGate.lootlabsUrl || enteredUrl),
                 expiryHours: adminGateExpiryHours ? (Number(adminGateExpiryHours.value) || 24) : 24,
-                bypassMessage: provider === "shrinkearn"
-                    ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
-                    : "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+                bypassMessage: provider === "blackpass"
+                    ? "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+                    : (provider === "shrinkearn"
+                        ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+                        : "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์")
             };
         }
 

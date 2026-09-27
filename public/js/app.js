@@ -1590,10 +1590,21 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast(currentLang === 'th' ? "รีเซ็ตสถานะเป็นเครื่องใหม่ (ล็อคหน้าเว็บ) เรียบร้อยแล้ว" : "Reset device status (locked) successfully.");
         }
 
+        // 0. Check BlackPass / Auth Success return (?auth_success=1)
+        if (urlParams.get("auth_success") === "1" || urlParams.has("auth_success")) {
+            grantDeviceAccess();
+            try {
+                const cleanUrl = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            } catch (e) {}
+            showToast(currentLang === 'th' ? "ยืนยันตัวตนผ่าน BlackPass สำเร็จ! ปลดล็อคการเข้าใช้งาน 24 ชั่วโมง" : "Access verified via BlackPass! Unlocked for 24 hours.");
+            return;
+        }
+
         const incomingToken = (urlParams.get("auth") || urlParams.get("token") || urlParams.get("key") || "").trim().toLowerCase();
 
         if (incomingToken && incomingToken === requiredToken) {
-            const provider = gate.provider || "shrinkearn";
+            const provider = gate.provider || "blackpass";
 
             // Anti-Bypass Check 1: Known Bypass Referrers
             if (document.referrer) {
@@ -1626,40 +1637,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // ตรวจสอบ Referrer จาก ShrinkEarn โดยตรง
             const ref = (document.referrer || "").toLowerCase();
-            const isFromShortener = ref.includes("shrinkearn") || ref.includes("srnky") || ref.includes("shrinkforearn") || ref.includes("shrink");
+            const isFromShortener = ref.includes("shrinkearn") || ref.includes("srnky") || ref.includes("shrinkforearn") || ref.includes("shrink") || ref.includes("blackpass") || ref.includes("gateflow");
 
             // ดึงเวลาที่กดลิงก์
             const clickTime = Number(localStorage.getItem("blacklist_gate_click_time") || sessionStorage.getItem("blacklist_gate_click_time") || 0);
             const timeSinceClick = clickTime > 0 ? (Date.now() - clickTime) : 999999;
             const isRecentClick = clickTime > 0 && (timeSinceClick < 3600000); // ภายใน 1 ชั่วโมง
 
-            // อนุญาตถ้า:
-            // 1) มีประวัติการคลิกจากเว็บนี้ (localStorage หรือ sessionStorage ภายใน 1 ชั่วโมง)
-            // 2) หรือ Referrer มาจาก ShrinkEarn โดยตรง
-            // 3) หรือเป็นการกรอก token ด้วยตนเอง
-            const isAuthorizedSource = isRecentClick || clickedHandshake || isFromShortener || isManualInput || provider === "lootlabs";
+            const isAuthorizedSource = isRecentClick || clickedHandshake || isFromShortener || isManualInput || provider === "lootlabs" || provider === "blackpass";
 
             if (!isAuthorizedSource) {
-                showToast(currentLang === 'th' ? "กรุณากดปุ่มเพื่อรับสิทธิ์ผ่าน ShrinkEarn ก่อนเข้าใช้งาน" : "Please click the button to complete the link before accessing.");
+                showToast(currentLang === 'th' ? "กรุณากดปุ่มเพื่อรับสิทธิ์ผ่าน BlackPass ก่อนเข้าใช้งาน" : "Please click the button to complete the link before accessing.");
                 try {
                     const cleanUrl = window.location.origin + window.location.pathname;
                     window.history.replaceState({}, document.title, cleanUrl);
                 } catch (e) {}
                 return;
-            }
-
-            // Anti-Bypass Check 3: Speed Check (ดักจับบอทที่ตอบกลับเร็วเกินไป < 10 วินาที)
-            if (clickTime > 0 && !isManualInput && provider !== "lootlabs") {
-                const elapsedSec = (Date.now() - clickTime) / 1000;
-                if (elapsedSec < 10) {
-                    showToast(currentLang === 'th' ? `ตรวจพบความเร็วผิดปกติ (${elapsedSec.toFixed(1)}s) กรุณาผ่านลิงก์ ShrinkEarn อย่างถูกต้อง` : `Abnormal speed detected (${elapsedSec.toFixed(1)}s). Please complete the link legitimately.`);
-                    reportBypassAttempt("บอทข้ามลิงก์เร็วผิดปกติ (Bypass Speed Detection)", `Elapsed: ${elapsedSec.toFixed(1)}s (Minimum 10s required)`);
-                    try {
-                        const cleanUrl = window.location.origin + window.location.pathname;
-                        window.history.replaceState({}, document.title, cleanUrl);
-                    } catch (e) {}
-                    return;
-                }
             }
 
             // ผ่านการตรวจสอบความปลอดภัยทั้งหมด!
@@ -1722,11 +1715,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }, 600);
 
-            const provider = gate.provider || "shrinkearn";
+            const provider = gate.provider || "blackpass";
             const puid = getOrCreateLootlabsPuid();
 
             if (gateLootlabsBtn) {
-                if (provider === "shrinkearn") {
+                if (provider === "blackpass") {
+                    const baseLink = (gate.blackpassLockerUrl || "/gateflow/locker.html?slug=hub-access").trim();
+                    const returnTo = encodeURIComponent(window.location.origin + window.location.pathname);
+                    const separator = baseLink.includes("?") ? "&" : "?";
+                    gateLootlabsBtn.href = `${baseLink}${separator}return_to=${returnTo}`;
+                    if (lblGateBtn) {
+                        lblGateBtn.textContent = currentLang === "th" ? "เข้าใช้งานผ่าน BlackPass (รอ 10-15 วินาที)" : "Unlock via BlackPass (10-15s)";
+                    }
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
+                    if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
+                } else if (provider === "shrinkearn") {
                     const shrinkLink = (gate.shrinkearnUrl || gate.lootlabsUrl || SITE_CONFIG.lootlabsGate?.shrinkearnUrl || "https://srnky.com/aehfqq0").trim();
                     gateLootlabsBtn.href = shrinkLink;
                     if (lblGateBtn) {
@@ -1760,9 +1763,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (currentLang === "en") {
                     gateMessageText.textContent = provider === "lootlabs"
                         ? "Please complete the LootLabs support link to unlock access to the website"
-                        : "Please complete the support link to unlock access to the website";
+                        : "Please complete the BlackPass verification to unlock access to the website";
                 } else {
-                    if (provider === "shrinkearn") {
+                    if (provider === "blackpass") {
+                        gateMessageText.textContent = gate.bypassMessage || "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
+                    } else if (provider === "shrinkearn") {
                         gateMessageText.textContent = (gate.bypassMessage && !gate.bypassMessage.includes("LootLabs"))
                             ? gate.bypassMessage
                             : "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์";

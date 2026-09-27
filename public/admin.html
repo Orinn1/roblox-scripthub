@@ -928,7 +928,8 @@
                     <div style="margin-bottom: 16px;">
                         <label class="form-label">เลือกผู้ให้บริการสร้างรายได้ (Provider)</label>
                         <select id="adminGateProvider" class="form-control" style="background: #0f111a; color: #fff; border-color: rgba(16, 185, 129, 0.4);">
-                            <option value="shrinkearn">🌟 ShrinkEarn (แนะนำ - เรตไทยสูง $3-$4 ถอนเข้า Bitkub ง่าย)</option>
+                            <option value="blackpass">⚡ BlackPass Content Locker (แนะนำ - 3 ด่าน Adsterra ทำเงินสูงสุด & เว็บหลักสะอาดไม่มีสแปม)</option>
+                            <option value="shrinkearn">🌟 ShrinkEarn (Shortener)</option>
                             <option value="lootlabs">💎 LootLabs (รองรับ Postback Webhook)</option>
                             <option value="custom">🔗 ลิงก์ย่ออื่นๆ (Custom Shortener)</option>
                         </select>
@@ -947,13 +948,13 @@
                         </div>
 
                         <div>
-                            <label class="form-label" id="lblAdminGateUrl">ลิงก์สำหรับให้ผู้ใช้กด (Shortened Link จาก ShrinkEarn)</label>
-                            <input type="url" id="adminGateUrl" class="form-control" placeholder="https://shrinkearn.com/xxxx">
-                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;" id="descAdminGateUrl">นำลิงก์ย่อที่ได้จาก ShrinkEarn มาใส่ในช่องนี้</span>
+                            <label class="form-label" id="lblAdminGateUrl">ลิงก์สำหรับให้ผู้ใช้กด (BlackPass Content Locker)</label>
+                            <input type="url" id="adminGateUrl" class="form-control" placeholder="https://th.blacklisthub.workers.dev/gateflow/locker.html?slug=hub-access">
+                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;" id="descAdminGateUrl">ลิงก์หน้า BlackPass Locker สำหรับทำภารกิจ 3 ด่าน</span>
                         </div>
 
                         <div>
-                            <label class="form-label">ShrinkEarn API Token (สำหรับย่อลิงก์อัตโนมัติ)</label>
+                            <label class="form-label">ShrinkEarn API Token (ถ้าใช้ ShrinkEarn)</label>
                             <input type="text" id="adminShrinkearnApiToken" class="form-control" placeholder="3ce8c70d0c1e31404164f66164ea8f9117b29b69">
                             <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">รหัส API Token จากหน้า Developers API บนเว็บ ShrinkEarn</span>
                         </div>
@@ -967,7 +968,44 @@
                         <div class="full-width">
                             <label class="form-label">ลิงก์คลิป YouTube สอนวิธีผ่าน (Tutorial Video URL)</label>
                             <input type="url" id="adminGateTutorialUrl" class="form-control" placeholder="https://youtu.be/FdXsvivWhOw">
-                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">วิดีโอคลิปสอนวิธีผ่านลิงก์ ShrinkEarn เพื่อให้ผู้ใช้กดดูคลิปตัวอย่างได้ทันทีในหน้าล็อค</span>
+                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">วิดีโอคลิปสอนวิธีผ่านลิงก์ เพื่อให้ผู้ใช้กดดูคลิปตัวอย่างได้ทันทีในหน้าล็อค</span>
+                        </div>
+                    </div>
+
+                    <!-- กล่องแนะนำวิธีใช้งาน BlackPass Content Locker -->
+                    <div id="blackpassGuideBox" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 10px; padding: 18px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 14px;">
+                        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <div style="font-size: 14px; font-weight: 700; color: #34d399; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i>
+                                    <span>BlackPass Content Locker (3 ด่านทำเงิน Adsterra Smartlinks)</span>
+                                </div>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                                    ระบบจะนำผู้ใช้เข้าสู่หน้า Locker ผ่าน 3 ด่าน (Smartlink 1 & 2 & 3) เมื่อทำครบจะพาวาร์ปกลับมาหน้าเว็บหลัก <code>?auth_success=1</code> และปลดล็อคหน้าเว็บให้ทันที 24 ชม.
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="/gateflow/locker.html?slug=hub-access" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+                                    <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                                    <span>🚀 ทดสอบหน้า Locker</span>
+                                </a>
+                                <a href="/gateflow/dashboard.html" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="layout-dashboard" style="width: 14px; height: 14px;"></i>
+                                    <span>แดชบอร์ด BlackPass</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="font-size: 12px; color: #34d399; font-weight: 600; margin-bottom: 6px;">
+                                🔗 ลิงก์หน้า BlackPass Locker (สำหรับนำไปใส่ในช่องด้านบน):
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="blackpassLockerUrlHelper" class="form-control" value="https://th.blacklisthub.workers.dev/gateflow/locker.html?slug=hub-access" readonly style="background: #090a0d; color: #34d399; font-family: monospace; font-size: 12px;">
+                                <button type="button" id="btnCopyBlackpassHelper" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 0 16px; border-radius: 8px; font-size: 12px; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="copy" style="width: 14px; height: 14px;"></i> <span>คัดลอก</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 

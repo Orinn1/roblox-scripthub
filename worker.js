@@ -425,12 +425,13 @@ export default {
                 return new Response(JSON.stringify({
                     lootlabsGate: {
                         enabled: true,
-                        provider: "shrinkearn",
+                        provider: "blackpass",
                         token: "blacklist_vip",
+                        blackpassLockerUrl: "/gateflow/locker.html?slug=hub-access",
                         shrinkearnUrl: "",
-                        lootlabsUrl: "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
+                        lootlabsUrl: "",
                         expiryHours: 24,
-                        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+                        bypassMessage: "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
                     }
                 }), {
                     status: 200,
@@ -504,6 +505,11 @@ export default {
         // =========================================================================
         if (url.pathname === '/favicon.ico') {
             return env.ASSETS.fetch(new Request(`${url.origin}/Logo.ico`, request));
+        }
+
+        // Clean URL route for BlackPass Locker
+        if (url.pathname === '/locker' || url.pathname === '/locker.html') {
+            return Response.redirect(`${url.origin}/gateflow/locker.html${url.search}`, 302);
         }
 
         // Serve static assets from ./public

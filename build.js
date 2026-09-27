@@ -9,6 +9,8 @@ if (!fs.existsSync(publicDir)) {
 function copyRecursiveSync(src, dest) {
     const exists = fs.existsSync(src);
     if (!exists) return;
+    const baseName = path.basename(src);
+    if (baseName === '.git' || baseName === '.gitmodules') return;
     const stats = fs.statSync(src);
     const isDirectory = stats.isDirectory();
     if (isDirectory) {
@@ -16,6 +18,7 @@ function copyRecursiveSync(src, dest) {
             fs.mkdirSync(dest, { recursive: true });
         }
         fs.readdirSync(src).forEach((childItemName) => {
+            if (childItemName === '.git') return;
             copyRecursiveSync(path.join(src, childItemName), path.join(dest, childItemName));
         });
     } else {
@@ -35,7 +38,8 @@ const itemsToCopy = [
     'favicon.ico',
     'Logo.png',
     'Banner.png',
-    'popup.png'
+    'popup.png',
+    'gateflow'
 ];
 
 for (const item of itemsToCopy) {
