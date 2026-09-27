@@ -718,6 +718,13 @@ export default {
         }
 
         // Clean URL route for BlackPass Locker & Dashboard
+        if ((url.hostname.startsWith('blackpass.') || url.pathname === '/shorten' || url.pathname === '/shrink') && (url.pathname === '/' || url.pathname === '')) {
+            return Response.redirect(`${url.origin}/gateflow/index.html`, 302);
+        }
+        if (url.pathname === '/shorten' || url.pathname === '/shrink') {
+            return Response.redirect(`${url.origin}/gateflow/index.html`, 302);
+        }
+
         if (url.pathname.startsWith('/l/')) {
             const slug = url.pathname.slice(3).trim();
             if (slug) {
