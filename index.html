@@ -141,19 +141,8 @@
                     if (adBox) adBox.style.display = 'none';
                 });
             } else {
-                // Load Adsterra ads on the main website for all non-VIP visitors!
-                var s1 = document.createElement('script');
-                s1.src = 'https://accountut.com/1/60bc1b6927b2e11658d89c4b5655cbde';
-                s1.setAttribute('data-cfasync', 'false');
-                s1.async = true;
-                document.head.appendChild(s1);
-
-                var s2 = document.createElement('script');
-                s2.src = 'https://bellnewyork.org/14/b1285aa73b09eccedfae325c60ae2c62';
-                s2.setAttribute('data-cfasync', 'false');
-                s2.async = true;
-                document.head.appendChild(s2);
-                console.log('[Adsterra Hub] Main website Adsterra ads loaded successfully.');
+                // Clean browsing on main hub: All ad monetization is safely handled via Locker & Banner
+                console.log('[Adsterra Hub] Safe ad mode active: No intrusive popunders on main hub.');
             }
 
             // Clean up any remaining Monetag service workers
