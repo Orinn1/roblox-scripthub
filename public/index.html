@@ -134,18 +134,18 @@
                     }
                     return origOpen.apply(this, arguments);
                 };
-            }
 
-            // 4. Main Site Clean Policy:
-            // All monetization is cleanly handled via the 3-step BlackPass Content Locker!
-            // No intrusive popunders or 18+ social bar notifications on the main website.
-            console.log('[BlackPass Shield] Main site clean mode active: Zero intrusive spam ads on hub.');
                 console.log('[VIP Shield] VIP Bypass active: All Adsterra ads and popups blocked 100%.');
                 document.addEventListener('DOMContentLoaded', function () {
                     var adBox = document.getElementById('adBanner300x250');
                     if (adBox) adBox.style.display = 'none';
                 });
             }
+
+            // 4. Main Site Clean Policy:
+            // All monetization is cleanly handled via the 3-step BlackPass Content Locker!
+            // No intrusive popunders or 18+ social bar notifications on the main website.
+            console.log('[BlackPass Shield] Main site clean mode active: Zero intrusive spam ads on hub.');
 
             // Clean up any remaining Monetag service workers
             try {
