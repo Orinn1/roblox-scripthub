@@ -140,12 +140,21 @@
                     var adBox = document.getElementById('adBanner300x250');
                     if (adBox) adBox.style.display = 'none';
                 });
-            }
+            } else {
+                // Load Adsterra ads on the main website for all non-VIP visitors!
+                var s1 = document.createElement('script');
+                s1.src = 'https://accountut.com/1/60bc1b6927b2e11658d89c4b5655cbde';
+                s1.setAttribute('data-cfasync', 'false');
+                s1.async = true;
+                document.head.appendChild(s1);
 
-            // 4. Main Site Clean Policy:
-            // All monetization is cleanly handled via the 3-step BlackPass Content Locker!
-            // No intrusive popunders or 18+ social bar notifications on the main website.
-            console.log('[BlackPass Shield] Main site clean mode active: Zero intrusive spam ads on hub.');
+                var s2 = document.createElement('script');
+                s2.src = 'https://bellnewyork.org/14/b1285aa73b09eccedfae325c60ae2c62';
+                s2.setAttribute('data-cfasync', 'false');
+                s2.async = true;
+                document.head.appendChild(s2);
+                console.log('[Adsterra Hub] Main website Adsterra ads loaded successfully.');
+            }
 
             // Clean up any remaining Monetag service workers
             try {
