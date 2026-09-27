@@ -3478,7 +3478,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const now = Date.now();
             if (!window.__lastSmartlinkClick || (now - window.__lastSmartlinkClick > 25000)) {
                 window.__lastSmartlinkClick = now;
-                const smartlink = (SITE_CONFIG && SITE_CONFIG.adsterraSmartlinkUrl) || "https://ardance.org/4/e3ec5ce0a3e835feea94318ff293b6a2";
+                const smartlink = (SITE_CONFIG && SITE_CONFIG.adsterraSmartlinkUrl) || "https://omg10.com/4/11905140";
                 if (smartlink) {
                     try {
                         window.open(smartlink, "_blank");
