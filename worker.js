@@ -507,9 +507,12 @@ export default {
             return env.ASSETS.fetch(new Request(`${url.origin}/Logo.ico`, request));
         }
 
-        // Clean URL route for BlackPass Locker
-        if (url.pathname === '/locker' || url.pathname === '/locker.html') {
+        // Clean URL route for BlackPass Locker & Dashboard
+        if (url.pathname === '/locker' || url.pathname === '/locker.html' || url.pathname === '/gateflow/locker') {
             return Response.redirect(`${url.origin}/gateflow/locker.html${url.search}`, 302);
+        }
+        if (url.pathname === '/dashboard' || url.pathname === '/gateflow/dashboard') {
+            return Response.redirect(`${url.origin}/gateflow/dashboard.html${url.search}`, 302);
         }
 
         // Serve static assets from ./public
