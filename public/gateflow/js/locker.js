@@ -235,7 +235,7 @@ function updateButtonsVisualState() {
 }
 
 // User clicking directly on one of the 3 Task Buttons
-window.handleTaskButtonClick = function(btnIndex) {
+window.handleTaskButtonClick = function (btnIndex) {
   // Check if previous buttons completed
   if (btnIndex > 1 && !completedSteps[btnIndex - 1]) {
     const prevWarn = isThaiLang()
@@ -356,7 +356,7 @@ function onButtonDwellVerified(btnIndex) {
 
   // Mobile haptic vibration if supported (Gentle buzz when 30s dwell is done)
   if (typeof navigator !== 'undefined' && navigator.vibrate) {
-    try { navigator.vibrate([160, 90, 160]); } catch(e) {}
+    try { navigator.vibrate([160, 90, 160]); } catch (e) { }
   }
 
   hidePopupFallback();
@@ -630,7 +630,7 @@ async function unlockContent() {
     }
     localStorage.setItem('blacklist_lootlabs_unlocked_event', String(Date.now()));
     window.dispatchEvent(new Event('storage'));
-  } catch(e) {}
+  } catch (e) { }
 
   // INSTANT REDIRECT DIRECTLY TO DESTINATION! (พาไปเลย ไม่ต้องแวะหน้าปลดล็อค)
   window.location.replace(destUrl);
@@ -650,7 +650,7 @@ function initVipModal() {
     btnOpen.onclick = () => modal.classList.add('active');
   }
 
-  window.closeVipModal = function() {
+  window.closeVipModal = function () {
     if (modal) modal.classList.remove('active');
   };
 
