@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Access Gate &mdash; BlackPass</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/locker.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Monetag Multitag -->
+  <script src="https://quge5.com/88/tag.min.js" data-zone="287788" async data-cfasync="false"></script>
+  <!-- Monetag Web Push Notifications (Zone 11905580) -->
+  <script src="https://5gvci.com/act/files/tag.min.js?z=11905580" data-cfasync="false" async></script>
+</head>
+<body class="locker-viewport">
+
+  <div class="locker-box">
+    <!-- Active Task State -->
+    <div id="lockerActiveView">
+      <!-- Header -->
+      <div class="locker-header">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <div class="locker-brand-badge">
+            <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+            <span data-i18n="locker_brand_badge">BlackPass ปลอดภัย 100%</span>
+          </div>
+
+          <div class="lang-switcher" style="padding: 2px;">
+            <button type="button" class="lang-btn" data-lang="th" onclick="setAppLanguage('th')" style="padding: 2px 8px; font-size: 11px;">🇹🇭 TH</button>
+            <button type="button" class="lang-btn" data-lang="en" onclick="setAppLanguage('en')" style="padding: 2px 8px; font-size: 11px;">🇺🇸 EN</button>
+          </div>
+        </div>
+
+        <div class="locker-shield-icon">
+          <i data-lucide="lock" style="width: 22px; height: 22px;"></i>
+        </div>
+
+        <h2 class="locker-content-title" id="lockerTitle">Content Access Restricted</h2>
+        <p class="locker-subtitle" id="lockerDesc" data-i18n="locker_default_desc">
+          ทำตามขั้นตอนด้านล่างเพื่อยืนยันเซสชันและปลดล็อคเนื้อหา
+        </p>
+      </div>
+
+      <!-- Step Progress Bar -->
+      <div class="locker-progress-area">
+        <div class="progress-header">
+          <span data-i18n="locker_progress_label">ความคืบหน้า</span>
+          <span class="progress-step-text" id="progressStepText">0 / 3 ด่าน (0%)</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progressBarFill" style="width: 6%;"></div>
+        </div>
+      </div>
+
+      <!-- Body / Current Task -->
+      <div class="locker-body">
+        <!-- In-App Browser Notice (For Discord / Line / Mobile In-App Webviews) -->
+        <div class="inapp-browser-notice" id="inAppBrowserNotice" style="display: none;">
+          <i data-lucide="compass" style="width: 16px; height: 16px; color: #F59E0B; flex-shrink: 0; margin-top: 1px;"></i>
+          <span>💡 <strong>เปิดใน Discord/แอป?</strong> หากสลับแท็บไม่สะดวก แนะนำกดปุ่ม <strong>⋯</strong> มุมบนขวา แล้วเลือก <em>"เปิดในเบราว์เซอร์หลัก (Chrome/Safari)"</em></span>
+        </div>
+
+        <!-- Mobile Popup Fallback Banner (If browser blocks popup window) -->
+        <div class="popup-fallback-banner" id="popupFallbackBanner" style="display: none;">
+          <div class="fallback-info">
+            <i data-lucide="external-link" style="width: 16px; height: 16px; color: #F59E0B; flex-shrink: 0;"></i>
+            <span id="popupFallbackText">⚠️ เบราว์เซอร์บล็อกหน้าต่างใหม่:</span>
+          </div>
+          <a href="#" target="_blank" rel="noopener noreferrer" class="btn-popup-fallback" id="btnPopupFallback">
+            <span>แตะตรงนี้เพื่อเปิดหน้าโฆษณา</span>
+            <i data-lucide="arrow-up-right" style="width: 14px; height: 14px;"></i>
+          </a>
+        </div>
+
+        <div class="tasks-list" id="tasksList">
+          <!-- Dynamically populated step items -->
+        </div>
+
+
+
+        <!-- Action / Countdown Button (Shown cleanly when ready) -->
+        <div class="locker-action-area" id="lockerActionArea">
+          <button type="button" class="btn-locker-continue" id="btnContinue" style="display: none;">
+            <i data-lucide="unlock" id="btnIcon" style="width: 18px; height: 18px;"></i>
+            <span id="btnText">🎉 ผ่านครบ 3 ด่านแล้ว! ปลดล็อคเข้าสู่เว็บไซต์ 🔓</span>
+          </button>
+          <div class="locker-hint-text" id="lockerHintText">
+            <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #818CF8;"></i>
+            <span>ค้างหน้าโฆษณาปุ่มละ 15 วินาที เพื่อปลดล็อคเนื้อหา</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer: VIP Bypass -->
+      <div class="locker-footer">
+        <span class="locker-footer-text" data-i18n="locker_footer_shield">คุ้มครองด้วยระบบ Anti-Bypass v2.4</span>
+        <button type="button" class="btn-vip-skip" id="btnOpenVipModal">
+          <i data-lucide="crown" style="width: 14px; height: 14px;"></i>
+          <span data-i18n="locker_vip_btn">มีคีย์ VIP?</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Instant Redirect Loading State -->
+    <div class="locker-success-view" id="lockerSuccessView" style="padding: 40px 24px; text-align: center;">
+      <div class="success-check-icon" style="margin: 0 auto 16px;">
+        <i data-lucide="check" style="width: 32px; height: 32px; color: #10B981;"></i>
+      </div>
+
+      <h2 class="success-title" style="font-size: 19px; margin-bottom: 6px;">กำลังพาวาร์ปเข้าสู่เว็บไซต์...</h2>
+      <p class="success-desc" style="font-size: 13px; color: #94A3B8; margin-bottom: 0;">
+        ปลดล็อคสำเร็จเรียบร้อย กรุณารอสักครู่
+      </p>
+    </div>
+  </div>
+
+  <!-- Modal: VIP Key Bypass -->
+  <div class="modal-backdrop" id="vipModal">
+    <div class="modal-dialog" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="crown" style="color: #F59E0B; width: 18px; height: 18px;"></i>
+          <span data-i18n="vip_modal_title">ข้ามด่านด้วยคีย์ VIP ทันที</span>
+        </h3>
+        <button class="modal-close" onclick="closeVipModal()">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;" data-i18n="vip_modal_desc">
+          หากคุณมียศ VIP ใน Discord (30 บาทถาวร) หรือมีคีย์ข้ามด่าน สามารถกรอกรหัสด้านล่างเพื่อปลดล็อคสคริปต์ทันทีโดยไม่ต้องดูโฆษณา
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="vip_input_label">รหัส VIP License Key</label>
+          <input type="text" class="form-input" id="inputVipKey" placeholder="เช่น VIP-PASS-2026" data-i18n-placeholder="vip_input_placeholder">
+          <div class="form-hint" data-i18n="vip_hint">ทิป: พิมพ์ <code>VIP30</code> เพื่อทดสอบการข้ามด่านทันที</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeVipModal()" data-i18n="modal_btn_cancel">ยกเลิก</button>
+        <button type="button" class="btn btn-primary" id="btnSubmitVipKey" data-i18n="vip_redeem_btn">ยืนยันและปลดล็อค</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer"></div>
+
+  <!-- Firebase SDKs (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/locker.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
