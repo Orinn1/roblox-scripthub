@@ -3476,9 +3476,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Trigger Adsterra Smartlink in a new tab for non-VIP users (สร้างรายได้เด้งที่ 2)
         if (!window.__IS_VIP__ && !isVipMember()) {
             const now = Date.now();
-            if (!window.__lastSmartlinkClick || (now - window.__lastSmartlinkClick > 25000)) {
+            if (!window.__lastSmartlinkClick || (now - window.__lastSmartlinkClick > 60000)) {
                 window.__lastSmartlinkClick = now;
-                const smartlink = (SITE_CONFIG && SITE_CONFIG.adsterraSmartlinkUrl) || "https://omg10.com/4/11905577";
+                const smartlink = (SITE_CONFIG && SITE_CONFIG.adsterraSmartlinkUrl) || "https://omg10.com/4/11911452";
                 if (smartlink) {
                     try {
                         window.open(smartlink, "_blank");

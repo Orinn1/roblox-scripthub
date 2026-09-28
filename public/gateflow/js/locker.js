@@ -7,7 +7,7 @@
 
 let currentLocker = null;
 const totalSteps = 3;
-const requiredDwellSeconds = 30; // 30 seconds dwell time per button
+const requiredDwellSeconds = 15; // 15 seconds dwell time per button
 let completedSteps = { 1: false, 2: false, 3: false };
 let secondsOnAd = { 1: 0, 2: 0, 3: 0 }; // Accumulated seconds actually spent away on ad tab
 let dwellSessionStart = { 1: null, 2: null, 3: null };
@@ -82,14 +82,14 @@ async function loadLockerData() {
   GateStore.recordClick(currentLocker.slug);
 
   document.getElementById('lockerTitle').textContent = currentLocker.name;
-  document.title = `${currentLocker.name} \u2014 BlackPass 30s Verification`;
+  document.title = `${currentLocker.name} \u2014 BlackPass 15s Verification`;
 
   // Update instruction rule banner
   const instructionEl = document.getElementById('lockerInstructionText');
   if (instructionEl) {
     instructionEl.textContent = isThaiLang()
-      ? '⚠️ กติกา: กดทำภารกิจให้ครบทั้ง 3 ปุ่ม โดยต้องค้างอยู่ที่หน้าโฆษณาปุ่มละ 30 วินาที จึงจะปลดล็อคเว็บไซต์'
-      : '⚠️ Rule: Complete all 3 buttons by staying on each sponsor ad for 30 seconds to unlock the website.';
+      ? '⚠️ กติกา: กดทำภารกิจให้ครบทั้ง 3 ปุ่ม โดยต้องค้างอยู่ที่หน้าโฆษณาปุ่มละ 15 วินาที จึงจะปลดล็อคเว็บไซต์'
+      : '⚠️ Rule: Complete all 3 buttons by staying on each sponsor ad for 15 seconds to unlock the website.';
   }
 
   renderTaskButtons();
@@ -171,7 +171,7 @@ function updateButtonsVisualState() {
       pill.innerHTML = `<div class="btn-task-action completed"><i data-lucide="check" style="width: 14px; height: 14px;"></i> <span>${doneText}</span></div>`;
       if (badge) badge.innerHTML = `<i data-lucide="check" style="width: 14px; height: 14px;"></i>`;
       if (desc) {
-        desc.textContent = isThaiLang() ? '✅ ดูครบ 30 วินาทีเรียบร้อยแล้ว' : '✅ 30s completed';
+        desc.textContent = isThaiLang() ? '✅ ดูครบ 15 วินาทีเรียบร้อยแล้ว' : '✅ 15s completed';
         desc.style.color = '#34D399';
       }
       if (miniFill) miniFill.style.width = '100%';
@@ -211,8 +211,8 @@ function updateButtonsVisualState() {
       if (badge) badge.innerHTML = `<span class="num-text">${i}</span>`;
       if (desc) {
         desc.textContent = isThaiLang()
-          ? `แตะเพื่อเปิดโฆษณาและค้างไว้ 30 วินาที`
-          : `Tap to open ad and stay for 30s`;
+          ? `แตะเพื่อเปิดโฆษณาและค้างไว้ 15 วินาที`
+          : `Tap to open ad and stay for 15s`;
         desc.style.color = 'var(--text-muted)';
       }
       if (miniFill) miniFill.style.width = '0%';
@@ -248,8 +248,8 @@ window.handleTaskButtonClick = function(btnIndex) {
   // Already completed this button
   if (completedSteps[btnIndex]) {
     const doneNotice = isThaiLang()
-      ? `✅ ปุ่มที่ ${btnIndex} ผ่านการยืนยัน 30 วินาทีเรียบร้อยแล้ว!`
-      : `✅ Button ${btnIndex} has already completed the 30s dwell!`;
+      ? `✅ ปุ่มที่ ${btnIndex} ผ่านการยืนยัน 15 วินาทีเรียบร้อยแล้ว!`
+      : `✅ Button ${btnIndex} has already completed the 15s dwell!`;
     showToast(doneNotice, 'success', 2500);
     return;
   }
@@ -368,8 +368,8 @@ function onButtonDwellVerified(btnIndex) {
   updateBottomButtonUI();
 
   const successMsg = isThaiLang()
-    ? `✅ ปุ่มที่ ${btnIndex} ผ่านแล้ว! (ดูครบ 30 วินาทีเต็ม)`
-    : `✅ Button ${btnIndex} Verified! (30s dwell completed)`;
+    ? `✅ ปุ่มที่ ${btnIndex} ผ่านแล้ว! (ดูครบ 15 วินาทีเต็ม)`
+    : `✅ Button ${btnIndex} Verified! (15s dwell completed)`;
   showToast(successMsg, 'success', 3500);
 
   // Check if all 3 buttons are completed!
@@ -449,8 +449,8 @@ function updateBottomButtonUI() {
       const remaining = totalSteps - doneCount;
       const isTh = isThaiLang();
       const hintMsg = isTh
-        ? `ค้างหน้าโฆษณาปุ่มละ 30 วินาที เพื่อปลดล็อค (เหลือ ${remaining} ด่าน)`
-        : `Stay on each ad for 30s to unlock (${remaining} remaining)`;
+        ? `ค้างหน้าโฆษณาปุ่มละ 15 วินาที เพื่อปลดล็อค (เหลือ ${remaining} ด่าน)`
+        : `Stay on each ad for 15s to unlock (${remaining} remaining)`;
       hintEl.innerHTML = `<i data-lucide="sparkles" style="width: 14px; height: 14px; color: #818CF8; flex-shrink: 0;"></i> <span>${hintMsg}</span>`;
     }
   }
@@ -467,8 +467,8 @@ function updateLockerLanguage() {
 // Real Ad Trigger (Links 1, 2, 3) - Monetag High CPM Direct Links
 function triggerSmartlinkAd(btnIndex = 1) {
   // Owner's verified Monetag Direct Links (High Thai CPM)
-  let targetSmartlink = 'https://omg10.com/4/11905577';
-  if (btnIndex === 1) targetSmartlink = 'https://omg10.com/4/11905577';
+  let targetSmartlink = 'https://omg10.com/4/11905140';
+  if (btnIndex === 1) targetSmartlink = 'https://omg10.com/4/11905140';
   else if (btnIndex === 2) targetSmartlink = 'https://omg10.com/4/11905141';
   else if (btnIndex === 3) targetSmartlink = 'https://omg10.com/4/11905142';
 
@@ -570,8 +570,8 @@ async function unlockContent() {
   for (let s = 1; s <= totalSteps; s++) {
     if (!completedSteps[s]) {
       const err = isThaiLang()
-        ? `⛔ ปุ่มที่ ${s} ยังไม่ผ่านการดูโฆษณา 30 วินาที! กรุณากดทำภารกิจให้ครบ`
-        : `⛔ Button ${s} not verified for 30s! Please complete all 3 buttons.`;
+        ? `⛔ ปุ่มที่ ${s} ยังไม่ผ่านการดูโฆษณา 15 วินาที! กรุณากดทำภารกิจให้ครบ`
+        : `⛔ Button ${s} requires 15s viewing! Please complete all 3 buttons.`;
       showToast(err, 'error', 4000);
       return;
     }

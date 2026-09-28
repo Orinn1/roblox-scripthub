@@ -61,7 +61,7 @@ const SITE_CONFIG = {
     },
 
     // Monetag Smartlink / Direct Link
-    adsterraSmartlinkUrl: "https://omg10.com/4/11905577"
+    adsterraSmartlinkUrl: "https://omg10.com/4/11911452"
 };
 
 // Make SITE_CONFIG globally available on window
