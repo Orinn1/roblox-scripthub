@@ -1,0 +1,68 @@
+{
+  "siteName": "BlacklistScriptx",
+  "brandPrefix": "Blacklist",
+  "brandSuffix": "Scriptx",
+  "siteTagline": "ศูนย์รวมสคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
+  "unlockTasks": {
+    "youtubeChannelUrl": "https://www.youtube.com/@Blacklistxyx",
+    "youtubeChannelName": "ช่อง Blacklistxyx",
+    "affiliateUrl": "https://omg10.com/4/11919655",
+    "affiliateTitle": "ภารกิจผู้สนับสนุน / Sponsor Link",
+    "latestVideoUrl": "https://youtu.be/j62DJ0UwHaM?si=u3uO0-HbASt35N4w",
+    "latestVideoTitle": "กดไลค์และคอมเมนต์คลิปแจกสคริปต์ล่าสุด",
+    "verificationSeconds": 5
+  },
+  "adsterraSmartlinkUrl": "https://omg10.com/4/11911452",
+  "executorDirectLinkUrl": "https://omg10.com/4/11919658",
+  "socialLinks": {
+    "youtube": "https://www.youtube.com/@Blacklistxyx",
+    "discord": "https://discord.gg/6x67MrtfbX",
+    "tiktok": "https://www.tiktok.com/@YOUR_TIKTOK"
+  },
+  "lootlabsGate": {
+    "provider": "shrinkearn",
+    "bypassMessage": "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+  },
+  "firebaseConfig": {
+    "apiKey": "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI",
+    "authDomain": "blacklistscripts.firebaseapp.com",
+    "projectId": "blacklistscripts",
+    "storageBucket": "blacklistscripts.firebasestorage.app",
+    "messagingSenderId": "337802433479",
+    "appId": "1:337802433479:web:d0758311bfd6bd02983fe2",
+    "measurementId": "G-KJVSN73QYR"
+  },
+  "cloudDb": {
+    "enabled": true,
+    "binId": "6aa6a183ac6210605ac7dcf7",
+    "masterKey": "$2a$10$IYkvYSXXCqfb9lO86OX8.ehEV.hMZwInw.esSiflJGjjaiYEs5eQ6"
+  },
+  "notified_youtube_video_ids": [
+    "VsI796ml-rE",
+    "cQroA4kPW4o",
+    "l0GAwnTVhqQ",
+    "j62DJ0UwHaM",
+    "GxIir9fMRDU",
+    "8XzBS6CcPjo",
+    "VsVw-zX3-AM",
+    "b4vTQbsyebE",
+    "P4gzUvf1l1M",
+    "5gbDDEYCRv8",
+    "EDjJ502wmng",
+    "IuRBkqxHuGY",
+    "73FlaA2mh2E",
+    "t4UXxHQnBAI",
+    "XNmYbkV6rg4"
+  ],
+  "youtube_last_published_time": 1790166472000,
+  "last_roblox_client_version": "version-2366ba214ec740ca",
+  "stock_live_panels": [
+    {
+      "channelId": "1549774966474674259",
+      "messageId": "1550102814699683972",
+      "guildId": "1548669247998140438",
+      "dealer": "all",
+      "updatedAt": 1790174332896
+    }
+  ]
+}

@@ -36,7 +36,7 @@ const SITE_CONFIG = {
         affiliateTitle: "ภารกิจผู้สนับสนุน / Sponsor Link",
         latestVideoUrl: "https://www.youtube.com/@Blacklistxyx",
         latestVideoTitle: "กดไลค์และคอมเมนต์คลิปแจกสคริปต์ล่าสุด",
-        verificationSeconds: 5
+        verificationSeconds: 15
     },
 
     // ลิงก์ Social Media ด้านบนเว็บ

@@ -5,6 +5,9 @@ data/database.sqlite*
 public/data/database.sqlite*
 scratch/
 *.zip
+*.rar
+qa-bot/data/database.sqlite*
+qa-bot/.env
 temp_api/
 simple-hub/
 build-len.js

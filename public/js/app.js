@@ -24,6 +24,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // Task State for Locker
     let tasks = { t1: false, t2: false, t3: false };
     let currentTaskTimer = null;
+    let activeAwayDwellCleanup = null;
+
+    function cleanupActiveTask() {
+        if (currentTaskTimer) {
+            clearInterval(currentTaskTimer);
+            currentTaskTimer = null;
+        }
+        if (typeof activeAwayDwellCleanup === "function") {
+            try { activeAwayDwellCleanup(); } catch (e) {}
+            activeAwayDwellCleanup = null;
+        }
+    }
 
     // Views
     const homeView = document.getElementById("homeView");
@@ -3213,7 +3225,7 @@ document.addEventListener("DOMContentLoaded", () => {
             : t.task2Name;
         const icon = isSponsorTask ? "sparkles" : "message-square";
         const hint = isSponsorTask 
-            ? (currentLang === 'th' ? "เปิดลิงก์และรอระบบยืนยัน 5 วินาที" : "Open link and wait 5 seconds for verification")
+            ? (currentLang === 'th' ? "เปิดลิงก์และค้างไว้ 15 วินาทีเพื่อปลดล็อค" : "Open link and stay on ad for 15s to verify")
             : t.task2Hint;
         let targetUrl = url;
         if (!targetUrl || targetUrl.includes("shopee.co.th")) {
@@ -3229,10 +3241,7 @@ document.addEventListener("DOMContentLoaded", () => {
             checkLootlabsGate();
             return;
         }
-        if (currentTaskTimer) {
-            clearInterval(currentTaskTimer);
-            currentTaskTimer = null;
-        }
+        cleanupActiveTask();
         selectedScript = scripts.find(s => String(s.id) === String(id));
         if (!selectedScript) return;
 
@@ -3359,56 +3368,143 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function handleTaskClick(btn, link, waitSec, taskKey, stepNum, title, nextBtnToActivate, nextStepNum, nextIcon, nextTitle, nextHint) {
+    function handleTaskClick(btn, link, waitSec, taskKey, stepNum, title, nextBtnToActivate, nextStepNum, nextIcon, nextTitle, nextHint, requireAwayDwell = false) {
         if (tasks[taskKey]) return;
         const t = I18N[currentLang] || I18N.en;
-        if (currentTaskTimer) {
-            clearInterval(currentTaskTimer);
-            currentTaskTimer = null;
-        }
+        cleanupActiveTask();
+
         window.open(link, "_blank");
 
         let sec = waitSec;
-        btn.disabled = true;
+        btn.disabled = false;
         btn.className = "btn-task loading";
-        btn.innerHTML = `
-            <div class="task-left">
-                <div class="task-badge loading">${stepNum}</div>
-                <div class="task-icon-box loading"><i data-lucide="loader-2" class="spin"></i></div>
-                <div class="task-meta">
-                    <span class="task-name">${title}</span>
-                    <span class="task-hint loading-hint">${typeof t.verifyingTask === "function" ? t.verifyingTask(sec) : `Verifying task... (${sec}s)`}</span>
+
+        const updateBtnUI = (isPaused) => {
+            const hintText = isPaused
+                ? (currentLang === 'th' ? `⏸️ เวลาหยุดนับ! แตะกลับไปค้างหน้าโฆษณาอีก ${sec} วิ` : `⏸️ Timer paused! Tap to return to ad for ${sec}s`)
+                : (typeof t.verifyingTask === "function" ? t.verifyingTask(sec) : `Verifying task... (${sec}s)`);
+            const pillHtml = isPaused
+                ? `<span class="status-pill paused-pill" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);"><i data-lucide="pause"></i> ⏸️ ${sec}s</span>`
+                : `<span class="status-pill loading-pill"><i data-lucide="loader-2" class="spin"></i> ${sec}s</span>`;
+
+            btn.innerHTML = `
+                <div class="task-left">
+                    <div class="task-badge ${isPaused ? 'paused' : 'loading'}">${stepNum}</div>
+                    <div class="task-icon-box ${isPaused ? 'paused' : 'loading'}"><i data-lucide="${isPaused ? 'pause' : 'loader-2'}" class="${isPaused ? '' : 'spin'}"></i></div>
+                    <div class="task-meta">
+                        <span class="task-name">${title}</span>
+                        <span class="task-hint ${isPaused ? 'paused-hint' : 'loading-hint'}" style="${isPaused ? 'color: #f87171 !important; font-weight: 500;' : ''}">${hintText}</span>
+                    </div>
                 </div>
-            </div>
-            <div class="task-status">
-                <span class="status-pill loading-pill"><i data-lucide="loader-2" class="spin"></i> ${sec}s</span>
-            </div>
-        `;
-        refreshIcons();
+                <div class="task-status">
+                    ${pillHtml}
+                </div>
+            `;
+            refreshIcons();
+        };
 
-        currentTaskTimer = setInterval(() => {
-            sec--;
-            if (sec > 0) {
-                const hintEl = btn.querySelector(".task-hint");
-                const pillEl = btn.querySelector(".status-pill");
-                if (hintEl) hintEl.textContent = typeof t.verifyingTask === "function" ? t.verifyingTask(sec) : `Verifying task... (${sec}s)`;
-                if (pillEl) pillEl.innerHTML = `<i data-lucide="loader-2" class="spin"></i> ${sec}s`;
-                refreshIcons();
-            } else {
-                clearInterval(currentTaskTimer);
-                currentTaskTimer = null;
-                tasks[taskKey] = true;
-                setTaskDone(btn, stepNum, title);
-                updateDots();
+        if (requireAwayDwell) {
+            let isAway = document.hidden || !document.hasFocus();
+            updateBtnUI(!isAway);
 
-                if (nextBtnToActivate) {
-                    resetTaskBtn(nextBtnToActivate, nextStepNum, nextIcon, nextTitle, nextHint, "primary-red", true);
-                    refreshIcons();
+            let lastToastTime = 0;
+            const onVisibilityOrFocusChange = () => {
+                const currentlyAway = document.hidden || !document.hasFocus();
+                if (!currentlyAway && sec > 0) {
+                    updateBtnUI(true);
+                    const now = Date.now();
+                    if (now - lastToastTime > 3500) {
+                        lastToastTime = now;
+                        showToast(
+                            currentLang === 'th'
+                                ? `⏸️ หยุดนับเวลา! คุณต้องเปิดค้างอยู่ที่หน้าโฆษณาอีก ${sec} วินาที (เวลานับต่อเฉพาะตอนดูหน้าโฆษณา)`
+                                : `⏸️ Timer paused! Please stay on the ad tab for ${sec}s more to continue.`,
+                            "warning"
+                        );
+                    }
+                } else if (currentlyAway && sec > 0) {
+                    updateBtnUI(false);
                 }
+            };
 
-                checkAllCompleted();
-            }
-        }, 1000);
+            document.addEventListener("visibilitychange", onVisibilityOrFocusChange);
+            window.addEventListener("blur", onVisibilityOrFocusChange);
+            window.addEventListener("focus", onVisibilityOrFocusChange);
+
+            activeAwayDwellCleanup = () => {
+                document.removeEventListener("visibilitychange", onVisibilityOrFocusChange);
+                window.removeEventListener("blur", onVisibilityOrFocusChange);
+                window.removeEventListener("focus", onVisibilityOrFocusChange);
+                btn.onclick = null;
+            };
+
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                if (tasks[taskKey]) return;
+                window.open(link, "_blank");
+                showToast(
+                    currentLang === 'th'
+                        ? `🚀 สลับไปหน้าโฆษณาแล้ว! กรุณาค้างไว้จนครบอีก ${sec} วินาที`
+                        : `🚀 Opened ad! Please stay on the ad for ${sec}s more`,
+                    "info"
+                );
+            };
+
+            currentTaskTimer = setInterval(() => {
+                const currentlyAway = document.hidden || !document.hasFocus();
+                if (currentlyAway) {
+                    sec--;
+                    if (sec > 0) {
+                        updateBtnUI(false);
+                    } else {
+                        cleanupActiveTask();
+                        tasks[taskKey] = true;
+                        setTaskDone(btn, stepNum, title);
+                        updateDots();
+                        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                            try { navigator.vibrate([120, 80, 120]); } catch (e) {}
+                        }
+                        showToast(
+                            currentLang === 'th' ? "✅ ผ่านด่านสปอนเซอร์ 15 วินาทีเรียบร้อยแล้ว!" : "✅ Sponsor task verified!",
+                            "success"
+                        );
+
+                        if (nextBtnToActivate) {
+                            resetTaskBtn(nextBtnToActivate, nextStepNum, nextIcon, nextTitle, nextHint, "primary-red", true);
+                            refreshIcons();
+                        }
+                        checkAllCompleted();
+                    }
+                } else {
+                    updateBtnUI(true);
+                }
+            }, 1000);
+        } else {
+            btn.disabled = true;
+            updateBtnUI(false);
+
+            currentTaskTimer = setInterval(() => {
+                sec--;
+                if (sec > 0) {
+                    const hintEl = btn.querySelector(".task-hint");
+                    const pillEl = btn.querySelector(".status-pill");
+                    if (hintEl) hintEl.textContent = typeof t.verifyingTask === "function" ? t.verifyingTask(sec) : `Verifying task... (${sec}s)`;
+                    if (pillEl) pillEl.innerHTML = `<i data-lucide="loader-2" class="spin"></i> ${sec}s`;
+                    refreshIcons();
+                } else {
+                    cleanupActiveTask();
+                    tasks[taskKey] = true;
+                    setTaskDone(btn, stepNum, title);
+                    updateDots();
+
+                    if (nextBtnToActivate) {
+                        resetTaskBtn(nextBtnToActivate, nextStepNum, nextIcon, nextTitle, nextHint, "primary-red", true);
+                        refreshIcons();
+                    }
+                    checkAllCompleted();
+                }
+            }, 1000);
+        }
     }
 
     task1Btn.addEventListener("click", () => {
@@ -3427,7 +3523,8 @@ document.addEventListener("DOMContentLoaded", () => {
             "02", 
             t2.icon,
             t2.title, 
-            t2.hint
+            t2.hint,
+            false
         );
     });
 
@@ -3441,7 +3538,7 @@ document.addEventListener("DOMContentLoaded", () => {
         handleTaskClick(
             task2Btn, 
             t2.targetUrl, 
-            5, 
+            15, 
             "t2", 
             "02", 
             t2.title, 
@@ -3449,7 +3546,8 @@ document.addEventListener("DOMContentLoaded", () => {
             "03", 
             "thumbs-up",
             t.task3Name, 
-            t.task3Hint
+            t.task3Hint,
+            true
         );
     });
 
@@ -3528,18 +3626,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     closeLockerBtn.addEventListener("click", () => {
-        if (currentTaskTimer) {
-            clearInterval(currentTaskTimer);
-            currentTaskTimer = null;
-        }
+        cleanupActiveTask();
         lockerModal.classList.remove("active");
     });
     lockerModal.addEventListener("click", (e) => {
         if (e.target === lockerModal) {
-            if (currentTaskTimer) {
-                clearInterval(currentTaskTimer);
-                currentTaskTimer = null;
-            }
+            cleanupActiveTask();
             lockerModal.classList.remove("active");
         }
     });
