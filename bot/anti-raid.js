@@ -27,6 +27,7 @@ const ANTI_RAID_CONFIG = {
     wallOfTextTimeout: 60 * 60 * 1000,  // ปิดปาก 1 ชั่วโมง
     massMentionTimeout: 60 * 60 * 1000, // ปิดปาก 1 ชั่วโมง
     inviteSpamTimeout: 30 * 60 * 1000,  // ปิดปาก 30 นาที
+    scamTimeout: 24 * 60 * 60 * 1000,   // ปิดปาก 24 ชั่วโมงสำหรับ Scam / Phishing / MrBeast
     
     // 6. Ban Threshold
     banAfterViolations: 3               // ทำผิดซ้ำ 3 ครั้ง แบนทันที
@@ -66,6 +67,14 @@ async function sendPunishmentDM(member, guild, reason, actionTaken, triggerConte
         if (triggerContent) {
             const cleanSnippet = triggerContent.length > 100 ? triggerContent.slice(0, 97) + '...' : triggerContent;
             fields.push({ name: '💬 ข้อความของคุณที่ถูกตรวจพบ', value: `\`\`\`text\n${cleanSnippet}\n\`\`\``, inline: false });
+        }
+
+        if (reason.includes('Scam') || reason.includes('MrBeast') || reason.includes('Phishing') || reason.includes('โทเคน')) {
+            fields.push({
+                name: '⚠️ คำเตือนด่วนสำหรับเจ้าของบัญชี (บัญชีของคุณอาจถูกแฮก)',
+                value: 'หากคุณไม่ได้เป็นคนส่งข้อความหรือรูปภาพนี้ด้วยตนเอง แสดงว่า **บัญชี Discord ของคุณถูกแฮก หรือติดไวรัสขโมย Token (Token Grabber)** จากการดาวน์โหลดไฟล์หรือสแกน QR Code แปลกๆ แนะนำให้ **เปลี่ยนรหัสผ่าน Discord และเปิด 2FA ทันที** เพื่อเตะแฮกเกอร์ออกจากบัญชีครับ',
+                inline: false
+            });
         }
 
         fields.push({
@@ -202,6 +211,43 @@ async function handleAntiRaidMessage(message) {
     const content = message.content || '';
     const userId = message.author.id;
     const now = Date.now();
+
+    // ----------------------------------------------------
+    // 0. 🚨 ตรวจจับ MrBeast / Token Grabber / Phishing Scam
+    // ----------------------------------------------------
+    const contentLower = content.toLowerCase();
+    const hasAttachments = message.attachments && message.attachments.size > 0;
+    const attachmentNames = hasAttachments 
+        ? message.attachments.map(a => (a.name || '').toLowerCase()).join(' ') 
+        : '';
+    const fullText = (contentLower + ' ' + attachmentNames).trim();
+
+    // 0.1 คีย์เวิร์ด MrBeast / Fake Giveaway / QR Code
+    const isMrBeastScam = /mr\.?\s*beast/i.test(fullText) && (
+        hasAttachments || 
+        /(giveaway|gift\s*card|free\s*nitro|nitro|claim|tesla|\$1,?000|scan\s*qr|scan\s*code|promo)/i.test(fullText)
+    );
+
+    // 0.2 ตรวจจับ Phishing Domains / Fake Discord Nitro / Telegram Bots
+    const isPhishingLink = /(t\.me\/|bit\.ly\/|dlscord|discorcl|discocl|disord|disbord-nitro|discord-app|discord-gift|discord-nitro|nitro-discord|[a-z0-9-]+\.(xyz|top|gift|quest|surf|click|promo)\b)/i.test(contentLower);
+
+    // 0.3 ตรวจจับ Free Nitro Scam ทั่วไป
+    const isNitroScam = /(free\s*nitro|nitro\s*free|claim\s*nitro|steam\s*gift\s*card)/i.test(contentLower) && (
+        hasAttachments || isPhishingLink || contentLower.includes('http')
+    );
+
+    // 0.4 บัญชีธรรมดาส่งรูปภาพพร้อมแท็ก @everyone หรือ @here
+    const isImageEveryoneRaid = hasAttachments && (content.includes('@everyone') || content.includes('@here'));
+
+    if (isMrBeastScam || isPhishingLink || isNitroScam || isImageEveryoneRaid) {
+        let reason = 'ส่งภาพ/ข้อความสแปม MrBeast Scam หรือลิงก์ Phishing ดูดรหัส';
+        if (isImageEveryoneRaid) reason = 'ส่งรูปภาพพร้อมแท็ก @everyone (Scam/Raid)';
+        else if (isNitroScam) reason = 'สแปมหลอกแจก Discord Nitro ปลอม (Phishing)';
+        else if (isPhishingLink) reason = 'ส่งลิงก์ฟิชชิ่ง/ดูดโทเคน (Token Grabber)';
+
+        await punishUser(message, message.member, reason, ANTI_RAID_CONFIG.scamTimeout);
+        return true;
+    }
 
     // ----------------------------------------------------
     // 1. ตรวจจับ Wall of Text / Copypasta ขนาดยักษ์ (เช่น อักษรจีน/ญี่ปุ่นที่เพิ่งโดน)
