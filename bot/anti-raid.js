@@ -5,6 +5,39 @@ const botConfig = require('./config.js');
 const userMessageHistory = new Map(); // userId -> [timestamps]
 const userLastMessage = new Map();    // userId -> { content: string, count: number, time: number }
 const userViolationCount = new Map(); // userId -> number of violations
+const activePunishingUsers = new Set(); // userId currently being punished to prevent race conditions
+
+/**
+ * Emergency Guild-Wide Purge: Deletes all recent messages from a user across ALL text channels in the server
+ */
+async function purgeUserAcrossGuild(guild, userId) {
+    if (!guild || !userId) return;
+    try {
+        const textChannels = guild.channels.cache.filter(c => 
+            c.isTextBased() && 
+            !c.isVoiceBased() &&
+            c.permissionsFor(guild.members.me)?.has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.ManageMessages])
+        );
+
+        await Promise.allSettled(textChannels.map(async (ch) => {
+            try {
+                const fetched = await ch.messages.fetch({ limit: 35 }).catch(() => null);
+                if (fetched && fetched.size > 0) {
+                    const userMsgs = fetched.filter(m => m.author.id === userId);
+                    if (userMsgs.size > 0) {
+                        await ch.bulkDelete(userMsgs, true).catch(async () => {
+                            for (const [, msg] of userMsgs) {
+                                await msg.delete().catch(() => {});
+                            }
+                        });
+                    }
+                }
+            } catch (e) {}
+        }));
+    } catch (err) {
+        console.error('[PurgeAcrossGuild Error]:', err);
+    }
+}
 
 // Configuration for Hardcore Anti-Raid
 const ANTI_RAID_CONFIG = {
@@ -134,49 +167,52 @@ async function logAntiRaidAction(guild, targetMember, reason, actionTaken, dmSen
 }
 
 /**
- * Punish member (Delete -> DM -> Timeout or Ban -> Purge recent messages)
+ * Punish member (Delete -> Guild-Wide Purge -> DM -> Ban/Timeout)
  */
-async function punishUser(message, member, reason, timeoutDuration) {
+async function punishUser(message, member, reason, timeoutDuration, isEmergencyScam = false) {
     const userId = member.id;
     const content = message.content || '';
     const currentViolations = (userViolationCount.get(userId) || 0) + 1;
     userViolationCount.set(userId, currentViolations);
+
+    // Prevent duplicate race-condition calls when selfbot spams 10 channels at the same millisecond
+    activePunishingUsers.add(userId);
+    setTimeout(() => activePunishingUsers.delete(userId), 20000);
 
     // 1. Delete the triggering message immediately
     try {
         await message.delete().catch(() => {});
     } catch (e) {}
 
-    // 2. Clean up recent messages from this user in this channel (Purge up to 25 messages)
-    try {
-        const fetched = await message.channel.messages.fetch({ limit: 25 }).catch(() => null);
-        if (fetched) {
-            const userSpam = fetched.filter(m => m.author.id === userId);
-            if (userSpam.size > 0) {
-                await message.channel.bulkDelete(userSpam, true).catch(() => {});
-            }
-        }
-    } catch (e) {}
-
     // Determine punishment
+    // For MrBeast Scam / Token Grabber / Phishing -> BAN with 24h message purge!
+    // (This leverages Discord API to instantly delete all messages across all channels natively)
     let actionTaken = 'Timeout';
     let isBan = false;
-    if (currentViolations >= ANTI_RAID_CONFIG.banAfterViolations && member.bannable) {
+
+    if (isEmergencyScam) {
+        if (member.bannable) {
+            actionTaken = 'Banned (ล้างข้อความทุกห้อง)';
+            isBan = true;
+        } else {
+            actionTaken = 'Timeout 24 ชม. (ล้างข้อความทุกห้อง)';
+        }
+    } else if (currentViolations >= ANTI_RAID_CONFIG.banAfterViolations && member.bannable) {
         actionTaken = 'Banned (ถาวร)';
         isBan = true;
     } else {
         actionTaken = `Timeout (${Math.round(timeoutDuration / 60000)} นาที)`;
     }
 
-    // 3. Send DM to the violator before applying timeout/ban (to explain reason and warn against DM spamming Admin)
+    // 2. Send DM to the violator before applying timeout/ban
     const dmSent = await sendPunishmentDM(member, message.guild, reason, actionTaken, content);
 
-    // 4. Ban if repeated raid, else Timeout
+    // 3. Apply Ban or Timeout
     if (isBan) {
         try {
             await member.ban({
-                reason: `[Anti-Raid Guard] สแปม/ยิงดิสซ้ำซาก (${reason})`,
-                deleteMessageSeconds: 86400 // ลบข้อความย้อนหลัง 24 ชม.
+                reason: `[Anti-Raid Guard] ${reason}`,
+                deleteMessageSeconds: 86400 // ลบข้อความย้อนหลัง 24 ชม. ทุกห้องในเซิร์ฟเวอร์แบบ Native 100%
             });
         } catch (err) {
             console.warn('[Anti-Raid Ban Error]:', err.message);
@@ -188,6 +224,9 @@ async function punishUser(message, member, reason, timeoutDuration) {
             console.warn('[Anti-Raid Timeout Error]:', err.message);
         }
     }
+
+    // 4. Clean up messages across ALL channels in the server (Guild-Wide Sweep)
+    await purgeUserAcrossGuild(message.guild, userId);
 
     // 5. Temporary in-channel alert
     try {
@@ -207,6 +246,13 @@ async function punishUser(message, member, reason, timeoutDuration) {
 async function handleAntiRaidMessage(message) {
     if (!message || !message.guild || !message.member) return false;
     if (isExempt(message.member, message.channel)) return false;
+
+    // Concurrency Lock: If this user is currently undergoing punishment,
+    // immediately delete any remaining incoming messages across other channels without duplicate processing!
+    if (activePunishingUsers.has(message.author.id)) {
+        try { await message.delete().catch(() => {}); } catch (e) {}
+        return true;
+    }
 
     const content = message.content || '';
     const userId = message.author.id;
@@ -245,7 +291,7 @@ async function handleAntiRaidMessage(message) {
         else if (isNitroScam) reason = 'สแปมหลอกแจก Discord Nitro ปลอม (Phishing)';
         else if (isPhishingLink) reason = 'ส่งลิงก์ฟิชชิ่ง/ดูดโทเคน (Token Grabber)';
 
-        await punishUser(message, message.member, reason, ANTI_RAID_CONFIG.scamTimeout);
+        await punishUser(message, message.member, reason, ANTI_RAID_CONFIG.scamTimeout, true);
         return true;
     }
 
