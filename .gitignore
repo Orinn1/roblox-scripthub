@@ -8,6 +8,7 @@ scratch/
 *.rar
 qa-bot/data/database.sqlite*
 qa-bot/.env
+selfbot-stream/
 temp_api/
 simple-hub/
 build-len.js
