@@ -1385,10 +1385,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         linkYt.value = ytUrl;
-        linkShopee.value = SITE_CONFIG.unlockTasks.affiliateUrl || "";
+        linkShopee.value = SITE_CONFIG.unlockTasks.affiliateUrl || "https://omg10.com/4/11919655";
         linkVideo.value = SITE_CONFIG.unlockTasks.latestVideoUrl || "";
         linkDiscord.value = SITE_CONFIG.socialLinks.discord || "";
         if (linkSmartlink) linkSmartlink.value = SITE_CONFIG.adsterraSmartlinkUrl || "https://omg10.com/4/11911452";
+        const linkExecutorDirect = document.getElementById("linkExecutorDirect");
+        if (linkExecutorDirect) linkExecutorDirect.value = SITE_CONFIG.executorDirectLinkUrl || "https://omg10.com/4/11919658";
 
         // Populate Monetization Gate settings
         const gate = SITE_CONFIG.lootlabsGate;
@@ -1411,6 +1413,8 @@ document.addEventListener("DOMContentLoaded", () => {
         SITE_CONFIG.unlockTasks.latestVideoUrl = linkVideo.value.trim();
         SITE_CONFIG.socialLinks.discord = linkDiscord.value.trim();
         if (linkSmartlink) SITE_CONFIG.adsterraSmartlinkUrl = linkSmartlink.value.trim();
+        const linkExecutorDirect = document.getElementById("linkExecutorDirect");
+        if (linkExecutorDirect) SITE_CONFIG.executorDirectLinkUrl = linkExecutorDirect.value.trim();
 
         if (gateEnableCheckbox) {
             const provider = adminGateProvider ? adminGateProvider.value : "blackpass";

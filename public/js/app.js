@@ -606,10 +606,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (task1Text) task1Text.textContent = t.task1Name;
         const task1Hint = document.getElementById("task1Hint");
         if (task1Hint) task1Hint.textContent = t.task1Hint;
+        const t2 = getTask2Info();
         const task2Text = document.getElementById("task2Text");
-        if (task2Text) task2Text.textContent = t.task2Name;
+        if (task2Text) task2Text.textContent = t2.title;
         const task2Hint = document.getElementById("task2Hint");
-        if (task2Hint) task2Hint.textContent = t.task2Hint;
+        if (task2Hint) task2Hint.textContent = t2.hint;
         const task3Text = document.getElementById("task3Text");
         if (task3Text) task3Text.textContent = t.task3Name;
         const task3Hint = document.getElementById("task3Hint");
@@ -3018,9 +3019,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
                         ${officialUrl && officialUrl !== '#' ? `
-                            <a href="${escapeHtml(officialUrl)}" target="_blank" rel="noopener noreferrer" class="btn-download-executor">
+                            <button type="button" class="btn-download-executor" onclick="handleExecutorDownload(event, '${escapeHtml(officialUrl)}')">
                                 <i data-lucide="download"></i> ${t.btnDownloadOfficial}
-                            </a>
+                            </button>
                         ` : ''}
                         ${hasSuncData ? `
                             <button class="btn-view-sunc" onclick="openSuncDetails('${escapeHtml(exp.title)}', '${escapeHtml(exp.version || '')}', '${escapeHtml(exp.sunc.suncScrap)}', '${escapeHtml(exp.sunc.suncKey)}')">
@@ -3037,6 +3038,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }).join("");
         refreshIcons();
     }
+
+    // Handle Executor Download with Monetag Direct Link integration
+    window.handleExecutorDownload = function(e, officialUrl) {
+        if (!officialUrl || officialUrl === '#' || officialUrl === 'javascript:void(0)') return;
+        const directLink = (SITE_CONFIG && SITE_CONFIG.executorDirectLinkUrl) || "https://omg10.com/4/11919658";
+        if (!window.__IS_VIP__ && !isVipMember() && directLink) {
+            try {
+                window.open(directLink, "_blank");
+            } catch (err) {}
+            setTimeout(() => {
+                window.open(officialUrl, "_blank");
+            }, 300);
+        } else {
+            window.open(officialUrl, "_blank");
+        }
+    };
 
     // Open sUNC Benchmark Details Modal
     window.openSuncDetails = async function(title, version, scrap, key) {
@@ -3182,6 +3199,29 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     // Sub2Unlock Locker Logic (Ultra Modern Gaming Locker)
     // =========================================================================
+    function getTask2Info() {
+        const t = I18N[currentLang] || I18N.en;
+        const url = (SITE_CONFIG.unlockTasks && SITE_CONFIG.unlockTasks.affiliateUrl) || "";
+        const isSponsorTask = !!(url && (
+            url.includes("omg10") || 
+            url.includes("monetag") || 
+            url.includes("cpm") ||
+            url.includes("alwingulla")
+        ));
+        const title = isSponsorTask 
+            ? ((SITE_CONFIG.unlockTasks && SITE_CONFIG.unlockTasks.affiliateTitle) || (currentLang === 'th' ? "ภารกิจผู้สนับสนุน / Sponsor Link" : "Sponsor Task"))
+            : t.task2Name;
+        const icon = isSponsorTask ? "sparkles" : "message-square";
+        const hint = isSponsorTask 
+            ? (currentLang === 'th' ? "เปิดลิงก์และรอระบบยืนยัน 5 วินาที" : "Open link and wait 5 seconds for verification")
+            : t.task2Hint;
+        let targetUrl = url;
+        if (!targetUrl || targetUrl.includes("shopee.co.th")) {
+            targetUrl = (SITE_CONFIG.socialLinks && SITE_CONFIG.socialLinks.discord) || "https://discord.gg/6x67MrtfbX";
+        }
+        return { isSponsorTask, title, icon, hint, targetUrl };
+    }
+
     window.openLocker = function(id) {
         const t = I18N[currentLang] || I18N.en;
         if (!isGateAuthorized()) {
@@ -3218,8 +3258,9 @@ document.addEventListener("DOMContentLoaded", () => {
         lockedLabel.style.display = "flex";
         unlockedView.classList.remove("show");
 
+        const t2 = getTask2Info();
         resetTaskBtn(task1Btn, "01", "youtube", t.task1Name, t.task1Hint, "primary-red", true);
-        resetTaskBtn(task2Btn, "02", "message-square", t.task2Name, t.task2Hint, "", false);
+        resetTaskBtn(task2Btn, "02", t2.icon, t2.title, t2.hint, "", false);
         resetTaskBtn(task3Btn, "03", "thumbs-up", t.task3Name, t.task3Hint, "", false);
 
         updateDots();
@@ -3374,6 +3415,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const t = I18N[currentLang] || I18N.en;
         let ytUrl = (SITE_CONFIG.unlockTasks && SITE_CONFIG.unlockTasks.youtubeChannelUrl) || "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1";
         if (ytUrl.includes("YOUR_CHANNEL")) ytUrl = "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1";
+        const t2 = getTask2Info();
         handleTaskClick(
             task1Btn, 
             ytUrl, 
@@ -3383,9 +3425,9 @@ document.addEventListener("DOMContentLoaded", () => {
             t.task1Name, 
             task2Btn, 
             "02", 
-            "message-square",
-            t.task2Name, 
-            t.task2Hint
+            t2.icon,
+            t2.title, 
+            t2.hint
         );
     });
 
@@ -3395,17 +3437,14 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast(t.taskWaitPrev1);
             return;
         }
-        let discordUrl = (SITE_CONFIG.unlockTasks && SITE_CONFIG.unlockTasks.affiliateUrl) || "";
-        if (!discordUrl || discordUrl.includes("shopee.co.th")) {
-            discordUrl = (SITE_CONFIG.socialLinks && SITE_CONFIG.socialLinks.discord) || "https://discord.gg/your-discord";
-        }
+        const t2 = getTask2Info();
         handleTaskClick(
             task2Btn, 
-            discordUrl, 
+            t2.targetUrl, 
             5, 
             "t2", 
             "02", 
-            t.task2Name, 
+            t2.title, 
             task3Btn, 
             "03", 
             "thumbs-up",

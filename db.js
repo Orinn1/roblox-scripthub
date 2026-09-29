@@ -196,17 +196,19 @@ const DEFAULT_CONFIG = {
     unlockTasks: {
         youtubeChannelUrl: "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1",
         youtubeChannelName: "ช่อง Blacklistxyx",
-        affiliateUrl: "",
-        affiliateTitle: "เข้าร่วม Discord / คอมมูนิตี้",
+        affiliateUrl: "https://omg10.com/4/11919655",
+        affiliateTitle: "ภารกิจผู้สนับสนุน / Sponsor Link",
         latestVideoUrl: "https://www.youtube.com/@Blacklistxyx",
         latestVideoTitle: "กดไลค์และคอมเมนต์คลิปแจกสคริปต์ล่าสุด",
         verificationSeconds: 5
     },
     socialLinks: {
         youtube: "https://www.youtube.com/@Blacklistxyx",
-        discord: "https://discord.gg/YOUR_DISCORD",
+        discord: "https://discord.gg/6x67MrtfbX",
         tiktok: "https://www.tiktok.com/@YOUR_TIKTOK"
     },
+    adsterraSmartlinkUrl: "https://omg10.com/4/11911452",
+    executorDirectLinkUrl: "https://omg10.com/4/11919658",
     lootlabsGate: {
         enabled: true,
         provider: "shrinkearn",
