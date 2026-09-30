@@ -6,19 +6,19 @@
   "unlockTasks": {
     "youtubeChannelUrl": "https://www.youtube.com/@Blacklistxyx",
     "youtubeChannelName": "ช่อง Blacklistxyx",
-    "affiliateUrl": "https://omg10.com/4/11919655",
-    "affiliateTitle": "ภารกิจผู้สนับสนุน / Sponsor Link",
+    "affiliateUrl": "https://discord.gg/6x67MrtfbX",
+    "affiliateTitle": "เข้าร่วม Discord / คอมมูนิตี้",
     "latestVideoUrl": "https://youtu.be/j62DJ0UwHaM?si=u3uO0-HbASt35N4w",
     "latestVideoTitle": "กดไลค์และคอมเมนต์คลิปแจกสคริปต์ล่าสุด",
     "verificationSeconds": 5
   },
-  "adsterraSmartlinkUrl": "https://omg10.com/4/11911452",
-  "executorDirectLinkUrl": "https://omg10.com/4/11919658",
   "socialLinks": {
     "youtube": "https://www.youtube.com/@Blacklistxyx",
     "discord": "https://discord.gg/6x67MrtfbX",
     "tiktok": "https://www.tiktok.com/@YOUR_TIKTOK"
   },
+  "adsterraSmartlinkUrl": "https://omg10.com/4/11911452",
+  "executorDirectLinkUrl": "https://omg10.com/4/11919658",
   "lootlabsGate": {
     "provider": "shrinkearn",
     "bypassMessage": "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
@@ -37,6 +37,16 @@
     "binId": "6aa6a183ac6210605ac7dcf7",
     "masterKey": "$2a$10$IYkvYSXXCqfb9lO86OX8.ehEV.hMZwInw.esSiflJGjjaiYEs5eQ6"
   },
+  "last_roblox_client_version": "version-2366ba214ec740ca",
+  "stock_live_panels": [
+    {
+      "channelId": "1549774966474674259",
+      "messageId": "1550102814699683972",
+      "guildId": "1548669247998140438",
+      "dealer": "all",
+      "updatedAt": 1790174332896
+    }
+  ],
   "notified_youtube_video_ids": [
     "VsI796ml-rE",
     "cQroA4kPW4o",
@@ -52,17 +62,10 @@
     "IuRBkqxHuGY",
     "73FlaA2mh2E",
     "t4UXxHQnBAI",
-    "XNmYbkV6rg4"
+    "XNmYbkV6rg4",
+    "LNnkv6kP_ww",
+    "jZtuKkNOUoo",
+    "ePwB1Df8YrY"
   ],
-  "youtube_last_published_time": 1790166472000,
-  "last_roblox_client_version": "version-2366ba214ec740ca",
-  "stock_live_panels": [
-    {
-      "channelId": "1549774966474674259",
-      "messageId": "1550102814699683972",
-      "guildId": "1548669247998140438",
-      "dealer": "all",
-      "updatedAt": 1790174332896
-    }
-  ]
+  "youtube_last_published_time": 1790593061000
 }
