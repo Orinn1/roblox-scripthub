@@ -149,20 +149,19 @@
                     return origOpen.apply(this, arguments);
                 };
 
+                var elMonetag = document.querySelector('script[data-zone="287788"]');
+                if (elMonetag) elMonetag.remove();
+
                 console.log('[VIP Shield] VIP Bypass active: All ads and popups blocked 100%.');
 
             } else {
-                // Load Monetag Multitag for all non-VIP visitors!
-                var sMonetag = document.createElement('script');
-                sMonetag.src = 'https://quge5.com/88/tag.min.js';
-                sMonetag.setAttribute('data-zone', '287788');
-                sMonetag.setAttribute('data-cfasync', 'false');
-                sMonetag.async = true;
-                document.head.appendChild(sMonetag);
                 console.log('[Monetag Hub] Monetag Multitag (Zone 287788) active.');
             }
         })();
     </script>
+
+    <!-- Monetag MultiTag Official Integration -->
+    <script src="https://quge5.com/88/tag.min.js" data-zone="287788" async data-cfasync="false"></script>
 
     <link rel="stylesheet" href="css/style.css?v=20260919_v7">
     <link rel="stylesheet" href="css/sunc.css?v=20260919_v5">

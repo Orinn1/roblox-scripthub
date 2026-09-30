@@ -713,6 +713,24 @@ export default {
         // =========================================================================
         // 6. CLEAN URL REWRITES & STATIC ASSET SERVING
         // =========================================================================
+        if (url.pathname === '/sw.js') {
+            const swContent = `self.options = {
+    "domain": "3nbf4.com",
+    "zoneId": 11905136
+}
+self.lary = ""
+importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw')
+`;
+            return new Response(swContent, {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/javascript; charset=utf-8',
+                    'Service-Worker-Allowed': '/',
+                    'Cache-Control': 'public, max-age=3600'
+                }
+            });
+        }
+
         if (url.pathname === '/favicon.ico') {
             return env.ASSETS.fetch(new Request(`${url.origin}/Logo.ico`, request));
         }
