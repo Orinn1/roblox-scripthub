@@ -635,13 +635,14 @@ export default {
                 return new Response(JSON.stringify({
                     lootlabsGate: {
                         enabled: true,
-                        provider: "blackpass",
+                        provider: "shrinkme",
                         token: "blacklist_vip",
+                        shrinkmeUrl: "https://shrinkme.click/cBGgRn",
                         blackpassLockerUrl: "/gateflow/locker.html?slug=hub-access",
                         shrinkearnUrl: "",
                         lootlabsUrl: "",
                         expiryHours: 24,
-                        bypassMessage: "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+                        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
                     }
                 }), {
                     status: 200,

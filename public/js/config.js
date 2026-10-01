@@ -46,18 +46,19 @@ const SITE_CONFIG = {
         tiktok: "https://www.tiktok.com/@YOUR_TIKTOK"
     },
 
-    // ระบบสร้างรายได้และป้องกัน Bypass (BlackPass / ShrinkEarn / LootLabs Gate)
+    // ระบบสร้างรายได้และป้องกัน Bypass (ShrinkMe / ShrinkEarn / LootLabs Gate)
     lootlabsGate: {
         enabled: true,
-        provider: "blackpass", // "blackpass" | "shrinkearn" | "lootlabs" | "custom"
+        provider: "shrinkme", // "shrinkme" | "shrinkearn" | "blackpass" | "lootlabs" | "custom"
         token: "blacklist_vip",
+        shrinkmeUrl: "https://shrinkme.click/cBGgRn",
         blackpassLockerUrl: "/gateflow/locker.html?slug=hub-access",
         shrinkearnUrl: "https://srnky.com/aehfqq0",
         shrinkearnApiToken: "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
         tutorialVideoUrl: "https://youtu.be/FdXsvivWhOw",
         lootlabsUrl: "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
         expiryHours: 24, // จดจำเครื่องไว้ 24 ชั่วโมง
-        bypassMessage: "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
     },
 
     // Monetag Smartlink / Direct Link
@@ -184,16 +185,16 @@ window.getSiteConfigStorageKey = function () {
                 if (!parsed.lootlabsGate.lootlabsUrl || parsed.lootlabsGate.lootlabsUrl.includes("s?example")) {
                     parsed.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh";
                 }
-                if (!parsed.lootlabsGate.provider) {
-                    parsed.lootlabsGate.provider = "blackpass";
+                if (!parsed.lootlabsGate.provider || parsed.lootlabsGate.provider === "blackpass") {
+                    parsed.lootlabsGate.provider = "shrinkme";
                 }
-                if (!parsed.lootlabsGate.blackpassLockerUrl) {
-                    parsed.lootlabsGate.blackpassLockerUrl = "/gateflow/locker.html?slug=hub-access";
+                if (!parsed.lootlabsGate.shrinkmeUrl || parsed.lootlabsGate.shrinkmeUrl === "https://shrinkme.io/") {
+                    parsed.lootlabsGate.shrinkmeUrl = "https://shrinkme.click/cBGgRn";
                 }
                 if (window.isGlobalDomain()) {
                     parsed.lootlabsGate.bypassMessage = "Please complete the support link to unlock access to the website.";
-                } else if (parsed.lootlabsGate.bypassMessage && (parsed.lootlabsGate.bypassMessage.includes("LootLabs") || parsed.lootlabsGate.bypassMessage.includes("ShrinkEarn"))) {
-                    parsed.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
+                } else if (parsed.lootlabsGate.provider === "shrinkme") {
+                    parsed.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
                 }
             }
             // อัปเดต firebaseConfig เสมอ

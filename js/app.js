@@ -1681,9 +1681,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const isManualInput = (sessionStorage.getItem("blacklist_manual_token_verify") === "true") ||
                                   (localStorage.getItem("blacklist_manual_token_verify") === "true");
 
-            // ตรวจสอบ Referrer จาก ShrinkEarn โดยตรง
+            // ตรวจสอบ Referrer จาก ShrinkMe หรือ ShrinkEarn โดยตรง
             const ref = (document.referrer || "").toLowerCase();
-            const isFromShortener = ref.includes("shrinkearn") || ref.includes("srnky") || ref.includes("shrinkforearn") || ref.includes("shrink") || ref.includes("blackpass") || ref.includes("gateflow");
+            const isFromShortener = ref.includes("shrinkme") || ref.includes("shrinkearn") || ref.includes("srnky") || ref.includes("shrinkforearn") || ref.includes("shrink") || ref.includes("blackpass") || ref.includes("gateflow");
 
             // ดึงเวลาที่กดลิงก์
             const clickTime = Number(localStorage.getItem("blacklist_gate_click_time") || sessionStorage.getItem("blacklist_gate_click_time") || 0);
@@ -1765,7 +1765,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const puid = getOrCreateLootlabsPuid();
 
             if (gateLootlabsBtn) {
-                if (provider === "blackpass") {
+                if (provider === "shrinkme") {
+                    const shrinkLink = (gate.shrinkmeUrl || gate.shrinkearnUrl || gate.lootlabsUrl || "https://shrinkme.click/cBGgRn").trim();
+                    gateLootlabsBtn.href = shrinkLink;
+                    if (lblGateBtn) {
+                        lblGateBtn.textContent = currentLang === "th" ? "เข้าใช้งานผ่าน ShrinkMe (รอ 10-15 วินาที)" : "Unlock via ShrinkMe (10-15s)";
+                    }
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
+                    if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
+                } else if (provider === "blackpass") {
                     const baseLink = (gate.blackpassLockerUrl || "/gateflow/locker.html?slug=hub-access").trim();
                     const returnTo = encodeURIComponent(window.location.origin + window.location.pathname);
                     const separator = baseLink.includes("?") ? "&" : "?";
@@ -1776,7 +1784,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
                     if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
                 } else if (provider === "shrinkearn") {
-                    const shrinkLink = (gate.shrinkearnUrl || gate.lootlabsUrl || SITE_CONFIG.lootlabsGate?.shrinkearnUrl || "https://srnky.com/aehfqq0").trim();
+                    const shrinkLink = (gate.shrinkearnUrl || gate.shrinkmeUrl || gate.lootlabsUrl || SITE_CONFIG.lootlabsGate?.shrinkearnUrl || "https://srnky.com/aehfqq0").trim();
                     gateLootlabsBtn.href = shrinkLink;
                     if (lblGateBtn) {
                         lblGateBtn.textContent = currentLang === "th" ? "เข้าใช้งานผ่าน ShrinkEarn (รอ 10-15 วินาที)" : "Unlock via ShrinkEarn (10-15s)";
@@ -1796,7 +1804,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     startGatePolling(false);
                     verifyLootlabsSession(true);
                 } else {
-                    const customLink = (gate.shrinkearnUrl || gate.lootlabsUrl || "").trim();
+                    const customLink = (gate.shrinkmeUrl || gate.shrinkearnUrl || gate.lootlabsUrl || "").trim();
                     gateLootlabsBtn.href = customLink || "#";
                     if (lblGateBtn) {
                         lblGateBtn.textContent = currentLang === "th" ? "กดลิงก์สนับสนุนเพื่อปลดล็อค" : "Complete Link to Unlock";
@@ -1809,9 +1817,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (currentLang === "en") {
                     gateMessageText.textContent = provider === "lootlabs"
                         ? "Please complete the LootLabs support link to unlock access to the website"
-                        : "Please complete the BlackPass verification to unlock access to the website";
+                        : (provider === "shrinkme"
+                            ? "Please complete the ShrinkMe support link to unlock access to the website"
+                            : "Please complete the verification link to unlock access to the website");
                 } else {
-                    if (provider === "blackpass") {
+                    if (provider === "shrinkme") {
+                        gateMessageText.textContent = gate.bypassMessage || "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
+                    } else if (provider === "blackpass") {
                         gateMessageText.textContent = gate.bypassMessage || "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
                     } else if (provider === "shrinkearn") {
                         gateMessageText.textContent = (gate.bypassMessage && !gate.bypassMessage.includes("LootLabs"))

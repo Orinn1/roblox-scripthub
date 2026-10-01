@@ -1251,7 +1251,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const origin = window.location.origin || "https://th.blacklisthub.workers.dev";
         const provider = adminGateProvider ? adminGateProvider.value : "blackpass";
 
-        if (provider === "blackpass") {
+        if (provider === "shrinkme") {
+            if (blackpassGuideBox) blackpassGuideBox.style.display = "none";
+            if (shrinkearnGuideBox) shrinkearnGuideBox.style.display = "flex";
+            if (lootlabsGuideBox) lootlabsGuideBox.style.display = "none";
+            if (lblAdminGateUrl) lblAdminGateUrl.textContent = "ลิงก์สำหรับให้ผู้ใช้กด (Shortened Link จาก ShrinkMe.io)";
+            if (descAdminGateUrl) descAdminGateUrl.textContent = "นำลิงก์ย่อที่ได้จาก ShrinkMe.io มาใส่ในช่องนี้";
+            if (adminGateUrl) {
+                adminGateUrl.placeholder = "https://shrinkme.click/xxxx";
+                adminGateUrl.value = (SITE_CONFIG.lootlabsGate && (SITE_CONFIG.lootlabsGate.shrinkmeUrl || (SITE_CONFIG.lootlabsGate.provider === "shrinkme" ? (SITE_CONFIG.lootlabsGate.shrinkearnUrl || SITE_CONFIG.lootlabsGate.lootlabsUrl) : ""))) || "https://shrinkme.click/cBGgRn";
+            }
+        } else if (provider === "blackpass") {
             if (blackpassGuideBox) blackpassGuideBox.style.display = "flex";
             if (shrinkearnGuideBox) shrinkearnGuideBox.style.display = "none";
             if (lootlabsGuideBox) lootlabsGuideBox.style.display = "none";
@@ -1426,17 +1436,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 enabled: gateEnableCheckbox.checked,
                 provider: provider,
                 token: (adminGateToken ? adminGateToken.value.trim() : "blacklist_vip") || "blacklist_vip",
+                shrinkmeUrl: provider === "shrinkme" ? enteredUrl : (currentGate.shrinkmeUrl || enteredUrl),
                 blackpassLockerUrl: provider === "blackpass" ? enteredUrl : (currentGate.blackpassLockerUrl || "/gateflow/locker.html?slug=hub-access"),
                 shrinkearnUrl: provider === "shrinkearn" ? enteredUrl : (currentGate.shrinkearnUrl || enteredUrl),
                 shrinkearnApiToken: (adminShrinkearnApiToken ? adminShrinkearnApiToken.value.trim() : "3ce8c70d0c1e31404164f66164ea8f9117b29b69") || "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
                 tutorialVideoUrl: (adminGateTutorialUrl ? adminGateTutorialUrl.value.trim() : "https://youtu.be/FdXsvivWhOw") || "https://youtu.be/FdXsvivWhOw",
                 lootlabsUrl: provider === "lootlabs" ? enteredUrl : (currentGate.lootlabsUrl || enteredUrl),
                 expiryHours: adminGateExpiryHours ? (Number(adminGateExpiryHours.value) || 24) : 24,
-                bypassMessage: provider === "blackpass"
-                    ? "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
-                    : (provider === "shrinkearn"
-                        ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
-                        : "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์")
+                bypassMessage: provider === "shrinkme"
+                    ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+                    : (provider === "blackpass"
+                        ? "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+                        : (provider === "shrinkearn"
+                            ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+                            : "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"))
             };
         }
 
