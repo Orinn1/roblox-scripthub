@@ -1774,12 +1774,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
                     if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
                 } else if (provider === "blackpass") {
-                    const baseLink = (gate.blackpassLockerUrl || "/gateflow/locker.html?slug=hub-access").trim();
-                    const returnTo = encodeURIComponent(window.location.origin + window.location.pathname);
-                    const separator = baseLink.includes("?") ? "&" : "?";
-                    gateLootlabsBtn.href = `${baseLink}${separator}return_to=${returnTo}`;
+                    const shrinkLink = (gate.shrinkmeUrl || "https://shrinkme.click/cBGgRn").trim();
+                    gateLootlabsBtn.href = shrinkLink;
                     if (lblGateBtn) {
-                        lblGateBtn.textContent = currentLang === "th" ? "เข้าใช้งานผ่าน BlackPass (รอ 10-15 วินาที)" : "Unlock via BlackPass (10-15s)";
+                        lblGateBtn.textContent = currentLang === "th" ? "เข้าใช้งานผ่าน ShrinkMe (รอ 10-15 วินาที)" : "Unlock via ShrinkMe (10-15s)";
                     }
                     if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
                     if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
@@ -1817,14 +1815,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (currentLang === "en") {
                     gateMessageText.textContent = provider === "lootlabs"
                         ? "Please complete the LootLabs support link to unlock access to the website"
-                        : (provider === "shrinkme"
-                            ? "Please complete the ShrinkMe support link to unlock access to the website"
-                            : "Please complete the verification link to unlock access to the website");
+                        : "Please complete the ShrinkMe support link to unlock access to the website";
                 } else {
-                    if (provider === "shrinkme") {
+                    if (provider === "shrinkme" || provider === "blackpass") {
                         gateMessageText.textContent = gate.bypassMessage || "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
-                    } else if (provider === "blackpass") {
-                        gateMessageText.textContent = gate.bypassMessage || "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
                     } else if (provider === "shrinkearn") {
                         gateMessageText.textContent = (gate.bypassMessage && !gate.bypassMessage.includes("LootLabs"))
                             ? gate.bypassMessage
