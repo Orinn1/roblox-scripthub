@@ -7,8 +7,6 @@
     <meta name="monetag" content="006f5ad39e692eb6afe28008d13ae710">
     <!-- Monetag Web Push Notifications (Zone 11905580) -->
     <script src="https://5gvci.com/act/files/tag.min.js?z=11905580" data-cfasync="false" async></script>
-    <!-- Monetag MultiTag (Zone 287788: Popunder, In-Page Push, Vignette) -->
-    <script src="https://quge5.com/88/tag.min.js" data-zone="287788" async data-cfasync="false"></script>
     <title>BlacklistScriptX - Roblox Scripts & Exploit Hub</title>
 
     <!-- Instant Dark Mode to avoid white screen flash on iOS / Mobile WebKit -->
@@ -149,8 +147,7 @@
                     return origOpen.apply(this, arguments);
                 };
 
-                var elMonetag = document.querySelector('script[data-zone="287788"]');
-                if (elMonetag) elMonetag.remove();
+                document.querySelectorAll('script[data-zone="287788"]').forEach(function (el) { el.remove(); });
 
                 console.log('[VIP Shield] VIP Bypass active: All ads and popups blocked 100%.');
 
@@ -160,8 +157,17 @@
         })();
     </script>
 
-    <!-- Monetag MultiTag Official Integration -->
-    <script src="https://quge5.com/88/tag.min.js" data-zone="287788" async data-cfasync="false"></script>
+    <!-- Monetag MultiTag Official Integration (Non-VIP only) -->
+    <script>
+        if (!window.__IS_VIP__) {
+            var mTag = document.createElement('script');
+            mTag.src = 'https://quge5.com/88/tag.min.js';
+            mTag.dataset.zone = '287788';
+            mTag.async = true;
+            mTag.setAttribute('data-cfasync', 'false');
+            document.head.appendChild(mTag);
+        }
+    </script>
 
     <link rel="stylesheet" href="css/style.css?v=20260919_v7">
     <link rel="stylesheet" href="css/sunc.css?v=20260919_v5">

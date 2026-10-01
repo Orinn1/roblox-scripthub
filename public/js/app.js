@@ -3051,11 +3051,26 @@ document.addEventListener("DOMContentLoaded", () => {
         refreshIcons();
     }
 
-    // Handle Executor Download with Monetag Direct Link integration
+    // Handle Executor Download with Monetag Direct Link integration (with Anti-Spam Cooldown)
     window.handleExecutorDownload = function(e, officialUrl) {
+        if (e) {
+            try {
+                e.preventDefault();
+                e.stopPropagation();
+            } catch (err) {}
+        }
         if (!officialUrl || officialUrl === '#' || officialUrl === 'javascript:void(0)') return;
+
         const directLink = (SITE_CONFIG && SITE_CONFIG.executorDirectLinkUrl) || "https://omg10.com/4/11919658";
-        if (!window.__IS_VIP__ && !isVipMember() && directLink) {
+        const now = Date.now();
+        // Anti-Spam: Cooldown 3 นาที (180,000ms) ไม่ให้เด้งแท็บโฆษณารัวเมื่อกดดูตัวรันหลายตัว
+        const cooldownMs = 180000;
+        const isVip = window.__IS_VIP__ || isVipMember();
+        const shouldShowAd = !isVip && directLink && 
+            (!window.__lastExecutorDirectClick || (now - window.__lastExecutorDirectClick > cooldownMs));
+
+        if (shouldShowAd) {
+            window.__lastExecutorDirectClick = now;
             try {
                 window.open(directLink, "_blank");
             } catch (err) {}
