@@ -1650,7 +1650,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const incomingToken = (urlParams.get("auth") || urlParams.get("token") || urlParams.get("key") || "").trim().toLowerCase();
 
         if (incomingToken && incomingToken === requiredToken) {
-            const provider = gate.provider || "blackpass";
+            const provider = (gate.provider && gate.provider !== "blackpass") ? gate.provider : "shrinkme";
 
             // Anti-Bypass Check 1: Known Bypass Referrers
             if (document.referrer) {
@@ -1761,7 +1761,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }, 600);
 
-            const provider = gate.provider || "blackpass";
+            const provider = (gate.provider && gate.provider !== "blackpass") ? gate.provider : "shrinkme";
             const puid = getOrCreateLootlabsPuid();
 
             if (gateLootlabsBtn) {

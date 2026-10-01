@@ -203,6 +203,15 @@ window.getSiteConfigStorageKey = function () {
                 parsed.siteTagline = "Ultimate Roblox Script Hub - Safe, Updated & Free Keyless Exploits";
             }
             deepMergeConfig(SITE_CONFIG, parsed);
+            if (SITE_CONFIG.lootlabsGate) {
+                if (SITE_CONFIG.lootlabsGate.provider === "blackpass" || !SITE_CONFIG.lootlabsGate.provider) {
+                    SITE_CONFIG.lootlabsGate.provider = "shrinkme";
+                }
+                SITE_CONFIG.lootlabsGate.shrinkmeUrl = "https://shrinkme.click/cBGgRn";
+                if (!window.isGlobalDomain()) {
+                    SITE_CONFIG.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
+                }
+            }
             localStorage.setItem(storageKey, JSON.stringify(SITE_CONFIG));
         }
     } catch (e) {
