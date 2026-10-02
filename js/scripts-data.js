@@ -63,6 +63,7 @@ function saveScriptsData(scripts) {
                 delete s.likes;
             }
         });
+    }
     try {
         localStorage.setItem(key, JSON.stringify(scripts));
     } catch (e) {
