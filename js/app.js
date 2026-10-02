@@ -2279,7 +2279,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         checkLootlabsGate();
                     }
                     if (Array.isArray(fbScripts)) {
-                        scripts = fbScripts;
+                        if (fbScripts.length > 0 || !scripts || scripts.length === 0) {
+                            scripts = fbScripts;
+                        }
                         renderHomeRecent();
                         if (currentView === "feed") renderFeed();
                         updateCategoryBadges();

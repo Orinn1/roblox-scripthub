@@ -178,13 +178,15 @@
                 delete copy.likes;
                 return copy;
             });
+            // กรองค่า undefined ออกเพื่อป้องกัน Firebase SDK แจ้งเตือนข้อผิดพลาด
+            const cleanSanitized = JSON.parse(JSON.stringify(sanitized));
 
             const cacheKey = getScriptsCacheKey();
             const timeKey = getScriptsTimeKey();
             const col = getHubCollectionName();
 
             // อัปเดตแคชในเครื่องทันที
-            localStorage.setItem(cacheKey, JSON.stringify(sanitized));
+            localStorage.setItem(cacheKey, JSON.stringify(cleanSanitized));
             sessionStorage.setItem(timeKey, Date.now().toString());
 
             let savedSuccessfully = false;
@@ -194,8 +196,8 @@
             if (db) {
                 try {
                     await db.collection(col).doc("database").set({
-                        scripts: sanitized,
-                        scriptsJson: JSON.stringify(sanitized),
+                        scripts: cleanSanitized,
+                        scriptsJson: JSON.stringify(cleanSanitized),
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
                     console.log(`[Firebase] [${col}] Successfully saved scripts via SDK`);
@@ -209,13 +211,13 @@
             if (!savedSuccessfully && this.isAvailable()) {
                 try {
                     const { projectId, apiKey } = window.SITE_CONFIG.firebaseConfig;
-                    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${col}/database?key=${apiKey}`;
+                    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${col}/database?key=${apiKey}&updateMask.fieldPaths=scriptsJson&updateMask.fieldPaths=updatedAt`;
                     const res = await fetch(url, {
                         method: "PATCH",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             fields: {
-                                scriptsJson: { stringValue: JSON.stringify(sanitized) },
+                                scriptsJson: { stringValue: JSON.stringify(cleanSanitized) },
                                 updatedAt: { stringValue: new Date().toISOString() }
                             }
                         })

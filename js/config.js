@@ -21,9 +21,9 @@ const SITE_CONFIG = {
         measurementId: "G-KJVSN73QYR"
     },
 
-    // Cloud Database Backup (JSONBin.io)
+    // Cloud Database Backup (JSONBin.io) - ปิดการใช้งานเพื่อป้องกันการถูกแทรกแซงข้อมูล
     cloudDb: {
-        enabled: true,
+        enabled: false,
         binId: "6aa6a183ac6210605ac7dcf7",
         masterKey: "$2a$10$IYkvYSXXCqfb9lO86OX8.ehEV.hMZwInw.esSiflJGjjaiYEs5eQ6"
     },

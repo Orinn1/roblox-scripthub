@@ -285,7 +285,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     // 4. จัดการสคริปต์ (Add, Single Delete, Bulk Delete)
     // =========================================================================
-    // Cloud Database (Firebase Firestore & JSONBin) Realtime Sync
+    // Cloud Database (Firebase Firestore) Realtime Sync
     async function syncToCloudDb(scriptsToSave) {
         // ทำความสะอาดข้อมูล: ลบ views และ likes ออกจากทุกสคริปต์เพื่อไม่ให้รก DB
         if (Array.isArray(scriptsToSave)) {
@@ -295,17 +295,22 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
+        let saved = false;
         // 1. Primary: Firebase Firestore (50,000 Reads/วัน ฟรีตลอดชีพ)
         if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
             try {
-                await window.FirebaseDB.saveScripts(scriptsToSave);
-                console.log("[Admin] Synced scripts to Firebase Firestore successfully!");
+                saved = await window.FirebaseDB.saveScripts(scriptsToSave);
+                if (saved) {
+                    console.log("[Admin] Synced scripts to Firebase Firestore successfully!");
+                } else {
+                    console.warn("[Admin] Failed to save scripts to Firebase Firestore (saveScripts returned false)");
+                }
             } catch (err) {
                 console.warn("[Admin] Failed to sync to Firebase Firestore:", err);
             }
         }
 
-        // 2. Secondary: JSONBin.io (Backup)
+        // 2. Secondary: JSONBin.io (Backup - เฉพาะเมื่อเปิดใช้งาน)
         if (SITE_CONFIG.cloudDb && SITE_CONFIG.cloudDb.enabled && SITE_CONFIG.cloudDb.binId && SITE_CONFIG.cloudDb.masterKey) {
             try {
                 await fetch(`https://api.jsonbin.io/v3/b/${SITE_CONFIG.cloudDb.binId}`, {
@@ -321,6 +326,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.warn("Failed to sync to JSONBin Cloud:", err);
             }
         }
+        return saved;
     }
 
     async function loadScriptsFromServer() {
@@ -329,7 +335,20 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const fbScripts = await window.FirebaseDB.getScripts(true);
                 if (Array.isArray(fbScripts)) {
-                    scripts = fbScripts;
+                    // ระบบ Smart Merge: ป้องกันสคริปต์ที่เพิ่งเพิ่มในเครื่องหายหากยังไม่ขึ้น Cloud
+                    const fbIdSet = new Set(fbScripts.map(s => String(s.id)));
+                    const localOnly = (scripts || []).filter(s => s && s.id && !fbIdSet.has(String(s.id)));
+
+                    if (localOnly.length > 0 && fbScripts.length > 0) {
+                        console.log(`[Admin] Smart Merge: คงสคริปต์ในเครื่องที่เพิ่งเพิ่ม ${localOnly.length} รายการ`);
+                        scripts = [...localOnly, ...fbScripts];
+                        syncToCloudDb(scripts);
+                    } else if (fbScripts.length > 0) {
+                        scripts = fbScripts;
+                    } else if (scripts && scripts.length > 0) {
+                        console.warn("[Admin] Cloud ส่งข้อมูลว่างเปล่ามา จะไม่ลบข้อมูลในเครื่องทิ้ง");
+                        syncToCloudDb(scripts);
+                    }
                     saveScriptsData(scripts);
                     selectedIds.clear();
                     updateSelectedUI();
@@ -348,12 +367,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (binRes.ok) {
                     const binData = await binRes.json();
                     const remoteScripts = Array.isArray(binData) ? binData : (binData.scripts || []);
-                    scripts = remoteScripts;
-                    saveScriptsData(scripts);
-                    selectedIds.clear();
-                    updateSelectedUI();
-                    renderTable();
-                    return;
+                    if (Array.isArray(remoteScripts) && remoteScripts.length > 0) {
+                        scripts = remoteScripts;
+                        saveScriptsData(scripts);
+                        selectedIds.clear();
+                        updateSelectedUI();
+                        renderTable();
+                        return;
+                    }
                 }
             } catch (cloudErr) {
                 console.warn("Admin Cloud DB fetch notice:", cloudErr);
@@ -503,7 +524,7 @@ document.addEventListener("DOMContentLoaded", () => {
             selectedIds.clear();
             renderTable();
             loadDbStats();
-            syncToCloudDb(scripts);
+            await syncToCloudDb(scripts);
             showToast(`ลบ ${ids.length} สคริปต์ออกจากฐานข้อมูลเรียบร้อยแล้ว!`);
 
             try {
@@ -529,8 +550,8 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.onload = function(e) {
             const img = new Image();
             img.onload = function() {
-                // ปรับขนาดรูปไม่ให้ใหญ่เกิน 800px เพื่อประหยัดพื้นที่และโหลดเร็ว
-                const maxDim = 800;
+                // ปรับขนาดรูปไม่ให้ใหญ่เกิน 400px และบีบอัดให้เหมาะสมกับการ์ดหน้าเว็บ เพื่อไม่ให้เอกสาร Firestore เต็ม (จำกัด 1MB)
+                let maxDim = 400;
                 let w = img.width;
                 let h = img.height;
 
@@ -550,10 +571,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 const ctx = canvas.getContext("2d");
                 ctx.drawImage(img, 0, 0, w, h);
 
-                // บีบอัดเป็น WebP (ถ้าเบราว์เซอร์ไม่รองรับจะ fallback เป็น JPEG)
-                let dataUrl = canvas.toDataURL("image/webp", 0.85);
+                // บีบอัดเป็น WebP คุณภาพ 0.65 (ถ้าเบราว์เซอร์ไม่รองรับจะ fallback เป็น JPEG)
+                let dataUrl = canvas.toDataURL("image/webp", 0.65);
                 if (!dataUrl.startsWith("data:image/webp")) {
-                    dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+                    dataUrl = canvas.toDataURL("image/jpeg", 0.65);
+                }
+
+                // หากยังใหญ่เกิน 40KB ให้ย่อลงอีกรอบ
+                if (dataUrl.length > 50000) {
+                    const c2 = document.createElement("canvas");
+                    c2.width = Math.round(w * 0.75);
+                    c2.height = Math.round(h * 0.75);
+                    c2.getContext("2d").drawImage(canvas, 0, 0, c2.width, c2.height);
+                    dataUrl = c2.toDataURL("image/webp", 0.60);
                 }
 
                 const approxSizeKb = (dataUrl.length * 0.75 / 1024).toFixed(1);
@@ -785,9 +815,16 @@ document.addEventListener("DOMContentLoaded", () => {
             loadstring: code
         };
 
+        const submitBtn = addScriptForm.querySelector('button[type="submit"]');
+        const origSubmitHtml = submitBtn ? submitBtn.innerHTML : "";
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width: 14px; height: 14px;"></i> กำลังบันทึกข้อมูล...`;
+        }
+
         scripts.unshift(newScript);
         saveScriptsData(scripts);
-        syncToCloudDb(scripts);
+        const cloudSaved = await syncToCloudDb(scripts);
 
         try {
             await fetch("/api/scripts", {
@@ -797,6 +834,11 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         } catch (err) {
             console.warn("Local server add notice:", err);
+        }
+
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = origSubmitHtml;
         }
 
         addScriptForm.reset();
@@ -809,7 +851,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (sThumbFile) sThumbFile.value = "";
         renderTable();
         loadDbStats();
-        showToast(`เพิ่มสคริปต์ "${title}" ลงในฐานข้อมูลเรียบร้อยแล้ว!`);
+        
+        if (cloudSaved) {
+            showToast(`เพิ่มสคริปต์ "${title}" และบันทึกลง Cloud สำเร็จ!`);
+        } else {
+            showToast(`เพิ่มสคริปต์ "${title}" ในเครื่องสำเร็จ (แต่บันทึกลง Cloud ไม่ผ่าน)`, "error");
+        }
 
         // สลับไปแท็บจัดการสคริปต์
         const manageTab = document.querySelector('[data-tab="manage"]');
@@ -825,7 +872,7 @@ document.addEventListener("DOMContentLoaded", () => {
         scripts = scripts.filter(s => s.id !== id);
         selectedIds.delete(id);
         saveScriptsData(scripts);
-        syncToCloudDb(scripts);
+        await syncToCloudDb(scripts);
         renderTable();
 
         try {
@@ -1097,8 +1144,8 @@ document.addEventListener("DOMContentLoaded", () => {
             closeEditModal();
             showToast(`แก้ไขสคริปต์ "${title}" เรียบร้อยแล้ว!`);
 
-            // Sync to Firebase & JSONBin
-            syncToCloudDb(scripts);
+            // Sync to Firebase
+            await syncToCloudDb(scripts);
 
             // Sync to local SQLite server if available
             try {
