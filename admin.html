@@ -722,6 +722,18 @@
                         <label class="form-label">โค้ดสคริปต์ Lua (Loadstring) *</label>
                         <textarea id="sCode" class="form-control" style="height: 120px; font-family: monospace;" placeholder='loadstring(game:HttpGet("https://raw.githubusercontent.com/..."))()' required></textarea>
                     </div>
+
+                    <div class="full-width checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="sKeyless" checked> ไร้คีย์ (Keyless ไม่ต้องใส่คีย์)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="sMobile" checked> รองรับมือถือ (Delta / Codex / Hydrogen)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="sPC" checked> รองรับ PC
+                        </label>
+                    </div>
                 </div>
 
                 <div style="margin-top: 20px;">
@@ -887,7 +899,8 @@
                     <div style="margin-bottom: 16px;">
                         <label class="form-label">เลือกผู้ให้บริการสร้างรายได้ (Provider)</label>
                         <select id="adminGateProvider" class="form-control" style="background: #0f111a; color: #fff; border-color: rgba(16, 185, 129, 0.4);">
-                            <option value="blackpass">⚡ BlackPass Content Locker (แนะนำ - 3 ด่าน Adsterra ทำเงินสูงสุด & เว็บหลักสะอาดไม่มีสแปม)</option>
+                            <option value="shrinkme">💜 ShrinkMe.io (Shortener แนะนำ - ถอนไว เรทไทย $4.00)</option>
+                            <option value="blackpass">⚡ BlackPass Content Locker (3 ด่าน Adsterra ทำเงินสูงสุด & เว็บหลักสะอาดไม่มีสแปม)</option>
                             <option value="shrinkearn">🌟 ShrinkEarn (Shortener)</option>
                             <option value="lootlabs">💎 LootLabs (รองรับ Postback Webhook)</option>
                             <option value="custom">🔗 ลิงก์ย่ออื่นๆ (Custom Shortener)</option>
@@ -1225,6 +1238,18 @@
                     <div class="full-width">
                         <label class="form-label">โค้ดสคริปต์ Lua (Loadstring) *</label>
                         <textarea id="editCode" class="form-control" style="height: 120px; font-family: monospace;" required></textarea>
+                    </div>
+
+                    <div class="full-width checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="editKeyless"> ไร้คีย์ (Keyless ไม่ต้องใส่คีย์)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="editMobile"> รองรับมือถือ
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="editPC"> รองรับ PC
+                        </label>
                     </div>
                 </div>
 

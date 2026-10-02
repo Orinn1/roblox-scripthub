@@ -722,6 +722,18 @@
                         <label class="form-label">โค้ดสคริปต์ Lua (Loadstring) *</label>
                         <textarea id="sCode" class="form-control" style="height: 120px; font-family: monospace;" placeholder='loadstring(game:HttpGet("https://raw.githubusercontent.com/..."))()' required></textarea>
                     </div>
+
+                    <div class="full-width checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="sKeyless" checked> ไร้คีย์ (Keyless ไม่ต้องใส่คีย์)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="sMobile" checked> รองรับมือถือ (Delta / Codex / Hydrogen)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="sPC" checked> รองรับ PC
+                        </label>
+                    </div>
                 </div>
 
                 <div style="margin-top: 20px;">
@@ -1226,6 +1238,18 @@
                     <div class="full-width">
                         <label class="form-label">โค้ดสคริปต์ Lua (Loadstring) *</label>
                         <textarea id="editCode" class="form-control" style="height: 120px; font-family: monospace;" required></textarea>
+                    </div>
+
+                    <div class="full-width checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="editKeyless"> ไร้คีย์ (Keyless ไม่ต้องใส่คีย์)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="editMobile"> รองรับมือถือ
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="editPC"> รองรับ PC
+                        </label>
                     </div>
                 </div>
 
