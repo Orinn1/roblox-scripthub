@@ -2864,7 +2864,8 @@ document.addEventListener("DOMContentLoaded", () => {
         "macsploit": { name: "MacSploit", priority: 11, officialUrl: "https://www.raptor.fun/", desc: "ตัวรันสำหรับ macOS ที่ดีที่สุดและเสถียรสุด" },
         "arceus": { name: "Arceus X", priority: 12, officialUrl: "https://spdmteam.com/", desc: "ตัวรันมือถือยอดนิยมระดับตำนาน" },
         "fluxus": { name: "Fluxus", priority: 13, officialUrl: "https://fluxteam.net/", desc: "ตัวรันยอดนิยม" },
-        "krnl": { name: "KRNL", priority: 14, officialUrl: "https://krnl.place/", desc: "ตัวรัน Windows ยอดนิยม" }
+        "krnl": { name: "KRNL", priority: 14, officialUrl: "https://krnl.place/", desc: "ตัวรัน Windows ยอดนิยม" },
+        "madium": { name: "Madium", priority: 15, officialUrl: "https://getmadium.net/", desc: "ตัวรัน Windows ฟรี sUNC 100% รองรับ Decompiler & Multi-Instance" }
     };
 
     function getFamousInfo(exp) {
