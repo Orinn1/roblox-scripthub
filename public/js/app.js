@@ -8,7 +8,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     // Purge corrupted or hacked cache if present & ensure clean fresh reset
     try {
-        const DB_FRESH_VERSION = "20261003_fresh_v1";
+        const DB_FRESH_VERSION = "20261003_fresh_v2";
         if (localStorage.getItem("blacklist_scripts_db_version") !== DB_FRESH_VERSION) {
             localStorage.removeItem("nova_scripts_db");
             localStorage.removeItem("nova_scripts_db_global");
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.removeItem("nova_scripts_cache_time_global");
     } catch (e) {}
 
-    let scripts = getScriptsData();
+    let scripts = (typeof getScriptsData === "function") ? getScriptsData() : ((typeof window !== "undefined" && typeof window.getScriptsData === "function") ? window.getScriptsData() : []);
 
     // App State
     let currentView = "home";

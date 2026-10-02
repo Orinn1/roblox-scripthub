@@ -70,3 +70,9 @@ function saveScriptsData(scripts) {
         console.warn("[Storage] LocalStorage quota reached while caching scripts:", e);
     }
 }
+
+if (typeof window !== "undefined") {
+    window.getScriptsData = getScriptsData;
+    window.saveScriptsData = saveScriptsData;
+    window.getScriptsStorageKey = getScriptsStorageKey;
+}

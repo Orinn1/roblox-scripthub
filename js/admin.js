@@ -6,7 +6,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
     try {
-        const DB_FRESH_VERSION = "20261003_fresh_v1";
+        const DB_FRESH_VERSION = "20261003_fresh_v2";
         if (localStorage.getItem("blacklist_scripts_db_version") !== DB_FRESH_VERSION) {
             localStorage.removeItem("nova_scripts_db");
             localStorage.removeItem("nova_scripts_db_global");
@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     } catch (e) {}
 
-    let scripts = getScriptsData();
+    let scripts = (typeof getScriptsData === "function") ? getScriptsData() : ((typeof window !== "undefined" && typeof window.getScriptsData === "function") ? window.getScriptsData() : []);
     let selectedIds = new Set();
 
     // Elements
