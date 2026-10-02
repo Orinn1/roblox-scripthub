@@ -1,4 +1,4 @@
-/**
+﻿/**
  * คลังข้อมูลสคริปต์ (Script Database)
  * สามารถเพิ่ม ลบ แก้ไขสคริปต์ได้ที่นี่ หรือผ่านหน้าตั้งค่าบนเว็บ
  */
@@ -10,6 +10,8 @@ const INITIAL_SCRIPTS = [
         "category":  "stealanegg",
         "version":  "v1.0",
         "updated":  "วันนี้",
+        "views":  73,
+        "likes":  3,
         "isKeyless":  false,
         "isMobile":  true,
         "isPC":  true,
@@ -30,6 +32,8 @@ const INITIAL_SCRIPTS = [
         "category":  "bloxfruits",
         "version":  "v1.0",
         "updated":  "วันนี้",
+        "views":  313,
+        "likes":  1,
         "isKeyless":  true,
         "isMobile":  true,
         "isPC":  true,
@@ -50,6 +54,8 @@ const INITIAL_SCRIPTS = [
         "category":  "stealanegg",
         "version":  "v1.0",
         "updated":  "วันนี้",
+        "views":  313,
+        "likes":  1,
         "isKeyless":  false,
         "isMobile":  true,
         "isPC":  true,
@@ -70,12 +76,14 @@ const INITIAL_SCRIPTS = [
         "category":  "ride a pet",
         "version":  "v1.0",
         "updated":  "วันนี้",
+        "views":  163,
+        "likes":  2,
         "isKeyless":  true,
         "isMobile":  true,
         "isPC":  true,
         "status":  "working",
         "badge":  "มาใหม่",
-        "thumbnail":  "Logo.ico",
+        "thumbnail":  "assets/thumbnails/script-1789655182421.webp",
         "description":  "สคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
         "title_en":  "",
         "thumbnail_en":  "",
@@ -90,12 +98,14 @@ const INITIAL_SCRIPTS = [
         "category":  "slayers2",
         "version":  "v1.0",
         "updated":  "วันนี้",
+        "views":  1946,
+        "likes":  0,
         "isKeyless":  false,
         "isMobile":  true,
         "isPC":  true,
         "status":  "working",
         "badge":  "มาใหม่",
-        "thumbnail":  "Logo.ico",
+        "thumbnail":  "assets/thumbnails/script-1790231804563.webp",
         "description":  "สคริปต์ Slayers 2 อัปเดตล่าสุด ฟังก์ชันครบ ใช้งานง่าย ปลอดภัย",
         "title_en":  "",
         "thumbnail_en":  "",
@@ -110,12 +120,14 @@ const INITIAL_SCRIPTS = [
         "category":  "slayers2",
         "version":  "v1.0",
         "updated":  "วันนี้",
+        "views":  4694,
+        "likes":  0,
         "isKeyless":  true,
         "isMobile":  true,
         "isPC":  true,
         "status":  "working",
         "badge":  "มาใหม่",
-        "thumbnail":  "Logo.ico",
+        "thumbnail":  "assets/thumbnails/script-1790345741707.webp",
         "description":  "สคริปต์ Slayers 2 (คนเล่นปัจจุบัน ~165,048 คน) อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
         "title_en":  "Slayers 2 Script - Auto Farm \u0026 Hub",
         "thumbnail_en":  "",
@@ -130,12 +142,14 @@ const INITIAL_SCRIPTS = [
         "category":  "slayers 2",
         "version":  "v1.0",
         "updated":  "วันนี้",
+        "views":  0,
+        "likes":  0,
         "isKeyless":  false,
         "isMobile":  true,
         "isPC":  true,
         "status":  "working",
         "badge":  "มาใหม่",
-        "thumbnail":  "Logo.ico",
+        "thumbnail":  "assets/thumbnails/script-1790593586261.webp",
         "description":  "สคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
         "title_en":  "",
         "thumbnail_en":  "",
@@ -150,12 +164,14 @@ const INITIAL_SCRIPTS = [
         "category":  "slayers 2",
         "version":  "v1.0",
         "updated":  "วันนี้",
+        "views":  373,
+        "likes":  1,
         "isKeyless":  true,
         "isMobile":  true,
         "isPC":  true,
         "status":  "working",
         "badge":  "มาใหม่",
-        "thumbnail":  "Logo.ico",
+        "thumbnail":  "assets/thumbnails/script-1789880768357.webp",
         "description":  "สคริปต์ Slayers 2 อัปเดตล่าสุด ฟังก์ชันครบ ใช้งานง่าย ปลอดภัย",
         "title_en":  "Slayers 2 Script - Auto Farm \u0026 Hub",
         "thumbnail_en":  "",
@@ -170,79 +186,144 @@ const INITIAL_SCRIPTS = [
         "category":  "slayers 2",
         "version":  "v1.0",
         "updated":  "วันนี้",
+        "views":  1696,
+        "likes":  3,
         "isKeyless":  true,
         "isMobile":  false,
         "isPC":  true,
         "status":  "working",
         "badge":  "มาใหม่",
-        "thumbnail":  "Logo.ico",
+        "thumbnail":  "assets/thumbnails/script-1789880900671.webp",
         "description":  "0",
         "title_en":  "Slayers 2 Script - Auto Farm \u0026 Hub",
         "thumbnail_en":  "",
         "description_en":  "",
         "loadstring":  "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/gather1231-source/Freemium/refs/heads/main/FreemiumLoader\"))()",
         "created_at":  1790174330332
+    },
+    {
+        "id":  "script-1790763605119",
+        "title":  "RIDE A PET 🔥 CHILLI HUB SCRIPT! AUTO COLLECT + FAST FARM",
+        "title_en":  "RIDE A PET 🔥 CHILLI HUB SCRIPT! AUTO COLLECT + FAST FARM",
+        "game":  "Ride a pet",
+        "category":  "ride a pet",
+        "version":  "v1.0",
+        "updated":  "วันนี้",
+        "views":  0,
+        "likes":  0,
+        "isKeyless":  true,
+        "isMobile":  true,
+        "isPC":  true,
+        "status":  "working",
+        "badge":  "มาใหม่",
+        "thumbnail":  "assets/thumbnails/script-1790763605119.webp",
+        "thumbnail_en":  "",
+        "description":  "สคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
+        "description_en":  "",
+        "loadstring":  "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua\"))()"
+    },
+    {
+        "thumbnail":  "assets/thumbnails/script-1790502533341.webp",
+        "likes":  0,
+        "description":  "สคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
+        "id":  "script-1790502533341",
+        "status":  "working",
+        "title":  "STEAL AN EGG 🔥 LUMIN HUB SCRIPT! AUTO STEAL + INSTANT FARM",
+        "views":  59,
+        "game":  "Steal An Egg",
+        "thumbnail_en":  "",
+        "isKeyless":  false,
+        "description_en":  "",
+        "badge":  "มาใหม่",
+        "title_en":  "STEAL AN EGG 🔥 LUMIN HUB SCRIPT! AUTO STEAL + INSTANT FARM",
+        "isPC":  true,
+        "version":  "v1.0",
+        "loadstring":  "loadstring(game:HttpGet(\"http://luminon.top/loader.lua\"))()",
+        "isMobile":  true,
+        "updated":  "วันนี้",
+        "category":  "steal an egg"
+    },
+    {
+        "description":  "สคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
+        "isPC":  true,
+        "badge":  "มาใหม่",
+        "category":  "slayers 2",
+        "isMobile":  true,
+        "status":  "working",
+        "updated":  "วันนี้",
+        "loadstring":  "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/hanniii1/Loader/refs/heads/main/BFLoader.lua\"))()",
+        "version":  "v1.0",
+        "title_en":  "SLAYERS 2 🔥 BIGFROOT SCRIPT! 1 CLICK LEVEL UP + INSTANT KILL",
+        "isKeyless":  true,
+        "thumbnail_en":  "",
+        "likes":  950,
+        "game":  "slayers 2",
+        "id":  "script-1790340787892",
+        "title":  "SLAYERS 2 🔥 BIGFROOT SCRIPT! 1 CLICK LEVEL UP + INSTANT KILL",
+        "description_en":  "",
+        "views":  17,
+        "thumbnail":  "assets/thumbnails/script-1790340787892.webp"
     }
 ];
 
 function getScriptsStorageKey() {
-    if (typeof window !== "undefined") {
-        if (window.FirebaseDB && typeof window.FirebaseDB.getScriptsCacheKey === "function") {
-            return window.FirebaseDB.getScriptsCacheKey();
-        }
-        if (window.location && window.location.hostname) {
-            const host = window.location.hostname.toLowerCase();
-            if (host.startsWith("th.")) return "nova_scripts_db";
-            if (host.startsWith("hub.") || host.includes("global")) {
-                return "nova_scripts_db_global";
-            }
-        }
-        const override = sessionStorage.getItem("blacklist_active_db_target");
-        if (override === "hub_global") return "nova_scripts_db_global";
-        if (override === "hub") return "nova_scripts_db";
-    }
-    return "nova_scripts_db";
+    if (typeof window !== " undefined\) {
+ if (window.FirebaseDB && typeof window.FirebaseDB.getScriptsCacheKey === \function\) {
+ return window.FirebaseDB.getScriptsCacheKey();
+ }
+ if (window.location && window.location.hostname) {
+ const host = window.location.hostname.toLowerCase();
+ if (host.startsWith(\th.\)) return \nova_scripts_db\;
+ if (host.startsWith(\hub.\) || host.includes(\global\)) {
+ return \nova_scripts_db_global\;
+ }
+ }
+ const override = sessionStorage.getItem(\blacklist_active_db_target\);
+ if (override === \hub_global\) return \nova_scripts_db_global\;
+ if (override === \hub\) return \nova_scripts_db\;
+ }
+ return \nova_scripts_db\;
 }
 
 // โหลดข้อมูลสคริปต์จาก LocalStorage หากมีการเพิ่ม/แก้ไข
 function getScriptsData() {
-    try {
-        const key = getScriptsStorageKey();
-        const saved = localStorage.getItem(key);
-        if (saved !== null) {
-            let list = JSON.parse(saved);
-            if (list && typeof list === "object") {
-                if (Array.isArray(list.value)) list = list.value;
-                else if (Array.isArray(list.scripts)) list = list.scripts;
-            }
-            if (Array.isArray(list) && list.length > 0) {
-                const clean = [];
-                list.forEach(s => {
-                    if (s && typeof s === "object") {
-                        const copy = { ...s };
-                        delete copy.views;
-                        delete copy.likes;
-                        clean.push(copy);
-                    }
-                });
-                if (clean.length > 0) return clean;
-            }
-        }
-    } catch (e) {
-        console.warn("Could not load custom scripts", e);
-    }
-    return (Array.isArray(INITIAL_SCRIPTS) && INITIAL_SCRIPTS.length > 0) ? INITIAL_SCRIPTS : [];
+ try {
+ const key = getScriptsStorageKey();
+ const saved = localStorage.getItem(key);
+ if (saved !== null) {
+ let list = JSON.parse(saved);
+ if (list && typeof list === \object\) {
+ if (Array.isArray(list.value)) list = list.value;
+ else if (Array.isArray(list.scripts)) list = list.scripts;
+ }
+ if (Array.isArray(list) && list.length > 0) {
+ const clean = [];
+ list.forEach(s => {
+ if (s && typeof s === \object\) {
+ const copy = { ...s };
+ delete copy.views;
+ delete copy.likes;
+ clean.push(copy);
+ }
+ });
+ if (clean.length > 0) return clean;
+ }
+ }
+ } catch (e) {
+ console.warn(\Could not load custom scripts\, e);
+ }
+ return (Array.isArray(INITIAL_SCRIPTS) && INITIAL_SCRIPTS.length > 0) ? INITIAL_SCRIPTS : [];
 }
 
 function saveScriptsData(scripts) {
-    const key = getScriptsStorageKey();
-    if (Array.isArray(scripts)) {
-        scripts.forEach(s => {
-            if (s && typeof s === "object") {
-                delete s.views;
-                delete s.likes;
-            }
-        });
-    }
-    localStorage.setItem(key, JSON.stringify(scripts));
+ const key = getScriptsStorageKey();
+ if (Array.isArray(scripts)) {
+ scripts.forEach(s => {
+ if (s && typeof s === \object\) {
+ delete s.views;
+ delete s.likes;
+ }
+ });
+ }
+ localStorage.setItem(key, JSON.stringify(scripts));
 }
