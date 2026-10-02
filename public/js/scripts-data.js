@@ -29,7 +29,14 @@ function getScriptsData() {
         const key = getScriptsStorageKey();
         const saved = localStorage.getItem(key);
         if (saved !== null) {
-            return JSON.parse(saved);
+            const list = JSON.parse(saved);
+            if (Array.isArray(list)) {
+                list.forEach(s => {
+                    delete s.views;
+                    delete s.likes;
+                });
+            }
+            return list;
         }
     } catch (e) {
         console.warn("Could not load custom scripts", e);
@@ -39,6 +46,12 @@ function getScriptsData() {
 
 function saveScriptsData(scripts) {
     const key = getScriptsStorageKey();
+    if (Array.isArray(scripts)) {
+        scripts.forEach(s => {
+            delete s.views;
+            delete s.likes;
+        });
+    }
     localStorage.setItem(key, JSON.stringify(scripts));
 }
 

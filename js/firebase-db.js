@@ -93,6 +93,7 @@
                     try {
                         const parsed = JSON.parse(hasCache);
                         if (Array.isArray(parsed)) {
+                            parsed.forEach(s => { if (s) { delete s.views; delete s.likes; } });
                             return parsed;
                         }
                     } catch (e) {}
@@ -113,6 +114,7 @@
                             try { result = JSON.parse(data.scriptsJson); } catch (e) {}
                         }
                         if (Array.isArray(result)) {
+                            result.forEach(s => { if (s) { delete s.views; delete s.likes; } });
                             localStorage.setItem(cacheKey, JSON.stringify(result));
                             sessionStorage.setItem(timeKey, Date.now().toString());
                             console.log(`[Firebase] [${col}] Successfully loaded scripts via SDK. Total:`, result.length);
@@ -137,6 +139,7 @@
                             try { result = JSON.parse(json.fields.scriptsJson.stringValue); } catch (e) {}
                         }
                         if (Array.isArray(result)) {
+                            result.forEach(s => { if (s) { delete s.views; delete s.likes; } });
                             localStorage.setItem(cacheKey, JSON.stringify(result));
                             sessionStorage.setItem(timeKey, Date.now().toString());
                             console.log(`[Firebase] [${col}] Successfully loaded scripts via REST API. Total:`, result.length);
@@ -152,7 +155,11 @@
             const localSaved = localStorage.getItem(cacheKey);
             if (localSaved) {
                 try {
-                    return JSON.parse(localSaved);
+                    const parsed = JSON.parse(localSaved);
+                    if (Array.isArray(parsed)) {
+                        parsed.forEach(s => { if (s) { delete s.views; delete s.likes; } });
+                        return parsed;
+                    }
                 } catch (e) {}
             }
 
@@ -163,12 +170,21 @@
         saveScripts: async function (scriptsArray) {
             if (!Array.isArray(scriptsArray)) return false;
 
+            // คลีนข้อมูล: ลบ views และ likes ออกจากทุก object ก่อนบันทึกเข้า DB
+            const sanitized = scriptsArray.map(item => {
+                if (!item || typeof item !== 'object') return item;
+                const copy = { ...item };
+                delete copy.views;
+                delete copy.likes;
+                return copy;
+            });
+
             const cacheKey = getScriptsCacheKey();
             const timeKey = getScriptsTimeKey();
             const col = getHubCollectionName();
 
             // อัปเดตแคชในเครื่องทันที
-            localStorage.setItem(cacheKey, JSON.stringify(scriptsArray));
+            localStorage.setItem(cacheKey, JSON.stringify(sanitized));
             sessionStorage.setItem(timeKey, Date.now().toString());
 
             let savedSuccessfully = false;
@@ -178,8 +194,8 @@
             if (db) {
                 try {
                     await db.collection(col).doc("database").set({
-                        scripts: scriptsArray,
-                        scriptsJson: JSON.stringify(scriptsArray),
+                        scripts: sanitized,
+                        scriptsJson: JSON.stringify(sanitized),
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
                     console.log(`[Firebase] [${col}] Successfully saved scripts via SDK`);
@@ -199,7 +215,7 @@
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             fields: {
-                                scriptsJson: { stringValue: JSON.stringify(scriptsArray) },
+                                scriptsJson: { stringValue: JSON.stringify(sanitized) },
                                 updatedAt: { stringValue: new Date().toISOString() }
                             }
                         })
@@ -216,102 +232,14 @@
             return savedSuccessfully;
         },
 
-        // เพิ่มยอดการดูสคริปต์ (View Counter)
+        // เพิ่มยอดการดูสคริปต์ (View Counter) - ปิดการทำงานเพื่อไม่ให้รก DB
         incrementView: async function (scriptId) {
-            if (!scriptId) return;
-            const cacheKey = getScriptsCacheKey();
-            const col = getHubCollectionName();
-
-            try {
-                let cached = [];
-                const localSaved = localStorage.getItem(cacheKey);
-                if (localSaved) {
-                    try { cached = JSON.parse(localSaved); } catch (e) {}
-                }
-                const target = cached.find(s => String(s.id) === String(scriptId));
-                if (target) {
-                    target.views = (Number(target.views) || 0) + 1;
-                    localStorage.setItem(cacheKey, JSON.stringify(cached));
-                }
-
-                const db = getFirestore();
-                if (db) {
-                    const docRef = db.collection(col).doc("database");
-                    await db.runTransaction(async (transaction) => {
-                        const doc = await transaction.get(docRef);
-                        if (!doc.exists) return;
-                        const data = doc.data();
-                        let currentScripts = [];
-                        if (Array.isArray(data.scripts)) currentScripts = data.scripts;
-                        else if (typeof data.scriptsJson === "string") currentScripts = JSON.parse(data.scriptsJson);
-
-                        const item = currentScripts.find(s => String(s.id) === String(scriptId));
-                        if (item) {
-                            item.views = (Number(item.views) || 0) + 1;
-                            transaction.update(docRef, {
-                                scripts: currentScripts,
-                                scriptsJson: JSON.stringify(currentScripts)
-                            });
-                        }
-                    });
-                    return;
-                }
-
-                if (this.isAvailable() && cached.length > 0) {
-                    await this.saveScripts(cached);
-                }
-            } catch (err) {
-                console.warn(`[Firebase] [${col}] View increment notice:`, err);
-            }
+            return;
         },
 
-        // กดถูกใจ / ยกเลิกถูกใจ (Like Toggle)
+        // กดถูกใจ / ยกเลิกถูกใจ (Like Toggle) - ปิดการทำงานเพื่อไม่ให้รก DB
         toggleLike: async function (scriptId, increment = true) {
-            if (!scriptId) return;
-            const cacheKey = getScriptsCacheKey();
-            const col = getHubCollectionName();
-
-            try {
-                let cached = [];
-                const localSaved = localStorage.getItem(cacheKey);
-                if (localSaved) {
-                    try { cached = JSON.parse(localSaved); } catch (e) {}
-                }
-                const target = cached.find(s => String(s.id) === String(scriptId));
-                if (target) {
-                    target.likes = Math.max(0, (Number(target.likes) || 0) + (increment ? 1 : -1));
-                    localStorage.setItem(cacheKey, JSON.stringify(cached));
-                }
-
-                const db = getFirestore();
-                if (db) {
-                    const docRef = db.collection(col).doc("database");
-                    await db.runTransaction(async (transaction) => {
-                        const doc = await transaction.get(docRef);
-                        if (!doc.exists) return;
-                        const data = doc.data();
-                        let currentScripts = [];
-                        if (Array.isArray(data.scripts)) currentScripts = data.scripts;
-                        else if (typeof data.scriptsJson === "string") currentScripts = JSON.parse(data.scriptsJson);
-
-                        const item = currentScripts.find(s => String(s.id) === String(scriptId));
-                        if (item) {
-                            item.likes = Math.max(0, (Number(item.likes) || 0) + (increment ? 1 : -1));
-                            transaction.update(docRef, {
-                                scripts: currentScripts,
-                                scriptsJson: JSON.stringify(currentScripts)
-                            });
-                        }
-                    });
-                    return;
-                }
-
-                if (this.isAvailable() && cached.length > 0) {
-                    await this.saveScripts(cached);
-                }
-            } catch (err) {
-                console.warn(`[Firebase] [${col}] Like toggle notice:`, err);
-            }
+            return;
         },
 
         // โหลดการตั้งค่าเว็บไซต์ (Site Config) จาก Firestore

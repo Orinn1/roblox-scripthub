@@ -287,6 +287,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     // Cloud Database (Firebase Firestore & JSONBin) Realtime Sync
     async function syncToCloudDb(scriptsToSave) {
+        // ทำความสะอาดข้อมูล: ลบ views และ likes ออกจากทุกสคริปต์เพื่อไม่ให้รก DB
+        if (Array.isArray(scriptsToSave)) {
+            scriptsToSave.forEach(s => {
+                delete s.views;
+                delete s.likes;
+            });
+        }
+
         // 1. Primary: Firebase Firestore (50,000 Reads/วัน ฟรีตลอดชีพ)
         if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
             try {
@@ -420,7 +428,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         ${escapeHtml(s.title)}
                         ${s.title_en ? `<div style="font-size:11px; color:#38bdf8; margin-top:2px;">🇺🇸 ${escapeHtml(s.title_en)}</div>` : ''}
                         <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
-                            ${escapeHtml(s.version || 'v1.0')} • 👁 ${(s.views || 0).toLocaleString()} ครั้ง • 👍 ${(s.likes || 0).toLocaleString()} ถูกใจ
+                            ${escapeHtml(s.version || 'v1.0')}
                             ${s.thumbnail_en ? ' • <span style="color:#a855f7;">🖼 มีปก EN</span>' : ''}
                         </div>
                     </td>
@@ -757,8 +765,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const sViewsInput = document.getElementById("sViews");
         const sLikesInput = document.getElementById("sLikes");
         const initialViews = sViewsInput ? (parseInt(sViewsInput.value, 10) || 0) : 1250;
-        const initialLikes = sLikesInput ? (parseInt(sLikesInput.value, 10) || 0) : 95;
-
         const newScript = {
             id: "script-" + Date.now(),
             title: title,
@@ -767,8 +773,6 @@ document.addEventListener("DOMContentLoaded", () => {
             category: category,
             version: version,
             updated: "วันนี้",
-            views: initialViews,
-            likes: initialLikes,
             isKeyless: isKeyless,
             isMobile: isMobile,
             isPC: isPC,
@@ -1068,11 +1072,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const isMobile = document.getElementById("editMobile") ? document.getElementById("editMobile").checked : (scripts[index].isMobile !== false);
             const isPC = document.getElementById("editPC") ? document.getElementById("editPC").checked : (scripts[index].isPC !== false);
 
-            const editViews = document.getElementById("editViews");
-            const editLikes = document.getElementById("editLikes");
-            const views = editViews ? (parseInt(editViews.value, 10) || 0) : (scripts[index].views || 0);
-            const likes = editLikes ? (parseInt(editLikes.value, 10) || 0) : (scripts[index].likes || 0);
-
             scripts[index] = {
                 ...scripts[index],
                 title,
@@ -1088,10 +1087,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 isKeyless,
                 isMobile,
                 isPC,
-                views,
-                likes,
                 updated: "วันนี้"
             };
+            delete scripts[index].views;
+            delete scripts[index].likes;
 
             saveScriptsData(scripts);
             renderTable();

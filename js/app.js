@@ -2609,14 +2609,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
 
                 <div class="row-right">
-                    <div class="row-stats">
-                        <div class="stat-views-badge" data-view-id="${escapeHtml(item.id)}" title="${currentLang === 'th' ? 'จำนวนการเข้าชม' : 'Total Views'}">
-                            <i data-lucide="eye"></i> <span>${t.statViews(formatNumber(item.views || 0))}</span>
-                        </div>
-                        <div class="stat-likes-badge ${isLiked ? 'liked' : ''}" data-like-id="${escapeHtml(item.id)}" onclick="toggleScriptLike(event, '${escapeHtml(item.id)}')" title="${isLiked ? (currentLang === 'th' ? 'ยกเลิกการถูกใจ' : 'Unlike') : (currentLang === 'th' ? 'กดถูกใจสคริปต์นี้' : 'Like this script')}">
-                            <i data-lucide="thumbs-up"></i> <span>${t.statLikes(formatNumber(item.likes || 0))}</span>
-                        </div>
-                    </div>
                     <button class="btn-get" onclick="openLocker('${escapeHtml(item.id)}')">
                         <span>${t.btnGetScript}</span>
                         <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
@@ -2631,87 +2623,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return num >= 1000 ? (num / 1000).toFixed(1) + 'k' : String(num);
     }
 
-    // ฟังก์ชันเพิ่มยอดเข้าชมสคริปต์แบบเรียลไทม์ (Real-time View Counter)
+    // ปิดระบบนับยอดวิวและถูกใจ เพื่อป้องกันไม่ให้เขียน Database รก DB
     function incrementScriptView(id) {
-        const item = scripts.find(s => String(s.id) === String(id));
-        if (!item) return;
-
-        item.views = (Number(item.views) || 0) + 1;
-        const t = I18N[currentLang] || I18N.en;
-
-        // อัปเดตตัวเลขบนหน้าจอทันทีทุกจุดที่แสดง
-        document.querySelectorAll(`[data-view-id="${id}"]`).forEach(el => {
-            const span = el.querySelector("span");
-            if (span) span.textContent = t.statViews(formatNumber(item.views));
-        });
-
-        // บันทึกเก็บลงแคชเครื่อง
-        saveScriptsData(scripts);
-
-        // ซิงค์ยอดการดูขึ้น Firebase Cloud
-        if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
-            window.FirebaseDB.incrementView(id);
-        }
-
-        // ซิงค์ยอดการดูไปที่ Server SQLite (กรณีรันบน Node.js)
-        fetch('/api/scripts/view', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id })
-        }).catch(() => {});
+        // Disabled: do not track views to keep database clean
     }
 
-    // ฟังก์ชันกดถูกใจสคริปต์แบบเรียลไทม์ (Interactive Like Button)
     window.toggleScriptLike = function(event, id) {
         if (event) event.stopPropagation();
-        const item = scripts.find(s => String(s.id) === String(id));
-        if (!item) return;
-
-        const isLiked = localStorage.getItem("liked_script_" + id) === "true";
-        const t = I18N[currentLang] || I18N.en;
-        let delta = 1;
-
-        if (isLiked) {
-            localStorage.removeItem("liked_script_" + id);
-            item.likes = Math.max(0, (Number(item.likes) || 1) - 1);
-            delta = -1;
-            showToast(t.toastUnliked);
-        } else {
-            localStorage.setItem("liked_script_" + id, "true");
-            item.likes = (Number(item.likes) || 0) + 1;
-            delta = 1;
-            showToast(t.toastLiked);
-        }
-
-        // อัปเดตไอคอนและตัวเลขถูกใจในหน้าจอทันที
-        document.querySelectorAll(`[data-like-id="${id}"]`).forEach(el => {
-            if (!isLiked) {
-                el.classList.add("liked");
-                el.setAttribute("title", currentLang === 'th' ? "ยกเลิกการถูกใจ" : "Unlike");
-            } else {
-                el.classList.remove("liked");
-                el.setAttribute("title", currentLang === 'th' ? "กดถูกใจสคริปต์นี้" : "Like this script");
-            }
-            const span = el.querySelector("span");
-            if (span) span.textContent = t.statLikes(formatNumber(item.likes));
-        });
-
-        // บันทึกเก็บลงแคชเครื่อง
-        saveScriptsData(scripts);
-
-        // ซิงค์ยอดถูกใจขึ้น Firebase Cloud
-        if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
-            window.FirebaseDB.incrementLike(id, delta);
-        }
-
-        // ซิงค์ยอดถูกใจไปที่ Server SQLite
-        fetch('/api/scripts/like', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, delta })
-        }).catch(() => {});
-
-        refreshIcons();
     };
 
     function renderHomeRecent() {
@@ -3267,8 +3185,6 @@ document.addEventListener("DOMContentLoaded", () => {
         selectedScript = scripts.find(s => String(s.id) === String(id));
         if (!selectedScript) return;
 
-        // Increment view count immediately
-        incrementScriptView(id);
 
         if (isVipMember()) {
             tasks = { t1: true, t2: true, t3: true };
