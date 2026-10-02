@@ -1,4 +1,4 @@
-﻿/**
+/**
  * คลังข้อมูลสคริปต์ (Script Database)
  * สามารถเพิ่ม ลบ แก้ไขสคริปต์ได้ที่นี่ หรือผ่านหน้าตั้งค่าบนเว็บ
  */
@@ -186,22 +186,22 @@ const INITIAL_SCRIPTS = [
 ];
 
 function getScriptsStorageKey() {
-    if (typeof window !==  undefined) {
-        if (window.FirebaseDB && typeof window.FirebaseDB.getScriptsCacheKey === function) {
+    if (typeof window !== "undefined") {
+        if (window.FirebaseDB && typeof window.FirebaseDB.getScriptsCacheKey === "function") {
             return window.FirebaseDB.getScriptsCacheKey();
         }
-        const override = sessionStorage.getItem(blacklist_active_db_target);
-        if (override === hub_global) return nova_scripts_db_global;
-        if (override === hub) return nova_scripts_db;
         if (window.location && window.location.hostname) {
             const host = window.location.hostname.toLowerCase();
-            // ONLY hub.blacklisthub.workers.dev uses nova_scripts_db_global
-            if (host.startsWith(hub.) || host.includes(global)) {
-                return nova_scripts_db_global;
+            if (host.startsWith("th.")) return "nova_scripts_db";
+            if (host.startsWith("hub.") || host.includes("global")) {
+                return "nova_scripts_db_global";
             }
         }
+        const override = sessionStorage.getItem("blacklist_active_db_target");
+        if (override === "hub_global") return "nova_scripts_db_global";
+        if (override === "hub") return "nova_scripts_db";
     }
-    return nova_scripts_db;
+    return "nova_scripts_db";
 }
 
 // โหลดข้อมูลสคริปต์จาก LocalStorage หากมีการเพิ่ม/แก้ไข
@@ -211,22 +211,25 @@ function getScriptsData() {
         const saved = localStorage.getItem(key);
         if (saved !== null) {
             let list = JSON.parse(saved);
-            if (list && typeof list === object) {
+            if (list && typeof list === "object") {
                 if (Array.isArray(list.value)) list = list.value;
                 else if (Array.isArray(list.scripts)) list = list.scripts;
             }
             if (Array.isArray(list) && list.length > 0) {
+                const clean = [];
                 list.forEach(s => {
-                    if (s) {
-                        delete s.views;
-                        delete s.likes;
+                    if (s && typeof s === "object") {
+                        const copy = { ...s };
+                        delete copy.views;
+                        delete copy.likes;
+                        clean.push(copy);
                     }
                 });
-                return list;
+                if (clean.length > 0) return clean;
             }
         }
     } catch (e) {
-        console.warn(Could not load custom scripts, e);
+        console.warn("Could not load custom scripts", e);
     }
     return (Array.isArray(INITIAL_SCRIPTS) && INITIAL_SCRIPTS.length > 0) ? INITIAL_SCRIPTS : [];
 }
@@ -235,7 +238,7 @@ function saveScriptsData(scripts) {
     const key = getScriptsStorageKey();
     if (Array.isArray(scripts)) {
         scripts.forEach(s => {
-            if (s) {
+            if (s && typeof s === "object") {
                 delete s.views;
                 delete s.likes;
             }

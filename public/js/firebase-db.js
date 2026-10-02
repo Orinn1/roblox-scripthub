@@ -14,16 +14,20 @@
     // Detect which database collection to use based on hostname or manual override
     function getHubCollectionName() {
         if (typeof window !== "undefined") {
-            const override = sessionStorage.getItem("blacklist_active_db_target");
-            if (override === "hub" || override === "hub_global") {
-                return override;
-            }
             if (window.location && window.location.hostname) {
                 const host = window.location.hostname.toLowerCase();
-                // ONLY hub.blacklisthub.workers.dev uses hub_global. Other domains (th., roblox-scripthub., vercel) use 'hub'
+                // Explicitly Thai domain: th.blacklisthub.workers.dev or localhost always uses 'hub'
+                if (host.startsWith("th.")) {
+                    return "hub";
+                }
+                // ONLY hub.blacklisthub.workers.dev or explicit global subdomains use hub_global
                 if (host.startsWith("hub.") || host.includes("global")) {
                     return "hub_global";
                 }
+            }
+            const override = sessionStorage.getItem("blacklist_active_db_target");
+            if (override === "hub" || override === "hub_global") {
+                return override;
             }
         }
         return "hub";

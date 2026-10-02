@@ -6,6 +6,19 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Purge corrupted or hacked cache if present
+    try {
+        const checkKeys = ["nova_scripts_db", "nova_scripts_db_global"];
+        for (const k of checkKeys) {
+            const saved = localStorage.getItem(k);
+            if (saved && (saved.includes("HACKED") || saved.includes("hacked"))) {
+                localStorage.removeItem(k);
+            }
+        }
+        sessionStorage.removeItem("nova_scripts_cache_time");
+        sessionStorage.removeItem("nova_scripts_cache_time_global");
+    } catch (e) {}
+
     let scripts = getScriptsData();
 
     // App State
@@ -145,16 +158,18 @@ document.addEventListener("DOMContentLoaded", () => {
     function isGlobalDomain() {
         if (typeof window !== "undefined") {
             if (typeof window.isGlobalDomain === "function") return window.isGlobalDomain();
-            const override = sessionStorage.getItem("blacklist_active_db_target");
-            if (override === "hub_global") return true;
-            if (override === "hub") return false;
             if (window.location && window.location.hostname) {
                 const host = window.location.hostname.toLowerCase();
+                // th.blacklisthub.workers.dev or localhost or other domains are Thai
+                if (host.startsWith("th.")) return false;
                 // ONLY hub.blacklisthub.workers.dev or explicit global subdomains are global/English
                 if (host.startsWith("hub.") || host.includes("global")) {
                     return true;
                 }
             }
+            const override = sessionStorage.getItem("blacklist_active_db_target");
+            if (override === "hub_global") return true;
+            if (override === "hub") return false;
         }
         return false;
     }
@@ -2290,48 +2305,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            // 2. Secondary Priority: JSONBin.io Cloud Database with Smart Caching (ประหยัดโควตา Request ไม่ให้หมดไว)
-            if (SITE_CONFIG.cloudDb && SITE_CONFIG.cloudDb.enabled && SITE_CONFIG.cloudDb.binId) {
-                const CACHE_KEY = (typeof getScriptsStorageKey === "function") ? getScriptsStorageKey() : "nova_scripts_db";
-                const TIME_KEY = (window.FirebaseDB && window.FirebaseDB.getScriptsTimeKey) ? window.FirebaseDB.getScriptsTimeKey() : "nova_scripts_cache_time";
-                const CACHE_DURATION_MS = 60 * 1000; // แคชไว้ 60 วินาทีต่อผู้ใช้
-                const cachedTime = parseInt(sessionStorage.getItem(TIME_KEY) || "0", 10);
-                const hasCache = localStorage.getItem(CACHE_KEY);
-
-                if (hasCache && (Date.now() - cachedTime < CACHE_DURATION_MS)) {
-                    try {
-                        const parsed = JSON.parse(hasCache);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            scripts = parsed;
-                            renderHomeRecent();
-                            if (currentView === "feed") renderFeed();
-                            updateCategoryBadges();
-                            return;
-                        }
-                    } catch (e) {}
-                }
-
-                try {
-                    const binRes = await fetch(`https://api.jsonbin.io/v3/b/${SITE_CONFIG.cloudDb.binId}/latest?meta=false`);
-                    if (binRes.ok) {
-                        const binData = await binRes.json();
-                        const remoteScripts = Array.isArray(binData) ? binData : (binData.scripts || []);
-                        if (Array.isArray(remoteScripts) && remoteScripts.length > 0) {
-                            scripts = remoteScripts;
-                            localStorage.setItem(CACHE_KEY, JSON.stringify(scripts));
-                            sessionStorage.setItem(TIME_KEY, Date.now().toString());
-                            renderHomeRecent();
-                            if (currentView === "feed") renderFeed();
-                            updateCategoryBadges();
-                            return;
-                        }
-                    }
-                } catch (cloudErr) {
-                    console.warn("Cloud DB fetch notice:", cloudErr);
-                }
-            }
-
-            // 3. Fallback to local server / static file
+            // 2. Fallback to local server / static file
             const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
             let [cfgRes, scpRes] = await Promise.all([
                 fetch('/api/config').catch(() => null),

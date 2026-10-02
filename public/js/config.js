@@ -98,16 +98,18 @@ function deepMergeConfig(target, source) {
 
 window.isGlobalDomain = function () {
     if (typeof window !== "undefined") {
-        const override = sessionStorage.getItem("blacklist_active_db_target");
-        if (override === "hub_global") return true;
-        if (override === "hub") return false;
         if (window.location && window.location.hostname) {
             const host = window.location.hostname.toLowerCase();
+            // th.blacklisthub.workers.dev or localhost or other domains are Thai
+            if (host.startsWith("th.")) return false;
             // ONLY hub.blacklisthub.workers.dev or explicit global subdomains are global/English
             if (host.startsWith("hub.") || host.includes("global")) {
                 return true;
             }
         }
+        const override = sessionStorage.getItem("blacklist_active_db_target");
+        if (override === "hub_global") return true;
+        if (override === "hub") return false;
     }
     return false;
 };
@@ -127,6 +129,12 @@ if (window.isGlobalDomain()) {
 
 window.mergeSiteConfig = function (source) {
     deepMergeConfig(SITE_CONFIG, source);
+    // Never allow cloudDb / JSONBin to be re-enabled
+    if (SITE_CONFIG.cloudDb) {
+        SITE_CONFIG.cloudDb.enabled = false;
+        SITE_CONFIG.cloudDb.binId = "";
+        SITE_CONFIG.cloudDb.masterKey = "";
+    }
     if (SITE_CONFIG.lootlabsGate) {
         if (!SITE_CONFIG.lootlabsGate.provider || SITE_CONFIG.lootlabsGate.provider === "blackpass") {
             SITE_CONFIG.lootlabsGate.provider = "shrinkme";
