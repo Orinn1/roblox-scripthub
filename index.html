@@ -183,7 +183,8 @@
     <div id="iabNoticeBar" class="iab-notice-bar" style="display: none;">
         <div class="iab-notice-content">
             <i data-lucide="compass" style="width: 18px; height: 18px; color: #38bdf8;"></i>
-            <span id="lblInAppNotice">Opened in in-app browser. Tap <strong>Compass 🧭 (bottom right)</strong> to open in Safari</span>
+            <span id="lblInAppNotice">Opened in in-app browser. Tap <strong>Compass 🧭 (bottom right)</strong> to open
+                in Safari</span>
         </div>
         <button type="button" class="iab-close-btn" id="iabCloseBtn" aria-label="Close notice">
             <i data-lucide="x" style="width: 16px; height: 16px;"></i>
@@ -628,7 +629,8 @@
                 กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง
             </p>
             <!-- ปุ่มเข้าใช้งานผ่าน Shortener Gate -->
-            <a href="https://shrinkme.click/cBGgRn" class="btn-gate-lootlabs" id="gateLootlabsBtn" rel="noopener noreferrer">
+            <a href="https://shrinkme.click/cBGgRn" class="btn-gate-lootlabs" id="gateLootlabsBtn"
+                rel="noopener noreferrer">
                 <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i>
                 <span id="lblGateBtn">เข้าใช้งานผ่าน ShrinkMe (รอ 10-15 วินาที)</span>
             </a>
@@ -651,7 +653,8 @@
                         allowfullscreen></iframe>
                 </div>
                 <div class="gate-tutorial-actions">
-                    <span style="font-size: 11px; color: var(--text-muted);" id="lblGateTutorialHint">Short & easy guide. Follow steps to unlock.</span>
+                    <span style="font-size: 11px; color: var(--text-muted);" id="lblGateTutorialHint">Short & easy
+                        guide. Follow steps to unlock.</span>
                     <a href="https://youtu.be/FdXsvivWhOw" target="_blank" rel="noopener noreferrer"
                         class="gate-tutorial-yt-link" id="gateTutorialYtDirectLink">
                         <i data-lucide="youtube" style="width: 14px; height: 14px; color: #ef4444;"></i>
@@ -731,7 +734,8 @@
                 <div class="vip-features-list" id="vipFeaturesList">
                     <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i>
                         100% Ad-free & no popups</div>
-                    <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> Permanent bypass for ShrinkEarn / LootLabs gate</div>
+                    <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> Permanent bypass
+                        for ShrinkEarn / LootLabs gate</div>
                     <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i>
                         Instant access to all script codes</div>
                 </div>
@@ -750,7 +754,8 @@
                         </svg>
                     </div>
                     <h4 class="vip-oauth-title" id="lblVipOauthTitle">Login with Discord Account</h4>
-                    <p class="vip-oauth-desc" id="lblVipOauthDesc">Click the button below to verify your Discord account. Your roles (Admin / Dev /
+                    <p class="vip-oauth-desc" id="lblVipOauthDesc">Click the button below to verify your Discord
+                        account. Your roles (Admin / Dev /
                         Bypass / Verified) will be automatically detected.</p>
 
                     <a href="/api/discord-auth?action=login" class="btn-discord-oauth-main" id="btnVipOauthLogin">
@@ -825,89 +830,89 @@
             <p class="banned-footer-notice" id="lblBannedFooter">
                 Access will be automatically restored once the countdown ends. Please do not close this window.
             </p>
-    </div>
-
-    <!-- Gentle Anti-Adblock Floating Toast -->
-    <div class="gentle-adblock-toast" id="gentleAdblockToast" style="display: none;">
-        <button class="adblock-toast-close" id="btnCloseAdblockToast" title="Close" aria-label="Close">
-            <i data-lucide="x"></i>
-        </button>
-        <div class="adblock-toast-badge">
-            <i data-lucide="shield-check"></i>
-            <span id="lblToastBadge">SUPPORT BLACKLISTSCRIPT</span>
         </div>
-        <h4 id="lblToastTitle">ช่วยสนับสนุนด้วยการปิด AdBlock ❤️</h4>
-        <p id="lblToastDesc">
-            หรือ <strong>เข้าสู่ระบบด้วย Discord (ฟรี)</strong> เพื่อปลดล็อคการใช้งานแบบไร้โฆษณา 100% ตลอดชีพ!
-        </p>
-        <div class="adblock-toast-btns">
-            <a href="/api/discord-auth?action=login" class="adblock-btn-dc" id="btnToastDiscord">
-                <i data-lucide="sparkles"></i>
-                <span id="lblToastBtnDc">เข้าสู่ระบบ Discord (ไร้โฆษณา)</span>
-            </a>
-            <button class="adblock-btn-dismiss" id="btnDismissAdblockToast">
-                <span id="lblToastBtnDismiss">เข้าใจแล้ว / ปิด</span>
+
+        <!-- Gentle Anti-Adblock Floating Toast -->
+        <div class="gentle-adblock-toast" id="gentleAdblockToast" style="display: none;">
+            <button class="adblock-toast-close" id="btnCloseAdblockToast" title="Close" aria-label="Close">
+                <i data-lucide="x"></i>
             </button>
+            <div class="adblock-toast-badge">
+                <i data-lucide="shield-check"></i>
+                <span id="lblToastBadge">SUPPORT BLACKLISTSCRIPT</span>
+            </div>
+            <h4 id="lblToastTitle">ช่วยสนับสนุนด้วยการปิด AdBlock ❤️</h4>
+            <p id="lblToastDesc">
+                หรือ <strong>เข้าสู่ระบบด้วย Discord (ฟรี)</strong> เพื่อปลดล็อคการใช้งานแบบไร้โฆษณา 100% ตลอดชีพ!
+            </p>
+            <div class="adblock-toast-btns">
+                <a href="/api/discord-auth?action=login" class="adblock-btn-dc" id="btnToastDiscord">
+                    <i data-lucide="sparkles"></i>
+                    <span id="lblToastBtnDc">เข้าสู่ระบบ Discord (ไร้โฆษณา)</span>
+                </a>
+                <button class="adblock-btn-dismiss" id="btnDismissAdblockToast">
+                    <span id="lblToastBtnDismiss">เข้าใจแล้ว / ปิด</span>
+                </button>
+            </div>
         </div>
-    </div>
 
-    <!-- Mobile Bottom Navigation Bar -->
-    <nav class="mobile-bottom-nav" id="mobileBottomNav">
-        <button class="bottom-nav-item active" data-nav="home">
-            <i data-lucide="home"></i>
-            <span id="lblMobileNavHome">Home</span>
-        </button>
-        <button class="bottom-nav-item" data-nav="feed" data-filter="all">
-            <i data-lucide="folder"></i>
-            <span id="lblMobileNavScripts">Scripts</span>
-        </button>
-        <button class="bottom-nav-item" data-nav="exploits">
-            <i data-lucide="cpu"></i>
-            <span id="lblMobileNavExploits">Executors</span>
-        </button>
-        <button class="bottom-nav-item" id="bottomNavMenuBtn">
-            <i data-lucide="grid"></i>
-            <span id="lblMobileNavCats">Categories</span>
-        </button>
-    </nav>
+        <!-- Mobile Bottom Navigation Bar -->
+        <nav class="mobile-bottom-nav" id="mobileBottomNav">
+            <button class="bottom-nav-item active" data-nav="home">
+                <i data-lucide="home"></i>
+                <span id="lblMobileNavHome">Home</span>
+            </button>
+            <button class="bottom-nav-item" data-nav="feed" data-filter="all">
+                <i data-lucide="folder"></i>
+                <span id="lblMobileNavScripts">Scripts</span>
+            </button>
+            <button class="bottom-nav-item" data-nav="exploits">
+                <i data-lucide="cpu"></i>
+                <span id="lblMobileNavExploits">Executors</span>
+            </button>
+            <button class="bottom-nav-item" id="bottomNavMenuBtn">
+                <i data-lucide="grid"></i>
+                <span id="lblMobileNavCats">Categories</span>
+            </button>
+        </nav>
 
-    <!-- Firebase Cloud Firestore SDK (Compat) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+        <!-- Firebase Cloud Firestore SDK (Compat) -->
+        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-    <!-- Scripts with Cache-Busting Version -->
-    <script src="js/lucide.min.js"></script>
-    <script src="js/config.js?v=20261002_shrinkme_v4"></script>
-    <script src="js/firebase-db.js?v=20261002_shrinkme_v4"></script>
-    <script src="js/scripts-data.js?v=20261002_shrinkme_v4"></script>
-    <script src="js/app.js?v=20261002_shrinkme_v4"></script>
+        <!-- Scripts with Cache-Busting Version -->
+        <script src="js/lucide.min.js"></script>
+        <script src="js/config.js?v=20261002_shrinkme_v4"></script>
+        <script src="js/firebase-db.js?v=20261002_shrinkme_v4"></script>
+        <script src="js/scripts-data.js?v=20261002_shrinkme_v4"></script>
+        <script src="js/app.js?v=20261002_shrinkme_v4"></script>
 
-    <!-- In-App Browser Notice Logic -->
-    <script>
-        (function () {
-            try {
-                var ua = navigator.userAgent || '';
-                var isIos = /iPhone|iPad|iPod/i.test(ua);
-                var isIab = /FBAN|FBAV|Messenger|Line|Instagram/i.test(ua);
-                if (isIos && isIab && !sessionStorage.getItem('blacklist_iab_closed')) {
-                    var bar = document.getElementById('iabNoticeBar');
-                    if (bar) {
-                        bar.style.display = 'flex';
-                        if (window.lucide && typeof window.lucide.createIcons === 'function') {
-                            window.lucide.createIcons();
+        <!-- In-App Browser Notice Logic -->
+        <script>
+            (function () {
+                try {
+                    var ua = navigator.userAgent || '';
+                    var isIos = /iPhone|iPad|iPod/i.test(ua);
+                    var isIab = /FBAN|FBAV|Messenger|Line|Instagram/i.test(ua);
+                    if (isIos && isIab && !sessionStorage.getItem('blacklist_iab_closed')) {
+                        var bar = document.getElementById('iabNoticeBar');
+                        if (bar) {
+                            bar.style.display = 'flex';
+                            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                                window.lucide.createIcons();
+                            }
+                        }
+                        var btn = document.getElementById('iabCloseBtn');
+                        if (btn) {
+                            btn.addEventListener('click', function () {
+                                if (bar) bar.style.display = 'none';
+                                sessionStorage.setItem('blacklist_iab_closed', '1');
+                            });
                         }
                     }
-                    var btn = document.getElementById('iabCloseBtn');
-                    if (btn) {
-                        btn.addEventListener('click', function () {
-                            if (bar) bar.style.display = 'none';
-                            sessionStorage.setItem('blacklist_iab_closed', '1');
-                        });
-                    }
-                }
-            } catch (e) { }
-        })();
-    </script>
+                } catch (e) { }
+            })();
+        </script>
 </body>
 
 </html>

@@ -737,22 +737,22 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
 
         const title = document.getElementById("sTitle").value.trim();
-        const titleEn = document.getElementById("sTitleEn") ? document.getElementById("sTitleEn").value.trim() : "";
+        const titleEn = document.getElementById("sTitleEn") ? document.getElementById("sTitleEn").value.trim() : title;
         const game = document.getElementById("sGame").value.trim();
-        let category = document.getElementById("sCategory").value.trim().toLowerCase();
+        let category = document.getElementById("sCategory") ? document.getElementById("sCategory").value.trim().toLowerCase() : "";
         if (!category) {
             category = game.toLowerCase().replace(/[^a-z0-9]/g, "") || "all";
         }
-        const version = document.getElementById("sVersion").value.trim() || "v1.0";
-        const desc = document.getElementById("sDesc").value.trim() || "สคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี";
+        const version = (document.getElementById("sVersion") && document.getElementById("sVersion").value.trim()) || "v1.0";
+        const desc = (document.getElementById("sDesc") && document.getElementById("sDesc").value.trim()) || `สคริปต์ ${game} อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี`;
         const descEn = document.getElementById("sDescEn") ? document.getElementById("sDescEn").value.trim() : "";
-        const thumb = document.getElementById("sThumb").value.trim() || "Logo.ico";
-        const thumbEn = document.getElementById("sThumbEn") ? document.getElementById("sThumbEn").value.trim() : "";
-        const code = document.getElementById("sCode").value.trim();
+        const thumb = (document.getElementById("sThumb") && document.getElementById("sThumb").value.trim()) || "Logo.ico";
+        const thumbEn = document.getElementById("sThumbEn") ? document.getElementById("sThumbEn").value.trim() : thumb;
+        const code = document.getElementById("sCode") ? document.getElementById("sCode").value.trim() : "";
 
-        const isKeyless = document.getElementById("sKeyless").checked;
-        const isMobile = document.getElementById("sMobile").checked;
-        const isPC = document.getElementById("sPC").checked;
+        const isKeyless = document.getElementById("sKeyless") ? document.getElementById("sKeyless").checked : true;
+        const isMobile = document.getElementById("sMobile") ? document.getElementById("sMobile").checked : true;
+        const isPC = document.getElementById("sPC") ? document.getElementById("sPC").checked : true;
 
         const sViewsInput = document.getElementById("sViews");
         const sLikesInput = document.getElementById("sLikes");
@@ -1058,15 +1058,15 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!category) {
                 category = game.toLowerCase().replace(/[^a-z0-9]/g, "") || "all";
             }
-            const version = document.getElementById("editVersion").value.trim() || "v1.0";
-            const description = document.getElementById("editDesc").value.trim() || `สคริปต์ ${game} อัปเดตล่าสุด ฟังก์ชันครบ ใช้งานง่าย ปลอดภัย`;
-            const descriptionEn = document.getElementById("editDescEn") ? document.getElementById("editDescEn").value.trim() : "";
-            const thumbnail = document.getElementById("editThumb").value.trim() || scripts[index].thumbnail || "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80";
-            const thumbnailEn = document.getElementById("editThumbEn") ? document.getElementById("editThumbEn").value.trim() : "";
-            const loadstring = document.getElementById("editCode").value.trim();
-            const isKeyless = document.getElementById("editKeyless") ? document.getElementById("editKeyless").checked : true;
-            const isMobile = document.getElementById("editMobile") ? document.getElementById("editMobile").checked : true;
-            const isPC = document.getElementById("editPC") ? document.getElementById("editPC").checked : true;
+            const version = (document.getElementById("editVersion") && document.getElementById("editVersion").value.trim()) || scripts[index].version || "v1.0";
+            const description = (document.getElementById("editDesc") && document.getElementById("editDesc").value.trim()) || scripts[index].description || `สคริปต์ ${game} อัปเดตล่าสุด ฟังก์ชันครบ ใช้งานง่าย ปลอดภัย`;
+            const descriptionEn = document.getElementById("editDescEn") ? document.getElementById("editDescEn").value.trim() : (scripts[index].description_en || "");
+            const thumbnail = (document.getElementById("editThumb") && document.getElementById("editThumb").value.trim()) || scripts[index].thumbnail || "Logo.ico";
+            const thumbnailEn = document.getElementById("editThumbEn") ? document.getElementById("editThumbEn").value.trim() : (scripts[index].thumbnail_en || thumbnail);
+            const loadstring = document.getElementById("editCode") ? document.getElementById("editCode").value.trim() : (scripts[index].loadstring || "");
+            const isKeyless = document.getElementById("editKeyless") ? document.getElementById("editKeyless").checked : (scripts[index].isKeyless !== false);
+            const isMobile = document.getElementById("editMobile") ? document.getElementById("editMobile").checked : (scripts[index].isMobile !== false);
+            const isPC = document.getElementById("editPC") ? document.getElementById("editPC").checked : (scripts[index].isPC !== false);
 
             const editViews = document.getElementById("editViews");
             const editLikes = document.getElementById("editLikes");

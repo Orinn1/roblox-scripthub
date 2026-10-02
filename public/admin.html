@@ -676,53 +676,23 @@
 
                 <div class="form-grid">
                     <div>
-                        <label class="form-label">ชื่อสคริปต์ (ภาษาไทย) *</label>
-                        <input type="text" id="sTitle" class="form-control" placeholder="เช่น Blox Fruits แจกสคริปต์ฟาร์มออโต้" required>
-                    </div>
-
-                    <div>
-                        <label class="form-label">ชื่อสคริปต์ภาษาอังกฤษ (English Title - ปล่อยว่างจะแปลให้อัตโนมัติ)</label>
-                        <input type="text" id="sTitleEn" class="form-control" placeholder="เช่น Blox Fruits Script - Auto Farm & Raid">
-                    </div>
-
-                    <div>
                         <label class="form-label">ชื่อเกม *</label>
                         <input type="text" id="sGame" class="form-control" placeholder="เช่น Blox Fruits" required>
                     </div>
 
                     <div>
+                        <label class="form-label">ชื่อสคริปต์ *</label>
+                        <input type="text" id="sTitle" class="form-control" placeholder="เช่น Blox Fruits แจกสคริปต์ฟาร์มออโต้" required>
+                    </div>
+
+                    <div class="full-width">
                         <label class="form-label">หมวดหมู่ระบบ (ภาษาอังกฤษพิมพ์เล็ก)</label>
                         <input type="text" id="sCategory" class="form-control" placeholder="เช่น bloxfruits (ปล่อยว่างได้ ระบบตั้งให้อัตโนมัติ)">
                     </div>
 
-                    <div>
-                        <label class="form-label">เวอร์ชั่น (Version)</label>
-                        <input type="text" id="sVersion" class="form-control" placeholder="เช่น v1.0" value="v1.0">
-                    </div>
-
-                    <div>
-                        <label class="form-label">ยอดการดูเริ่มต้น (Views)</label>
-                        <input type="number" id="sViews" class="form-control" value="1250" min="0" placeholder="1250">
-                    </div>
-
-                    <div>
-                        <label class="form-label">ยอดถูกใจเริ่มต้น (Likes)</label>
-                        <input type="number" id="sLikes" class="form-control" value="95" min="0" placeholder="95">
-                    </div>
-
-                    <div>
-                        <label class="form-label">คำอธิบายฟังก์ชั่นสคริปต์ (ภาษาไทย)</label>
-                        <input type="text" id="sDesc" class="form-control" placeholder="เช่น ออโต้ฟาร์มเวล ปลอดภัย ปลดล็อคฟรี">
-                    </div>
-
-                    <div>
-                        <label class="form-label">คำอธิบายภาษาอังกฤษ (English Description - ปล่อยว่างได้)</label>
-                        <input type="text" id="sDescEn" class="form-control" placeholder="เช่น Latest updated script, 100% safe & verified.">
-                    </div>
-
                     <div class="full-width">
                         <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span>รูปภาพปกสคริปต์หลัก (Cover Image - ปกไทย / ค่าเริ่มต้น)</span>
+                            <span>รูปภาพปกสคริปต์หลัก (Cover Image)</span>
                             <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">เลือกรูปจากเครื่อง หรือ วางลิงก์รูปภาพ</span>
                         </label>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -749,28 +719,8 @@
                     </div>
 
                     <div class="full-width">
-                        <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span>รูปภาพปกภาษาอังกฤษ (English Cover URL - 🇺🇸 สำหรับผู้ชมต่างชาติ)</span>
-                            <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">ไม่บังคับ (ถ้าไม่ใส่จะใช้รูปปกหลักด้านบน)</span>
-                        </label>
-                        <input type="text" id="sThumbEn" class="form-control" placeholder="วางลิงก์รูปภาพปกภาษาอังกฤษ เช่น https://... (ปล่อยว่างจะใช้รูปปกหลัก)">
-                    </div>
-
-                    <div class="full-width">
                         <label class="form-label">โค้ดสคริปต์ Lua (Loadstring) *</label>
-                        <textarea id="sCode" class="form-control" style="height: 110px; font-family: monospace;" placeholder='loadstring(game:HttpGet("https://raw.githubusercontent.com/..."))()' required></textarea>
-                    </div>
-
-                    <div class="full-width checkbox-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="sKeyless" checked> ไร้คีย์ (Keyless ไม่ต้องใส่คีย์)
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="sMobile" checked> รองรับมือถือ (Delta / Codex / Hydrogen)
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="sPC" checked> รองรับ PC
-                        </label>
+                        <textarea id="sCode" class="form-control" style="height: 120px; font-family: monospace;" placeholder='loadstring(game:HttpGet("https://raw.githubusercontent.com/..."))()' required></textarea>
                     </div>
                 </div>
 
@@ -1231,53 +1181,23 @@
 
                 <div class="form-grid">
                     <div>
-                        <label class="form-label">ชื่อสคริปต์ (ภาษาไทย) *</label>
-                        <input type="text" id="editTitle" class="form-control" required>
-                    </div>
-
-                    <div>
-                        <label class="form-label">ชื่อสคริปต์ภาษาอังกฤษ (English Title - ปล่อยว่างจะแปลให้อัตโนมัติ)</label>
-                        <input type="text" id="editTitleEn" class="form-control" placeholder="เช่น Blox Fruits Script - Auto Farm">
-                    </div>
-
-                    <div>
                         <label class="form-label">ชื่อเกม *</label>
                         <input type="text" id="editGame" class="form-control" required>
                     </div>
 
                     <div>
+                        <label class="form-label">ชื่อสคริปต์ *</label>
+                        <input type="text" id="editTitle" class="form-control" required>
+                    </div>
+
+                    <div class="full-width">
                         <label class="form-label">หมวดหมู่ระบบ (ภาษาอังกฤษ)</label>
                         <input type="text" id="editCategory" class="form-control">
                     </div>
 
-                    <div>
-                        <label class="form-label">เวอร์ชั่น (Version)</label>
-                        <input type="text" id="editVersion" class="form-control" value="v1.0">
-                    </div>
-
-                    <div>
-                        <label class="form-label">ยอดการดู (Views)</label>
-                        <input type="number" id="editViews" class="form-control" min="0" placeholder="0">
-                    </div>
-
-                    <div>
-                        <label class="form-label">ยอดถูกใจ (Likes)</label>
-                        <input type="number" id="editLikes" class="form-control" min="0" placeholder="0">
-                    </div>
-
-                    <div>
-                        <label class="form-label">คำอธิบายฟังก์ชั่นสคริปต์ (ภาษาไทย)</label>
-                        <input type="text" id="editDesc" class="form-control">
-                    </div>
-
-                    <div class="full-width">
-                        <label class="form-label">คำอธิบายภาษาอังกฤษ (English Description - ปล่อยว่างได้)</label>
-                        <input type="text" id="editDescEn" class="form-control" placeholder="เช่น Latest updated script, 100% safe & verified.">
-                    </div>
-
                     <div class="full-width">
                         <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span>รูปภาพปกสคริปต์หลัก (Cover Image - ปกไทย / ค่าเริ่มต้น)</span>
+                            <span>รูปภาพปกสคริปต์หลัก (Cover Image)</span>
                             <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">เลือกรูปจากเครื่อง หรือ วางลิงก์รูปภาพ</span>
                         </label>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -1304,28 +1224,8 @@
                     </div>
 
                     <div class="full-width">
-                        <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span>รูปภาพปกภาษาอังกฤษ (English Cover URL - 🇺🇸 สำหรับผู้ชมต่างชาติ)</span>
-                            <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">ไม่บังคับ (ถ้าไม่ใส่จะใช้รูปปกหลักด้านบน)</span>
-                        </label>
-                        <input type="text" id="editThumbEn" class="form-control" placeholder="วางลิงก์รูปภาพปกภาษาอังกฤษ เช่น https://... (ปล่อยว่างจะใช้รูปปกหลัก)">
-                    </div>
-
-                    <div class="full-width">
                         <label class="form-label">โค้ดสคริปต์ Lua (Loadstring) *</label>
                         <textarea id="editCode" class="form-control" style="height: 120px; font-family: monospace;" required></textarea>
-                    </div>
-
-                    <div class="full-width checkbox-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="editKeyless"> ไร้คีย์ (Keyless ไม่ต้องใส่คีย์)
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="editMobile"> รองรับมือถือ
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="editPC"> รองรับ PC
-                        </label>
                     </div>
                 </div>
 
