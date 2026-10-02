@@ -135,15 +135,18 @@
                     if (docSnap.exists) {
                         const data = docSnap.data();
                         let result = null;
-                        if (data.scripts) {
-                            result = data.scripts;
-                        } else if (typeof data.scriptsJson === "string") {
+                        if (typeof data.scriptsJson === "string") {
                             try { result = JSON.parse(data.scriptsJson); } catch (e) {}
+                        }
+                        if (!result && data.scripts) {
+                            result = data.scripts;
                         }
                         const clean = normalizeScriptsList(result);
                         if (clean !== null) {
-                            localStorage.setItem(cacheKey, JSON.stringify(clean));
-                            sessionStorage.setItem(timeKey, Date.now().toString());
+                            try {
+                                localStorage.setItem(cacheKey, JSON.stringify(clean));
+                                sessionStorage.setItem(timeKey, Date.now().toString());
+                            } catch (e) {}
                             console.log(`[Firebase] [${col}] Successfully loaded scripts via SDK. Total:`, clean.length);
                             return clean;
                         }
@@ -224,22 +227,31 @@
             const timeKey = getScriptsTimeKey();
             const col = getHubCollectionName();
 
-            // อัปเดตแคชในเครื่องทันที
-            localStorage.setItem(cacheKey, JSON.stringify(cleanSanitized));
-            sessionStorage.setItem(timeKey, Date.now().toString());
+            // อัปเดตแคชในเครื่องทันที (พร้อมป้องกัน QuotaExceededError)
+            try {
+                localStorage.setItem(cacheKey, JSON.stringify(cleanSanitized));
+                sessionStorage.setItem(timeKey, Date.now().toString());
+            } catch (storageErr) {
+                console.warn("[Firebase] LocalStorage cache quota notice:", storageErr);
+            }
+
+            const serialized = JSON.stringify(cleanSanitized);
+            const approxBytes = serialized.length;
+            if (approxBytes > 850000) {
+                console.warn(`[Firebase] [${col}] PAYLOAD WARNING: Size is ${Math.round(approxBytes / 1024)} KB (Firestore limit is 1,024 KB). Consider using external image URLs instead of uploaded images.`);
+            }
 
             let savedSuccessfully = false;
 
-            // 1. บันทึกผ่าน Firebase SDK
+            // 1. บันทึกผ่าน Firebase SDK (เก็บเฉพาะ scriptsJson เพื่อประหยัดพื้นที่ 50% ป้องกันชนเพดาน 1MB)
             const db = getFirestore();
             if (db) {
                 try {
                     await db.collection(col).doc("database").set({
-                        scripts: cleanSanitized,
-                        scriptsJson: JSON.stringify(cleanSanitized),
+                        scriptsJson: serialized,
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
-                    console.log(`[Firebase] [${col}] Successfully saved scripts via SDK`);
+                    console.log(`[Firebase] [${col}] Successfully saved scripts via SDK (${cleanSanitized.length} items, ${Math.round(approxBytes / 1024)} KB)`);
                     savedSuccessfully = true;
                 } catch (sdkErr) {
                     console.warn(`[Firebase] [${col}] SDK save warning, trying REST API:`, sdkErr);

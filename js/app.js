@@ -66,6 +66,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Feeds & Grids
     const scriptsFeed = document.getElementById("scriptsFeed");
+    const feedLoadMoreContainer = document.getElementById("feedLoadMoreContainer");
+    const btnFeedLoadMore = document.getElementById("btnFeedLoadMore");
+    const lblFeedLoadMore = document.getElementById("lblFeedLoadMore");
+    let feedPageLimit = 24;
     const homeRecentScripts = document.getElementById("homeRecentScripts");
     const homeExecutorsGrid = document.getElementById("homeExecutorsGrid");
     const exploitsGrid = document.getElementById("exploitsGrid");
@@ -2355,9 +2359,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     const isFromApi = scpRes.url && scpRes.url.includes('/api/scripts');
                     if (isFromApi || !scripts || scripts.length === 0) {
                         scripts = scp;
-                        localStorage.setItem(currentScriptsKey, JSON.stringify(scripts));
+                        try {
+                            localStorage.setItem(currentScriptsKey, JSON.stringify(scripts));
+                        } catch (storageErr) {
+                            console.warn("LocalStorage cache quota reached in syncDataFromServer:", storageErr);
+                        }
                         renderHomeRecent();
-                        if (currentView === "feed") renderFeed();
+                        if (currentView === "feed") renderFeed(true);
                         updateCategoryBadges();
                     }
                 }
@@ -2414,7 +2422,7 @@ document.addEventListener("DOMContentLoaded", () => {
             homeView.style.display = "none";
             feedView.style.display = "block";
             if (exploitsView) exploitsView.style.display = "none";
-            renderFeed();
+            renderFeed(true);
         }
 
         if (mobileBottomNav) {
@@ -2662,7 +2670,11 @@ document.addEventListener("DOMContentLoaded", () => {
         refreshIcons();
     }
 
-    function renderFeed() {
+    function renderFeed(resetLimit = false) {
+        if (resetLimit) {
+            feedPageLimit = 24;
+        }
+
         const filtered = scripts.filter(item => {
             if (activeGame) {
                 const target = activeGame.toLowerCase().trim();
@@ -2691,11 +2703,34 @@ document.addEventListener("DOMContentLoaded", () => {
                     ${t.noScriptsFound}
                 </div>
             `;
+            if (feedLoadMoreContainer) feedLoadMoreContainer.style.display = "none";
             return;
         }
 
-        scriptsFeed.innerHTML = filtered.map(createScriptRow).join("");
+        const visible = filtered.slice(0, feedPageLimit);
+        scriptsFeed.innerHTML = visible.map(createScriptRow).join("");
+
+        if (feedLoadMoreContainer) {
+            if (filtered.length > feedPageLimit) {
+                feedLoadMoreContainer.style.display = "block";
+                if (lblFeedLoadMore) {
+                    lblFeedLoadMore.textContent = currentLang === 'th'
+                        ? `โหลดสคริปต์เพิ่มเติม (แสดง ${visible.length} จาก ${filtered.length})`
+                        : `Load More Scripts (${visible.length} of ${filtered.length})`;
+                }
+            } else {
+                feedLoadMoreContainer.style.display = "none";
+            }
+        }
+
         refreshIcons();
+    }
+
+    if (btnFeedLoadMore) {
+        btnFeedLoadMore.addEventListener("click", () => {
+            feedPageLimit += 24;
+            renderFeed(false);
+        });
     }
 
     // =========================================================================
@@ -3712,20 +3747,24 @@ document.addEventListener("DOMContentLoaded", () => {
             filterChips.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
             chip.classList.add("active");
             activeFilter = chip.dataset.tag;
-            renderFeed();
+            renderFeed(true);
         });
     }
 
-    // Global Search
+    // Global Search (Debounced 180ms เพื่อความลื่นไหลเมื่อมีสคริปต์เยอะ)
+    let searchDebounceTimer = null;
     globalSearch.addEventListener("input", (e) => {
-        searchQuery = e.target.value.trim();
-        if (currentView === "home" && searchQuery) {
-            switchView("feed");
-        } else if (currentView === "exploits") {
-            renderExploits();
-        } else if (currentView === "feed") {
-            renderFeed();
-        }
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => {
+            searchQuery = e.target.value.trim();
+            if (currentView === "home" && searchQuery) {
+                switchView("feed");
+            } else if (currentView === "exploits") {
+                renderExploits();
+            } else if (currentView === "feed") {
+                renderFeed(true);
+            }
+        }, 180);
     });
 
     function showToast(msg) {

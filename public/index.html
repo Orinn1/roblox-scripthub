@@ -385,6 +385,14 @@
                     <div class="scripts-feed" id="scriptsFeed">
                         <!-- Loaded from JS -->
                     </div>
+
+                    <!-- ปุ่มโหลดเพิ่มเติมเมื่อมีสคริปต์จำนวนมาก เพื่อความลื่นไหลของหน้าเว็บ -->
+                    <div id="feedLoadMoreContainer" style="display: none; text-align: center; margin: 24px 0 32px 0;">
+                        <button type="button" id="btnFeedLoadMore" class="btn-secondary" style="padding: 10px 28px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px;">
+                            <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
+                            <span id="lblFeedLoadMore">โหลดสคริปต์เพิ่มเติม</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- =======================================================

@@ -63,6 +63,9 @@ function saveScriptsData(scripts) {
                 delete s.likes;
             }
         });
+    try {
+        localStorage.setItem(key, JSON.stringify(scripts));
+    } catch (e) {
+        console.warn("[Storage] LocalStorage quota reached while caching scripts:", e);
     }
-    localStorage.setItem(key, JSON.stringify(scripts));
 }

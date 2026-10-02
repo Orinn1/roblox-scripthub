@@ -643,6 +643,19 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- ตัวแบ่งหน้าตารางสคริปต์ (Pagination Controls เพื่อรองรับสคริปต์จำนวนมาก) -->
+            <div id="adminPagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 8px;">
+                <span id="lblAdminPageInfo" style="font-size: 13px; color: var(--text-muted);">หน้า 1 / 1</span>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" id="btnAdminPrevPage" class="btn-secondary" style="padding: 6px 14px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" disabled>
+                        <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i> <span>ก่อนหน้า</span>
+                    </button>
+                    <button type="button" id="btnAdminNextPage" class="btn-secondary" style="padding: 6px 14px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" disabled>
+                        <span>ถัดไป</span> <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- TAB 3: เพิ่มสคริปต์ใหม่ -->
@@ -695,6 +708,9 @@
                             <span>รูปภาพปกสคริปต์หลัก (Cover Image)</span>
                             <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">เลือกรูปจากเครื่อง หรือ วางลิงก์รูปภาพ</span>
                         </label>
+                        <div style="font-size: 11px; color: #38bdf8; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); padding: 6px 10px; border-radius: 6px; margin-bottom: 8px;">
+                            💡 <strong>ทิปสำหรับลงสคริปต์เยอะๆ:</strong> แนะนำให้วางเป็นลิงก์ URL รูปภาพออนไลน์ (เช่น PostImages, Imgur, Discord) แทนการอัปโหลดไฟล์ตรง จะทำให้ประหยัดพื้นที่ฐานข้อมูล และเพิ่มสคริปต์ได้ไม่จำกัด
+                        </div>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
                             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                                 <label class="btn-file-upload">

@@ -50,6 +50,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const selectAllCheckbox = document.getElementById("selectAllCheckbox");
     const btnDeleteSelected = document.getElementById("btnDeleteSelected");
     const selectedCount = document.getElementById("selectedCount");
+    const lblAdminPageInfo = document.getElementById("lblAdminPageInfo");
+    const btnAdminPrevPage = document.getElementById("btnAdminPrevPage");
+    const btnAdminNextPage = document.getElementById("btnAdminNextPage");
+    let adminCurrentPage = 1;
+    const ADMIN_PAGE_SIZE = 25;
 
     // Database Tools Elements
     const dbStatTotal = document.getElementById("dbStatTotal");
@@ -433,20 +438,30 @@ document.addEventListener("DOMContentLoaded", () => {
                    (s.category && s.category.toLowerCase().includes(q));
         });
 
+        const totalPages = Math.max(1, Math.ceil(filtered.length / ADMIN_PAGE_SIZE));
+        if (adminCurrentPage > totalPages) adminCurrentPage = totalPages;
+        if (adminCurrentPage < 1) adminCurrentPage = 1;
+
         if (filtered.length === 0) {
             scriptsTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:24px; color: var(--text-muted);">ไม่พบสคริปต์ในฐานข้อมูล</td></tr>`;
+            if (lblAdminPageInfo) lblAdminPageInfo.textContent = `หน้า 1 / 1 (0 รายการ)`;
+            if (btnAdminPrevPage) btnAdminPrevPage.disabled = true;
+            if (btnAdminNextPage) btnAdminNextPage.disabled = true;
             updateSelectedUI();
             return;
         }
 
-        scriptsTableBody.innerHTML = filtered.map((s) => {
+        const startIndex = (adminCurrentPage - 1) * ADMIN_PAGE_SIZE;
+        const pageItems = filtered.slice(startIndex, startIndex + ADMIN_PAGE_SIZE);
+
+        scriptsTableBody.innerHTML = pageItems.map((s) => {
             const isChecked = selectedIds.has(s.id);
             return `
                 <tr>
                     <td style="text-align: center;">
                         <input type="checkbox" class="script-check" data-id="${escapeHtml(s.id)}" ${isChecked ? 'checked' : ''} style="cursor: pointer;">
                     </td>
-                    <td><img src="${escapeHtml(s.thumbnail)}" alt="Thumb" style="width:40px; height:40px; border-radius:6px; object-fit:cover;"></td>
+                    <td><img src="${escapeHtml(s.thumbnail)}" alt="Thumb" style="width:40px; height:40px; border-radius:6px; object-fit:cover;" onerror="this.src='https://placehold.co/80x80/1a1a24/ffffff?text=No+Img'"></td>
                     <td style="color:#fff; font-weight:600;">${escapeHtml(s.game)}</td>
                     <td style="color:var(--text-primary); font-weight:500;">
                         ${escapeHtml(s.title)}
@@ -472,6 +487,17 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
         }).join("");
 
+        // Update pagination UI
+        if (lblAdminPageInfo) {
+            lblAdminPageInfo.textContent = `หน้า ${adminCurrentPage} / ${totalPages} (แสดง ${pageItems.length} จาก ${filtered.length} รายการ)`;
+        }
+        if (btnAdminPrevPage) {
+            btnAdminPrevPage.disabled = adminCurrentPage <= 1;
+        }
+        if (btnAdminNextPage) {
+            btnAdminNextPage.disabled = adminCurrentPage >= totalPages;
+        }
+
         // Attach checkbox event listeners
         scriptsTableBody.querySelectorAll(".script-check").forEach(cb => {
             cb.addEventListener("change", (e) => {
@@ -489,8 +515,27 @@ document.addEventListener("DOMContentLoaded", () => {
         refreshIcons();
     }
 
+    if (btnAdminPrevPage) {
+        btnAdminPrevPage.addEventListener("click", () => {
+            if (adminCurrentPage > 1) {
+                adminCurrentPage--;
+                renderTable();
+            }
+        });
+    }
+
+    if (btnAdminNextPage) {
+        btnAdminNextPage.addEventListener("click", () => {
+            adminCurrentPage++;
+            renderTable();
+        });
+    }
+
     if (searchManageScripts) {
-        searchManageScripts.addEventListener("input", renderTable);
+        searchManageScripts.addEventListener("input", () => {
+            adminCurrentPage = 1;
+            renderTable();
+        });
     }
 
     // Select All Checkbox
@@ -553,8 +598,8 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.onload = function(e) {
             const img = new Image();
             img.onload = function() {
-                // ปรับขนาดรูปไม่ให้ใหญ่เกิน 400px และบีบอัดให้เหมาะสมกับการ์ดหน้าเว็บ เพื่อไม่ให้เอกสาร Firestore เต็ม (จำกัด 1MB)
-                let maxDim = 400;
+                // ปรับขนาดรูปไม่ให้เกิน 240px และบีบอัดให้อยู่ในขนาด ~5-8 KB เพื่อไม่ให้ฐานข้อมูล Firestore เต็มเร็ว
+                let maxDim = 240;
                 let w = img.width;
                 let h = img.height;
 
@@ -574,19 +619,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 const ctx = canvas.getContext("2d");
                 ctx.drawImage(img, 0, 0, w, h);
 
-                // บีบอัดเป็น WebP คุณภาพ 0.65 (ถ้าเบราว์เซอร์ไม่รองรับจะ fallback เป็น JPEG)
-                let dataUrl = canvas.toDataURL("image/webp", 0.65);
+                // บีบอัดเป็น WebP คุณภาพ 0.55 (ถ้าเบราว์เซอร์ไม่รองรับจะ fallback เป็น JPEG)
+                let dataUrl = canvas.toDataURL("image/webp", 0.55);
                 if (!dataUrl.startsWith("data:image/webp")) {
-                    dataUrl = canvas.toDataURL("image/jpeg", 0.65);
+                    dataUrl = canvas.toDataURL("image/jpeg", 0.55);
                 }
 
-                // หากยังใหญ่เกิน 40KB ให้ย่อลงอีกรอบ
-                if (dataUrl.length > 50000) {
+                // หากยังใหญ่เกิน 15KB ให้ย่อลงอีกรอบ
+                if (dataUrl.length > 20000) {
                     const c2 = document.createElement("canvas");
                     c2.width = Math.round(w * 0.75);
                     c2.height = Math.round(h * 0.75);
                     c2.getContext("2d").drawImage(canvas, 0, 0, c2.width, c2.height);
-                    dataUrl = c2.toDataURL("image/webp", 0.60);
+                    dataUrl = c2.toDataURL("image/webp", 0.45);
                 }
 
                 const approxSizeKb = (dataUrl.length * 0.75 / 1024).toFixed(1);
@@ -1175,9 +1220,29 @@ document.addEventListener("DOMContentLoaded", () => {
                 const data = await res.json();
                 if (dbStatTotal) dbStatTotal.textContent = `${data.totalScripts} รายการ`;
                 if (dbStatSize) dbStatSize.textContent = data.sizeFormatted || "-";
+                return;
             }
-        } catch (e) {
-            if (dbStatTotal) dbStatTotal.textContent = `${scripts.length} รายการ`;
+        } catch (e) {}
+
+        // Fallback: คำนวณขนาดจริงของข้อมูลสคริปต์เทียบกับโควต้า 1MB ของ Firestore
+        const serialized = JSON.stringify(scripts || []);
+        const sizeBytes = new Blob([serialized]).size;
+        const sizeKb = (sizeBytes / 1024).toFixed(1);
+        const pct = Math.min(100, Math.round((sizeBytes / 1048576) * 100));
+
+        if (dbStatTotal) dbStatTotal.textContent = `${scripts.length} รายการ`;
+        if (dbStatSize) {
+            dbStatSize.textContent = `${sizeKb} KB / 1,024 KB (${pct}%)`;
+            if (sizeBytes > 850000) {
+                dbStatSize.style.color = "#ef4444";
+                dbStatSize.title = "คำเตือน: ขนาดใกล้เต็มโควต้า 1MB ของ Firestore แล้ว กรุณาใช้ URL รูปภาพแทนการอัปโหลดไฟล์ตรง";
+            } else if (sizeBytes > 500000) {
+                dbStatSize.style.color = "#f59e0b";
+                dbStatSize.title = "การใช้งานปานกลาง";
+            } else {
+                dbStatSize.style.color = "#10b981";
+                dbStatSize.title = "สถานะปลอดภัย พื้นที่เพียงพอ";
+            }
         }
     }
 
