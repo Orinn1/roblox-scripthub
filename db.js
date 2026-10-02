@@ -222,50 +222,6 @@ const DEFAULT_CONFIG = {
 
 // Seed initial data if empty
 function seedDatabaseIfEmpty() {
-    const countRow = db.prepare("SELECT COUNT(*) AS total FROM scripts").get();
-    if (countRow.total === 0) {
-        console.log("[DB] Seeding default scripts into SQLite database...");
-        // Check if data/scripts.json exists first to preserve user modifications
-        let initialList = DEFAULT_SCRIPTS;
-        const jsonPath = path.join(DATA_DIR, 'scripts.json');
-        if (fs.existsSync(jsonPath)) {
-            try {
-                const parsed = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    initialList = parsed;
-                }
-            } catch (e) {}
-        }
-
-        const insert = db.prepare(`
-            INSERT INTO scripts 
-            (id, title, game, category, version, updated, views, likes, isKeyless, isMobile, isPC, status, badge, thumbnail, description, loadstring, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
-
-        for (const [i, s] of initialList.entries()) {
-            insert.run(
-                s.id || ('script-' + (Date.now() - i * 1000)),
-                s.title || '',
-                s.game || '',
-                s.category || 'all',
-                s.version || 'v1.0',
-                s.updated || 'วันนี้',
-                s.views || 0,
-                s.likes || 0,
-                s.isKeyless ? 1 : 0,
-                s.isMobile ? 1 : 0,
-                s.isPC ? 1 : 0,
-                s.status || 'working',
-                s.badge || '',
-                s.thumbnail || '',
-                s.description || '',
-                s.loadstring || '',
-                Date.now() - i * 1000
-            );
-        }
-    }
-
     // Seed Config if empty
     const cfgCount = db.prepare("SELECT COUNT(*) AS total FROM config").get();
     if (cfgCount.total === 0) {

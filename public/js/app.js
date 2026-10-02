@@ -6,8 +6,17 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Purge corrupted or hacked cache if present
+    // Purge corrupted or hacked cache if present & ensure clean fresh reset
     try {
+        const DB_FRESH_VERSION = "20261003_fresh_v1";
+        if (localStorage.getItem("blacklist_scripts_db_version") !== DB_FRESH_VERSION) {
+            localStorage.removeItem("nova_scripts_db");
+            localStorage.removeItem("nova_scripts_db_global");
+            sessionStorage.removeItem("nova_scripts_cache_time");
+            sessionStorage.removeItem("nova_scripts_cache_time_global");
+            localStorage.setItem("blacklist_scripts_db_version", DB_FRESH_VERSION);
+        }
+
         const checkKeys = ["nova_scripts_db", "nova_scripts_db_global"];
         for (const k of checkKeys) {
             const saved = localStorage.getItem(k);
@@ -871,11 +880,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Helper: Refresh Lucide Icons
     function refreshIcons() {
-        if (window.lucide && window.lucide.icons && !window.lucide.icons.Youtube) {
-            window.lucide.icons.Youtube = [
-                ["path", { "d": "M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" }],
-                ["path", { "d": "m10 15 5-3-5-3z" }]
-            ];
+        if (window.lucide && window.lucide.icons) {
+            if (!window.lucide.icons.Youtube) {
+                window.lucide.icons.Youtube = [
+                    ["path", { "d": "M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" }],
+                    ["path", { "d": "m10 15 5-3-5-3z" }]
+                ];
+            }
+            if (!window.lucide.icons.youtube) {
+                window.lucide.icons.youtube = window.lucide.icons.Youtube;
+            }
         }
         if (window.lucide && typeof lucide.createIcons === "function") {
             lucide.createIcons();
@@ -2293,7 +2307,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         applySiteConfig();
                         checkLootlabsGate();
                     }
-                    if (Array.isArray(fbScripts) && fbScripts.length > 0) {
+                    if (Array.isArray(fbScripts)) {
                         scripts = fbScripts;
                         renderHomeRecent();
                         if (currentView === "feed") renderFeed();

@@ -90,7 +90,7 @@
             const col = getHubCollectionName();
 
             function normalizeScriptsList(raw) {
-                if (!raw) return null;
+                if (raw === null || raw === undefined) return null;
                 let list = null;
                 if (Array.isArray(raw)) {
                     list = raw;
@@ -99,7 +99,7 @@
                     else if (Array.isArray(raw.scripts)) list = raw.scripts;
                     else if (Array.isArray(raw.data)) list = raw.data;
                 }
-                if (Array.isArray(list) && list.length > 0) {
+                if (Array.isArray(list)) {
                     const cleanList = [];
                     list.forEach(s => {
                         if (s && typeof s === "object") {
@@ -109,7 +109,7 @@
                             cleanList.push(copy);
                         }
                     });
-                    return cleanList.length > 0 ? cleanList : null;
+                    return cleanList;
                 }
                 return null;
             }
@@ -118,11 +118,11 @@
             if (!forceRefresh) {
                 const cachedTime = parseInt(sessionStorage.getItem(timeKey) || "0", 10);
                 const hasCache = localStorage.getItem(cacheKey);
-                if (hasCache && (Date.now() - cachedTime < CACHE_DURATION_MS)) {
+                if (hasCache !== null && (Date.now() - cachedTime < CACHE_DURATION_MS)) {
                     try {
                         const parsed = JSON.parse(hasCache);
                         const clean = normalizeScriptsList(parsed);
-                        if (clean) return clean;
+                        if (clean !== null) return clean;
                     } catch (e) {}
                 }
             }
@@ -141,7 +141,7 @@
                             try { result = JSON.parse(data.scriptsJson); } catch (e) {}
                         }
                         const clean = normalizeScriptsList(result);
-                        if (clean) {
+                        if (clean !== null) {
                             localStorage.setItem(cacheKey, JSON.stringify(clean));
                             sessionStorage.setItem(timeKey, Date.now().toString());
                             console.log(`[Firebase] [${col}] Successfully loaded scripts via SDK. Total:`, clean.length);
@@ -166,7 +166,7 @@
                             try { result = JSON.parse(json.fields.scriptsJson.stringValue); } catch (e) {}
                         }
                         const clean = normalizeScriptsList(result);
-                        if (clean) {
+                        if (clean !== null) {
                             localStorage.setItem(cacheKey, JSON.stringify(clean));
                             sessionStorage.setItem(timeKey, Date.now().toString());
                             console.log(`[Firebase] [${col}] Successfully loaded scripts via REST API. Total:`, clean.length);
@@ -180,11 +180,11 @@
 
             // 4. Fallback ไปที่ LocalStorage หรือค่าเริ่มต้น
             const localSaved = localStorage.getItem(cacheKey);
-            if (localSaved) {
+            if (localSaved !== null) {
                 try {
                     const parsed = JSON.parse(localSaved);
                     const clean = normalizeScriptsList(parsed);
-                    if (clean) return clean;
+                    if (clean !== null) return clean;
                 } catch (e) {}
             }
 
@@ -194,7 +194,7 @@
                 if (staticRes && staticRes.ok) {
                     const staticRaw = await staticRes.json();
                     const clean = normalizeScriptsList(staticRaw);
-                    if (clean) {
+                    if (clean !== null) {
                         localStorage.setItem(cacheKey, JSON.stringify(clean));
                         console.log(`[Firebase] [${col}] Fallback to static data/scripts.json. Total:`, clean.length);
                         return clean;
@@ -202,7 +202,7 @@
                 }
             } catch (staticErr) {}
 
-            return (typeof INITIAL_SCRIPTS !== "undefined" && Array.isArray(INITIAL_SCRIPTS) && INITIAL_SCRIPTS.length > 0) ? INITIAL_SCRIPTS : [];
+            return (typeof INITIAL_SCRIPTS !== "undefined" && Array.isArray(INITIAL_SCRIPTS)) ? INITIAL_SCRIPTS : [];
         },
 
         // บันทึกข้อมูลสคริปต์ทั้งหมดขึ้น Firebase Firestore ตาม Collection ประจำโดเมน

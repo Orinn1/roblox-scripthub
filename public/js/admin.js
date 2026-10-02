@@ -5,6 +5,17 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+    try {
+        const DB_FRESH_VERSION = "20261003_fresh_v1";
+        if (localStorage.getItem("blacklist_scripts_db_version") !== DB_FRESH_VERSION) {
+            localStorage.removeItem("nova_scripts_db");
+            localStorage.removeItem("nova_scripts_db_global");
+            sessionStorage.removeItem("nova_scripts_cache_time");
+            sessionStorage.removeItem("nova_scripts_cache_time_global");
+            localStorage.setItem("blacklist_scripts_db_version", DB_FRESH_VERSION);
+        }
+    } catch (e) {}
+
     let scripts = getScriptsData();
     let selectedIds = new Set();
 
@@ -83,11 +94,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const adminToast = document.getElementById("adminToast");
 
     function refreshIcons() {
-        if (window.lucide && window.lucide.icons && !window.lucide.icons.Youtube) {
-            window.lucide.icons.Youtube = [
-                ["path", { "d": "M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" }],
-                ["path", { "d": "m10 15 5-3-5-3z" }]
-            ];
+        if (window.lucide && window.lucide.icons) {
+            if (!window.lucide.icons.Youtube) {
+                window.lucide.icons.Youtube = [
+                    ["path", { "d": "M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" }],
+                    ["path", { "d": "m10 15 5-3-5-3z" }]
+                ];
+            }
+            if (!window.lucide.icons.youtube) {
+                window.lucide.icons.youtube = window.lucide.icons.Youtube;
+            }
         }
         if (window.lucide && typeof lucide.createIcons === "function") {
             lucide.createIcons();
@@ -335,20 +351,7 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const fbScripts = await window.FirebaseDB.getScripts(true);
                 if (Array.isArray(fbScripts)) {
-                    // ระบบ Smart Merge: ป้องกันสคริปต์ที่เพิ่งเพิ่มในเครื่องหายหากยังไม่ขึ้น Cloud
-                    const fbIdSet = new Set(fbScripts.map(s => String(s.id)));
-                    const localOnly = (scripts || []).filter(s => s && s.id && !fbIdSet.has(String(s.id)));
-
-                    if (localOnly.length > 0 && fbScripts.length > 0) {
-                        console.log(`[Admin] Smart Merge: คงสคริปต์ในเครื่องที่เพิ่งเพิ่ม ${localOnly.length} รายการ`);
-                        scripts = [...localOnly, ...fbScripts];
-                        syncToCloudDb(scripts);
-                    } else if (fbScripts.length > 0) {
-                        scripts = fbScripts;
-                    } else if (scripts && scripts.length > 0) {
-                        console.warn("[Admin] Cloud ส่งข้อมูลว่างเปล่ามา จะไม่ลบข้อมูลในเครื่องทิ้ง");
-                        syncToCloudDb(scripts);
-                    }
+                    scripts = fbScripts;
                     saveScriptsData(scripts);
                     selectedIds.clear();
                     updateSelectedUI();
