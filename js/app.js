@@ -2278,10 +2278,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         applySiteConfig();
                         checkLootlabsGate();
                     }
-                    if (Array.isArray(fbScripts)) {
-                        if (fbScripts.length > 0 || !scripts || scripts.length === 0) {
-                            scripts = fbScripts;
-                        }
+                    if (Array.isArray(fbScripts) && fbScripts.length > 0) {
+                        scripts = fbScripts;
                         renderHomeRecent();
                         if (currentView === "feed") renderFeed();
                         updateCategoryBadges();
@@ -2318,20 +2316,22 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (binRes.ok) {
                         const binData = await binRes.json();
                         const remoteScripts = Array.isArray(binData) ? binData : (binData.scripts || []);
-                        scripts = remoteScripts;
-                        localStorage.setItem(CACHE_KEY, JSON.stringify(scripts));
-                        sessionStorage.setItem(TIME_KEY, Date.now().toString());
-                        renderHomeRecent();
-                        if (currentView === "feed") renderFeed();
-                        updateCategoryBadges();
-                        return;
+                        if (Array.isArray(remoteScripts) && remoteScripts.length > 0) {
+                            scripts = remoteScripts;
+                            localStorage.setItem(CACHE_KEY, JSON.stringify(scripts));
+                            sessionStorage.setItem(TIME_KEY, Date.now().toString());
+                            renderHomeRecent();
+                            if (currentView === "feed") renderFeed();
+                            updateCategoryBadges();
+                            return;
+                        }
                     }
                 } catch (cloudErr) {
                     console.warn("Cloud DB fetch notice:", cloudErr);
                 }
             }
 
-            // 2. Fallback to local server / static file
+            // 3. Fallback to local server / static file
             const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
             let [cfgRes, scpRes] = await Promise.all([
                 fetch('/api/config').catch(() => null),
@@ -2346,7 +2346,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 cfgRes = await fetch('data/config.json').catch(() => null);
             }
             if (!scpRes || !scpRes.ok) {
-                if (localStorage.getItem(currentScriptsKey) === null) {
+                if (!scripts || scripts.length === 0 || localStorage.getItem(currentScriptsKey) === null) {
                     scpRes = await fetch('data/scripts.json').catch(() => null);
                 }
             }
@@ -2361,10 +2361,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (scpRes && scpRes.ok) {
-                const scp = await scpRes.json();
-                if (Array.isArray(scp)) {
+                const scpRaw = await scpRes.json();
+                const scp = (Array.isArray(scpRaw)) ? scpRaw : (scpRaw && Array.isArray(scpRaw.value) ? scpRaw.value : (scpRaw && Array.isArray(scpRaw.scripts) ? scpRaw.scripts : []));
+                if (Array.isArray(scp) && scp.length > 0) {
                     const isFromApi = scpRes.url && scpRes.url.includes('/api/scripts');
-                    if (isFromApi || localStorage.getItem(currentScriptsKey) === null) {
+                    if (isFromApi || !scripts || scripts.length === 0) {
                         scripts = scp;
                         localStorage.setItem(currentScriptsKey, JSON.stringify(scripts));
                         renderHomeRecent();

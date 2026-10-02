@@ -85,6 +85,31 @@
             const timeKey = getScriptsTimeKey();
             const col = getHubCollectionName();
 
+            function normalizeScriptsList(raw) {
+                if (!raw) return null;
+                let list = null;
+                if (Array.isArray(raw)) {
+                    list = raw;
+                } else if (typeof raw === "object") {
+                    if (Array.isArray(raw.value)) list = raw.value;
+                    else if (Array.isArray(raw.scripts)) list = raw.scripts;
+                    else if (Array.isArray(raw.data)) list = raw.data;
+                }
+                if (Array.isArray(list) && list.length > 0) {
+                    const cleanList = [];
+                    list.forEach(s => {
+                        if (s && typeof s === "object") {
+                            const copy = { ...s };
+                            delete copy.views;
+                            delete copy.likes;
+                            cleanList.push(copy);
+                        }
+                    });
+                    return cleanList.length > 0 ? cleanList : null;
+                }
+                return null;
+            }
+
             // 1. ตรวจสอบ Smart Cache
             if (!forceRefresh) {
                 const cachedTime = parseInt(sessionStorage.getItem(timeKey) || "0", 10);
@@ -92,10 +117,8 @@
                 if (hasCache && (Date.now() - cachedTime < CACHE_DURATION_MS)) {
                     try {
                         const parsed = JSON.parse(hasCache);
-                        if (Array.isArray(parsed)) {
-                            parsed.forEach(s => { if (s) { delete s.views; delete s.likes; } });
-                            return parsed;
-                        }
+                        const clean = normalizeScriptsList(parsed);
+                        if (clean) return clean;
                     } catch (e) {}
                 }
             }
@@ -108,17 +131,17 @@
                     if (docSnap.exists) {
                         const data = docSnap.data();
                         let result = null;
-                        if (Array.isArray(data.scripts)) {
+                        if (data.scripts) {
                             result = data.scripts;
                         } else if (typeof data.scriptsJson === "string") {
                             try { result = JSON.parse(data.scriptsJson); } catch (e) {}
                         }
-                        if (Array.isArray(result)) {
-                            result.forEach(s => { if (s) { delete s.views; delete s.likes; } });
-                            localStorage.setItem(cacheKey, JSON.stringify(result));
+                        const clean = normalizeScriptsList(result);
+                        if (clean) {
+                            localStorage.setItem(cacheKey, JSON.stringify(clean));
                             sessionStorage.setItem(timeKey, Date.now().toString());
-                            console.log(`[Firebase] [${col}] Successfully loaded scripts via SDK. Total:`, result.length);
-                            return result;
+                            console.log(`[Firebase] [${col}] Successfully loaded scripts via SDK. Total:`, clean.length);
+                            return clean;
                         }
                     }
                 } catch (sdkErr) {
@@ -138,12 +161,12 @@
                         if (json.fields && json.fields.scriptsJson && json.fields.scriptsJson.stringValue) {
                             try { result = JSON.parse(json.fields.scriptsJson.stringValue); } catch (e) {}
                         }
-                        if (Array.isArray(result)) {
-                            result.forEach(s => { if (s) { delete s.views; delete s.likes; } });
-                            localStorage.setItem(cacheKey, JSON.stringify(result));
+                        const clean = normalizeScriptsList(result);
+                        if (clean) {
+                            localStorage.setItem(cacheKey, JSON.stringify(clean));
                             sessionStorage.setItem(timeKey, Date.now().toString());
-                            console.log(`[Firebase] [${col}] Successfully loaded scripts via REST API. Total:`, result.length);
-                            return result;
+                            console.log(`[Firebase] [${col}] Successfully loaded scripts via REST API. Total:`, clean.length);
+                            return clean;
                         }
                     }
                 } catch (restErr) {
@@ -156,14 +179,26 @@
             if (localSaved) {
                 try {
                     const parsed = JSON.parse(localSaved);
-                    if (Array.isArray(parsed)) {
-                        parsed.forEach(s => { if (s) { delete s.views; delete s.likes; } });
-                        return parsed;
-                    }
+                    const clean = normalizeScriptsList(parsed);
+                    if (clean) return clean;
                 } catch (e) {}
             }
 
-            return [];
+            // 5. Fallback ไปที่ static data/scripts.json
+            try {
+                const staticRes = await fetch("data/scripts.json").catch(() => null);
+                if (staticRes && staticRes.ok) {
+                    const staticRaw = await staticRes.json();
+                    const clean = normalizeScriptsList(staticRaw);
+                    if (clean) {
+                        localStorage.setItem(cacheKey, JSON.stringify(clean));
+                        console.log(`[Firebase] [${col}] Fallback to static data/scripts.json. Total:`, clean.length);
+                        return clean;
+                    }
+                }
+            } catch (staticErr) {}
+
+            return (typeof INITIAL_SCRIPTS !== "undefined" && Array.isArray(INITIAL_SCRIPTS) && INITIAL_SCRIPTS.length > 0) ? INITIAL_SCRIPTS : [];
         },
 
         // บันทึกข้อมูลสคริปต์ทั้งหมดขึ้น Firebase Firestore ตาม Collection ประจำโดเมน
