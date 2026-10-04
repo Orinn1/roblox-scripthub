@@ -20,9 +20,10 @@
   "adsterraSmartlinkUrl": "https://omg10.com/4/11911452",
   "executorDirectLinkUrl": "https://omg10.com/4/11919658",
   "lootlabsGate": {
-    "provider": "shrinkme",
+    "provider": "blackpass",
+    "blackpassLockerUrl": "/gateflow/locker.html?slug=hub-access",
     "shrinkmeUrl": "https://shrinkme.click/cBGgRn",
-    "bypassMessage": "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+    "bypassMessage": "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
   },
   "firebaseConfig": {
     "apiKey": "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI",

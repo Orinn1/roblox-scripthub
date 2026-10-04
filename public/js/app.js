@@ -1683,7 +1683,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const incomingToken = (urlParams.get("auth") || urlParams.get("token") || urlParams.get("key") || "").trim().toLowerCase();
 
         if (incomingToken && incomingToken === requiredToken) {
-            const provider = (gate.provider && gate.provider !== "blackpass") ? gate.provider : "shrinkme";
+            const provider = gate.provider || "blackpass";
 
             // Anti-Bypass Check 1: Known Bypass Referrers
             if (document.referrer) {
@@ -1794,20 +1794,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }, 600);
 
-            const provider = (gate.provider && gate.provider !== "blackpass") ? gate.provider : "shrinkme";
+            const provider = gate.provider || "blackpass";
             const puid = getOrCreateLootlabsPuid();
 
             if (gateLootlabsBtn) {
-                if (provider === "shrinkme") {
-                    const shrinkLink = (gate.shrinkmeUrl || gate.shrinkearnUrl || gate.lootlabsUrl || "https://shrinkme.click/cBGgRn").trim();
-                    gateLootlabsBtn.href = shrinkLink;
+                if (provider === "blackpass") {
+                    const baseLink = (gate.blackpassLockerUrl || "/gateflow/locker.html?slug=hub-access").trim();
+                    const returnTo = encodeURIComponent(window.location.origin + window.location.pathname);
+                    const separator = baseLink.includes("?") ? "&" : "?";
+                    gateLootlabsBtn.href = `${baseLink}${separator}return_to=${returnTo}`;
                     if (lblGateBtn) {
-                        lblGateBtn.textContent = currentLang === "th" ? "เข้าใช้งานผ่าน ShrinkMe (รอ 10-15 วินาที)" : "Unlock via ShrinkMe (10-15s)";
+                        lblGateBtn.textContent = currentLang === "th" ? "เข้าใช้งานผ่าน BlackPass (รอ 10-15 วินาที)" : "Unlock via BlackPass (10-15s)";
                     }
                     if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
                     if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
-                } else if (provider === "blackpass") {
-                    const shrinkLink = (gate.shrinkmeUrl || "https://shrinkme.click/cBGgRn").trim();
+                } else if (provider === "shrinkme") {
+                    const shrinkLink = (gate.shrinkmeUrl || gate.shrinkearnUrl || gate.lootlabsUrl || "https://shrinkme.click/cBGgRn").trim();
                     gateLootlabsBtn.href = shrinkLink;
                     if (lblGateBtn) {
                         lblGateBtn.textContent = currentLang === "th" ? "เข้าใช้งานผ่าน ShrinkMe (รอ 10-15 วินาที)" : "Unlock via ShrinkMe (10-15s)";
@@ -1848,9 +1850,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (currentLang === "en") {
                     gateMessageText.textContent = provider === "lootlabs"
                         ? "Please complete the LootLabs support link to unlock access to the website"
-                        : "Please complete the ShrinkMe support link to unlock access to the website";
+                        : (provider === "blackpass"
+                            ? "Please complete the BlackPass verification to unlock access to the website"
+                            : "Please complete the support link to unlock access to the website");
                 } else {
-                    if (provider === "shrinkme" || provider === "blackpass") {
+                    if (provider === "blackpass") {
+                        gateMessageText.textContent = gate.bypassMessage || "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
+                    } else if (provider === "shrinkme") {
                         gateMessageText.textContent = gate.bypassMessage || "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
                     } else if (provider === "shrinkearn") {
                         gateMessageText.textContent = (gate.bypassMessage && !gate.bypassMessage.includes("LootLabs"))

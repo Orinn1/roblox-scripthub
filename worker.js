@@ -383,7 +383,7 @@ export default {
         if (url.pathname === '/api/gate/start') {
             const clientIp = request.headers.get('cf-connecting-ip') || '127.0.0.1';
             const slug = url.searchParams.get('slug') || 'hub-access';
-            const minSec = 85; // 3 x 30s = 90s, allowing 5s margin for network
+            const minSec = 35; // 3 x 15s = 45s, allowing 10s margin for network
 
             const sessionTicket = {
                 t: 'gate_ticket',
@@ -474,7 +474,7 @@ export default {
 
             // Server-Side Anti-Cheat & Dwell Time Verification
             const elapsed = Math.floor((Date.now() - ticketData.startedAt) / 1000);
-            const minRequired = ticketData.minSec || 85;
+            const minRequired = ticketData.minSec || 35;
 
             if (elapsed < minRequired) {
                 return new Response(JSON.stringify({
@@ -635,14 +635,14 @@ export default {
                 return new Response(JSON.stringify({
                     lootlabsGate: {
                         enabled: true,
-                        provider: "shrinkme",
+                        provider: "blackpass",
                         token: "blacklist_vip",
                         shrinkmeUrl: "https://shrinkme.click/cBGgRn",
                         blackpassLockerUrl: "/gateflow/locker.html?slug=hub-access",
                         shrinkearnUrl: "",
                         lootlabsUrl: "",
                         expiryHours: 24,
-                        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+                        bypassMessage: "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
                     }
                 }), {
                     status: 200,
