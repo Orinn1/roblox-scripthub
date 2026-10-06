@@ -2226,37 +2226,6 @@ body:has(#lootlabsGateOverlay:not([style*="display: none"])) #siteNoticePopup {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
-.gate-btn-bypass {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: rgba(14, 165, 233, 0.12);
-    border: 1px solid rgba(56, 189, 248, 0.35);
-    color: #bae6fd;
-    font-size: 13.5px;
-    font-weight: 600;
-    padding: 13px 26px;
-    border-radius: 9999px;
-    cursor: pointer;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    font-family: inherit;
-    box-shadow: 0 0 16px rgba(14, 165, 233, 0.2);
-}
-
-.gate-btn-bypass:hover {
-    background: rgba(14, 165, 233, 0.25);
-    border-color: #38bdf8;
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 0 25px rgba(56, 189, 248, 0.5), 0 4px 16px rgba(0, 0, 0, 0.4);
-}
-
-.gate-btn-bypass:active {
-    transform: translateY(0);
-}
 
 
 /* 7. Utilities & Video Drawer */
@@ -2448,7 +2417,7 @@ body:has(#lootlabsGateOverlay:not([style*="display: none"])) #siteNoticePopup {
         flex-direction: column;
         width: 100%;
     }
-    .gate-btn-primary, .gate-btn-secondary, .gate-btn-bypass {
+    .gate-btn-primary, .gate-btn-secondary {
         width: 100%;
         max-width: 320px;
     }

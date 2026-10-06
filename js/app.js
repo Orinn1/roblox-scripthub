@@ -1056,33 +1056,6 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast(currentLang === 'th' ? `ปลดล็อคสำเร็จ! จดจำเครื่องนี้ไว้ ${durationHours} ชั่วโมง` : `Unlocked successfully! Device remembered for ${durationHours} hours.`);
         }
     }
-
-    // Helper: ข้ามด่านไปยังหน้าเว็บทันที (สำหรับการทดสอบหรือ Bypass ชั่วคราว)
-    function bypassGateToWebsite(e) {
-        if (e && e.preventDefault) e.preventDefault();
-        try {
-            const durationMs = 24 * 60 * 60 * 1000;
-            const expiryTimestamp = Date.now() + durationMs;
-            localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
-            sessionStorage.setItem("blacklist_lootlabs_auth", "true");
-            localStorage.setItem("blacklist_lootlabs_unlocked_event", String(Date.now()));
-
-            try {
-                const url = new URL(window.location.href);
-                if (url.searchParams.has("lock") || url.searchParams.has("test") || url.searchParams.has("reset") || url.searchParams.has("relock")) {
-                    url.searchParams.delete("lock");
-                    url.searchParams.delete("test");
-                    url.searchParams.delete("reset");
-                    url.searchParams.delete("relock");
-                    window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
-                }
-            } catch (err) {}
-        } catch (err) {}
-
-        hideGateOverlay(true);
-        refreshIcons();
-    }
-    window.bypassGateToWebsite = bypassGateToWebsite;
     window.hideGateOverlay = hideGateOverlay;
 
     // Helper: วนลูปตรวจจับสถานะจาก LootLabs อัตโนมัติ (ไม่ต้องกดปุ่มเอง)
@@ -2021,11 +1994,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 startGatePolling(true);
             }
         });
-    }
-
-    const btnBypassToWebsite = document.getElementById("btnBypassToWebsite");
-    if (btnBypassToWebsite) {
-        btnBypassToWebsite.addEventListener("click", bypassGateToWebsite);
     }
 
     // ซิงก์สถานะปลดล็อคข้ามแท็บอัตโนมัติ (หากผู้ใช้เปิดหลายแท็บ เมื่อแท็บหนึ่งปลดล็อคแล้ว แท็บอื่นจะหายทันที)

@@ -682,12 +682,6 @@
                     <i data-lucide="crown" style="width: 16px; height: 16px; color: #fbbf24;"></i>
                     <span id="lblGateVipBtn">สมาชิก VIP / ข้ามด่าน</span>
                 </button>
-
-                <!-- Direct Skip to Website Button (ทดสอบเข้าเว็บทันที) -->
-                <button type="button" class="gate-btn-bypass" id="btnBypassToWebsite" onclick="bypassGateToWebsite()">
-                    <i data-lucide="sparkles" style="width: 15px; height: 15px; color: #38bdf8;"></i>
-                    <span>ข้ามเข้าสู่เว็บไซต์ทันที ➔</span>
-                </button>
             </div>
 
             <!-- 7. Collapsible Tutorial Video & Detection Helper -->
@@ -737,41 +731,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Inline Fallback for Gate Bypass (ทดสอบข้ามหน้าเว็บ) -->
-    <script>
-        function bypassGateToWebsite(e) {
-            if (e && e.preventDefault) e.preventDefault();
-            try {
-                var durationMs = 24 * 60 * 60 * 1000;
-                localStorage.setItem('blacklist_lootlabs_auth_expiry', String(Date.now() + durationMs));
-                sessionStorage.setItem('blacklist_lootlabs_auth', 'true');
-                localStorage.setItem('blacklist_lootlabs_unlocked_event', String(Date.now()));
-                try {
-                    var url = new URL(window.location.href);
-                    url.searchParams.delete('lock');
-                    url.searchParams.delete('test');
-                    url.searchParams.delete('reset');
-                    url.searchParams.delete('relock');
-                    window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
-                } catch(err){}
-            } catch(err){}
-
-            if (window.hideGateOverlay) {
-                window.hideGateOverlay(true);
-            } else {
-                var overlay = document.getElementById('lootlabsGateOverlay');
-                if (overlay) {
-                    overlay.classList.add('gate-fade-out');
-                    setTimeout(function() {
-                        overlay.style.display = 'none';
-                        overlay.style.visibility = 'hidden';
-                    }, 400);
-                }
-                document.documentElement.classList.remove('gate-active-init');
-            }
-        }
-    </script>
 
 
     <!-- =======================================================================
