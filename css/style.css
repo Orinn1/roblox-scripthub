@@ -79,6 +79,7 @@ body {
     display: flex;
     width: 100vw;
     min-height: 100vh;
+    transition: opacity 0.45s ease, filter 0.45s ease;
 }
 
 /* ==========================================================================
@@ -1879,130 +1880,399 @@ body {
 }
 
 /* ==========================================================================
-   LootLabs Anti-Bypass Security Gate
+   Security Access Gate (Cinematic Cyber & Ambient Bloom Edition)
    ========================================================================== */
+html.gate-active-init #lootlabsGateOverlay {
+    display: flex !important;
+    visibility: visible !important;
+}
+
+html.gate-active-init .app-wrapper {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Ensure no popup or background modal ever bleeds through the gate */
+html.gate-active-init #siteNoticePopup,
+body:has(#lootlabsGateOverlay:not([style*="display: none"])) #siteNoticePopup {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 .lootlabs-gate-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(6, 8, 14, 0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    z-index: 99999;
+    width: 100vw;
+    height: 100vh;
+    /* Pure CSS continuous multi-radial bloom: 100% seamless, zero clipping, zero box artifacts */
+    background: 
+        radial-gradient(circle at 50% 16%, rgba(14, 165, 233, 0.22) 0%, rgba(14, 165, 233, 0.08) 30%, rgba(3, 5, 10, 0) 65%),
+        radial-gradient(circle at 50% 42%, rgba(56, 189, 248, 0.06) 0%, rgba(3, 5, 10, 0) 48%),
+        #03050a !important;
+    z-index: 9999999 !important;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px;
-    animation: gateFadeIn 0.25s ease-out;
+    padding: 30px 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    animation: gateFadeIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
     pointer-events: auto !important;
 }
 
+.lootlabs-gate-overlay.gate-fade-in {
+    animation: gateFadeIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+
 @keyframes gateFadeIn {
-    from { opacity: 0; transform: scale(0.98); }
-    to { opacity: 1; transform: scale(1); }
+    0% {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+    }
+    100% {
+        opacity: 1;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
 }
 
-.lootlabs-gate-box {
+@keyframes stagePopIn {
+    0% {
+        opacity: 0;
+        transform: translateY(22px) scale(0.96);
+        filter: blur(6px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0px);
+    }
+}
+
+@keyframes gateItemFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Canvas Background for Floating Stars & Particles */
+.gate-particle-canvas {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    max-width: 460px;
-    background: #12151e;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 32px 24px 24px;
-    text-align: center;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+    animation: gateCanvasFadeIn 1.2s ease-out both;
+}
+
+@keyframes gateCanvasFadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* Center Stage */
+.gate-stage {
     position: relative;
-    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7);
-    overflow: hidden;
-}
-
-.lootlabs-gate-box::before {
-    display: none;
-}
-
-.lootlabs-gate-badge {
-    display: inline-flex;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #94a3b8;
-    font-size: 10.5px;
-    font-weight: 600;
-    letter-spacing: 0.4px;
-    margin-bottom: 16px;
+    text-align: center;
+    max-width: 680px;
+    width: 100%;
+    margin: auto;
+    padding: 10px;
+    animation: stagePopIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
 }
 
-.lootlabs-gate-icon {
-    width: 52px;
-    height: 52px;
-    margin: 0 auto 14px;
-    border-radius: 14px;
-    background: rgba(14, 165, 233, 0.1);
-    border: 1px solid rgba(14, 165, 233, 0.2);
+/* 1. Center Emblem / Avatar (Crisp circular neon rim matching reference image) */
+.gate-emblem-wrap {
+    position: relative;
+    margin-bottom: 20px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    animation: gateItemFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+
+
+.gate-emblem {
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    background: #060912;
+    border: 2px solid #0ea5e9;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 0 25px rgba(14, 165, 233, 0.5), inset 0 0 12px rgba(14, 165, 233, 0.25);
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.lootlabs-gate-icon i, .lootlabs-gate-icon svg {
-    width: 26px;
-    height: 26px;
-    color: #38bdf8;
+.gate-emblem:hover {
+    transform: scale(1.04);
+    box-shadow: 0 0 32px rgba(56, 189, 248, 0.7), inset 0 0 16px rgba(14, 165, 233, 0.35);
 }
 
-.lootlabs-gate-title {
-    font-size: 22px;
+.gate-emblem-img {
+    width: 68px;
+    height: 68px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+    user-select: none;
+}
+
+/* 2. Status Pill Badge */
+.gate-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 16px;
+    border-radius: 9999px;
+    background: rgba(14, 165, 233, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.22);
+    margin-bottom: 16px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: gateItemFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both;
+}
+
+.gate-status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #38bdf8;
+    box-shadow: 0 0 10px #38bdf8, 0 0 16px rgba(56, 189, 248, 0.8);
+    animation: dotPulse 1.8s infinite;
+}
+
+@keyframes dotPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.85); }
+}
+
+.gate-status-text {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.9px;
+    color: #bae6fd;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+}
+
+/* 3. Main Title (Clean, crisp typography with subtle neon glow) */
+.gate-title {
+    font-size: 36px;
     font-weight: 700;
-    color: #fff;
+    line-height: 1.3;
     margin-bottom: 8px;
-}
-
-.lootlabs-gate-desc {
-    font-size: 13.5px;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    margin-bottom: 22px;
-    padding: 0 6px;
-}
-
-.btn-gate-lootlabs {
-    width: 100%;
+    letter-spacing: -0.4px;
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    animation: gateItemFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+
+.gate-title-prefix {
+    color: #ffffff;
+}
+
+.gate-title-glow {
+    color: #38bdf8;
+    text-shadow: 0 0 14px rgba(56, 189, 248, 0.65), 0 0 28px rgba(14, 165, 233, 0.35);
+    font-weight: 700;
+}
+
+/* 4. Subtitle */
+.gate-subtitle {
+    font-size: 14.5px;
+    color: #94a3b8;
+    line-height: 1.6;
+    margin: 0 auto 26px;
+    max-width: 520px;
+    padding: 0 10px;
+    animation: gateItemFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.28s both;
+}
+
+
+/* 5. Security / Feature Chips */
+.gate-chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 30px;
+    max-width: 600px;
+}
+
+.gate-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    border-radius: 9999px;
+    background: rgba(13, 19, 32, 0.7);
+    border: 1px solid rgba(56, 189, 248, 0.16);
+    color: #cbd5e1;
+    font-size: 12.5px;
+    font-weight: 500;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+}
+
+.gate-chip:hover {
+    border-color: rgba(56, 189, 248, 0.35);
+    background: rgba(14, 165, 233, 0.12);
+    transform: translateY(-1px);
+}
+
+.chip-icon-cyan {
+    color: #38bdf8;
+    width: 14px;
+    height: 14px;
+}
+
+.chip-icon-green {
+    color: #22c55e;
+    width: 14px;
+    height: 14px;
+}
+
+.chip-icon-blue {
+    color: #60a5fa;
+    width: 14px;
+    height: 14px;
+}
+
+/* 6. Action Buttons Group */
+.gate-actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 22px;
+    width: 100%;
+    animation: gateItemFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.34s both;
+}
+
+
+.gate-btn-primary {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: #0284c7;
-    color: #fff;
-    font-size: 14px;
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    color: #ffffff;
+    font-size: 14.5px;
     font-weight: 600;
-    padding: 12px 20px;
-    border-radius: 10px;
+    padding: 13px 32px;
+    border-radius: 9999px;
     text-decoration: none;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: background 0.15s ease, box-shadow 0.15s ease;
     border: none;
+    cursor: pointer;
+    box-shadow: 0 0 25px rgba(14, 165, 233, 0.55), 0 4px 15px rgba(0, 0, 0, 0.4);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: inherit;
 }
 
-.btn-gate-lootlabs:hover {
-    background: #0369a1;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-    color: #fff;
+.gate-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 35px rgba(56, 189, 248, 0.8), 0 8px 25px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    filter: brightness(1.08);
 }
 
-/* Gate Tutorial Video Widget */
-.gate-tutorial-row {
-    margin-top: 12px;
-    display: flex;
+.gate-btn-secondary {
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
+    gap: 9px;
+    background: rgba(17, 26, 45, 0.75);
+    border: 1px solid rgba(56, 189, 248, 0.22);
+    color: #e2e8f0;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 13px 26px;
+    border-radius: 9999px;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: inherit;
 }
+
+.gate-btn-secondary:hover {
+    background: rgba(14, 165, 233, 0.15);
+    border-color: #38bdf8;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.gate-btn-bypass {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(14, 165, 233, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #bae6fd;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 13px 26px;
+    border-radius: 9999px;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: inherit;
+    box-shadow: 0 0 16px rgba(14, 165, 233, 0.2);
+}
+
+.gate-btn-bypass:hover {
+    background: rgba(14, 165, 233, 0.25);
+    border-color: #38bdf8;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.5), 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.gate-btn-bypass:active {
+    transform: translateY(0);
+}
+
+
+/* 7. Utilities & Video Drawer */
+.gate-utilities-box {
+    width: 100%;
+    max-width: 480px;
+    margin-top: 6px;
+    animation: gateItemFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+}
+
 
 .btn-gate-tutorial {
-    background: rgba(239, 68, 68, 0.08);
-    border: 1px solid rgba(239, 68, 68, 0.35);
-    color: #fca5a5;
-    padding: 7px 16px;
+    background: rgba(14, 165, 233, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    color: #bae6fd;
+    padding: 7px 18px;
     border-radius: 999px;
     font-size: 12.5px;
     font-weight: 500;
@@ -2015,25 +2285,26 @@ body {
 }
 
 .btn-gate-tutorial:hover {
-    background: rgba(239, 68, 68, 0.18);
-    border-color: rgba(239, 68, 68, 0.65);
-    color: #fff;
+    background: rgba(14, 165, 233, 0.18);
+    border-color: rgba(56, 189, 248, 0.55);
+    color: #ffffff;
     transform: translateY(-1px);
 }
 
 .gate-tutorial-player-box {
-    margin-top: 12px;
-    background: #090a0f;
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    margin-top: 14px;
+    background: #090e18;
+    border: 1px solid rgba(56, 189, 248, 0.25);
     border-radius: 14px;
     padding: 10px;
     text-align: left;
     animation: fadeIn 0.25s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 .gate-tutorial-video-wrapper {
     position: relative;
-    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    padding-bottom: 56.25%; /* 16:9 */
     height: 0;
     overflow: hidden;
     border-radius: 8px;
@@ -2071,95 +2342,11 @@ body {
     color: #ef4444;
 }
 
-.gate-divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    margin: 20px 0 14px;
-}
-.gate-divider::before, .gate-divider::after {
-    content: '';
-    flex: 1;
-    border-bottom: 1px solid var(--border);
-}
-.gate-divider span {
-    padding: 0 12px;
-    font-size: 10.5px;
-    color: var(--text-muted);
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-
-.gate-token-form {
-    display: flex;
-    gap: 8px;
-}
-
-.gate-token-input {
-    flex: 1;
-    background: #090a0f;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 14px;
-    color: #fff;
-    font-size: 13px;
-    font-family: inherit;
-    outline: none;
-    transition: border-color 0.15s ease;
-}
-
-.gate-token-input:focus {
-    border-color: #0ea5e9;
-}
-
-.btn-gate-token {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-light);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 600;
-    padding: 10px 18px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: 0.15s ease;
-    font-family: inherit;
-}
-
-.btn-gate-token:hover {
-    background: #0ea5e9;
-    border-color: #0ea5e9;
-}
-
-.gate-error-msg {
-    color: #f87171;
-    font-size: 12px;
-    margin-top: 8px;
-    text-align: center;
-}
-
-.gate-footer-hint {
-    margin-top: 18px;
-    font-size: 11.5px;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    line-height: 1.4;
-}
-
-.lootlabs-gate-overlay.gate-fade-out {
-    opacity: 0 !important;
-    transform: scale(0.97);
-    pointer-events: none !important;
-    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
 .gate-auto-detect {
     margin-top: 12px;
     padding: 10px 14px;
-    background: rgba(59, 130, 246, 0.08);
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: rgba(14, 165, 233, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.22);
     border-radius: 10px;
     color: #93c5fd;
     font-size: 12.5px;
@@ -2174,21 +2361,16 @@ body {
     width: 14px;
     height: 14px;
     border: 2px solid rgba(147, 197, 253, 0.3);
-    border-top-color: #93c5fd;
+    border-top-color: #38bdf8;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     display: inline-block;
     flex-shrink: 0;
 }
 
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
 .btn-gate-check {
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.2);
     color: #cbd5e1;
     width: 100%;
     padding: 10px 16px;
@@ -2206,9 +2388,70 @@ body {
 }
 
 .btn-gate-check:hover {
-    background: rgba(255, 255, 255, 0.09);
-    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(14, 165, 233, 0.12);
+    border-color: rgba(56, 189, 248, 0.4);
     color: #fff;
+}
+
+.gate-error-msg {
+    color: #f87171;
+    font-size: 12px;
+    margin-top: 8px;
+    text-align: center;
+}
+
+/* 8. Footer */
+.gate-footer {
+    margin-top: 36px;
+    font-size: 12px;
+    color: #64748b;
+    letter-spacing: 0.3px;
+    user-select: none;
+    animation: gateItemFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.46s both;
+}
+
+
+/* Smooth Fade Out Transition on Gate Unlock */
+.lootlabs-gate-overlay.gate-fade-out {
+    opacity: 0 !important;
+    transform: scale(1.03) !important;
+    pointer-events: none !important;
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Mobile Responsive Optimization */
+@media (max-width: 640px) {
+    .gate-title {
+        font-size: 26px;
+    }
+    .gate-subtitle {
+        font-size: 13px;
+        margin-bottom: 20px;
+    }
+    .gate-emblem {
+        width: 78px;
+        height: 78px;
+    }
+    .gate-emblem-img {
+        width: 62px;
+        height: 62px;
+    }
+    .gate-chips-row {
+        gap: 8px;
+        margin-bottom: 24px;
+    }
+    .gate-chip {
+        padding: 6px 13px;
+        font-size: 11.5px;
+    }
+    .gate-actions-row {
+        flex-direction: column;
+        width: 100%;
+    }
+    .gate-btn-primary, .gate-btn-secondary, .gate-btn-bypass {
+        width: 100%;
+        max-width: 320px;
+    }
 }
 
 /* ==========================================================================
@@ -2744,10 +2987,10 @@ body {
 .vip-modal-overlay {
     position: fixed;
     inset: 0;
-    z-index: 999999;
-    background: rgba(8, 10, 15, 0.82);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    z-index: 100000000 !important;
+    background: rgba(4, 6, 12, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: flex;
     align-items: center;
     justify-content: center;

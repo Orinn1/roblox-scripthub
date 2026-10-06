@@ -98,6 +98,22 @@
 
             window.__IS_VIP__ = isVip;
 
+            // Check if device already has active 24h gate pass
+            var isPassValid = false;
+            try {
+                var expTime = Number(localStorage.getItem('blacklist_lootlabs_auth_expiry') || 0);
+                if (expTime > Date.now() || sessionStorage.getItem('blacklist_lootlabs_auth') === 'true') {
+                    isPassValid = true;
+                }
+            } catch (e) { }
+
+            // If not authorized and not banned, flag gate as initially required (zero content flash)
+            if (!isVip && !isPassValid) {
+                document.documentElement.classList.add('gate-active-init');
+            }
+            if (params.has('lock') || params.has('test') || params.has('reset') || params.has('relock')) {
+                document.documentElement.classList.add('gate-active-init');
+            }
             // 3. If VIP, actively intercept and kill any ad script injection or popunders
             if (isVip) {
                 // Intercept Notification.requestPermission to prevent ad push prompts for VIPs
@@ -169,7 +185,7 @@
         }
     </script>
 
-    <link rel="stylesheet" href="css/style.css?v=20260919_v7">
+    <link rel="stylesheet" href="css/style.css?v=20261006_fadein_v1">
     <link rel="stylesheet" href="css/sunc.css?v=20260919_v5">
     <!-- Favicon Logo.ico -->
     <link rel="icon" type="image/x-icon" href="Logo.ico">
@@ -620,94 +636,143 @@
     </div>
 
     <!-- =======================================================================
-         MODAL Security Access Gate
+         SECURITY ACCESS GATE (Cinematic Cyber & Ambient Bloom Edition)
          ======================================================================= -->
     <div class="lootlabs-gate-overlay" id="lootlabsGateOverlay" style="display: none;">
-        <div class="lootlabs-gate-box">
-            <div class="lootlabs-gate-badge">
-                <i data-lucide="shield-alert"></i> <span>SECURITY ACCESS GATE</span>
+        <!-- Canvas Background for Ambient Floating Particles / Stars -->
+        <canvas id="gateParticleCanvas" class="gate-particle-canvas"></canvas>
+
+        <!-- Center Stage Container -->
+        <div class="gate-stage" id="gateStage">
+            <!-- 1. Center Avatar / Emblem -->
+            <div class="gate-emblem-wrap">
+                <div class="gate-emblem">
+                    <img src="Logo.png" alt="Blacklist Logo" class="gate-emblem-img">
+                </div>
             </div>
 
-            <div class="lootlabs-gate-icon">
-                <i data-lucide="lock"></i>
+            <!-- 2. Status Pill Badge -->
+            <div class="gate-status-pill">
+                <span class="gate-status-dot"></span>
+                <span class="gate-status-text">SECURITY ACCESS GATE</span>
             </div>
 
-            <h2 class="lootlabs-gate-title" id="lblGateTitle">ปลดล็อคเพื่อเข้าสู่เว็บไซต์ (ShrinkMe)</h2>
-            <p class="lootlabs-gate-desc" id="gateMessageText">
-                กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง
+            <!-- 3. Main Title -->
+            <h1 class="gate-title">
+                <span class="gate-title-prefix">ระบบยืนยันสิทธิ์</span>
+                <span class="gate-title-glow" id="lblGateTitle">Security Access Gate</span>
+            </h1>
+
+            <!-- 4. Subtitle -->
+            <p class="gate-subtitle" id="gateMessageText">
+                BlacklistScriptx Gateway &bull; กรุณายืนยันเซสชันเพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง
             </p>
-            <!-- ปุ่มเข้าใช้งานผ่าน Shortener Gate -->
-            <a href="https://shrinkme.click/cBGgRn" class="btn-gate-lootlabs" id="gateLootlabsBtn"
-                rel="noopener noreferrer">
-                <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i>
-                <span id="lblGateBtn">เข้าใช้งานผ่าน ShrinkMe (รอ 10-15 วินาที)</span>
-            </a>
 
-            <!-- ปุ่มคลิปสอนวิธีผ่านลิงก์ -->
-            <div class="gate-tutorial-row">
-                <button type="button" class="btn-gate-tutorial" id="btnToggleGateTutorial">
-                    <i data-lucide="play-circle" style="width: 16px; height: 16px; color: #ef4444;"></i>
-                    <span id="lblGateTutorial">Watch Tutorial Guide (Click here)</span>
-                    <i data-lucide="chevron-down" id="gateTutorialChevron"
-                        style="width: 14px; height: 14px; transition: transform 0.2s ease;"></i>
+
+            <!-- 6. Action Buttons Group -->
+            <div class="gate-actions-row">
+                <!-- Primary Action Button (Glowing Blue Pill) -->
+                <a href="https://shrinkme.click/cBGgRn" class="gate-btn-primary" id="gateLootlabsBtn" rel="noopener noreferrer">
+                    <span id="lblGateBtn">ปลดล็อคเข้าใช้งาน</span>
+                    <i data-lucide="arrow-right" style="width: 17px; height: 17px;"></i>
+                </a>
+
+                <!-- Secondary Action Button (Dark Glass Pill) -->
+                <button type="button" class="gate-btn-secondary" id="gateOpenVipModalBtn" onclick="if(window.openVipModal)window.openVipModal();">
+                    <i data-lucide="crown" style="width: 16px; height: 16px; color: #fbbf24;"></i>
+                    <span id="lblGateVipBtn">สมาชิก VIP / ข้ามด่าน</span>
+                </button>
+
+                <!-- Direct Skip to Website Button (ทดสอบเข้าเว็บทันที) -->
+                <button type="button" class="gate-btn-bypass" id="btnBypassToWebsite" onclick="bypassGateToWebsite()">
+                    <i data-lucide="sparkles" style="width: 15px; height: 15px; color: #38bdf8;"></i>
+                    <span>ข้ามเข้าสู่เว็บไซต์ทันที ➔</span>
                 </button>
             </div>
 
-            <!-- กล่องแสดงวิดีโอ YouTube สอนวิธีผ่านลิงก์ (พับเก็บ/เปิดดูได้) -->
-            <div class="gate-tutorial-player-box" id="gateTutorialPlayerBox" style="display: none;">
-                <div class="gate-tutorial-video-wrapper">
-                    <iframe id="gateTutorialIframe" src="" title="How to complete link" frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen></iframe>
+            <!-- 7. Collapsible Tutorial Video & Detection Helper -->
+            <div class="gate-utilities-box">
+                <button type="button" class="btn-gate-tutorial" id="btnToggleGateTutorial">
+                    <i data-lucide="play-circle" style="width: 15px; height: 15px; color: #38bdf8;"></i>
+                    <span id="lblGateTutorial">ดูคลิปสอนวิธีผ่าน (Tutorial Guide)</span>
+                    <i data-lucide="chevron-down" id="gateTutorialChevron" style="width: 14px; height: 14px; transition: transform 0.25s ease;"></i>
+                </button>
+
+                <div class="gate-tutorial-player-box" id="gateTutorialPlayerBox" style="display: none;">
+                    <div class="gate-tutorial-video-wrapper">
+                        <iframe id="gateTutorialIframe" src="" title="How to complete link" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                    </div>
+                    <div class="gate-tutorial-actions">
+                        <span id="lblGateTutorialHint">ทำตามขั้นตอนในคลิปเพื่อรับสิทธิ์เข้าใช้งาน</span>
+                        <a href="https://youtu.be/FdXsvivWhOw" target="_blank" rel="noopener noreferrer" class="gate-tutorial-yt-link" id="gateTutorialYtDirectLink">
+                            <i data-lucide="video" style="width: 13px; height: 13px; color: #ef4444;"></i>
+                            <span id="lblGateTutorialYt">เปิดดูบน YouTube</span>
+                        </a>
+                    </div>
                 </div>
-                <div class="gate-tutorial-actions">
-                    <span style="font-size: 11px; color: var(--text-muted);" id="lblGateTutorialHint">Short & easy
-                        guide. Follow steps to unlock.</span>
-                    <a href="https://youtu.be/FdXsvivWhOw" target="_blank" rel="noopener noreferrer"
-                        class="gate-tutorial-yt-link" id="gateTutorialYtDirectLink">
-                        <i data-lucide="video" style="width: 14px; height: 14px; color: #ef4444;"></i>
-                        <span id="lblGateTutorialYt">Watch on YouTube</span>
-                    </a>
+
+                <div id="gateAutoDetectBox" class="gate-auto-detect" style="display: none;">
+                    <span class="gate-spinner"></span>
+                    <span id="gateAutoDetectText">กำลังรอการทำรายการ... (ระบบจะปลดล็อคอัตโนมัติเมื่อสำเร็จ)</span>
                 </div>
+
+                <button type="button" id="gateCheckStatusBtn" class="btn-gate-check" style="display: none;">
+                    <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                    <span id="lblGateCheck">ตรวจสอบสถานะอีกครั้ง</span>
+                </button>
+
+                <!-- Hidden inputs for token fallback -->
+                <div class="gate-token-form" style="display: none;">
+                    <input type="text" id="gateTokenInput" class="gate-token-input" placeholder="Enter Access Token">
+                    <button type="button" id="gateTokenSubmitBtn" class="btn-gate-token"><span id="lblGateTokenSubmit">Unlock</span></button>
+                </div>
+                <div class="gate-error-msg" id="gateErrorMsg" style="display: none;">Invalid Token. Please try again.</div>
             </div>
 
-            <div id="gateAutoDetectBox" class="gate-auto-detect" style="display: none;">
-                <span class="gate-spinner"></span>
-                <span id="gateAutoDetectText">Waiting for completion... (Unlocks automatically when finished)</span>
-            </div>
-
-            <button type="button" id="gateCheckStatusBtn" class="btn-gate-check">
-                <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
-                <span id="lblGateCheck">Check Status Now</span>
-            </button>
-
-            <!-- Manual token input hidden to prevent token leaks and bypasses -->
-            <div class="gate-divider" style="display: none;">
-                <span id="lblGateDivider">OR VERIFY WITH ACCESS TOKEN</span>
-            </div>
-
-            <div class="gate-token-form" style="display: none;">
-                <input type="text" id="gateTokenInput" class="gate-token-input" placeholder="Enter Access Token">
-                <button type="button" id="gateTokenSubmitBtn" class="btn-gate-token"><span
-                        id="lblGateTokenSubmit">Unlock</span></button>
-            </div>
-            <div class="gate-error-msg" id="gateErrorMsg" style="display: none;">Invalid Token. Please try again.</div>
-
-            <div class="gate-footer-hint">
-                <i data-lucide="info"></i>
-                <span id="lblGateHint">Once verified, this device will be remembered for 24 hours</span>
-            </div>
-
-            <!-- ลิงก์เข้าใช้งานสำหรับผู้มียศ VIP ใน Discord -->
-            <div class="gate-vip-box">
-                <i data-lucide="crown" class="gate-vip-crown" style="width: 18px; height: 18px; color: #fbbf24;"></i>
-                <span id="lblGateVipText">Have VIP role on Discord?</span>
-                <a href="/api/discord-auth?action=login" class="gate-vip-link-btn" id="gateOpenVipModalBtn">
-                    <span id="lblGateVipBtn">Login with Discord (100% Ad-Free)</span>
-                </a>
+            <!-- 8. Footer -->
+            <div class="gate-footer">
+                <span>&copy; 2026 BlacklistScriptx &mdash; All rights reserved.</span>
             </div>
         </div>
     </div>
+
+    <!-- Inline Fallback for Gate Bypass (ทดสอบข้ามหน้าเว็บ) -->
+    <script>
+        function bypassGateToWebsite(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            try {
+                var durationMs = 24 * 60 * 60 * 1000;
+                localStorage.setItem('blacklist_lootlabs_auth_expiry', String(Date.now() + durationMs));
+                sessionStorage.setItem('blacklist_lootlabs_auth', 'true');
+                localStorage.setItem('blacklist_lootlabs_unlocked_event', String(Date.now()));
+                try {
+                    var url = new URL(window.location.href);
+                    url.searchParams.delete('lock');
+                    url.searchParams.delete('test');
+                    url.searchParams.delete('reset');
+                    url.searchParams.delete('relock');
+                    window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
+                } catch(err){}
+            } catch(err){}
+
+            if (window.hideGateOverlay) {
+                window.hideGateOverlay(true);
+            } else {
+                var overlay = document.getElementById('lootlabsGateOverlay');
+                if (overlay) {
+                    overlay.classList.add('gate-fade-out');
+                    setTimeout(function() {
+                        overlay.style.display = 'none';
+                        overlay.style.visibility = 'hidden';
+                    }, 400);
+                }
+                document.documentElement.classList.remove('gate-active-init');
+            }
+        }
+    </script>
+
 
     <!-- =======================================================================
          MODAL: VIP MEMBER LOGIN / STATUS (DISCORD ROLE 1549727990542508083)
@@ -894,7 +959,7 @@
         <script src="js/config.js?v=20261004_blackpass_v1"></script>
         <script src="js/firebase-db.js?v=20261004_blackpass_v1"></script>
         <script src="js/scripts-data.js?v=20261004_blackpass_v1"></script>
-        <script src="js/app.js?v=20261004_blackpass_v1"></script>
+        <script src="js/app.js?v=20261006_fadein_v1"></script>
 
         <!-- In-App Browser Notice Logic -->
         <script>
