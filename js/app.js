@@ -2665,33 +2665,61 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     // Scripts Feed Rendering
     // =========================================================================
+    // =========================================================================
+    // Scripts Feed Rendering
+    // =========================================================================
     function createScriptRow(item) {
-        const isLiked = localStorage.getItem("liked_script_" + item.id) === "true";
         const t = I18N[currentLang] || I18N.en;
         const display = getScriptDisplay(item, currentLang);
+
+        // Smart badge detection using existing item fields without database modification
+        let badgeHtml = "";
+        const rawBadge = (item.badge || "").trim();
+        const rawTitle = (item.title || "").toLowerCase();
+        const rawUpd = (item.updated || "").toLowerCase();
+        const isUpdated = rawBadge.toLowerCase().includes("upd") || rawBadge.toLowerCase().includes("อัปเดต") || rawTitle.includes("update") || rawTitle.includes("upd") || rawUpd.includes("วัน") || rawUpd.includes("today");
+        const isNew = rawBadge.toLowerCase().includes("new") || rawBadge.toLowerCase().includes("ใหม่") || (!isUpdated && rawBadge.length > 0);
+
+        if (isUpdated) {
+            badgeHtml = `<span class="row-chip-badge updated"><i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i> ${currentLang === 'th' ? 'อัปเดตแล้ว' : 'UPDATED'}</span>`;
+        } else if (isNew) {
+            badgeHtml = `<span class="row-chip-badge new"><i data-lucide="sparkles" style="width: 10px; height: 10px;"></i> ${currentLang === 'th' ? 'มาใหม่' : 'NEW'}</span>`;
+        } else if (rawBadge) {
+            badgeHtml = `<span class="row-chip-badge default">${escapeHtml(rawBadge)}</span>`;
+        }
+
+        const platformText = item.isMobile
+            ? (item.isPC ? (currentLang === 'th' ? 'มือถือ & PC' : 'Mobile & PC') : (currentLang === 'th' ? 'มือถือเท่านั้น' : 'Mobile Only'))
+            : 'PC Only';
+
         return `
             <div class="script-row" data-script-id="${escapeHtml(item.id)}">
                 <div class="row-left">
                     <div class="row-thumb-wrap" onclick="openLocker('${escapeHtml(item.id)}')" title="${escapeHtml(display.title)}">
                         <img class="row-thumb" src="${escapeHtml(display.thumbnail)}" alt="${escapeHtml(display.title)}" loading="lazy">
-                        <div class="thumb-play-overlay">
-                            <div class="thumb-play-btn">
-                                <i data-lucide="play" style="width: 18px; height: 18px; fill: #fff; margin-left: 2px;"></i>
-                            </div>
-                        </div>
                     </div>
                     <div class="row-meta">
-                        <div class="row-game-badge">
-                            <i data-lucide="gamepad-2"></i> ${escapeHtml(item.game)} • ${escapeHtml(item.version || 'v1.0')}
+                        <div class="row-header-line">
+                            <span class="row-game-badge">
+                                <i data-lucide="gamepad-2" style="width: 12px; height: 12px;"></i> ${escapeHtml(item.game || 'Roblox')}
+                            </span>
+                            <span class="row-ver-badge">${escapeHtml(item.version || 'v1.0')}</span>
+                            ${badgeHtml}
                         </div>
                         <div class="row-title" onclick="openLocker('${escapeHtml(item.id)}')">${escapeHtml(display.title)}</div>
                         <div class="row-features">${escapeHtml(display.description)}</div>
                         <div class="row-tags">
-                            <span class="tag-badge ${item.isKeyless ? 'green' : ''}">
+                            <span class="tag-badge ${item.isKeyless ? 'keyless' : 'has-key'}">
+                                <i data-lucide="${item.isKeyless ? 'check' : 'key'}" style="width: 11px; height: 11px;"></i>
                                 ${item.isKeyless ? t.tagKeyless : t.tagHasKey}
                             </span>
-                            <span class="tag-badge">${t.tagMobilePc}</span>
-                            <span class="tag-badge" style="color: #4ade80;">${t.tagStatusNormal}</span>
+                            <span class="tag-badge platform">
+                                <i data-lucide="smartphone" style="width: 11px; height: 11px;"></i>
+                                ${platformText}
+                            </span>
+                            <span class="tag-badge working">
+                                <span class="dot-working"></span> ${t.tagStatusNormal}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -2699,7 +2727,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="row-right">
                     <button class="btn-get" onclick="openLocker('${escapeHtml(item.id)}')">
                         <span>${t.btnGetScript}</span>
-                        <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+                        <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
                     </button>
                 </div>
             </div>
@@ -2749,6 +2777,20 @@ document.addEventListener("DOMContentLoaded", () => {
             if (spotlightDesc) spotlightDesc.textContent = topDisplay.description || "";
             if (btnSpotlight) {
                 btnSpotlight.onclick = () => openLocker(top.id);
+            }
+            const spotlightThumbImg = document.getElementById("spotlightThumbImg");
+            if (spotlightThumbImg) {
+                spotlightThumbImg.src = topDisplay.thumbnail || "Logo.ico";
+                spotlightThumbImg.alt = topDisplay.title || "Featured Script";
+            }
+            const spotlightMediaBox = document.getElementById("spotlightMediaBox");
+            if (spotlightMediaBox) {
+                spotlightMediaBox.onclick = () => openLocker(top.id);
+            }
+            const spotlightStatusTag = document.getElementById("spotlightStatusTag");
+            if (spotlightStatusTag) {
+                const statusText = currentLang === 'th' ? 'พร้อมใช้งาน • ตรวจสอบแล้ว' : 'Working • Verified';
+                spotlightStatusTag.innerHTML = `<i data-lucide="check-circle" style="width: 12px; height: 12px;"></i> <span>${statusText}</span>`;
             }
         }
 

@@ -383,7 +383,7 @@ export default {
         if (url.pathname === '/api/gate/start') {
             const clientIp = request.headers.get('cf-connecting-ip') || '127.0.0.1';
             const slug = url.searchParams.get('slug') || 'hub-access';
-            const minSec = 35; // 3 x 15s = 45s, allowing 10s margin for network
+            const minSec = 22; // 3 x 10s = 30s, allowing 8s margin for network
 
             const sessionTicket = {
                 t: 'gate_ticket',
@@ -474,7 +474,7 @@ export default {
 
             // Server-Side Anti-Cheat & Dwell Time Verification
             const elapsed = Math.floor((Date.now() - ticketData.startedAt) / 1000);
-            const minRequired = ticketData.minSec || 35;
+            const minRequired = ticketData.minSec || 22;
 
             if (elapsed < minRequired) {
                 return new Response(JSON.stringify({

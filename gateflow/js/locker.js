@@ -7,7 +7,7 @@
 
 let currentLocker = null;
 const totalSteps = 3;
-const requiredDwellSeconds = 15; // 15 seconds dwell time per button
+const requiredDwellSeconds = 10; // 10 seconds dwell time per button
 let completedSteps = { 1: false, 2: false, 3: false };
 let secondsOnAd = { 1: 0, 2: 0, 3: 0 }; // Accumulated seconds actually spent away on ad tab
 let dwellSessionStart = { 1: null, 2: null, 3: null };
@@ -58,7 +58,7 @@ async function loadLockerData() {
       slug: slug,
       destinationUrl: customUrl || 'https://th.blacklisthub.workers.dev/',
       steps: 3,
-      timer: 30,
+      timer: 10,
       ads: { popunder: false, banner: true, smartlink: true }
     };
   } else if (customUrl) {
@@ -82,14 +82,14 @@ async function loadLockerData() {
   GateStore.recordClick(currentLocker.slug);
 
   document.getElementById('lockerTitle').textContent = currentLocker.name;
-  document.title = `${currentLocker.name} \u2014 BlackPass 15s Verification`;
+  document.title = `${currentLocker.name} \u2014 BlackPass 10s Verification`;
 
   // Update instruction rule banner
   const instructionEl = document.getElementById('lockerInstructionText');
   if (instructionEl) {
     instructionEl.textContent = isThaiLang()
-      ? '⚠️ กติกา: กดทำภารกิจให้ครบทั้ง 3 ปุ่ม โดยต้องค้างอยู่ที่หน้าโฆษณาปุ่มละ 15 วินาที จึงจะปลดล็อคเว็บไซต์'
-      : '⚠️ Rule: Complete all 3 buttons by staying on each sponsor ad for 15 seconds to unlock the website.';
+      ? '⚠️ กติกา: กดทำภารกิจให้ครบทั้ง 3 ปุ่ม โดยต้องค้างอยู่ที่หน้าโฆษณาปุ่มละ 10 วินาที จึงจะปลดล็อคเว็บไซต์'
+      : '⚠️ Rule: Complete all 3 buttons by staying on each sponsor ad for 10 seconds to unlock the website.';
   }
 
   renderTaskButtons();
@@ -104,11 +104,11 @@ function renderTaskButtons() {
   if (!container) return;
 
   const t1Title = typeof getI18nText === 'function' ? getI18nText('locker_task_1_title', 'ด่านที่ 1: ตรวจสอบความปลอดภัย') : 'ด่านที่ 1: ตรวจสอบความปลอดภัย';
-  const t1Desc = typeof getI18nText === 'function' ? getI18nText('locker_task_1_desc', 'แตะเปิดโฆษณา (ค้างไว้ 30 วิ)') : 'แตะเปิดโฆษณา (ค้างไว้ 30 วิ)';
+  const t1Desc = typeof getI18nText === 'function' ? getI18nText('locker_task_1_desc', 'แตะเปิดโฆษณา (ค้างไว้ 10 วิ)') : 'แตะเปิดโฆษณา (ค้างไว้ 10 วิ)';
   const t2Title = typeof getI18nText === 'function' ? getI18nText('locker_task_2_title', 'ด่านที่ 2: สปอนเซอร์หลัก') : 'ด่านที่ 2: สปอนเซอร์หลัก';
-  const t2Desc = typeof getI18nText === 'function' ? getI18nText('locker_task_2_desc', 'แตะเปิดโฆษณา (ค้างไว้ 30 วิ)') : 'แตะเปิดโฆษณา (ค้างไว้ 30 วิ)';
+  const t2Desc = typeof getI18nText === 'function' ? getI18nText('locker_task_2_desc', 'แตะเปิดโฆษณา (ค้างไว้ 10 วิ)') : 'แตะเปิดโฆษณา (ค้างไว้ 10 วิ)';
   const t3Title = typeof getI18nText === 'function' ? getI18nText('locker_task_3_title', 'ด่านที่ 3: รับสิทธิ์เข้าเว็บฮับ 24 ชม.') : 'ด่านที่ 3: รับสิทธิ์เข้าเว็บฮับ 24 ชม.';
-  const t3Desc = typeof getI18nText === 'function' ? getI18nText('locker_task_3_desc', 'แตะเปิดโฆษณา (ค้างไว้ 30 วิ)') : 'แตะเปิดโฆษณา (ค้างไว้ 30 วิ)';
+  const t3Desc = typeof getI18nText === 'function' ? getI18nText('locker_task_3_desc', 'แตะเปิดโฆษณา (ค้างไว้ 10 วิ)') : 'แตะเปิดโฆษณา (ค้างไว้ 10 วิ)';
 
   const taskDefinitions = [
     { title: t1Title, desc: t1Desc },
@@ -150,7 +150,7 @@ function renderTaskButtons() {
 
 // Update the visual state of the 3 buttons
 function updateButtonsVisualState() {
-  const readyText = typeof getI18nText === 'function' ? getI18nText('locker_action_ready', 'แตะเริ่ม (30 วิ)') : 'แตะเริ่ม (30 วิ)';
+  const readyText = typeof getI18nText === 'function' ? getI18nText('locker_action_ready', 'แตะเริ่ม (10 วิ)') : 'แตะเริ่ม (10 วิ)';
   const doneText = typeof getI18nText === 'function' ? getI18nText('locker_action_done', 'ผ่านแล้ว') : 'ผ่านแล้ว';
   const lockedText = typeof getI18nText === 'function' ? getI18nText('locker_action_locked', 'รอด่านก่อน') : 'รอด่านก่อน';
   const pausedTpl = typeof getI18nText === 'function' ? getI18nText('locker_action_paused', 'แตะนับต่อ ({sec}s)') : 'แตะนับต่อ ({sec}s)';
@@ -171,7 +171,7 @@ function updateButtonsVisualState() {
       pill.innerHTML = `<div class="btn-task-action completed"><i data-lucide="check" style="width: 14px; height: 14px;"></i> <span>${doneText}</span></div>`;
       if (badge) badge.innerHTML = `<i data-lucide="check" style="width: 14px; height: 14px;"></i>`;
       if (desc) {
-        desc.textContent = isThaiLang() ? '✅ ดูครบ 15 วินาทีเรียบร้อยแล้ว' : '✅ 15s completed';
+        desc.textContent = isThaiLang() ? '✅ ดูครบ 10 วินาทีเรียบร้อยแล้ว' : '✅ 10s completed';
         desc.style.color = '#34D399';
       }
       if (miniFill) miniFill.style.width = '100%';
@@ -211,8 +211,8 @@ function updateButtonsVisualState() {
       if (badge) badge.innerHTML = `<span class="num-text">${i}</span>`;
       if (desc) {
         desc.textContent = isThaiLang()
-          ? `แตะเพื่อเปิดโฆษณาและค้างไว้ 15 วินาที`
-          : `Tap to open ad and stay for 15s`;
+          ? `แตะเพื่อเปิดโฆษณาและค้างไว้ 10 วินาที`
+          : `Tap to open ad and stay for 10s`;
         desc.style.color = 'var(--text-muted)';
       }
       if (miniFill) miniFill.style.width = '0%';
@@ -248,8 +248,8 @@ window.handleTaskButtonClick = function(btnIndex) {
   // Already completed this button
   if (completedSteps[btnIndex]) {
     const doneNotice = isThaiLang()
-      ? `✅ ปุ่มที่ ${btnIndex} ผ่านการยืนยัน 15 วินาทีเรียบร้อยแล้ว!`
-      : `✅ Button ${btnIndex} has already completed the 15s dwell!`;
+      ? `✅ ปุ่มที่ ${btnIndex} ผ่านการยืนยัน 10 วินาทีเรียบร้อยแล้ว!`
+      : `✅ Button ${btnIndex} has already completed the 10s dwell!`;
     showToast(doneNotice, 'success', 2500);
     return;
   }
@@ -306,8 +306,8 @@ function handleTabStateChange() {
       if (Date.now() - lastToastTime > 3000) {
         lastToastTime = Date.now();
         const toastMsg = isThaiLang()
-          ? `⏸️ หยุดนับเวลา! คุณค้างหน้าโฆษณาไปแล้ว ${secondsOnAd[step]}/30 วิ (เหลืออีก ${remaining} วิ) เวลานับต่อเฉพาะตอนเปิดแท็บโฆษณาเท่านั้น`
-          : `⏸️ Timer paused! You spent ${secondsOnAd[step]}/30s. Timer only runs while you are on the ad page.`;
+          ? `⏸️ หยุดนับเวลา! คุณค้างหน้าโฆษณาไปแล้ว ${secondsOnAd[step]}/10 วิ (เหลืออีก ${remaining} วิ) เวลานับต่อเฉพาะตอนเปิดแท็บโฆษณาเท่านั้น`
+          : `⏸️ Timer paused! You spent ${secondsOnAd[step]}/10s. Timer only runs while you are on the ad page.`;
         showToast(toastMsg, 'warning', 4500);
       }
 
@@ -334,10 +334,10 @@ function startBackgroundTicker() {
       if (remaining > 0) {
         document.title = `⏳ (${remaining}s) ค้างอยู่หน้าโฆษณา...`;
       } else {
-        document.title = `✅ (ครบ 30 วิแล้ว!) สลับกลับมาหน้านี้ได้เลย`;
+        document.title = `✅ (ครบ 10 วิแล้ว!) สลับกลับมาหน้านี้ได้เลย`;
       }
 
-      // If user stayed away full 30 seconds
+      // If user stayed away full 10 seconds
       if (remaining <= 0) {
         secondsOnAd[step] = requiredDwellSeconds;
         dwellSessionStart[step] = null;
@@ -347,29 +347,29 @@ function startBackgroundTicker() {
   }, 500);
 }
 
-// When a button completes its 30s dwell verification
+// When a button completes its 10s dwell verification
 function onButtonDwellVerified(btnIndex) {
   completedSteps[btnIndex] = true;
   activeDwellingStep = null;
   dwellSessionStart[btnIndex] = null;
   secondsOnAd[btnIndex] = requiredDwellSeconds;
 
-  // Mobile haptic vibration if supported (Gentle buzz when 30s dwell is done)
+  // Mobile haptic vibration if supported (Gentle buzz when 10s dwell is done)
   if (typeof navigator !== 'undefined' && navigator.vibrate) {
     try { navigator.vibrate([160, 90, 160]); } catch(e) {}
   }
 
   hidePopupFallback();
 
-  document.title = `${currentLocker.name} \u2014 BlackPass 30s Verification`;
+  document.title = `${currentLocker.name} \u2014 BlackPass 10s Verification`;
 
   updateButtonsVisualState();
   updateProgressUI();
   updateBottomButtonUI();
 
   const successMsg = isThaiLang()
-    ? `✅ ปุ่มที่ ${btnIndex} ผ่านแล้ว! (ดูครบ 15 วินาทีเต็ม)`
-    : `✅ Button ${btnIndex} Verified! (15s dwell completed)`;
+    ? `✅ ปุ่มที่ ${btnIndex} ผ่านแล้ว! (ดูครบ 10 วินาทีเต็ม)`
+    : `✅ Button ${btnIndex} Verified! (10s dwell completed)`;
   showToast(successMsg, 'success', 3500);
 
   // Check if all 3 buttons are completed!
@@ -449,8 +449,8 @@ function updateBottomButtonUI() {
       const remaining = totalSteps - doneCount;
       const isTh = isThaiLang();
       const hintMsg = isTh
-        ? `ค้างหน้าโฆษณาปุ่มละ 15 วินาที เพื่อปลดล็อค (เหลือ ${remaining} ด่าน)`
-        : `Stay on each ad for 15s to unlock (${remaining} remaining)`;
+        ? `ค้างหน้าโฆษณาปุ่มละ 10 วินาที เพื่อปลดล็อค (เหลือ ${remaining} ด่าน)`
+        : `Stay on each ad for 10s to unlock (${remaining} remaining)`;
       hintEl.innerHTML = `<i data-lucide="sparkles" style="width: 14px; height: 14px; color: #818CF8; flex-shrink: 0;"></i> <span>${hintMsg}</span>`;
     }
   }
@@ -570,8 +570,8 @@ async function unlockContent() {
   for (let s = 1; s <= totalSteps; s++) {
     if (!completedSteps[s]) {
       const err = isThaiLang()
-        ? `⛔ ปุ่มที่ ${s} ยังไม่ผ่านการดูโฆษณา 15 วินาที! กรุณากดทำภารกิจให้ครบ`
-        : `⛔ Button ${s} requires 15s viewing! Please complete all 3 buttons.`;
+        ? `⛔ ปุ่มที่ ${s} ยังไม่ผ่านการดูโฆษณา 10 วินาที! กรุณากดทำภารกิจให้ครบ`
+        : `⛔ Button ${s} requires 10s viewing! Please complete all 3 buttons.`;
       showToast(err, 'error', 4000);
       return;
     }

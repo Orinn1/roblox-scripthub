@@ -59,7 +59,7 @@ const server = http.createServer((req, res) => {
     const sessionTicket = {
       t: 'gate_ticket',
       slug: urlObj.searchParams.get('slug') || 'hub-access',
-      minSec: 85,
+      minSec: 22,
       startedAt: Date.now(),
       exp: Date.now() + (30 * 60 * 1000)
     };
@@ -83,7 +83,7 @@ const server = http.createServer((req, res) => {
         return;
       }
       const elapsed = Math.floor((Date.now() - v.data.startedAt) / 1000);
-      const minRequired = v.data.minSec || 85;
+      const minRequired = v.data.minSec || 22;
       if (elapsed < minRequired) {
         res.writeHead(403, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({

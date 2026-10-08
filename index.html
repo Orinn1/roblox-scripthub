@@ -322,25 +322,43 @@
                      VIEW 1: หน้าหลัก (HOME VIEW)
                      ======================================================= -->
                 <div class="home-view" id="homeView">
-                    <!-- Spotlight Banner -->
-                    <section class="home-spotlight" style="display: none;">
-                        <div class="spotlight-content">
-                            <span class="spotlight-badge">
-                                <i data-lucide="flame" style="width: 13px; height: 13px;"></i> <span
-                                    id="lblSpotBadge">#1 Trending Script</span>
-                            </span>
-                            <h2 class="spotlight-title">Blox Fruits - Redz Hub (Auto Farm 1-Max)</h2>
-                            <p class="spotlight-desc" id="lblSpotDesc">The most stable level farming script. Auto farm,
-                                quests, dual katanas, fully awakened fruits. Mobile & PC supported.</p>
-                            <div class="spotlight-actions">
-                                <button class="btn-spotlight" onclick="openLocker('blox-fruits-redz')">
-                                    <i data-lucide="unlock" style="width: 14px; height: 14px;"></i>
-                                    <span id="lblSpotGet">Get This Script</span>
-                                </button>
-                                <button class="btn-spotlight-secondary" id="btnGoFeedAll">
-                                    <span id="lblSpotAll">View All Scripts</span>
-                                    <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
-                                </button>
+                    <!-- Spotlight Featured Script Banner -->
+                    <section class="home-spotlight" id="homeSpotlight" style="display: none;">
+                        <div class="spotlight-grid">
+                            <div class="spotlight-content">
+                                <div class="spotlight-badge-row">
+                                    <span class="spotlight-badge">
+                                        <i data-lucide="flame" style="width: 13px; height: 13px;"></i> <span
+                                            id="lblSpotBadge">#1 Trending Script</span>
+                                    </span>
+                                    <span class="spotlight-status-tag" id="spotlightStatusTag">
+                                        <i data-lucide="check-circle" style="width: 12px; height: 12px;"></i>
+                                        <span>Working • Verified</span>
+                                    </span>
+                                </div>
+                                <h2 class="spotlight-title" id="spotlightTitle">Blox Fruits - Redz Hub (Auto Farm 1-Max)</h2>
+                                <p class="spotlight-desc" id="lblSpotDesc">The most stable level farming script. Auto farm,
+                                    quests, dual katanas, fully awakened fruits. Mobile & PC supported.</p>
+                                <div class="spotlight-actions">
+                                    <button class="btn-spotlight" id="btnSpotlightGet" onclick="openLocker('blox-fruits-redz')">
+                                        <i data-lucide="unlock" style="width: 14px; height: 14px;"></i>
+                                        <span id="lblSpotGet">Get This Script</span>
+                                    </button>
+                                    <button class="btn-spotlight-secondary" id="btnGoFeedAll">
+                                        <span id="lblSpotAll">View All Scripts</span>
+                                        <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="spotlight-media" id="spotlightMediaBox" title="Click to view script">
+                                <div class="spotlight-thumb-wrap">
+                                    <img id="spotlightThumbImg" src="Logo.ico" alt="Featured Script Preview" loading="lazy">
+                                    <div class="spotlight-media-overlay">
+                                        <span class="spotlight-media-label">
+                                            <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> Featured Script
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </section>

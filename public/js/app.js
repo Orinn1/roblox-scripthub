@@ -945,14 +945,100 @@ document.addEventListener("DOMContentLoaded", () => {
         return puid;
     }
 
+    // =========================================================================
+    // Security Access Gate: Floating Ambient Particles ("เอฟเฟกต์ฟุ้งๆ")
+    // =========================================================================
+    let gateParticleAnimFrame = null;
+    let gateParticleResizeBound = false;
+    function initGateParticles() {
+        const canvas = document.getElementById("gateParticleCanvas");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        if (!gateParticleResizeBound) {
+            window.addEventListener("resize", () => {
+                if (!canvas) return;
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            });
+            gateParticleResizeBound = true;
+        }
+
+        const count = Math.min(45, Math.floor(window.innerWidth / 28));
+        const particles = [];
+        for (let i = 0; i < count; i++) {
+            particles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                radius: Math.random() * 1.3 + 0.6,
+                alpha: Math.random() * 0.4 + 0.12,
+                vx: (Math.random() - 0.5) * 0.25,
+                vy: -(Math.random() * 0.35 + 0.1),
+                pulse: Math.random() * Math.PI * 2,
+                hue: Math.random() > 0.4 ? 198 : 208
+            });
+        }
+
+        function renderParticles() {
+            if (!lootlabsGateOverlay || lootlabsGateOverlay.style.display === "none" || document.hidden) {
+                gateParticleAnimFrame = requestAnimationFrame(renderParticles);
+                return;
+            }
+
+            ctx.clearRect(0, 0, width, height);
+
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.pulse += 0.02;
+
+                if (p.y < -10) {
+                    p.y = height + 10;
+                    p.x = Math.random() * width;
+                }
+                if (p.x < -10) p.x = width + 10;
+                if (p.x > width + 10) p.x = -10;
+
+                const currentAlpha = p.alpha * (0.7 + 0.3 * Math.sin(p.pulse));
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${p.hue}, 90%, 65%, ${currentAlpha})`;
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = `hsla(${p.hue}, 90%, 60%, 0.5)`;
+                ctx.fill();
+            }
+
+            ctx.shadowBlur = 0;
+            gateParticleAnimFrame = requestAnimationFrame(renderParticles);
+        }
+
+        if (gateParticleAnimFrame) cancelAnimationFrame(gateParticleAnimFrame);
+        gateParticleAnimFrame = requestAnimationFrame(renderParticles);
+    }
+
+    function stopGateParticles() {
+        if (gateParticleAnimFrame) {
+            cancelAnimationFrame(gateParticleAnimFrame);
+            gateParticleAnimFrame = null;
+        }
+    }
+
     let gatePollTimer = null;
 
     // Helper: ซ่อนหน้าต่างล็อคอย่างนุ่มนวล (Fade Out)
     function hideGateOverlay(withToast = false) {
         if (!lootlabsGateOverlay) return;
+        document.documentElement.classList.remove("gate-active-init");
         isGateActivelyEnforced = false;
         isInternalGateChange = true;
         stopGatePolling();
+        stopGateParticles();
         if (gateTutorialIframe) gateTutorialIframe.src = "";
         if (gateTutorialPlayerBox) gateTutorialPlayerBox.style.display = "none";
         lootlabsGateOverlay.style.pointerEvents = "none";
@@ -962,7 +1048,7 @@ document.addEventListener("DOMContentLoaded", () => {
             lootlabsGateOverlay.style.visibility = "hidden";
             lootlabsGateOverlay.classList.remove("gate-fade-out");
             isInternalGateChange = false;
-        }, 350);
+        }, 500);
 
         if (withToast) {
             const gate = SITE_CONFIG.lootlabsGate || {};
@@ -970,6 +1056,7 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast(currentLang === 'th' ? `ปลดล็อคสำเร็จ! จดจำเครื่องนี้ไว้ ${durationHours} ชั่วโมง` : `Unlocked successfully! Device remembered for ${durationHours} hours.`);
         }
     }
+    window.hideGateOverlay = hideGateOverlay;
 
     // Helper: วนลูปตรวจจับสถานะจาก LootLabs อัตโนมัติ (ไม่ต้องกดปุ่มเอง)
     function startGatePolling(fast = false) {
@@ -1326,7 +1413,19 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
+        window.openVipModal = openVipModal;
+        window.closeVipModal = closeVipModal;
+
         if (vipModalCloseBtn) vipModalCloseBtn.addEventListener("click", closeVipModal);
+
+        const gateOpenVipModalBtn = document.getElementById("gateOpenVipModalBtn");
+        if (gateOpenVipModalBtn) {
+            gateOpenVipModalBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openVipModal();
+            });
+        }
 
         if (vipModalOverlay) {
             vipModalOverlay.addEventListener("click", (e) => {
@@ -1783,10 +1882,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (lootlabsGateOverlay) {
             isInternalGateChange = true;
             lootlabsGateOverlay.classList.remove("gate-fade-out");
+            lootlabsGateOverlay.classList.add("gate-fade-in");
             lootlabsGateOverlay.style.display = "flex";
             lootlabsGateOverlay.style.visibility = "visible";
-            lootlabsGateOverlay.style.opacity = "1";
+            lootlabsGateOverlay.style.removeProperty("opacity");
             lootlabsGateOverlay.style.pointerEvents = "auto";
+            initGateParticles();
             setTimeout(() => {
                 isInternalGateChange = false;
                 if (!isGateAuthorized() && !isCurrentlyBanned) {
@@ -1804,7 +1905,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const separator = baseLink.includes("?") ? "&" : "?";
                     gateLootlabsBtn.href = `${baseLink}${separator}return_to=${returnTo}`;
                     if (lblGateBtn) {
-                        lblGateBtn.textContent = currentLang === "th" ? "เข้าใช้งานผ่าน BlackPass (รอ 10-15 วินาที)" : "Unlock via BlackPass (10-15s)";
+                        lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
                     }
                     if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
                     if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
@@ -1812,7 +1913,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const shrinkLink = (gate.shrinkmeUrl || gate.shrinkearnUrl || gate.lootlabsUrl || "https://shrinkme.click/cBGgRn").trim();
                     gateLootlabsBtn.href = shrinkLink;
                     if (lblGateBtn) {
-                        lblGateBtn.textContent = currentLang === "th" ? "เข้าใช้งานผ่าน ShrinkMe (รอ 10-15 วินาที)" : "Unlock via ShrinkMe (10-15s)";
+                        lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
                     }
                     if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
                     if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
@@ -1820,7 +1921,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const shrinkLink = (gate.shrinkearnUrl || gate.shrinkmeUrl || gate.lootlabsUrl || SITE_CONFIG.lootlabsGate?.shrinkearnUrl || "https://srnky.com/aehfqq0").trim();
                     gateLootlabsBtn.href = shrinkLink;
                     if (lblGateBtn) {
-                        lblGateBtn.textContent = currentLang === "th" ? "เข้าใช้งานผ่าน ShrinkEarn (รอ 10-15 วินาที)" : "Unlock via ShrinkEarn (10-15s)";
+                        lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
                     }
                     if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
                     if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
@@ -1830,7 +1931,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const separator = baseLink.includes("?") ? "&" : "?";
                     gateLootlabsBtn.href = `${baseLink}${separator}puid=${encodeURIComponent(puid)}`;
                     if (lblGateBtn) {
-                        lblGateBtn.textContent = currentLang === "th" ? "เข้าใช้งานผ่าน LootLabs เพื่อปลดล็อค" : "Complete LootLabs to Unlock";
+                        lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
                     }
                     if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "inline-flex";
                     // เริ่มระบบตรวจจับอัตโนมัติเบื้องหลัง
@@ -1840,7 +1941,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const customLink = (gate.shrinkmeUrl || gate.shrinkearnUrl || gate.lootlabsUrl || "").trim();
                     gateLootlabsBtn.href = customLink || "#";
                     if (lblGateBtn) {
-                        lblGateBtn.textContent = currentLang === "th" ? "กดลิงก์สนับสนุนเพื่อปลดล็อค" : "Complete Link to Unlock";
+                        lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
                     }
                     if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
                 }
@@ -1848,33 +1949,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (gateMessageText) {
                 if (currentLang === "en") {
-                    gateMessageText.textContent = provider === "lootlabs"
-                        ? "Please complete the LootLabs support link to unlock access to the website"
-                        : (provider === "blackpass"
-                            ? "Please complete the BlackPass verification to unlock access to the website"
-                            : "Please complete the support link to unlock access to the website");
+                    gateMessageText.textContent = "BlacklistScriptx Gateway • Please complete verification to unlock website access for 24 hours";
                 } else {
-                    if (provider === "blackpass") {
-                        gateMessageText.textContent = gate.bypassMessage || "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
-                    } else if (provider === "shrinkme") {
-                        gateMessageText.textContent = gate.bypassMessage || "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
-                    } else if (provider === "shrinkearn") {
-                        gateMessageText.textContent = (gate.bypassMessage && !gate.bypassMessage.includes("LootLabs"))
-                            ? gate.bypassMessage
-                            : "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์";
-                    } else if (provider === "lootlabs") {
-                        gateMessageText.textContent = (gate.bypassMessage && !gate.bypassMessage.includes("ShrinkEarn"))
-                            ? gate.bypassMessage
-                            : "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์";
-                    } else {
-                        gateMessageText.textContent = gate.bypassMessage || "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์";
-                    }
+                    gateMessageText.textContent = gate.bypassMessage || "BlacklistScriptx Gateway • กรุณายืนยันเซสชันเพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
                 }
             }
 
             const lblGateTitleEl = document.getElementById("lblGateTitle");
             if (lblGateTitleEl) {
-                lblGateTitleEl.textContent = currentLang === "th" ? "ปลดล็อคเพื่อเข้าสู่เว็บไซต์" : "Access Restricted";
+                lblGateTitleEl.textContent = "Security Access Gate";
             }
             if (lblGateTutorial) {
                 lblGateTutorial.textContent = currentLang === "th" ? "ดูคลิปสอนวิธีผ่านลิงก์ (คลิกที่นี่)" : "Watch Tutorial Guide";
@@ -2582,33 +2665,61 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================================
     // Scripts Feed Rendering
     // =========================================================================
+    // =========================================================================
+    // Scripts Feed Rendering
+    // =========================================================================
     function createScriptRow(item) {
-        const isLiked = localStorage.getItem("liked_script_" + item.id) === "true";
         const t = I18N[currentLang] || I18N.en;
         const display = getScriptDisplay(item, currentLang);
+
+        // Smart badge detection using existing item fields without database modification
+        let badgeHtml = "";
+        const rawBadge = (item.badge || "").trim();
+        const rawTitle = (item.title || "").toLowerCase();
+        const rawUpd = (item.updated || "").toLowerCase();
+        const isUpdated = rawBadge.toLowerCase().includes("upd") || rawBadge.toLowerCase().includes("อัปเดต") || rawTitle.includes("update") || rawTitle.includes("upd") || rawUpd.includes("วัน") || rawUpd.includes("today");
+        const isNew = rawBadge.toLowerCase().includes("new") || rawBadge.toLowerCase().includes("ใหม่") || (!isUpdated && rawBadge.length > 0);
+
+        if (isUpdated) {
+            badgeHtml = `<span class="row-chip-badge updated"><i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i> ${currentLang === 'th' ? 'อัปเดตแล้ว' : 'UPDATED'}</span>`;
+        } else if (isNew) {
+            badgeHtml = `<span class="row-chip-badge new"><i data-lucide="sparkles" style="width: 10px; height: 10px;"></i> ${currentLang === 'th' ? 'มาใหม่' : 'NEW'}</span>`;
+        } else if (rawBadge) {
+            badgeHtml = `<span class="row-chip-badge default">${escapeHtml(rawBadge)}</span>`;
+        }
+
+        const platformText = item.isMobile
+            ? (item.isPC ? (currentLang === 'th' ? 'มือถือ & PC' : 'Mobile & PC') : (currentLang === 'th' ? 'มือถือเท่านั้น' : 'Mobile Only'))
+            : 'PC Only';
+
         return `
             <div class="script-row" data-script-id="${escapeHtml(item.id)}">
                 <div class="row-left">
                     <div class="row-thumb-wrap" onclick="openLocker('${escapeHtml(item.id)}')" title="${escapeHtml(display.title)}">
                         <img class="row-thumb" src="${escapeHtml(display.thumbnail)}" alt="${escapeHtml(display.title)}" loading="lazy">
-                        <div class="thumb-play-overlay">
-                            <div class="thumb-play-btn">
-                                <i data-lucide="play" style="width: 18px; height: 18px; fill: #fff; margin-left: 2px;"></i>
-                            </div>
-                        </div>
                     </div>
                     <div class="row-meta">
-                        <div class="row-game-badge">
-                            <i data-lucide="gamepad-2"></i> ${escapeHtml(item.game)} • ${escapeHtml(item.version || 'v1.0')}
+                        <div class="row-header-line">
+                            <span class="row-game-badge">
+                                <i data-lucide="gamepad-2" style="width: 12px; height: 12px;"></i> ${escapeHtml(item.game || 'Roblox')}
+                            </span>
+                            <span class="row-ver-badge">${escapeHtml(item.version || 'v1.0')}</span>
+                            ${badgeHtml}
                         </div>
                         <div class="row-title" onclick="openLocker('${escapeHtml(item.id)}')">${escapeHtml(display.title)}</div>
                         <div class="row-features">${escapeHtml(display.description)}</div>
                         <div class="row-tags">
-                            <span class="tag-badge ${item.isKeyless ? 'green' : ''}">
+                            <span class="tag-badge ${item.isKeyless ? 'keyless' : 'has-key'}">
+                                <i data-lucide="${item.isKeyless ? 'check' : 'key'}" style="width: 11px; height: 11px;"></i>
                                 ${item.isKeyless ? t.tagKeyless : t.tagHasKey}
                             </span>
-                            <span class="tag-badge">${t.tagMobilePc}</span>
-                            <span class="tag-badge" style="color: #4ade80;">${t.tagStatusNormal}</span>
+                            <span class="tag-badge platform">
+                                <i data-lucide="smartphone" style="width: 11px; height: 11px;"></i>
+                                ${platformText}
+                            </span>
+                            <span class="tag-badge working">
+                                <span class="dot-working"></span> ${t.tagStatusNormal}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -2616,7 +2727,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="row-right">
                     <button class="btn-get" onclick="openLocker('${escapeHtml(item.id)}')">
                         <span>${t.btnGetScript}</span>
-                        <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+                        <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
                     </button>
                 </div>
             </div>
@@ -2666,6 +2777,20 @@ document.addEventListener("DOMContentLoaded", () => {
             if (spotlightDesc) spotlightDesc.textContent = topDisplay.description || "";
             if (btnSpotlight) {
                 btnSpotlight.onclick = () => openLocker(top.id);
+            }
+            const spotlightThumbImg = document.getElementById("spotlightThumbImg");
+            if (spotlightThumbImg) {
+                spotlightThumbImg.src = topDisplay.thumbnail || "Logo.ico";
+                spotlightThumbImg.alt = topDisplay.title || "Featured Script";
+            }
+            const spotlightMediaBox = document.getElementById("spotlightMediaBox");
+            if (spotlightMediaBox) {
+                spotlightMediaBox.onclick = () => openLocker(top.id);
+            }
+            const spotlightStatusTag = document.getElementById("spotlightStatusTag");
+            if (spotlightStatusTag) {
+                const statusText = currentLang === 'th' ? 'พร้อมใช้งาน • ตรวจสอบแล้ว' : 'Working • Verified';
+                spotlightStatusTag.innerHTML = `<i data-lucide="check-circle" style="width: 12px; height: 12px;"></i> <span>${statusText}</span>`;
             }
         }
 
@@ -3839,16 +3964,25 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        // ถ้าหน้าเว็บติดหน้าต่างล็อค LootLabs อยู่ ให้รอจนกว่าจะปลดล็อคก่อนจึงค่อยเด้งขึ้นมา
+        // ถ้าหน้าเว็บติดหน้าต่างล็อค Security Access Gate ให้รอจนกว่าจะปลดล็อคก่อนจึงค่อยเด้งขึ้นมา
         const gateOverlay = document.getElementById("lootlabsGateOverlay");
-        if (gateOverlay && gateOverlay.style.display !== "none" && !isGateAuthorized()) {
+        const isLocked = document.documentElement.classList.contains("gate-active-init") ||
+                         (!isGateAuthorized() && !isVipMember() && !isUserLoggedIn() && SITE_CONFIG.lootlabsGate && SITE_CONFIG.lootlabsGate.enabled) ||
+                         (gateOverlay && gateOverlay.style.display !== "none");
+
+        if (isLocked) {
             const gateObserver = new MutationObserver(() => {
-                if (gateOverlay.style.display === "none") {
+                const stillHidden = !document.documentElement.classList.contains("gate-active-init") &&
+                                    (!gateOverlay || gateOverlay.style.display === "none");
+                if (stillHidden) {
                     gateObserver.disconnect();
-                    setTimeout(showPopup, 600);
+                    setTimeout(showPopup, 1000);
                 }
             });
-            gateObserver.observe(gateOverlay, { attributes: true, attributeFilter: ["style"] });
+            if (gateOverlay) {
+                gateObserver.observe(gateOverlay, { attributes: true, attributeFilter: ["style", "class"] });
+            }
+            gateObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
         } else {
             // หน่วงเวลาเล็กน้อยให้หน้าเว็บโหลดสมูท 700ms แล้วแสดง
             setTimeout(showPopup, 700);
