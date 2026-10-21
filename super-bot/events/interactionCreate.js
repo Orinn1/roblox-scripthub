@@ -64,20 +64,28 @@ module.exports = {
             // -------------------------------------------------------------
             if (customId.startsWith('horoscope_topic:') || customId === 'horoscope_roll') {
                 const topic = customId.startsWith('horoscope_topic:') ? customId.split(':')[1] : 'overall';
-                const tarot = drawTarotCard(topic, interaction.user.username);
+                const tarot = drawTarotCard(topic, interaction.user.username, interaction.user.id);
 
                 const embed = new EmbedBuilder()
                     .setColor(tarot.colorHex)
                     .setTitle(tarot.topicTitle)
-                    .setDescription(`🃏 **ไพ่ประจำตัวเตง:** \`${tarot.cardName}\`\n✨ **ระดับพลังงาน:** ${tarot.stars}`)
+                    .setDescription(
+                        `🃏 **ไพ่ประจำตัวเตง:** \`${tarot.cardName}\` ${tarot.positionText}\n` +
+                        `✨ **ระดับพลังงานวันนี้:** ${tarot.stars}\n` +
+                        `📅 **ดวงประจำวันที่:** \`${tarot.dateText}\``
+                    )
                     .addFields(
                         { name: tarot.fieldTitle, value: tarot.prediction, inline: false },
-                        { name: '💡 ไพ่อยากบอกเตงว่า:', value: tarot.advice, inline: false },
+                        { name: '⚠️ สิ่งที่ไพ่เตือนระวังวันนี้:', value: tarot.warning, inline: false },
+                        { name: '💡 คำแนะนำเสริมพลังใจ:', value: tarot.advice, inline: false },
                         { name: '🔢 เลขเด็ดนำโชค', value: `\`${tarot.luckyNumbers}\``, inline: true },
-                        { name: '🎨 สีมงคลเรียกทรัพย์', value: tarot.auspiciousColor, inline: true }
+                        { name: '🎨 สีมงคลเสริมเฮง', value: tarot.auspiciousColor, inline: true },
+                        { name: '🚫 สีกาลกิณีควรเลี่ยง', value: tarot.inauspiciousColor, inline: true },
+                        { name: '⏰ ฤกษ์เวลาทองวันนี้', value: tarot.auspiciousTime, inline: true },
+                        { name: '🪐 ธาตุ & ดาวคุ้มครอง', value: tarot.elementPlanet, inline: true }
                     )
                     .setThumbnail(tarot.cardImage)
-                    .setFooter({ text: 'คำทำนายส่วนตัวของเตง • คนอื่นมองไม่เห็นน้า จุ๊ๆ 🤫' })
+                    .setFooter({ text: 'คำทำนายส่วนตัวของคุณ • ล็อกดวงตามรหัสประจำตัวรายวัน รีเซ็ตเที่ยงคืน 🌙' })
                     .setTimestamp();
 
                 return interaction.reply({ embeds: [embed], ephemeral: true });
@@ -396,20 +404,28 @@ module.exports = {
         if (interaction.isStringSelectMenu()) {
             if (interaction.customId === 'horoscope_select_topic') {
                 const topic = interaction.values[0];
-                const tarot = drawTarotCard(topic, interaction.user.username);
+                const tarot = drawTarotCard(topic, interaction.user.username, interaction.user.id);
 
                 const embed = new EmbedBuilder()
                     .setColor(tarot.colorHex)
                     .setTitle(tarot.topicTitle)
-                    .setDescription(`🃏 **ไพ่ประจำตัวเตง:** \`${tarot.cardName}\`\n✨ **ระดับพลังงาน:** ${tarot.stars}`)
+                    .setDescription(
+                        `🃏 **ไพ่ประจำตัวเตง:** \`${tarot.cardName}\` ${tarot.positionText}\n` +
+                        `✨ **ระดับพลังงานวันนี้:** ${tarot.stars}\n` +
+                        `📅 **ดวงประจำวันที่:** \`${tarot.dateText}\``
+                    )
                     .addFields(
                         { name: tarot.fieldTitle, value: tarot.prediction, inline: false },
-                        { name: '💡 ไพ่อยากบอกเตงว่า:', value: tarot.advice, inline: false },
+                        { name: '⚠️ สิ่งที่ไพ่เตือนระวังวันนี้:', value: tarot.warning, inline: false },
+                        { name: '💡 คำแนะนำเสริมพลังใจ:', value: tarot.advice, inline: false },
                         { name: '🔢 เลขเด็ดนำโชค', value: `\`${tarot.luckyNumbers}\``, inline: true },
-                        { name: '🎨 สีมงคลเรียกทรัพย์', value: tarot.auspiciousColor, inline: true }
+                        { name: '🎨 สีมงคลเสริมเฮง', value: tarot.auspiciousColor, inline: true },
+                        { name: '🚫 สีกาลกิณีควรเลี่ยง', value: tarot.inauspiciousColor, inline: true },
+                        { name: '⏰ ฤกษ์เวลาทองวันนี้', value: tarot.auspiciousTime, inline: true },
+                        { name: '🪐 ธาตุ & ดาวคุ้มครอง', value: tarot.elementPlanet, inline: true }
                     )
                     .setThumbnail(tarot.cardImage)
-                    .setFooter({ text: 'คำทำนายส่วนตัวของเตง • คนอื่นมองไม่เห็นน้า จุ๊ๆ 🤫' })
+                    .setFooter({ text: 'คำทำนายส่วนตัวของคุณ • ล็อกดวงตามรหัสประจำตัวรายวัน รีเซ็ตเที่ยงคืน 🌙' })
                     .setTimestamp();
 
                 return interaction.reply({ embeds: [embed], ephemeral: true });
