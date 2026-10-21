@@ -1,7 +1,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-const DEFAULT_TOKEN = Buffer.from('TVRVME9UTTVOVGt5TVRJeU9ESTNNVFk0TmcuR05USlRFLncwYTZQdXBSSUdaeG9PSVgyY1IwUFZNZXJJS0pRandUalRiR1NJ', 'base64').toString('utf8');
+const DEFAULT_TOKEN = Buffer.from('TVRVME9UTTVOVGt5TVRJeU9ESTNNVFk0TmcuR1Zvbnk1LlNlSnBtcWItU3ZDRHE2ZXVSRHhqMmE2OHFySVkxUHZEQ2lDZnBJ', 'base64').toString('utf8');
 
 module.exports = {
     token: process.env.DISCORD_TOKEN || DEFAULT_TOKEN,
