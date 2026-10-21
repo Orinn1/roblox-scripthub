@@ -102,7 +102,14 @@ const setCandy = db.prepare('UPDATE users SET candy = ? WHERE userId = ?');
 const addVoiceMinute = db.prepare('UPDATE users SET total_voice_minutes = total_voice_minutes + 1, last_voice_reward = ? WHERE userId = ?');
 const addVoiceCandyAndMinute = db.prepare('UPDATE users SET candy = candy + 1, total_voice_minutes = total_voice_minutes + 1, last_voice_reward = ? WHERE userId = ?');
 
+const BOT_USER_IDS = new Set(['1562414895138480188', '1549395921228271686']);
+
+function isBotUserId(userId) {
+    return BOT_USER_IDS.has(userId);
+}
+
 function getCandyBalance(userId) {
+    if (isBotUserId(userId)) return 0;
     createUser.run(userId);
     const row = getUser.get(userId);
     return row ? row.candy : 0;
@@ -111,8 +118,10 @@ function getCandyBalance(userId) {
 /**
  * ติดตามเวลาการอยู่ในห้องเสียงทุกๆ 1 นาที
  * อัตรา: 1 ชั่วโมง (60 นาที) ได้ 10 เม็ด -> ทุกๆ 6 นาทีได้รับ 1 เม็ด สะสมถาวร
+ * (บอทที่ออนไลน์ 24 ชม. ไม่นับลูกอมและไม่นับนาทีเด็ดขาด)
  */
 function trackVoiceMinute(userId) {
+    if (isBotUserId(userId)) return { rewarded: false, candy: 0, totalMinutes: 0 };
     createUser.run(userId);
     const now = Date.now();
     const user = getUser.get(userId);
@@ -227,10 +236,10 @@ function setAntiScamEnabled(guildId, enabled) {
 }
 
 // ==========================================
-// 🏆 Leaderboard Helpers (สถิติตลอดชีพ ไม่รีเซ็ตรายวัน)
+// 🏆 Leaderboard Helpers (สถิติตลอดชีพ ไม่รีเซ็ตรายวัน และไม่นับบอท)
 // ==========================================
-const getTopCandiesQuery = db.prepare('SELECT userId, candy FROM users WHERE candy > 0 ORDER BY candy DESC LIMIT ?');
-const getTopVoiceMinutesQuery = db.prepare('SELECT userId, total_voice_minutes FROM users WHERE total_voice_minutes > 0 ORDER BY total_voice_minutes DESC LIMIT ?');
+const getTopCandiesQuery = db.prepare(`SELECT userId, candy FROM users WHERE candy > 0 AND userId NOT IN ('1562414895138480188', '1549395921228271686') ORDER BY candy DESC LIMIT ?`);
+const getTopVoiceMinutesQuery = db.prepare(`SELECT userId, total_voice_minutes FROM users WHERE total_voice_minutes > 0 AND userId NOT IN ('1562414895138480188', '1549395921228271686') ORDER BY total_voice_minutes DESC LIMIT ?`);
 
 const savePanelQuery = db.prepare(`
     INSERT INTO leaderboard_panels (guildId, channelId, messageId, updatedAt)

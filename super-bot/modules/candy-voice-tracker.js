@@ -23,9 +23,12 @@ function startVoiceCandyTracker(client) {
                     // ข้ามห้อง AFK
                     if (channel.id === afkChannelId) continue;
 
-                    // สมาชิกในห้องเสียง
+                    // สมาชิกในห้องเสียง: คัดกรองมนุษย์จริงเท่านั้น
+                    // ❌ ข้ามบอททุกกรณี (แม้บอทจะออนไลน์สิงห้อง 24 ชม. ก็ไม่นับลูกอมและไม่นับนาทีเด็ดขาด)
                     const validMembers = channel.members.filter(member => {
-                        if (member.user.bot) return false; // ไม่แจกบอท
+                        if (!member || !member.user) return false;
+                        if (member.user.bot) return false; // ข้ามบอททุกตัว
+                        if (client.user && member.id === client.user.id) return false; // ข้ามตัวบอทเอง
                         if (member.voice.selfDeaf || member.voice.serverDeaf) return false; // ปิดหูฟังไม่ได้รับ
                         return true;
                     });
