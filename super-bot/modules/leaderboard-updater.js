@@ -24,22 +24,22 @@ function getMedal(index) {
 }
 
 /**
- * สร้าง Embed และ Components ของกระดานผู้นำ
+ * สร้าง Embed และ Components ของกระดานผู้นำเฉพาะแต่ละเซิร์ฟเวอร์
  */
-function generateLeaderboardData() {
-    const topCandies = getTopCandies(10);
-    const topVoice = getTopVoiceMinutes(10);
+function generateLeaderboardData(guildId, guildName) {
+    const topCandies = guildId ? getTopCandies(guildId, 10) : [];
+    const topVoice = guildId ? getTopVoiceMinutes(guildId, 10) : [];
 
     let candyText = '';
     if (topCandies.length === 0) {
-        candyText = '*ยังไม่มีใครตุนลูกอมเลยเตง มาเปิดก่อนใครได้นะ*';
+        candyText = '*ยังไม่มีใครตุนลูกอมในเซิร์ฟนี้เลยเตง มาเปิดก่อนใครได้นะ*';
     } else {
         candyText = topCandies.map((u, i) => `${getMedal(i)} <@${u.userId}> — **${u.candy}** เม็ด`).join('\n');
     }
 
     let voiceText = '';
     if (topVoice.length === 0) {
-        voiceText = '*ยังไม่มีคนเปิดไมค์คุยเลย เหงาจังงง*';
+        voiceText = '*ยังไม่มีคนเปิดไมค์คุยในเซิร์ฟนี้เลย เหงาจังงง*';
     } else {
         voiceText = topVoice.map((u, i) => {
             const totalMins = u.total_voice_minutes || 0;
@@ -50,13 +50,15 @@ function generateLeaderboardData() {
         }).join('\n');
     }
 
+    const titleSuffix = guildName ? ` • ${guildName}` : '';
+
     const embed = new EmbedBuilder()
         .setColor('#F1C40F')
-        .setTitle('🏆 ทำเนียบตัวตึงประจำเซิร์ฟ (Live Leaderboard)')
+        .setTitle(`🏆 ทำเนียบตัวตึงประจำเซิร์ฟ${titleSuffix} (Live Leaderboard)`)
         .setDescription(
             'ส่องอันดับคนคลั่งรักเซิร์ฟ ใครรวยลูกอมหรือสิงห้องคุยเก่งสุด มาดูกัน! 🔥\n' +
             '⚡ ข้อมูลรีเฟรชอัตโนมัติทุกๆ 1 ชั่วโมงน้า\n' +
-            '♾️ สถิติสะสมยาวๆ ยิ่งอยู่นานยิ่งตึง ไม่มีรีเซ็ตทิ้งแน่นอน\n' +
+            '♾️ สถิติสะสมเฉพาะเซิร์ฟเวอร์นี้ ยิ่งอยู่นานยิ่งตึง ไม่มีรีเซ็ตทิ้งแน่นอน\n' +
             '━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
         )
         .addFields(
@@ -83,14 +85,12 @@ function generateLeaderboardData() {
 }
 
 /**
- * วนลูปอัปเดตข้อความกระดานผู้นำในทุกเซิร์ฟเวอร์
+ * วนลูปอัปเดตข้อความกระดานผู้นำในทุกเซิร์ฟเวอร์ (แยกข้อมูลตามแต่ละเซิร์ฟ)
  */
 async function updateAllLeaderboardPanels(client) {
     try {
         const panels = getAllLeaderboardPanels();
         if (!panels || panels.length === 0) return;
-
-        const data = generateLeaderboardData();
 
         for (const panel of panels) {
             try {
@@ -100,6 +100,8 @@ async function updateAllLeaderboardPanels(client) {
                 const message = await channel.messages.fetch(panel.messageId).catch(() => null);
                 if (!message) continue;
 
+                // ดึงข้อมูลเฉพาะเซิร์ฟเวอร์ของ panel นั้นๆ
+                const data = generateLeaderboardData(panel.guildId, channel.guild?.name);
                 await message.edit(data).catch(() => {});
             } catch (err) {
                 console.warn(`[Leaderboard] ไม่สามารถอัปเดตแผงในห้อง ${panel.channelId}:`, err.message);

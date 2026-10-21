@@ -30,7 +30,17 @@ try {
 // 🛠️ สร้างตารางฐานข้อมูลอัตโนมัติ
 // ==========================================
 db.exec(`
-    -- ตารางผู้ใช้และลูกอม
+    -- ตารางผู้ใช้และลูกอมแบบแยกตามแต่ละเซิร์ฟเวอร์ (Guild-specific)
+    CREATE TABLE IF NOT EXISTS guild_users (
+        guildId TEXT NOT NULL,
+        userId TEXT NOT NULL,
+        candy INTEGER DEFAULT 0,
+        total_voice_minutes INTEGER DEFAULT 0,
+        last_voice_reward INTEGER DEFAULT 0,
+        PRIMARY KEY (guildId, userId)
+    );
+
+    -- ตารางผู้ใช้และลูกอม (ตารางเก่าเพื่อรองรับ migration)
     CREATE TABLE IF NOT EXISTS users (
         userId TEXT PRIMARY KEY,
         candy INTEGER DEFAULT 0,
@@ -91,16 +101,34 @@ db.exec(`
     );
 `);
 
+// Migration: ย้ายข้อมูลจาก users เดิมมายัง guild_users (ถ้ามี)
+try {
+    const tableInfo = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").get();
+    if (tableInfo) {
+        const existingCount = db.prepare('SELECT COUNT(*) as cnt FROM guild_users').get()?.cnt || 0;
+        if (existingCount === 0) {
+            const panels = db.prepare('SELECT guildId FROM leaderboard_panels LIMIT 1').all();
+            const defaultGuildId = panels.length > 0 ? panels[0].guildId : '1499540513777254621';
+            db.exec(`
+                INSERT OR IGNORE INTO guild_users (guildId, userId, candy, total_voice_minutes, last_voice_reward)
+                SELECT '${defaultGuildId}', userId, candy, total_voice_minutes, last_voice_reward FROM users;
+            `);
+        }
+    }
+} catch (e) {
+    console.warn('[DB Migration] Warning:', e.message);
+}
+
 // ==========================================
-// 🍬 User & Candy Helpers
+// 🍬 User & Candy Helpers (แยกข้อมูลตาม Guild / เซิร์ฟเวอร์)
 // ==========================================
-const getUser = db.prepare('SELECT * FROM users WHERE userId = ?');
-const createUser = db.prepare('INSERT OR IGNORE INTO users (userId, candy, total_voice_minutes, last_voice_reward) VALUES (?, 0, 0, 0)');
-const addCandy = db.prepare('UPDATE users SET candy = candy + ?, last_voice_reward = ? WHERE userId = ?');
-const deductCandy = db.prepare('UPDATE users SET candy = candy - ? WHERE userId = ? AND candy >= ?');
-const setCandy = db.prepare('UPDATE users SET candy = ? WHERE userId = ?');
-const addVoiceMinute = db.prepare('UPDATE users SET total_voice_minutes = total_voice_minutes + 1, last_voice_reward = ? WHERE userId = ?');
-const addVoiceCandyAndMinute = db.prepare('UPDATE users SET candy = candy + 1, total_voice_minutes = total_voice_minutes + 1, last_voice_reward = ? WHERE userId = ?');
+const getUser = db.prepare('SELECT * FROM guild_users WHERE guildId = ? AND userId = ?');
+const createUser = db.prepare('INSERT OR IGNORE INTO guild_users (guildId, userId, candy, total_voice_minutes, last_voice_reward) VALUES (?, ?, 0, 0, 0)');
+const addCandy = db.prepare('UPDATE guild_users SET candy = candy + ?, last_voice_reward = ? WHERE guildId = ? AND userId = ?');
+const deductCandy = db.prepare('UPDATE guild_users SET candy = candy - ? WHERE guildId = ? AND userId = ? AND candy >= ?');
+const setCandy = db.prepare('UPDATE guild_users SET candy = ? WHERE guildId = ? AND userId = ?');
+const addVoiceMinute = db.prepare('UPDATE guild_users SET total_voice_minutes = total_voice_minutes + 1, last_voice_reward = ? WHERE guildId = ? AND userId = ?');
+const addVoiceCandyAndMinute = db.prepare('UPDATE guild_users SET candy = candy + 1, total_voice_minutes = total_voice_minutes + 1, last_voice_reward = ? WHERE guildId = ? AND userId = ?');
 
 const BOT_USER_IDS = new Set(['1562414895138480188', '1549395921228271686']);
 
@@ -108,52 +136,60 @@ function isBotUserId(userId) {
     return BOT_USER_IDS.has(userId);
 }
 
-function getCandyBalance(userId) {
-    if (isBotUserId(userId)) return 0;
-    createUser.run(userId);
-    const row = getUser.get(userId);
+function getCandyBalance(guildId, userId) {
+    // รองรับการเรียกแบบเดิม getCandyBalance(userId) ในกรณีฉุกเฉิน
+    if (!userId && guildId) {
+        userId = guildId;
+        guildId = null;
+    }
+    if (!guildId || !userId || isBotUserId(userId)) return 0;
+    createUser.run(guildId, userId);
+    const row = getUser.get(guildId, userId);
     return row ? row.candy : 0;
 }
 
 /**
- * ติดตามเวลาการอยู่ในห้องเสียงทุกๆ 1 นาที
+ * ติดตามเวลาการอยู่ในห้องเสียงทุกๆ 1 นาที (แยกตามแต่ละเซิร์ฟเวอร์)
  * อัตรา: 1 ชั่วโมง (60 นาที) ได้ 10 เม็ด -> ทุกๆ 6 นาทีได้รับ 1 เม็ด สะสมถาวร
  * (บอทที่ออนไลน์ 24 ชม. ไม่นับลูกอมและไม่นับนาทีเด็ดขาด)
  */
-function trackVoiceMinute(userId) {
-    if (isBotUserId(userId)) return { rewarded: false, candy: 0, totalMinutes: 0 };
-    createUser.run(userId);
+function trackVoiceMinute(guildId, userId) {
+    if (!guildId || !userId || isBotUserId(userId)) return { rewarded: false, candy: 0, totalMinutes: 0 };
+    createUser.run(guildId, userId);
     const now = Date.now();
-    const user = getUser.get(userId);
+    const user = getUser.get(guildId, userId);
     const currentMinutes = user ? (user.total_voice_minutes || 0) : 0;
     const newMinutes = currentMinutes + 1;
 
     if (newMinutes % 6 === 0) {
-        addVoiceCandyAndMinute.run(now, userId);
+        addVoiceCandyAndMinute.run(now, guildId, userId);
         return { rewarded: true, candy: 1, totalMinutes: newMinutes };
     } else {
-        addVoiceMinute.run(now, userId);
+        addVoiceMinute.run(now, guildId, userId);
         return { rewarded: false, candy: 0, totalMinutes: newMinutes };
     }
 }
 
-function rewardVoiceCandy(userId, amount = 10) {
-    createUser.run(userId);
+function rewardVoiceCandy(guildId, userId, amount = 10) {
+    if (!guildId || !userId) return 0;
+    createUser.run(guildId, userId);
     const now = Date.now();
-    addCandy.run(amount, now, userId);
-    return getCandyBalance(userId);
+    addCandy.run(amount, now, guildId, userId);
+    return getCandyBalance(guildId, userId);
 }
 
-function consumeCandy(userId, amount = 10) {
-    createUser.run(userId);
-    const info = deductCandy.run(amount, userId, amount);
+function consumeCandy(guildId, userId, amount = 10) {
+    if (!guildId || !userId) return false;
+    createUser.run(guildId, userId);
+    const info = deductCandy.run(amount, guildId, userId, amount);
     return info.changes > 0;
 }
 
-function modifyUserCandy(userId, newAmount) {
-    createUser.run(userId);
-    setCandy.run(newAmount, userId);
-    return getCandyBalance(userId);
+function modifyUserCandy(guildId, userId, newAmount) {
+    if (!guildId || !userId) return 0;
+    createUser.run(guildId, userId);
+    setCandy.run(newAmount, guildId, userId);
+    return getCandyBalance(guildId, userId);
 }
 
 // ==========================================
@@ -236,10 +272,10 @@ function setAntiScamEnabled(guildId, enabled) {
 }
 
 // ==========================================
-// 🏆 Leaderboard Helpers (สถิติตลอดชีพ ไม่รีเซ็ตรายวัน และไม่นับบอท)
+// 🏆 Leaderboard Helpers (สถิติตลอดชีพ แยกตามแต่ละเซิร์ฟเวอร์ ไม่นับบอท)
 // ==========================================
-const getTopCandiesQuery = db.prepare(`SELECT userId, candy FROM users WHERE candy > 0 AND userId NOT IN ('1562414895138480188', '1549395921228271686') ORDER BY candy DESC LIMIT ?`);
-const getTopVoiceMinutesQuery = db.prepare(`SELECT userId, total_voice_minutes FROM users WHERE total_voice_minutes > 0 AND userId NOT IN ('1562414895138480188', '1549395921228271686') ORDER BY total_voice_minutes DESC LIMIT ?`);
+const getTopCandiesQuery = db.prepare(`SELECT userId, candy FROM guild_users WHERE guildId = ? AND candy > 0 AND userId NOT IN ('1562414895138480188', '1549395921228271686') ORDER BY candy DESC LIMIT ?`);
+const getTopVoiceMinutesQuery = db.prepare(`SELECT userId, total_voice_minutes FROM guild_users WHERE guildId = ? AND total_voice_minutes > 0 AND userId NOT IN ('1562414895138480188', '1549395921228271686') ORDER BY total_voice_minutes DESC LIMIT ?`);
 
 const savePanelQuery = db.prepare(`
     INSERT INTO leaderboard_panels (guildId, channelId, messageId, updatedAt)
@@ -252,12 +288,14 @@ const savePanelQuery = db.prepare(`
 const getPanelQuery = db.prepare('SELECT * FROM leaderboard_panels WHERE guildId = ?');
 const getAllPanelsQuery = db.prepare('SELECT * FROM leaderboard_panels');
 
-function getTopCandies(limit = 10) {
-    return getTopCandiesQuery.all(limit);
+function getTopCandies(guildId, limit = 10) {
+    if (!guildId) return [];
+    return getTopCandiesQuery.all(guildId, limit);
 }
 
-function getTopVoiceMinutes(limit = 10) {
-    return getTopVoiceMinutesQuery.all(limit);
+function getTopVoiceMinutes(guildId, limit = 10) {
+    if (!guildId) return [];
+    return getTopVoiceMinutesQuery.all(guildId, limit);
 }
 
 function saveLeaderboardPanel(guildId, channelId, messageId) {

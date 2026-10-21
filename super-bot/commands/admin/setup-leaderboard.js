@@ -27,7 +27,7 @@ module.exports = {
         const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
         const guildId = interaction.guild.id;
 
-        const data = generateLeaderboardData();
+        const data = generateLeaderboardData(guildId, interaction.guild.name);
 
         // ส่งข้อความกระดานผู้นำไปยังห้องเป้าหมาย
         const sentMessage = await targetChannel.send(data);

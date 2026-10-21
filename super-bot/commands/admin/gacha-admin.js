@@ -153,12 +153,12 @@ module.exports = {
             const user = interaction.options.getUser('user');
             const amount = interaction.options.getInteger('amount');
 
-            const newBalance = rewardVoiceCandy(user.id, amount);
+            const newBalance = rewardVoiceCandy(guildId, user.id, amount);
 
             const embed = new EmbedBuilder()
                 .setColor('#F1C40F')
                 .setTitle('🎁 เสกลูกอมเรียบร้อยจ้า!')
-                .setDescription(`เปย์ลูกอมให้ <@${user.id}> ไป **${amount > 0 ? '+' + amount : amount}** เม็ด\n🍬 กระเป๋าตอนนี้มี: **${newBalance}** เม็ด ✨`)
+                .setDescription(`เปย์ลูกอมให้ <@${user.id}> ในเซิร์ฟนี้ไป **${amount > 0 ? '+' + amount : amount}** เม็ด\n🍬 กระเป๋าตอนนี้มี: **${newBalance}** เม็ด ✨`)
                 .setTimestamp();
 
             return interaction.reply({ embeds: [embed], ephemeral: true });

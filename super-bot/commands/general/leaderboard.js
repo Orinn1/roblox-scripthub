@@ -11,7 +11,7 @@ module.exports = {
         .setDescription('ส่องกระดานตัวตึง ใครรวยลูกอมหรือคุยนานสุดในเซิร์ฟ'),
 
     async execute(interaction) {
-        const data = generateLeaderboardData();
+        const data = generateLeaderboardData(interaction.guild?.id, interaction.guild?.name);
         await interaction.reply({
             ...data,
             ephemeral: true

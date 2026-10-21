@@ -91,8 +91,8 @@ module.exports = {
                 const guildId = interaction.guild.id;
                 const cost = 10;
 
-                // เช็คลูกอม
-                const currentCandy = getCandyBalance(userId);
+                // เช็คลูกอมของเซิร์ฟเวอร์นี้
+                const currentCandy = getCandyBalance(guildId, userId);
                 if (currentCandy < cost) {
                     return interaction.reply({
                         content: `🍬 **ลูกอมไม่พออ่าเตง!**\nมีอยู่แค่ **${currentCandy}** เม็ดเอง แต่หมุนรอบนึงใช้ **${cost}** เม็ดน้า\n💡 *ทริคง่ายๆ: แค่ไปนั่งคุยในห้อง Voice ชิลๆ ครบ 1 ชม. ได้ฟรี 10 เม็ดเลย (1 เม็ดทุก 6 นาที) รีบไปตุนเร็ว!*`,
@@ -100,8 +100,8 @@ module.exports = {
                     });
                 }
 
-                // หักลูกอม
-                const deducted = consumeCandy(userId, cost);
+                // หักลูกอมของเซิร์ฟเวอร์นี้
+                const deducted = consumeCandy(guildId, userId, cost);
                 if (!deducted) {
                     return interaction.reply({
                         content: '⚠️ หักลูกอมไม่สำเร็จง่ะ ระบบสะดุดแป๊บนึง ลองกดใหม่อีกทีนะเตง',
@@ -114,7 +114,7 @@ module.exports = {
                 if (!result.success) {
                     // คืนลูกอมถ้าสุ่มไม่สำเร็จ (เช่น ตู้ว่าง)
                     const { rewardVoiceCandy } = require('../database/db');
-                    rewardVoiceCandy(userId, cost);
+                    rewardVoiceCandy(guildId, userId, cost);
                     return interaction.reply({
                         content: `⚠️ ${result.message}`,
                         ephemeral: true
@@ -138,7 +138,7 @@ module.exports = {
                     roleGivenText = `⚠️ สุ่มได้ยศ **${wonItem.roleName}** แต่หาตัวยศในเซิร์ฟไม่เจออ่าเตง`;
                 }
 
-                const remainingCandy = getCandyBalance(userId);
+                const remainingCandy = getCandyBalance(guildId, userId);
 
                 const spinEmbed = new EmbedBuilder()
                     .setColor(wonItem.rarity === 'Legendary' ? '#F1C40F' : (wonItem.rarity === 'Epic' ? '#9B59B6' : '#2ECC71'))
@@ -160,7 +160,7 @@ module.exports = {
             // 2.6 เช็คกระเป๋าลูกอม
             // -------------------------------------------------------------
             if (customId === 'gacha_balance') {
-                const balance = getCandyBalance(interaction.user.id);
+                const balance = getCandyBalance(interaction.guild.id, interaction.user.id);
                 const spins = Math.floor(balance / 10);
 
                 const embed = new EmbedBuilder()
@@ -321,7 +321,7 @@ module.exports = {
             // -------------------------------------------------------------
             if (customId === 'leaderboard_refresh') {
                 const { generateLeaderboardData } = require('../modules/leaderboard-updater');
-                const data = generateLeaderboardData();
+                const data = generateLeaderboardData(interaction.guild?.id, interaction.guild?.name);
                 return interaction.update(data).catch(() => {});
             }
 
@@ -505,7 +505,7 @@ module.exports = {
                     });
                 }
 
-                const newBalance = rewardVoiceCandy(targetUserId, amount);
+                const newBalance = rewardVoiceCandy(interaction.guild.id, targetUserId, amount);
 
                 const embed = new EmbedBuilder()
                     .setColor('#F1C40F')

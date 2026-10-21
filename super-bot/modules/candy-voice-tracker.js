@@ -34,7 +34,7 @@ function startVoiceCandyTracker(client) {
                     });
 
                     for (const member of validMembers.values()) {
-                        const result = trackVoiceMinute(member.id);
+                        const result = trackVoiceMinute(guild.id, member.id);
                         if (result.rewarded) {
                             totalCandiesAwarded++;
                         }

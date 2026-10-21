@@ -13,13 +13,13 @@ module.exports = {
 
     async execute(interaction) {
         const targetUser = interaction.options.getUser('user') || interaction.user;
-        const balance = getCandyBalance(targetUser.id);
+        const balance = getCandyBalance(interaction.guild.id, targetUser.id);
         const spinsAvailable = Math.floor(balance / 10);
 
         const embed = new EmbedBuilder()
             .setColor('#F1C40F')
             .setTitle(`🍬 คลังลูกอมของ ${targetUser.username}`)
-            .setDescription(`ตอนนี้มีลูกอมตุนไว้ **${balance}** เม็ด ✨\n🎰 เอาไปกดหมุนตู้กาชาได้ตั้ง **${spinsAvailable}** ครั้ง!`)
+            .setDescription(`ตอนนี้มีลูกอมตุนไว้ในเซิร์ฟนี้ **${balance}** เม็ด ✨\n🎰 เอาไปกดหมุนตู้กาชาได้ตั้ง **${spinsAvailable}** ครั้ง!`)
             .addFields(
                 { name: '💡 หาเม็ดเพิ่มยังไง?', value: 'แค่นั่งเม้าท์ในห้องพูดคุย (Voice) ชิลๆ ได้ฟรี ชม.ละ 10 เม็ด (แจกเรื่อยๆ 1 เม็ดทุก 6 นาที) ยิ่งอยู่นานยิ่งรวย!', inline: false }
             )
