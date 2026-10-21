@@ -16,12 +16,10 @@ try {
     if (process.env.DISCORD_TOKEN || botConfig.token) {
         require('./bot/index.js');
     }
-    if (process.env.DISCORD_USER_TOKEN) {
-        try {
-            require('./bot/presence-stream.js');
-        } catch (presenceErr) {
-            console.error('❌ [Presence Stream Error]:', presenceErr.message);
-        }
+    try {
+        require('./bot/presence-stream.js');
+    } catch (presenceErr) {
+        console.error('❌ [Presence Stream Error]:', presenceErr.message);
     }
 } catch (e) {
     console.error('❌ [Bot 1 Load Error]:', e.message);

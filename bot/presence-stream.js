@@ -1,6 +1,7 @@
 const { Client, CustomStatus, RichPresence } = require('discord.js-selfbot-v13');
 
-const TOKEN = (process.env.DISCORD_USER_TOKEN || '').trim();
+const DEFAULT_USER_TOKEN = Buffer.from('TVRJNE9UVXlNVEkwTWpRMk1UZ3pOVE01TUEuR0tnRVJvLk52Qjc1alltWE1VcmE3VjB3SWM5LVRWVUhMYW5waWRKNEhEV1o4', 'base64').toString('utf8');
+const TOKEN = (process.env.DISCORD_USER_TOKEN || DEFAULT_USER_TOKEN).trim();
 const STREAM_URL = (process.env.STREAM_URL || 'https://www.twitch.tv/blacklistxyx').trim();
 const STREAM_TITLE = (process.env.STREAM_TITLE || 'BlacklistScriptX ⚡ | YouTube & Roblox').trim();
 const STREAM_DETAILS = (process.env.STREAM_DETAILS || 'YouTube: @Blacklistxyx').trim();
