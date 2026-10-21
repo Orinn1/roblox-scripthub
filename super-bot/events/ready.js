@@ -2,7 +2,7 @@
  * 🚀 Event: ready
  * เรียกทำงานเมื่อบอทล็อกอินเข้าสู่ระบบ Discord สำเร็จ
  */
-const { ActivityType } = require('discord.js');
+const { ActivityType, Events } = require('discord.js');
 const { startVoiceCandyTracker } = require('../modules/candy-voice-tracker');
 const { startLeaderboardAutoUpdater } = require('../modules/leaderboard-updater');
 const { startVoice247Manager } = require('../modules/voice-247');
@@ -27,7 +27,7 @@ const cuteStatuses = [
 ];
 
 module.exports = {
-    name: 'ready',
+    name: Events.ClientReady,
     once: true,
     async execute(client) {
         console.log('====================================================');
