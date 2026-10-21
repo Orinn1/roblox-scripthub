@@ -10,12 +10,38 @@ const {
     getVoiceConnection 
 } = require('@discordjs/voice');
 
+const fs = require('fs');
+const path = require('path');
+
 const { 
     save247Channel, 
     get247Channel, 
     getAll247Channels, 
     remove247Channel 
 } = require('../database/db');
+
+const CONFIG_PATH = path.join(__dirname, '..', 'data', 'voice-247-config.json');
+
+function loadPersistentVoiceConfig() {
+    try {
+        if (fs.existsSync(CONFIG_PATH)) {
+            return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+        }
+    } catch {}
+    return {};
+}
+
+function savePersistentVoiceConfig(guildId, channelId) {
+    try {
+        const config = loadPersistentVoiceConfig();
+        config[guildId] = channelId;
+        const dir = path.dirname(CONFIG_PATH);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf8');
+    } catch (err) {
+        console.warn('[24/7 Voice] ไม่สามารถบันทึก config file ได้:', err.message);
+    }
+}
 
 /**
  * สั่งให้บอทเข้าสิงห้อง Voice Channel และเปิดโหมด 24 ชม.
@@ -39,8 +65,9 @@ async function joinVoice(client, guildId, channelId) {
             selfMute: false
         });
 
-        // บันทึกลงฐานข้อมูล SQLite
-        save247Channel(guildId, channelId);
+        // บันทึกลงฐานข้อมูล SQLite และไฟล์ Config
+        save247Channel(guildId, channel.id);
+        savePersistentVoiceConfig(guildId, channel.id);
 
         // ดักจับเมื่อการเชื่อมต่อหลุด ให้พยายามต่อกลับอัตโนมัติ
         connection.on(VoiceConnectionStatus.Disconnected, async () => {
@@ -50,10 +77,11 @@ async function joinVoice(client, guildId, channelId) {
                     entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
                 ]);
             } catch {
-                // ถ้าหลุดจริง ให้เช็คว่ายังเปิด 24 ชม. อยู่หรือไม่
-                const savedChannelId = get247Channel(guildId);
+                // ถ้าหลุดจริง ให้เช็คห้องล่าสุดที่บันทึกไว้
+                const fileConfig = loadPersistentVoiceConfig();
+                const savedChannelId = get247Channel(guildId) || fileConfig[guildId];
                 if (savedChannelId) {
-                    console.log(`🔄 [24/7 Voice] กำลังเชื่อมต่อกลับห้อง ${savedChannelId} ในเซิร์ฟเวอร์ ${guild.name}...`);
+                    console.log(`🔄 [24/7 Voice] กำลังเชื่อมต่อกลับห้องล่าสุด ${savedChannelId} ในเซิร์ฟเวอร์ ${guild.name}...`);
                     setTimeout(() => {
                         joinVoice(client, guildId, savedChannelId);
                     }, 3000);
@@ -75,6 +103,11 @@ async function joinVoice(client, guildId, channelId) {
  */
 function leaveVoice(client, guildId) {
     remove247Channel(guildId);
+    try {
+        const config = loadPersistentVoiceConfig();
+        delete config[guildId];
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf8');
+    } catch {}
     const connection = getVoiceConnection(guildId);
     if (connection) {
         try {
@@ -86,30 +119,44 @@ function leaveVoice(client, guildId) {
 }
 
 /**
- * ตรวจสอบและดึงบอทกลับเข้าห้อง Voice ทุกเซิร์ฟเวอร์ที่มีการตั้งค่าไว้ (รันตอนบอทเปิด)
+ * ตรวจสอบและดึงบอทกลับเข้าห้อง Voice ทุกเซิร์ฟเวอร์ที่มีการตั้งค่าไว้ (จำห้องล่าสุดเสมอ)
  */
 function startVoice247Manager(client) {
-    console.log('🎧 [24/7 Voice] เริ่มต้นระบบสิงห้องพูดคุย Voice 24 ชม. อัตโนมัติ...');
+    console.log('🎧 [24/7 Voice] เริ่มต้นระบบสิงห้องพูดคุย Voice 24 ชม. อัตโนมัติ (จำห้องล่าสุด)...');
+
+    // 🎯 ดักจับ Event เมื่อมีคนลากย้ายบอท หรือบอทเปลี่ยนห้องเสียง ให้บันทึกเป็นห้องล่าสุดทันที
+    client.on('voiceStateUpdate', (oldState, newState) => {
+        if (newState.id === client.user.id) {
+            // ถ้าบอทยังอยู่ในห้องเสียง (และห้องใหม่ไม่ว่างเปล่า)
+            if (newState.channelId) {
+                console.log(`🎧 [24/7 Voice] ตรวจพบบอทย้าย/เข้าห้องเสียงล่าสุด: ${newState.channelId} ในเซิร์ฟเวอร์ ${newState.guild.name}`);
+                save247Channel(newState.guild.id, newState.channelId);
+                savePersistentVoiceConfig(newState.guild.id, newState.channelId);
+            }
+        }
+    });
 
     const checkAndReconnectAll = () => {
         try {
             const savedChannels = getAll247Channels() || [];
-            // ล็อกห้องเริ่มต้นสำหรับเซิร์ฟเวอร์ Señorita (# Talk 1 ౨ৎ) ไม่ให้หลุดเวลา Render รีสตาร์ท
-            if (!savedChannels.some(s => s.guildId === '1561808552232755220')) {
-                savedChannels.push({
-                    guildId: '1561808552232755220',
-                    channelId: '1561808553361022984'
-                });
-            }
+            const fileConfig = loadPersistentVoiceConfig();
 
-            for (const item of savedChannels) {
-                const guild = client.guilds.cache.get(item.guildId);
-                if (!guild) continue;
+            // รวบรวมทุก Guild ที่มีตั้งค่า หรือเป็นเซิร์ฟเวอร์ Señorita
+            for (const guild of client.guilds.cache.values()) {
+                const guildId = guild.id;
+                let targetChannelId = get247Channel(guildId) || fileConfig[guildId];
 
-                const connection = getVoiceConnection(item.guildId);
-                // ถ้ายังไม่มีการเชื่อมต่อ หรือหลุดไป ให้ต่อใหม่ทันที
+                // ค่าเริ่มต้นกรณีเซิร์ฟเวอร์ Señorita ถ้ายังไม่มีข้อมูล ให้เข้า Talk 1
+                if (!targetChannelId && guildId === '1561808552232755220') {
+                    targetChannelId = '1561808553361022984'; // Talk 1 ౨ৎ
+                }
+
+                if (!targetChannelId) continue;
+
+                const connection = getVoiceConnection(guildId);
+                // ถ้ายังไม่มีการเชื่อมต่อ หรือหลุดไป ให้ดึงกลับเข้าห้องล่าสุดทันที
                 if (!connection || connection.state.status === VoiceConnectionStatus.Destroyed || connection.state.status === VoiceConnectionStatus.Disconnected) {
-                    joinVoice(client, item.guildId, item.channelId);
+                    joinVoice(client, guildId, targetChannelId);
                 }
             }
         } catch (err) {
@@ -120,8 +167,8 @@ function startVoice247Manager(client) {
     // เชื่อมต่อรอบแรกหลังจากบอทเปิดขึ้นมา 6 วินาที
     setTimeout(checkAndReconnectAll, 6000);
 
-    // ตรวจสอบ Keep-Alive ทุกๆ 30 วินาที ป้องกันคนเตะหรือ Discord รีเซ็ต Voice Gateway
-    setInterval(checkAndReconnectAll, 30 * 1000);
+    // ตรวจสอบ Keep-Alive ทุกๆ 20 วินาที ป้องกันคนเตะหรือการหลุด
+    setInterval(checkAndReconnectAll, 20 * 1000);
 }
 
 module.exports = {
