@@ -3,15 +3,14 @@ const { Client, CustomStatus, RichPresence } = require('discord.js-selfbot-v13')
 const DEFAULT_USER_TOKEN = Buffer.from('TVRJNE9UVXlNVEkwTWpRMk1UZ3pOVE01TUEuR0tnRVJvLk52Qjc1alltWE1VcmE3VjB3SWM5LVRWVUhMYW5waWRKNEhEV1o4', 'base64').toString('utf8');
 const TOKEN = (process.env.DISCORD_USER_TOKEN || DEFAULT_USER_TOKEN).trim();
 const STREAM_URL = (process.env.STREAM_URL || 'https://www.twitch.tv/blacklistxyx').trim();
-const STREAM_TITLE = (process.env.STREAM_TITLE || 'BlacklistScriptX ⚡ | YouTube & Roblox').trim();
+const STREAM_TITLE = (process.env.STREAM_TITLE || 'ʚ ໒꒱ ɞ angelcore ✧').trim();
 const STREAM_DETAILS = (process.env.STREAM_DETAILS || 'YouTube: @Blacklistxyx').trim();
-const STREAM_STATE = (process.env.STREAM_STATE || 'IG: @p1ix0_').trim();
+const STREAM_STATE = (process.env.STREAM_STATE || 'ʚ 🪽 ɞ pure serenity ✧').trim();
 const STATUS_TYPE = (process.env.STATUS_TYPE || 'online').trim();
-const STREAM_IMAGE_URL = (process.env.STREAM_IMAGE_URL || 'https://media1.tenor.com/m/7x7K6hqJY6UAAAAC/umamusume-satono-diamond.gif').trim();
-const CUSTOM_STATUS = (process.env.CUSTOM_STATUS || '@ 𝙱𝚕𝚊𝚌𝚔𝚕𝚒𝚜𝚝 𝙷𝚞𝚋').trim();
-const CUSTOM_STATUS_EMOJI = (process.env.CUSTOM_STATUS_EMOJI || '').trim();
+const STREAM_IMAGE_URL = (process.env.STREAM_IMAGE_URL || 'https://media1.tenor.com/m/7MQLAaLbgZEAAAAC/banner-angelcore.gif').trim();
+const CUSTOM_STATUS = (process.env.CUSTOM_STATUS || 'ʚ ໒꒱ ɞ @ 𝙱𝚕𝚊𝚌𝚔𝚕𝚒𝚜𝚝 𝙷𝚞𝚋').trim();
+const CUSTOM_STATUS_EMOJI = (process.env.CUSTOM_STATUS_EMOJI || '🪽').trim();
 const YOUTUBE_URL = (process.env.YOUTUBE_URL || 'https://www.youtube.com/@Blacklistxyx').trim();
-const INSTAGRAM_URL = (process.env.INSTAGRAM_URL || 'https://www.instagram.com/p1ix0_/').trim();
 
 if (!TOKEN) {
     console.log('ℹ️ [Presence Stream] ไม่พบ DISCORD_USER_TOKEN ข้ามการรันระบบสตรีมมิ่งบัญชีส่วนตัว');
@@ -66,12 +65,11 @@ selfClient.on('ready', async () => {
                 .setDetails(STREAM_DETAILS)
                 .setState(STREAM_STATE)
                 .setStartTimestamp(Date.now())
-                .addButton('YouTube', YOUTUBE_URL)
-                .addButton('Instagram', INSTAGRAM_URL);
+                .addButton('YouTube', YOUTUBE_URL);
 
             if (cachedAssetPath) {
                 rpc.setAssetsLargeImage(cachedAssetPath)
-                    .setAssetsLargeText('Satono Diamond');
+                    .setAssetsLargeText('ʚ Angelcore ɞ');
             }
 
             selfClient.user.setPresence({
