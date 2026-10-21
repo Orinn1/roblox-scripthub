@@ -15,11 +15,18 @@ try {
     if (process.env.DISCORD_TOKEN) {
         require('./bot/index.js');
     }
+    if (process.env.DISCORD_USER_TOKEN) {
+        try {
+            require('./bot/presence-stream.js');
+        } catch (presenceErr) {
+            console.error('❌ [Presence Stream Error]:', presenceErr.message);
+        }
+    }
 } catch (e) {
     // Bot module optional if dependencies are not loaded
 }
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const MIME_TYPES = {
     '.html': 'text/html; charset=utf-8',
     '.css': 'text/css; charset=utf-8',

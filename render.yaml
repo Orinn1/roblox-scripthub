@@ -3,7 +3,8 @@ services:
     name: roblox-scripthub
     env: node
     plan: free
-    buildCommand: ""
+    region: singapore
+    buildCommand: npm install
     startCommand: node server.js
     envVars:
       - key: NODE_VERSION
