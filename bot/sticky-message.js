@@ -50,19 +50,55 @@ async function postStickyMessage(channel) {
     isProcessingMap.set(channel.id, true);
 
     try {
-        // 1. Delete previous sticky message if it exists
-        const lastMessageId = lastStickyMessageMap.get(channel.id);
-        if (lastMessageId) {
-            try {
-                const oldMsg = await channel.messages.fetch(lastMessageId).catch(() => null);
-                if (oldMsg && oldMsg.deletable) {
-                    await oldMsg.delete().catch(() => {});
+        // 1. ตรวจสอบข้อความล่าสุดในห้อง เพื่อป้องกันการส่งซ้ำเมื่อบอทรีสตาร์ท
+        let recentMessages = null;
+        try {
+            recentMessages = await channel.messages.fetch({ limit: 15 }).catch(() => null);
+        } catch (fetchErr) {}
+
+        const botId = channel.client.user?.id;
+        const existingStickies = recentMessages 
+            ? recentMessages.filter(m => 
+                m.author.id === botId && 
+                m.embeds && 
+                m.embeds[0]?.title?.includes('แจ้งเตือน: สำหรับสมาชิกที่รับยศไม่ได้')
+            )
+            : null;
+
+        // ถ้าข้อความล่างสุดของห้องเป็นข้อความปักหมุดอยู่แล้ว ไม่ต้องส่งใหม่เด็ดขาด!
+        if (recentMessages && recentMessages.size > 0 && existingStickies && existingStickies.size > 0) {
+            const newestMessage = recentMessages.first();
+            if (newestMessage && existingStickies.has(newestMessage.id)) {
+                lastStickyMessageMap.set(channel.id, newestMessage.id);
+                // ลบข้อความปักหมุดเก่าๆ ที่ซ้ำค้างอยู่ออกให้หมด เหลือแค่อันล่างสุดอันเดียว
+                for (const [id, oldSticky] of existingStickies) {
+                    if (id !== newestMessage.id && oldSticky.deletable) {
+                        await oldSticky.delete().catch(() => {});
+                    }
                 }
-            } catch (delErr) {
-                // Ignore delete errors (e.g. message already deleted)
+                return;
             }
-            lastStickyMessageMap.delete(channel.id);
         }
+
+        // ลบข้อความปักหมุดเดิมทั้งหมดก่อนโพสต์ใหม่ที่ล่างสุด
+        if (existingStickies && existingStickies.size > 0) {
+            for (const [, oldSticky] of existingStickies) {
+                if (oldSticky.deletable) {
+                    await oldSticky.delete().catch(() => {});
+                }
+            }
+        } else {
+            const lastMessageId = lastStickyMessageMap.get(channel.id);
+            if (lastMessageId) {
+                try {
+                    const oldMsg = await channel.messages.fetch(lastMessageId).catch(() => null);
+                    if (oldMsg && oldMsg.deletable) {
+                        await oldMsg.delete().catch(() => {});
+                    }
+                } catch (delErr) {}
+            }
+        }
+        lastStickyMessageMap.delete(channel.id);
 
         // 2. Build the Sticky Embed Message
         const stickyEmbed = new EmbedBuilder()
