@@ -1,26 +1,7 @@
 /**
- * Entry point for bot hosting platforms (Pterodactyl, Discloud, Bot-Hosting, etc.)
+ * Main Entry Point for Render & Bot Hosting Platforms
+ * โหลด Server.js ซึ่งรันทั้ง HTTP Web Server (ให้ Render สแกนพอร์ตผ่าน)
+ * และรันบอททั้ง 3 ตัวพร้อมกัน 24 ชม.
  */
 require('dotenv').config();
-
-// 1. บอทเซิร์ฟเวอร์หลัก (Anti-Raid, Blox Fruits Stock, Roblox Alerts, Commands)
-try {
-    require('./bot/index.js');
-} catch (err) {
-    console.error('❌ [Server Bot Error]:', err.message);
-}
-
-// 2. บอทสถานะสตรีมมิ่ง 24/7 บัญชี Oasis (ม่วง 🟣 + GIF Satono Diamond + @ 𝙱𝚕𝚊𝚌𝚔𝚕𝚒𝚜𝚝 𝙷𝚞𝚋)
-try {
-    require('./bot/presence-stream.js');
-} catch (err) {
-    console.error('❌ [Presence Stream Error]:', err.message);
-}
-
-// 3. บอทแม่พระของเซนโย (Voice 24/7, Anti-Spam, Gacha, Tarot)
-try {
-    require('./super-bot/index.js');
-} catch (err) {
-    console.error('❌ [Super Bot Error]:', err.message);
-}
-
+require('./server.js');
