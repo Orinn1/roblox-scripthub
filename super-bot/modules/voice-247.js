@@ -93,7 +93,15 @@ function startVoice247Manager(client) {
 
     const checkAndReconnectAll = () => {
         try {
-            const savedChannels = getAll247Channels();
+            const savedChannels = getAll247Channels() || [];
+            // ล็อกห้องเริ่มต้นสำหรับเซิร์ฟเวอร์ Señorita (# Talk 1 ౨ৎ) ไม่ให้หลุดเวลา Render รีสตาร์ท
+            if (!savedChannels.some(s => s.guildId === '1561808552232755220')) {
+                savedChannels.push({
+                    guildId: '1561808552232755220',
+                    channelId: '1561808553361022984'
+                });
+            }
+
             for (const item of savedChannels) {
                 const guild = client.guilds.cache.get(item.guildId);
                 if (!guild) continue;
