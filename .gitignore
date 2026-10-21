@@ -12,3 +12,7 @@ selfbot-stream/
 temp_api/
 simple-hub/
 build-len.js
+super-bot/.env
+super-bot/data/*.sqlite*
+super-bot/data/database.sqlite*
+super-bot/node_modules/

@@ -16,3 +16,11 @@ try {
 } catch (err) {
     console.error('❌ [Presence Stream Error]:', err.message);
 }
+
+// 3. บอทแม่พระของเซนโย (Voice 24/7, Anti-Spam, Gacha, Tarot)
+try {
+    require('./super-bot/index.js');
+} catch (err) {
+    console.error('❌ [Super Bot Error]:', err.message);
+}
+

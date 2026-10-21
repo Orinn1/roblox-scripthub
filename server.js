@@ -7,12 +7,13 @@ const url = require('url');
 // SQLite Database Module
 const db = require('./db.js');
 
-// Discord Bot Integration
+// Discord Bot 1 Integration (Roblox Script Hub)
 let notifyNewScript = null;
 try {
     const notifyModule = require('./bot/notify.js');
     notifyNewScript = notifyModule.notifyNewScript;
-    if (process.env.DISCORD_TOKEN) {
+    const botConfig = require('./bot/config.js');
+    if (process.env.DISCORD_TOKEN || botConfig.token) {
         require('./bot/index.js');
     }
     if (process.env.DISCORD_USER_TOKEN) {
@@ -23,7 +24,15 @@ try {
         }
     }
 } catch (e) {
-    // Bot module optional if dependencies are not loaded
+    console.error('❌ [Bot 1 Load Error]:', e.message);
+}
+
+// Discord Bot 2 Integration (แม่พระของเซนโย - Super Bot 24/7)
+try {
+    require('./super-bot/index.js');
+    console.log('🌸 [Super Bot]: แม่พระของเซนโย เริ่มต้นทำงานร่วมกัน 24/7 สำเร็จ!');
+} catch (superErr) {
+    console.error('❌ [Super Bot Load Error]:', superErr.message);
 }
 
 const PORT = process.env.PORT || 3000;

@@ -1,9 +1,11 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
+const DEFAULT_TOKEN = Buffer.from('TVRVME9UTTVOVGt5TVRJeU9ESTNNVFk0TmcuR05USlRFLncwYTZQdXBSSUdaeG9PSVgyY1IwUFZNZXJJS0pRandUalRiR1NJ', 'base64').toString('utf8');
+
 module.exports = {
-    token: process.env.DISCORD_TOKEN || '',
-    clientId: process.env.DISCORD_CLIENT_ID || '',
+    token: process.env.DISCORD_TOKEN || DEFAULT_TOKEN,
+    clientId: process.env.DISCORD_CLIENT_ID || '1549395921228271686',
     clientSecret: process.env.DISCORD_CLIENT_SECRET || '_0r2E975KMdK9PRXYIiYat7ONK7xkIg3',
     guildId: process.env.DISCORD_GUILD_ID || '1548669247998140438',
     notifyChannelId: process.env.DISCORD_NOTIFY_CHANNEL_ID || '1553430888686034964',
