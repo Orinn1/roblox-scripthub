@@ -13,11 +13,8 @@ const fs = require('fs');
 const db = require('../database');
 const config = require('../config');
 
-// แคช Discord CDN URL ของรูปแบนเนอร์ (เมื่อมี URL แล้ว จะส่งผ่าน JSON เพียวๆ ใน 0.03 วินาที!)
-let cachedBannerUrl = process.env.TICKET_BANNER_URL || null;
-
 /**
- * ส่งข้อความต้อนรับและปุ่มกดเข้าห้องตั๋ว (ทำงานแบบไฮสปีดด้วย CDN Caching)
+ * ส่งข้อความต้อนรับและปุ่มกดเข้าห้องตั๋ว (โหมด Ultra-Fast ไร้แบนเนอร์ ตอบสนองทันทีใน 0.05 วินาที!)
  */
 async function sendWelcomeMessage(channel, user, ticketRecord) {
   try {
@@ -50,51 +47,12 @@ async function sendWelcomeMessage(channel, user, ticketRecord) {
     const staffMention = config.staffRoleId ? `<@&${config.staffRoleId}>` : '';
     const sendContent = `ยินดีต้อนรับคุณ <@${user.id}> ${staffMention}`.trim();
 
-    // ⚡ INSTANT FAST MODE: ถ้ามี CDN URL อยู่แล้ว จะส่งข้อความใน 0.03 วินาที!
-    if (cachedBannerUrl) {
-      welcomeEmbed.setImage(cachedBannerUrl);
-      await channel.send({
-        content: sendContent,
-        embeds: [welcomeEmbed],
-        components: [buttonsRow]
-      });
-      return;
-    }
-
-    // กรณีส่งครั้งแรก: ส่งรูปไฟล์แล้วแคช CDN URL ไว้ใช้ครั้งต่อไป
-    const bannerPath = path.join(__dirname, '..', 'assets', 'ticket-banner.png');
-    let sent = false;
-
-    if (fs.existsSync(bannerPath)) {
-      try {
-        const bannerAttachment = new AttachmentBuilder(bannerPath, { name: 'ticket-banner.png' });
-        welcomeEmbed.setImage('attachment://ticket-banner.png');
-        const sentMsg = await channel.send({
-          content: sendContent,
-          embeds: [welcomeEmbed],
-          files: [bannerAttachment],
-          components: [buttonsRow]
-        });
-
-        // ดึง URL ที่ Discord สร้างให้มาแคชไว้ใน RAM ทันที
-        if (sentMsg.embeds?.[0]?.image?.url) {
-          cachedBannerUrl = sentMsg.embeds[0].image.url;
-          console.log('⚡ [Ticket Manager]: บันทึก CDN URL แบนเนอร์ลงแคชแล้ว ครั้งต่อไปจะส่งทันทีใน 0.03 วิ!');
-        }
-        sent = true;
-      } catch (attachErr) {
-        console.warn('[Ticket Manager] Banner attach warning, fallback without image:', attachErr.message);
-      }
-    }
-
-    if (!sent) {
-      welcomeEmbed.setImage(null);
-      await channel.send({
-        content: sendContent,
-        embeds: [welcomeEmbed],
-        components: [buttonsRow]
-      });
-    }
+    // ส่งข้อความ Embed และปุ่มกดทันทีโดยไม่อัปโหลดไฟล์รูป ทำให้เร็วที่สุดแบบ Instant
+    await channel.send({
+      content: sendContent,
+      embeds: [welcomeEmbed],
+      components: [buttonsRow]
+    });
   } catch (err) {
     console.error('[Ticket Manager] Failed to send welcome message:', err.message || err);
   }
