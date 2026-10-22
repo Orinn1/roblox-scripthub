@@ -22,20 +22,22 @@ const { createTicketChannel, generateTranscript } = require('./services/ticket-m
 const { deployCommands } = require('./deploy-commands');
 
 // ==========================================
-// 🌐 KEEP-ALIVE WEB SERVER (สำหรับ Render 24/7)
+// 🌐 KEEP-ALIVE WEB SERVER (สำหรับ Render 24/7 เมื่อรันแยกเดี่ยว)
 // ==========================================
-const PORT = process.env.PORT || 3000;
-http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-  res.end(JSON.stringify({
-    status: 'online',
-    bot: client.user ? client.user.tag : 'connecting',
-    uptime: `${Math.floor(process.uptime())}s`,
-    timestamp: new Date().toISOString()
-  }));
-}).listen(PORT, () => {
-  console.log(`🌐 Keep-alive server is listening on port ${PORT} (Render Web Service ready)`);
-});
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({
+      status: 'online',
+      bot: client.user ? client.user.tag : 'connecting',
+      uptime: `${Math.floor(process.uptime())}s`,
+      timestamp: new Date().toISOString()
+    }));
+  }).listen(PORT, () => {
+    console.log(`🌐 Standalone keep-alive server is listening on port ${PORT} (Render ready)`);
+  });
+}
 
 const client = new Client({
   intents: [

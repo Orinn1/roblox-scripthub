@@ -33,6 +33,14 @@ try {
     console.error('❌ [Super Bot Load Error]:', superErr.message);
 }
 
+// Discord Bot 3 Integration (Fresshy Shop Bot - BunnyHelper 24/7)
+try {
+    require('./shop-bot/index.js');
+    console.log('🐰 [Shop Bot]: BunnyHelper (Fresshy Shop) เริ่มต้นทำงานร่วมกัน 24/7 สำเร็จ!');
+} catch (shopErr) {
+    console.error('❌ [Shop Bot Load Error]:', shopErr.message);
+}
+
 const PORT = process.env.PORT || 3000;
 const MIME_TYPES = {
     '.html': 'text/html; charset=utf-8',
