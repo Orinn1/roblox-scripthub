@@ -142,7 +142,26 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // 2. Handle Slash Commands
     if (interaction.isChatInputCommand()) {
+        const receivedAt = Date.now();
         console.log(`📥 [Bot 1]: ได้รับคำสั่ง /${interaction.commandName} จาก ${interaction.user.tag} (Channel ID: ${interaction.channelId})`);
+
+        // Proxy interaction.reply to automatically route to editReply if already deferred
+        const origReply = interaction.reply.bind(interaction);
+        interaction.reply = async (options) => {
+            if (interaction.deferred || interaction.replied) {
+                return interaction.editReply(options);
+            }
+            return origReply(options);
+        };
+
+        // ⚡ INSTANT ACKNOWLEDGMENT: Beat Discord's 3,000ms deadline immediately
+        try {
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+            console.log(`⚡ [Bot 1]: deferReply สำเร็จใน ${Date.now() - receivedAt}ms! พร้อมประมวลผลคำสั่ง`);
+        } catch (deferErr) {
+            console.error(`❌ [Bot 1 Defer Error: /${interaction.commandName}]:`, deferErr.status || '', deferErr.code || '', deferErr.message);
+        }
+
         const command = client.commands.get(interaction.commandName);
         if (!command) {
             console.error(`❌ No command matching /${interaction.commandName} was found.`);
@@ -188,9 +207,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
         }
 
         try {
-            console.log(`⚡ [Bot 1]: กำลังประมวลผลคำสั่ง /${interaction.commandName}...`);
+            console.log(`⚡ [Bot 1]: กำลังรันคำสั่ง /${interaction.commandName}...`);
             await command.execute(interaction);
-            console.log(`✅ [Bot 1]: คำสั่ง /${interaction.commandName} ทำงานเสร็จสมบูรณ์!`);
+            console.log(`✅ [Bot 1]: คำสั่ง /${interaction.commandName} ทำงานเสร็จสมบูรณ์ (${Date.now() - receivedAt}ms)`);
         } catch (error) {
             console.error(`❌ [Command Error: /${interaction.commandName}]:`, error);
             const errorMessage = {
