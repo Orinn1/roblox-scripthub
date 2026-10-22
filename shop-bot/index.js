@@ -75,6 +75,18 @@ client.on('debug', (info) => {
   }
 });
 
+client.on('raw', (packet) => {
+  if (packet.t === 'INTERACTION_CREATE') {
+    console.log(`🔥 [RAW GATEWAY]: ได้รับ INTERACTION_CREATE! คำสั่ง: ${packet.d?.data?.name || packet.d?.data?.custom_id || 'unknown'} จากผู้ใช้: ${packet.d?.user?.username || packet.d?.member?.user?.username}`);
+  }
+});
+
+client.rest.on('response', (req, res) => {
+  if (req.path.includes('interactions') || req.path.includes('callback')) {
+    console.log(`🌐 [REST Response]: ${req.method} ${req.path} -> Status ${res.statusCode}`);
+  }
+});
+
 // ==========================================
 // 🚀 BOT READY EVENT
 // ==========================================
