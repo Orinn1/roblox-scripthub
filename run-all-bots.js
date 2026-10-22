@@ -67,28 +67,10 @@ function launchBot(bot) {
       ...process.env,
       IS_CHILD_WORKER: '1'
     },
-    stdio: ['ignore', 'pipe', 'pipe']
+    stdio: 'inherit'
   });
 
   activeProcesses.set(bot.name, child);
-
-  child.stdout.on('data', (data) => {
-    const lines = data.toString('utf8').split(/\r?\n/);
-    lines.forEach((line) => {
-      if (line.trim()) {
-        console.log(`${prefix} ${line}`);
-      }
-    });
-  });
-
-  child.stderr.on('data', (data) => {
-    const lines = data.toString('utf8').split(/\r?\n/);
-    lines.forEach((line) => {
-      if (line.trim()) {
-        console.error(`${prefix} \x1b[31m${line}${RESET}`);
-      }
-    });
-  });
 
   child.on('exit', (code, signal) => {
     activeProcesses.delete(bot.name);
