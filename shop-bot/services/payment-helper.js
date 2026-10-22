@@ -3,8 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const config = require('../config');
 
-// แคช Discord CDN URL ของรูป QR Code (เมื่อมี URL แล้ว จะส่งผ่าน JSON เพียวๆ ใน 0.03 วินาที!)
-let cachedQrUrl = process.env.PAYMENT_QR_URL || null;
+// แคชรูป QR Code (ใช้ Direct URL จาก PostImages ตอบสนองทันทีใน 0.02 วินาที!)
+let cachedQrUrl = process.env.PAYMENT_QR_URL || 'https://i.postimg.cc/jdnj5jvs/6cd7230b-c4ee-4ce7-90a6-b264ff960959.jpg';
 
 /**
  * สร้าง Embed ข้อมูลชำระเงินและ QR Code (รองรับ Fast CDN Cache ส่งไวระดับมิลลิวินาที)
