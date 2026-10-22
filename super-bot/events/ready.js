@@ -31,7 +31,7 @@ module.exports = {
     once: true,
     async execute(client) {
         console.log('====================================================');
-        console.log(`🤖 [Bot Ready] เข้าสู่ระบบสำเร็จในชื่อ: ${client.user.tag}`);
+        console.log(`🌸 [Super Bot Ready]: เข้าสู่ระบบสำเร็จในชื่อ: ${client.user.tag}`);
         console.log(`🏰 เซิร์ฟเวอร์ที่ดูแลอยู่: ${client.guilds.cache.size} เซิร์ฟเวอร์`);
         console.log(`👥 สมาชิกทั้งหมด: ${client.users.cache.size} คน`);
         console.log('====================================================');

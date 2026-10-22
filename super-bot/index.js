@@ -47,11 +47,16 @@ const client = new Client({
 });
 
 // Bypass HTTP /gateway/bot to prevent Cloudflare/Render 429 rate-limiting
-client.ws.fetchGatewayInformation = async () => ({
-    url: 'wss://gateway.discord.gg',
-    shards: 1,
-    session_start_limit: { total: 1000, remaining: 999, reset_after: 0, max_concurrency: 1 }
-});
+try {
+    const { WebSocketManager } = require('@discordjs/ws');
+    WebSocketManager.prototype.fetchGatewayInformation = async function() {
+        return {
+            url: 'wss://gateway.discord.gg',
+            shards: 1,
+            session_start_limit: { total: 1000, remaining: 999, reset_after: 0, max_concurrency: 1 }
+        };
+    };
+} catch (e) {}
 
 client.on('error', (err) => {
     console.error('⚠️ [Super Bot Client Error]:', err.message || err);

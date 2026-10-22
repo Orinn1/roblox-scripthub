@@ -19,11 +19,16 @@ const client = new Client({
 });
 
 // Bypass HTTP /gateway/bot to prevent Cloudflare/Render 429 rate-limiting
-client.ws.fetchGatewayInformation = async () => ({
-    url: 'wss://gateway.discord.gg',
-    shards: 1,
-    session_start_limit: { total: 1000, remaining: 999, reset_after: 0, max_concurrency: 1 }
-});
+try {
+    const { WebSocketManager } = require('@discordjs/ws');
+    WebSocketManager.prototype.fetchGatewayInformation = async function() {
+        return {
+            url: 'wss://gateway.discord.gg',
+            shards: 1,
+            session_start_limit: { total: 1000, remaining: 999, reset_after: 0, max_concurrency: 1 }
+        };
+    };
+} catch (e) {}
 
 // Global Error Resilience
 client.on('error', (err) => {
@@ -87,9 +92,9 @@ const { handleAntiRaidMessage } = require('./anti-raid.js');
 const { handleStickyMessage, postStickyMessage } = require('./sticky-message.js');
 
 client.once(Events.ClientReady, async (readyClient) => {
-    const scripts = await getScripts();
-    console.log(`🤖 Discord Bot ออนไลน์แล้วในชื่อ: ${readyClient.user.tag}`);
-    console.log(`🌐 บอทเชื่อมต่อกับระบบฐานข้อมูล (${scripts.length} สคริปต์)`);
+    console.log(`🤖 [Bot 1]: ออนไลน์แล้วในชื่อ: ${readyClient.user.tag}`);
+    const scripts = await getScripts().catch(() => []);
+    console.log(`🌐 [Bot 1]: บอทเชื่อมต่อกับระบบฐานข้อมูล (${scripts?.length || 0} สคริปต์)`);
     updateBotPresence();
     setInterval(updateBotPresence, 5 * 60 * 1000); // ทุก 5 นาที
 

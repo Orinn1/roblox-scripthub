@@ -1,5 +1,24 @@
 [
   {
+    "id": "script-1792670789287",
+    "title": "แจกสคริป Blox Fruits ล่าสุด 2026 (Ovaz Hub) 💥 NO KEY ฟรี! ออโต้ฟาร์มครบ จบในตัวเดียว!",
+    "title_en": "แจกสคริป Blox Fruits ล่าสุด 2026 (Ovaz Hub) 💥 NO KEY ฟรี! ออโต้ฟาร์มครบ จบในตัวเดียว!",
+    "game": "Blox Fruits",
+    "category": "bloxfruits",
+    "version": "v1.0",
+    "updated": "วันนี้",
+    "isKeyless": true,
+    "isMobile": true,
+    "isPC": true,
+    "status": "working",
+    "badge": "มาใหม่",
+    "thumbnail": "https://i.postimg.cc/LXwvsz1d/Neon-Blox-Fruits-Script-Thumbnail.png",
+    "thumbnail_en": "https://i.postimg.cc/LXwvsz1d/Neon-Blox-Fruits-Script-Thumbnail.png",
+    "description": "สคริปต์ Blox Fruits อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
+    "description_en": "",
+    "loadstring": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/bloxfruitsnokey/Redz-Hub/refs/heads/main/Ovaz/new.luau\"))()"
+  },
+  {
     "id": "script-1792410334386",
     "title": "🔥 Anime Zero Script แจกฟรี! Auto Farm + Auto Join อัปเดตล่าสุด v1.4.0",
     "title_en": "🔥 Anime Zero Script แจกฟรี! Auto Farm + Auto Join อัปเดตล่าสุด v1.4.0",

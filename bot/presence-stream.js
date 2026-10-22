@@ -21,8 +21,20 @@ const selfClient = new Client({
     checkUpdate: false
 });
 
-// Bypass unauthenticated HTTP /gateway to prevent Cloudflare 429 (Sublimit: 5218000ms) on Render/Cloud IP
-selfClient.api.gateway.get = async () => ({ url: 'wss://gateway.discord.gg' });
+// Bypass unauthenticated HTTP /gateway to prevent Cloudflare 429 (Sublimit: 4799000ms) on Render/Cloud IP
+try {
+    const WebSocketManager = require('discord.js-selfbot-v13/src/client/websocket/WebSocketManager');
+    const WebSocketShard = require('discord.js-selfbot-v13/src/client/websocket/WebSocketShard');
+
+    WebSocketManager.prototype.connect = async function() {
+        this.gateway = 'wss://gateway.discord.gg/';
+        this.totalShards = 1;
+        this.shardQueue = new Set([new WebSocketShard(this, 0)]);
+        return this.createShards();
+    };
+} catch (e) {
+    console.warn('⚠️ [Presence Stream] WebSocketManager hook warning:', e.message);
+}
 
 selfClient.on('error', (err) => {
     console.warn('⚠️ [Selfbot Presence Error]:', err.message);

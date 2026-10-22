@@ -1,4 +1,28 @@
 require('dotenv').config();
+
+// Global hooks to prevent Cloudflare/Render 429 rate-limiting on /gateway and /gateway/bot
+try {
+    const { WebSocketManager } = require('@discordjs/ws');
+    WebSocketManager.prototype.fetchGatewayInformation = async function() {
+        return {
+            url: 'wss://gateway.discord.gg',
+            shards: 1,
+            session_start_limit: { total: 1000, remaining: 999, reset_after: 0, max_concurrency: 1 }
+        };
+    };
+} catch (e) {}
+
+try {
+    const WebSocketManagerSelf = require('discord.js-selfbot-v13/src/client/websocket/WebSocketManager');
+    const WebSocketShardSelf = require('discord.js-selfbot-v13/src/client/websocket/WebSocketShard');
+    WebSocketManagerSelf.prototype.connect = async function() {
+        this.gateway = 'wss://gateway.discord.gg/';
+        this.totalShards = 1;
+        this.shardQueue = new Set([new WebSocketShardSelf(this, 0)]);
+        return this.createShards();
+    };
+} catch (e) {}
+
 const http = require('http');
 const fs = require('fs');
 const path = require('path');

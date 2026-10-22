@@ -50,11 +50,16 @@ const client = new Client({
 });
 
 // Bypass HTTP /gateway/bot to prevent Cloudflare/Render 429 rate-limiting
-client.ws.fetchGatewayInformation = async () => ({
-  url: 'wss://gateway.discord.gg',
-  shards: 1,
-  session_start_limit: { total: 1000, remaining: 999, reset_after: 0, max_concurrency: 1 }
-});
+try {
+  const { WebSocketManager } = require('@discordjs/ws');
+  WebSocketManager.prototype.fetchGatewayInformation = async function() {
+    return {
+      url: 'wss://gateway.discord.gg',
+      shards: 1,
+      session_start_limit: { total: 1000, remaining: 999, reset_after: 0, max_concurrency: 1 }
+    };
+  };
+} catch (e) {}
 
 client.on('error', (err) => {
   console.error('⚠️ [Shop Bot Client Error]:', err.message || err);
@@ -75,8 +80,7 @@ client.on('debug', (info) => {
 // ==========================================
 client.once('ready', async () => {
   console.log('==================================================');
-  console.log(`🤖 บอทร้านค้าออนไลน์พร้อมทำงานแล้ว!`);
-  console.log(`👤 เข้าสู่ระบบในชื่อ: ${client.user.tag} (ID: ${client.user.id})`);
+  console.log(`🐰 [Shop Bot Ready]: เข้าสู่ระบบในชื่อ: ${client.user.tag} (ID: ${client.user.id})`);
   console.log(`🏰 ประจำการอยู่ใน: ${client.guilds.cache.size} เซิร์ฟเวอร์`);
   console.log('==================================================');
 
@@ -85,11 +89,10 @@ client.once('ready', async () => {
     status: 'online'
   });
 
-  try {
-    await deployCommands(client.user.id);
-  } catch (err) {
+  // รันคำสั่ง Slash Commands ในพื้นหลังไม่บล็อกระบบ
+  deployCommands(client.user.id).catch(() => {
     console.log('💡 Deploy commands will run when needed.');
-  }
+  });
 });
 
 // เมื่อบอทถูกเชิญเข้าเซิร์ฟเวอร์ใหม่
