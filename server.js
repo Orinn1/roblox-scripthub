@@ -128,6 +128,19 @@ const server = http.createServer(async (req, res) => {
     }
 
     // =========================================================================
+    // API: Health / Ping Check (สำหรับ UptimeRobot & Render Keep-Alive 24/7)
+    // =========================================================================
+    if (pathname === '/api/health' || pathname === '/api/ping') {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({
+            status: 'online',
+            uptime: `${Math.floor(process.uptime())}s`,
+            timestamp: new Date().toISOString()
+        }));
+        return;
+    }
+
+    // =========================================================================
     // API: Config (Site Name & Settings) - Synced with Firebase Firestore & SQLite
     // =========================================================================
     if (pathname === '/api/config') {
@@ -544,4 +557,20 @@ server.listen(PORT, () => {
     console.log(`- GET      /api/exploits`);
     console.log(`- GET      /api/sunc`);
     console.log(`- GET      /api/roblox-game`);
+    console.log(`- GET      /api/health (Keep-alive endpoint)`);
 });
+
+// ==========================================
+// 🔄 AUTO KEEP-ALIVE (ยิง Ping หาตัวเองทุก 10 นาที เพื่อไม่ให้ Render หลับ)
+// ==========================================
+const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || 'https://roblox-scripthub.onrender.com';
+if (RENDER_EXTERNAL_URL) {
+    const https = require('https');
+    setInterval(() => {
+        try {
+            https.get(`${RENDER_EXTERNAL_URL}/api/health`, (res) => {
+                // Heartbeat ping OK
+            }).on('error', () => {});
+        } catch (e) {}
+    }, 10 * 60 * 1000); // ทุก 10 นาที (Render Sleep ถ้าไม่มี request เกิน 15 นาที)
+}
