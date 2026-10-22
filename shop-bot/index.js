@@ -151,19 +151,8 @@ client.on('interactionCreate', async (interaction) => {
             .setStyle(ButtonStyle.Primary)
         );
 
-        const bannerPath = path.join(__dirname, 'assets', 'ticket-banner.png');
-        const files = [];
-        if (fs.existsSync(bannerPath)) {
-          try {
-            const bannerAttachment = new AttachmentBuilder(bannerPath, { name: 'ticket-banner.png' });
-            files.push(bannerAttachment);
-            panelEmbed.setImage('attachment://ticket-banner.png');
-          } catch {}
-        }
-
         await targetChannel.send({
           embeds: [panelEmbed],
-          files,
           components: [ticketButton]
         });
 
