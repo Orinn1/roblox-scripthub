@@ -57,7 +57,11 @@ selfClient.on('ready', async () => {
     console.log(`🖼️ รูปสตรีม GIF: ${STREAM_IMAGE_URL}`);
     console.log('====================================================');
 
-    let cachedAssetPath = null;
+    // Precomputed CDN proxy asset path for the banner image to avoid Cloudflare 429 on /external-assets
+    const PRECOMPUTED_ASSET_PATH = 'external/P985QlIZbYumZW0zQ0k3x7ULyqAazRrdKq0UVn68pXU/https/media1.tenor.com/m/7MQLAaLbgZEAAAAC/banner-angelcore.gif';
+    let cachedAssetPath = (STREAM_IMAGE_URL.includes('banner-angelcore.gif'))
+        ? PRECOMPUTED_ASSET_PATH
+        : null;
 
     function applyPresence() {
         try {
@@ -93,11 +97,11 @@ selfClient.on('ready', async () => {
         }
     }
 
-    // ⚡ แสดงสถานะสีม่วงทันที ไม่ต้องรอโหลดรูปภายนอก
+    // ⚡ แสดงสถานะสีม่วงพร้อมรูปทันที (ไม่ต้องยิง HTTP external-assets ให้ติด 429)
     applyPresence();
 
-    // ดึงรูปภายนอกแบบ Asynchronous ในพื้นหลัง
-    if (STREAM_IMAGE_URL) {
+    // ดึงรูปภายนอกเฉพาะเมื่อไม่ใช่รูปเริ่มต้นและยังไม่มี cachedAssetPath
+    if (STREAM_IMAGE_URL && !cachedAssetPath) {
         RichPresence.getExternal(selfClient, '367827983903490050', STREAM_IMAGE_URL)
             .then(ext => {
                 if (ext && ext.length > 0) {
@@ -105,9 +109,7 @@ selfClient.on('ready', async () => {
                     applyPresence();
                 }
             })
-            .catch(err => {
-                console.warn('⚠️ ไม่สามารถแปลงลิงก์รูปสตรีมมิ่งได้ (ใช้ค่าเริ่มต้น):', err.message);
-            });
+            .catch(() => {});
     }
 
     // รีเฟรชสถานะทุก 3 นาที เพื่อให้สตรีมมิ่งสีม่วงค้างอยู่ตลอดเวลา 24/7
