@@ -5,7 +5,8 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  AttachmentBuilder
+  AttachmentBuilder,
+  OverwriteType
 } = require('discord.js');
 const path = require('path');
 const fs = require('fs');
@@ -31,10 +32,12 @@ async function createTicketChannel(guild, user) {
   const permissionOverwrites = [
     {
       id: guild.roles.everyone.id,
+      type: OverwriteType.Role,
       deny: [PermissionFlagsBits.ViewChannel]
     },
     {
       id: user.id,
+      type: OverwriteType.Member,
       allow: [
         PermissionFlagsBits.ViewChannel,
         PermissionFlagsBits.SendMessages,
@@ -44,6 +47,7 @@ async function createTicketChannel(guild, user) {
     },
     {
       id: guild.client.user.id,
+      type: OverwriteType.Member,
       allow: [
         PermissionFlagsBits.ViewChannel,
         PermissionFlagsBits.SendMessages,
@@ -59,6 +63,7 @@ async function createTicketChannel(guild, user) {
   if (config.staffRoleId) {
     permissionOverwrites.push({
       id: config.staffRoleId,
+      type: OverwriteType.Role,
       allow: [
         PermissionFlagsBits.ViewChannel,
         PermissionFlagsBits.SendMessages,
