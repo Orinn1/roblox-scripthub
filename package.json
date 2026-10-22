@@ -10,6 +10,8 @@
     "bot:deploy": "node bot/deploy-commands.js",
     "super-bot": "node super-bot/index.js",
     "super-bot:deploy": "node super-bot/deploy-commands.js",
+    "shop-bot": "node shop-bot/index.js",
+    "shop-bot:deploy": "node shop-bot/deploy-commands.js",
     "build": "node build.js",
     "simple": "node simple-hub/server.js",
     "zip:discloud": "powershell -NoProfile -Command \"Compress-Archive -Path 'index.js', 'discloud.config', 'package.json', 'package-lock.json', 'db.js', '.env', 'bot', 'data' -DestinationPath 'discloud-bot.zip' -Force\""

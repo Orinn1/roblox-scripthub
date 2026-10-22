@@ -1,0 +1,19 @@
+{
+  "name": "shop-ticket-slip-bot",
+  "version": "1.0.0",
+  "description": "Discord Shop Bot with Ticket System & 100% Free Slip Anti-Reuse QR Verification",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "deploy": "node deploy-commands.js"
+  },
+  "keywords": ["discord", "ticket", "slip", "promptpay", "shop"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5",
+    "jimp": "^0.22.12",
+    "jsqr": "^1.4.0"
+  }
+}

@@ -16,3 +16,9 @@ super-bot/.env
 super-bot/data/*.sqlite*
 super-bot/data/database.sqlite*
 super-bot/node_modules/
+shop-bot/.env
+shop-bot/data/*.json
+shop-bot/data/*.bak
+shop-bot/data/*.tmp
+shop-bot/node_modules/
+
