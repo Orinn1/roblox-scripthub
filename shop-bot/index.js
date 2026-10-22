@@ -75,8 +75,9 @@ client.on('error', (err) => {
 // ==========================================
 client.once('ready', async () => {
   console.log('==================================================');
-  console.log(`🐰 [Shop Bot Ready]: เข้าสู่ระบบในชื่อ: ${client.user.tag} (ID: ${client.user.id})`);
+  console.log(`🐰 [Shop Bot v2.2 Ready]: เข้าสู่ระบบในชื่อ: ${client.user.tag} (ID: ${client.user.id})`);
   console.log(`🏰 ประจำการอยู่ใน: ${client.guilds.cache.size} เซิร์ฟเวอร์`);
+  console.log(`⚡ โหมด: Fast Non-blocking Ticket & Clean Pay Payload`);
   console.log('==================================================');
 
   client.user.setPresence({
@@ -237,16 +238,19 @@ client.on('interactionCreate', async (interaction) => {
 
       // 🎫 ปุ่ม: เปิดตั๋วสั่งซื้อ
       if (customId === 'btn_open_ticket') {
+        console.log(`🎫 [Shop Bot]: ผู้ใช้ ${interaction.user.tag} กำลังกดเปิดตั๋ว...`);
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
           const result = await createTicketChannel(interaction.guild, interaction.user);
           if (result.alreadyExists) {
+            console.log(`⚠️ [Shop Bot]: ผู้ใช้ ${interaction.user.tag} มีห้องตั๋วเดิมอยู่แล้ว (<#${result.channel.id}>)`);
             return interaction.editReply({
               content: `⚠️ คุณมีห้องตั๋วที่ยังเปิดอยู่แล้วค่ะ: <#${result.channel.id}>\nกรุณาใช้ห้องเดิมในการติดต่อ หรือกดปิดตั๋วเดิมก่อนนะคะ`
             });
           }
 
+          console.log(`✅ [Shop Bot]: สร้างห้องสำเร็จ ส่งลิงก์ <#${result.channel.id}> ให้ ${interaction.user.tag}`);
           return interaction.editReply({
             content: `✅ สร้างห้องตั๋วของคุณเรียบร้อยแล้วค่ะ: <#${result.channel.id}>`
           });
@@ -260,6 +264,7 @@ client.on('interactionCreate', async (interaction) => {
 
       // 💳 ปุ่ม: แสดงช่องทางชำระเงิน
       if (customId === 'ticket_show_payment') {
+        console.log(`💳 [Shop Bot]: แสดงช่องทางชำระเงินให้ ${interaction.user.tag}`);
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const payload = getPaymentPayload();
         return interaction.editReply(payload);

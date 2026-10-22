@@ -14,6 +14,72 @@ const db = require('../database');
 const config = require('../config');
 
 /**
+ * ส่งข้อความต้อนรับและปุ่มกดเข้าห้องตั๋ว (ทำงานในพื้นหลัง ไม่บล็อกการตอบกลับ Interaction)
+ */
+async function sendWelcomeMessage(channel, user, ticketRecord) {
+  try {
+    const welcomeEmbed = new EmbedBuilder()
+      .setColor(config.colors.primary)
+      .setTitle(`🎫 ตั๋วสั่งซื้อ #${ticketRecord.ticketNumber}`)
+      .setDescription(
+        `สวัสดีค่าคุณ <@${user.id}> ✨\n\n` +
+        `1️⃣ พิมพ์แจ้งสินค้า/สคริปต์ที่ต้องการสั่งซื้อได้เลยค่ะ\n` +
+        `2️⃣ กดปุ่ม **[ 💳 ช่องทางชำระเงิน ]** ด้านล่างเพื่อดูบัญชีโอน\n` +
+        `3️⃣ เมื่อโอนเสร็จแล้ว **ส่งรูปสลิปในห้องนี้** ได้ทันที ระบบจะตรวจสลิปให้อัตโนมัติค่ะ\n\n` +
+        `💖 *แม่ค้าจะรีบเข้ามาตรวจสอบและจัดส่งของให้โดยเร็วที่สุดค่ะ~*`
+      )
+      .setFooter({ text: 'กดปุ่มด้านล่างเพื่อทำรายการ' })
+      .setTimestamp();
+
+    const buttonsRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('ticket_show_payment')
+        .setLabel('ช่องทางชำระเงิน')
+        .setEmoji('💳')
+        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId('ticket_close')
+        .setLabel('ปิดตั๋ว')
+        .setEmoji('🔒')
+        .setStyle(ButtonStyle.Secondary)
+    );
+
+    const staffMention = config.staffRoleId ? `<@&${config.staffRoleId}>` : '';
+    const sendContent = `ยินดีต้อนรับคุณ <@${user.id}> ${staffMention}`.trim();
+
+    const bannerPath = path.join(__dirname, '..', 'assets', 'ticket-banner.png');
+    let sent = false;
+
+    if (fs.existsSync(bannerPath)) {
+      try {
+        const bannerAttachment = new AttachmentBuilder(bannerPath, { name: 'ticket-banner.png' });
+        welcomeEmbed.setImage('attachment://ticket-banner.png');
+        await channel.send({
+          content: sendContent,
+          embeds: [welcomeEmbed],
+          files: [bannerAttachment],
+          components: [buttonsRow]
+        });
+        sent = true;
+      } catch (attachErr) {
+        console.warn('[Ticket Manager] Banner attach warning, fallback without image:', attachErr.message);
+      }
+    }
+
+    if (!sent) {
+      welcomeEmbed.setImage(null);
+      await channel.send({
+        content: sendContent,
+        embeds: [welcomeEmbed],
+        components: [buttonsRow]
+      });
+    }
+  } catch (err) {
+    console.error('[Ticket Manager] Failed to send welcome message:', err.message || err);
+  }
+}
+
+/**
  * สร้างห้องตั๋วใหม่สำหรับลูกค้า หรือคืนค่าห้องเดิมหากมีตั๋วเปิดอยู่แล้ว
  */
 async function createTicketChannel(guild, user) {
@@ -31,9 +97,8 @@ async function createTicketChannel(guild, user) {
     } catch {}
   }
 
-  // 2. ดึง Bot Member ID
-  const botMember = guild.members.me || await guild.members.fetchMe().catch(() => null);
-  const botId = botMember ? botMember.id : guild.client.user.id;
+  // 2. ดึง Bot User ID (ใช้ client.user.id โดยตรง ไม่ต้องยิง REST ซ้ำ)
+  const botId = guild.client.user.id;
 
   // 3. กำหนดสิทธิ์ของห้องตั๋ว (Private Ticket)
   const permissionOverwrites = [
@@ -110,68 +175,10 @@ async function createTicketChannel(guild, user) {
   // 6. บันทึกข้อมูลตั๋วลง Database
   const ticketRecord = db.createTicket(channel.id, user.id);
 
-  // 7. เตรียม Welcome Embed & ปุ่มกด
-  const welcomeEmbed = new EmbedBuilder()
-    .setColor(config.colors.primary)
-    .setTitle(`🎫 ตั๋วสั่งซื้อ #${ticketRecord.ticketNumber}`)
-    .setDescription(
-      `สวัสดีค่าคุณ <@${user.id}> ✨\n\n` +
-      `1️⃣ พิมพ์แจ้งสินค้า/สคริปต์ที่ต้องการสั่งซื้อได้เลยค่ะ\n` +
-      `2️⃣ กดปุ่ม **[ 💳 ช่องทางชำระเงิน ]** ด้านล่างเพื่อดูบัญชีโอน\n` +
-      `3️⃣ เมื่อโอนเสร็จแล้ว **ส่งรูปสลิปในห้องนี้** ได้ทันที ระบบจะตรวจสลิปให้อัตโนมัติค่ะ\n\n` +
-      `💖 *แม่ค้าจะรีบเข้ามาตรวจสอบและจัดส่งของให้โดยเร็วที่สุดค่ะ~*`
-    )
-    .setFooter({ text: 'กดปุ่มด้านล่างเพื่อทำรายการ' })
-    .setTimestamp();
-
-  const buttonsRow = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId('ticket_show_payment')
-      .setLabel('ช่องทางชำระเงิน')
-      .setEmoji('💳')
-      .setStyle(ButtonStyle.Success),
-    new ButtonBuilder()
-      .setCustomId('ticket_close')
-      .setLabel('ปิดตั๋ว')
-      .setEmoji('🔒')
-      .setStyle(ButtonStyle.Secondary)
-  );
-
-  const staffMention = config.staffRoleId ? `<@&${config.staffRoleId}>` : '';
-  const sendContent = `ยินดีต้อนรับคุณ <@${user.id}> ${staffMention}`.trim();
-
-  // ส่งข้อความต้อนรับเข้าห้อง (มีระบบ Fallback หากส่งไฟล์รูป Banner ไม่สำเร็จ)
-  const bannerPath = path.join(__dirname, '..', 'assets', 'ticket-banner.png');
-  let sentSuccessfully = false;
-
-  if (fs.existsSync(bannerPath)) {
-    try {
-      const bannerAttachment = new AttachmentBuilder(bannerPath, { name: 'ticket-banner.png' });
-      welcomeEmbed.setImage('attachment://ticket-banner.png');
-      await channel.send({
-        content: sendContent,
-        embeds: [welcomeEmbed],
-        files: [bannerAttachment],
-        components: [buttonsRow]
-      });
-      sentSuccessfully = true;
-    } catch (bannerErr) {
-      console.warn('[Ticket Manager] Banner attach error, sending plain embed:', bannerErr.message);
-    }
-  }
-
-  if (!sentSuccessfully) {
-    try {
-      welcomeEmbed.setImage(null);
-      await channel.send({
-        content: sendContent,
-        embeds: [welcomeEmbed],
-        components: [buttonsRow]
-      });
-    } catch (sendErr) {
-      console.error('[Ticket Manager] Failed to send welcome message:', sendErr.message);
-    }
-  }
+  // 7. สั่งส่งข้อความต้อนรับในห้องตั๋วทันที (ทำงานคู่ขนาน ไม่บล็อกการตอบกลับ interaction)
+  sendWelcomeMessage(channel, user, ticketRecord).catch(err => {
+    console.error('[sendWelcomeMessage Error]:', err.message);
+  });
 
   return { alreadyExists: false, channel, ticket: ticketRecord };
 }
