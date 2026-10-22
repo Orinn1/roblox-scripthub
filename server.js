@@ -563,48 +563,59 @@ server.listen(PORT, () => {
     // ปลอดภัย 100% ไม่ชนเพดาน 256MB และไม่โดนระบบเตะดับ (No OOM Crash)
     // เว้นระยะ Login ตัวละ 5 วินาที เพื่อป้องกัน Gateway Rate Limit
     
+    const botGroup = (process.env.BOT_GROUP || 'all').toLowerCase();
+    console.log(`🎯 [Bot Group Mode]: กำลังทำงานในโหมด "${botGroup.toUpperCase()}"`);
+
     // 1️⃣ Bot 1: BlacklistScriptx (Roblox Script Hub)
-    setTimeout(() => {
-        try {
-            console.log('🤖 [Bot 1]: เริ่มต้นเปิด BlacklistScriptx...');
-            const botConfig = require('./bot/config.js');
-            if (process.env.DISCORD_TOKEN || botConfig.token) {
-                require('./bot/index.js');
+    if (botGroup === 'all' || botGroup === 'hub') {
+        setTimeout(() => {
+            try {
+                console.log('🤖 [Bot 1]: เริ่มต้นเปิด BlacklistScriptx...');
+                const botConfig = require('./bot/config.js');
+                if (process.env.DISCORD_TOKEN || botConfig.token) {
+                    require('./bot/index.js');
+                }
+            } catch (e) {
+                console.error('❌ [Bot 1 Load Error]:', e.message);
             }
-        } catch (e) {
-            console.error('❌ [Bot 1 Load Error]:', e.message);
-        }
-    }, 1500);
+        }, 1500);
+    }
 
     // 2️⃣ Bot 2: แม่พระของเซนโย (Super Bot 24 ชม.)
-    setTimeout(() => {
-        try {
-            console.log('🌸 [Super Bot]: เริ่มต้นเปิด แม่พระของเซนโย...');
-            require('./super-bot/index.js');
-        } catch (superErr) {
-            console.error('❌ [Super Bot Load Error]:', superErr.message);
-        }
-    }, 6000);
+    if (botGroup === 'all' || botGroup === 'community') {
+        setTimeout(() => {
+            try {
+                console.log('🌸 [Super Bot]: เริ่มต้นเปิด แม่พระของเซนโย...');
+                require('./super-bot/index.js');
+            } catch (superErr) {
+                console.error('❌ [Super Bot Load Error]:', superErr.message);
+            }
+        }, 6000);
+    }
 
     // 3️⃣ Bot 3: BunnyHelper (Fresshy Shop Bot 24 ชม.)
-    setTimeout(() => {
-        try {
-            console.log('🐰 [Shop Bot]: เริ่มต้นเปิด BunnyHelper (Fresshy Shop)...');
-            require('./shop-bot/index.js');
-        } catch (shopErr) {
-            console.error('❌ [Shop Bot Load Error]:', shopErr.message);
-        }
-    }, 11000);
+    if (botGroup === 'all' || botGroup === 'community') {
+        setTimeout(() => {
+            try {
+                console.log('🐰 [Shop Bot]: เริ่มต้นเปิด BunnyHelper (Fresshy Shop)...');
+                require('./shop-bot/index.js');
+            } catch (shopErr) {
+                console.error('❌ [Shop Bot Load Error]:', shopErr.message);
+            }
+        }, 11000);
+    }
 
     // 4️⃣ Bot 4: blacklisthub (สตรีมมิ่งสีม่วง 24 ชม.)
-    setTimeout(() => {
-        try {
-            console.log('🟣 [Presence Stream]: เริ่มต้นรักษาสถานะสตรีมมิ่งสีม่วง 24/7...');
-            require('./bot/presence-stream.js');
-        } catch (presenceErr) {
-            console.error('❌ [Presence Stream Error]:', presenceErr.message);
-        }
-    }, 16000);
+    if (botGroup === 'all' || botGroup === 'hub') {
+        setTimeout(() => {
+            try {
+                console.log('🟣 [Presence Stream]: เริ่มต้นรักษาสถานะสตรีมมิ่งสีม่วง 24/7...');
+                require('./bot/presence-stream.js');
+            } catch (presenceErr) {
+                console.error('❌ [Presence Stream Error]:', presenceErr.message);
+            }
+        }, botGroup === 'hub' ? 6000 : 16000);
+    }
 });
 
 // ==========================================
