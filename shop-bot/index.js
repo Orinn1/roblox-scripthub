@@ -19,7 +19,7 @@ const http = require('http');
 const config = require('./config');
 const db = require('./database');
 const { createTicketChannel, generateTranscript } = require('./services/ticket-manager');
-const { getPaymentPayload } = require('./services/payment-helper');
+const { getPaymentPayload, cacheQrUrl } = require('./services/payment-helper');
 const { scanQRCodeFromImage, THAI_BANKS } = require('./services/qr-scanner');
 const { deployCommands } = require('./deploy-commands');
 
@@ -174,9 +174,14 @@ client.on('interactionCreate', async (interaction) => {
 
       // /payment-info
       if (commandName === 'payment-info') {
+        console.log(`💳 [Shop Bot]: คำสั่ง /payment-info จาก ${interaction.user.tag}`);
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const payload = getPaymentPayload();
-        return interaction.editReply(payload);
+        const sentMsg = await interaction.editReply(payload);
+        if (sentMsg?.embeds?.[0]?.image?.url) {
+          cacheQrUrl(sentMsg.embeds[0].image.url);
+        }
+        return;
       }
 
       // /shop-stats
@@ -267,7 +272,11 @@ client.on('interactionCreate', async (interaction) => {
         console.log(`💳 [Shop Bot]: แสดงช่องทางชำระเงินให้ ${interaction.user.tag}`);
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const payload = getPaymentPayload();
-        return interaction.editReply(payload);
+        const sentMsg = await interaction.editReply(payload);
+        if (sentMsg?.embeds?.[0]?.image?.url) {
+          cacheQrUrl(sentMsg.embeds[0].image.url);
+        }
+        return;
       }
 
       // 🔒 ปุ่ม: ปิดตั๋ว

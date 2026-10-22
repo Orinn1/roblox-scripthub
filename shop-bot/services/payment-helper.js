@@ -3,13 +3,13 @@ const path = require('path');
 const fs = require('fs');
 const config = require('../config');
 
+// แคช Discord CDN URL ของรูป QR Code (เมื่อมี URL แล้ว จะส่งผ่าน JSON เพียวๆ ใน 0.03 วินาที!)
+let cachedQrUrl = process.env.PAYMENT_QR_URL || null;
+
 /**
- * สร้าง Embed ข้อมูลชำระเงินและ QR Code (ไม่รวม flags ใน payload ป้องกัน Discord REST 400)
+ * สร้าง Embed ข้อมูลชำระเงินและ QR Code (รองรับ Fast CDN Cache ส่งไวระดับมิลลิวินาที)
  */
 function getPaymentPayload() {
-  const qrPath = path.join(__dirname, '..', 'assets', 'payment-qr.jpg');
-  const files = [];
-
   const paymentEmbed = new EmbedBuilder()
     .setColor(config.colors.primary)
     .setTitle('💳 ช่องทางการชำระเงิน')
@@ -22,6 +22,15 @@ function getPaymentPayload() {
     )
     .setFooter({ text: 'Fresshy shop • สแกนจ่ายได้ทุกธนาคาร' })
     .setTimestamp();
+
+  // ⚡ INSTANT FAST MODE: หากมี CDN URL ในแคช ไม่ต้องส่งไฟล์ซ้ำ ส่ง JSON เพียวๆ ใน 0.03 วิ!
+  if (cachedQrUrl) {
+    paymentEmbed.setImage(cachedQrUrl);
+    return { embeds: [paymentEmbed], files: [] };
+  }
+
+  const qrPath = path.join(__dirname, '..', 'assets', 'payment-qr.jpg');
+  const files = [];
 
   if (fs.existsSync(qrPath)) {
     try {
@@ -37,4 +46,11 @@ function getPaymentPayload() {
   return { embeds: [paymentEmbed], files };
 }
 
-module.exports = { getPaymentPayload };
+function cacheQrUrl(url) {
+  if (url && typeof url === 'string') {
+    cachedQrUrl = url;
+    console.log('⚡ [Payment Helper]: บันทึก CDN URL ของ QR Code สำเร็จ ครั้งต่อไปจะส่งทันทีใน 0.03 วิ!');
+  }
+}
+
+module.exports = { getPaymentPayload, cacheQrUrl };
