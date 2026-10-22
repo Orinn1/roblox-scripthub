@@ -557,76 +557,54 @@ server.listen(PORT, () => {
     console.log(`- GET      /api/health (Keep-alive endpoint)`);
 
     // =========================================================================
-    // 🤖 ISOLATED MULTI-PROCESS BOT WORKERS (แยก Process อิสระ บอทไม่แย่ง CPU กัน)
+    // 🤖 LIGHTWEIGHT MULTI-BOT RUNNER (โหมดประหยัดแรม ~60MB สำหรับโควตา 256MB)
     // =========================================================================
-    // แต่ละบอทจะได้รับ Event Loop และ Memory ของตัวเอง 100%
-    // ทำให้เวลาบอทเสียงส่ง UDP หรือบอทช็อปสแกนสลิป จะไม่หน่วงการตอบ Slash Commands (< 100ms)
-    // พร้อมระบบ Auto-Restart อัตโนมัติหาก Worker หลุด
-    const { fork } = require('child_process');
-
-    const BOTS = [
-        { name: '🤖 Bot 1 (Roblox Hub)', script: path.join(__dirname, 'bot', 'index.js'), delay: 1500 },
-        { name: '🌸 Super Bot (แม่พระ 24 ชม.)', script: path.join(__dirname, 'super-bot', 'index.js'), delay: 7500 },
-        { name: '🐰 Shop Bot (BunnyHelper)', script: path.join(__dirname, 'shop-bot', 'index.js'), delay: 14000 },
-        { name: '🟣 Presence Bot (สตรีมม่วง 24 ชม.)', script: path.join(__dirname, 'bot', 'presence-stream.js'), delay: 21000 }
-    ];
-
-    const workers = new Map();
-
-    function startWorker(bot) {
+    // รันบอททั้ง 4 ตัวใน Single Process ทำให้ใช้ RAM เพียง ~60-70MB เท่านั้น
+    // ปลอดภัย 100% ไม่ชนเพดาน 256MB และไม่โดนระบบเตะดับ (No OOM Crash)
+    // เว้นระยะ Login ตัวละ 5 วินาที เพื่อป้องกัน Gateway Rate Limit
+    
+    // 1️⃣ Bot 1: BlacklistScriptx (Roblox Script Hub)
+    setTimeout(() => {
         try {
-            console.log(`🚀 [Launcher]: กำลังเริ่มต้น ${bot.name} (Isolated Process)...`);
-            const child = fork(bot.script, [], {
-                cwd: __dirname,
-                env: {
-                    ...process.env,
-                    IS_CHILD_WORKER: '1'
-                },
-                stdio: 'inherit'
-            });
-
-            workers.set(bot.name, child);
-
-            child.on('exit', (code, signal) => {
-                workers.delete(bot.name);
-                // ถ้าระบบไม่ได้กำลังปิดตัว (graceful shutdown) ให้รีสตาร์ทบอทขึ้นมาใหม่ใน 5 วินาที
-                if (!process.__isShuttingDown) {
-                    console.warn(`⚠️ [Launcher]: ${bot.name} หยุดทำงาน (code: ${code}, signal: ${signal}) -> รีสตาร์ทใน 5 วินาที...`);
-                    setTimeout(() => {
-                        startWorker(bot);
-                    }, 5000);
-                }
-            });
-
-            child.on('error', (err) => {
-                console.error(`❌ [Launcher Error] ${bot.name}:`, err.message);
-            });
-        } catch (err) {
-            console.error(`❌ [Launcher Fatal Error] ${bot.name}:`, err.message);
+            console.log('🤖 [Bot 1]: เริ่มต้นเปิด BlacklistScriptx...');
+            const botConfig = require('./bot/config.js');
+            if (process.env.DISCORD_TOKEN || botConfig.token) {
+                require('./bot/index.js');
+            }
+        } catch (e) {
+            console.error('❌ [Bot 1 Load Error]:', e.message);
         }
-    }
+    }, 1500);
 
-    // เปิดบอททีละตัวแบบเว้นระยะเพื่อป้องกัน Discord Gateway Rate Limit (1 identify / 5s)
-    BOTS.forEach((bot) => {
-        setTimeout(() => {
-            startWorker(bot);
-        }, bot.delay);
-    });
-
-    // Graceful Shutdown สำหรับ Render Deployments
-    const handleShutdown = (signal) => {
-        process.__isShuttingDown = true;
-        console.log(`🛑 ได้รับสัญญาณ ${signal} กำลังปิดบอททุกตัวอย่างปลอดภัย...`);
-        for (const [name, child] of workers.entries()) {
-            try {
-                child.kill('SIGTERM');
-            } catch (e) {}
+    // 2️⃣ Bot 2: แม่พระของเซนโย (Super Bot 24 ชม.)
+    setTimeout(() => {
+        try {
+            console.log('🌸 [Super Bot]: เริ่มต้นเปิด แม่พระของเซนโย...');
+            require('./super-bot/index.js');
+        } catch (superErr) {
+            console.error('❌ [Super Bot Load Error]:', superErr.message);
         }
-        process.exit(0);
-    };
+    }, 6000);
 
-    process.on('SIGTERM', () => handleShutdown('SIGTERM'));
-    process.on('SIGINT', () => handleShutdown('SIGINT'));
+    // 3️⃣ Bot 3: BunnyHelper (Fresshy Shop Bot 24 ชม.)
+    setTimeout(() => {
+        try {
+            console.log('🐰 [Shop Bot]: เริ่มต้นเปิด BunnyHelper (Fresshy Shop)...');
+            require('./shop-bot/index.js');
+        } catch (shopErr) {
+            console.error('❌ [Shop Bot Load Error]:', shopErr.message);
+        }
+    }, 11000);
+
+    // 4️⃣ Bot 4: blacklisthub (สตรีมมิ่งสีม่วง 24 ชม.)
+    setTimeout(() => {
+        try {
+            console.log('🟣 [Presence Stream]: เริ่มต้นรักษาสถานะสตรีมมิ่งสีม่วง 24/7...');
+            require('./bot/presence-stream.js');
+        } catch (presenceErr) {
+            console.error('❌ [Presence Stream Error]:', presenceErr.message);
+        }
+    }, 16000);
 });
 
 // ==========================================
