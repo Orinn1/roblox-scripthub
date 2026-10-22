@@ -54,6 +54,12 @@ client.on('shardError', (err) => {
     console.warn('⚠️ [Super Bot Shard Error]:', err.message || err);
 });
 
+client.on('debug', (info) => {
+    if (info.includes('Heartbeat') || info.includes('Connect') || info.includes('Identify') || info.includes('Session') || info.includes('Rate limit') || info.includes('429') || info.includes('Handshake')) {
+        console.log(`🌸 [Super Bot Debug]: ${info}`);
+    }
+});
+
 // จัดเก็บ Slash Commands
 client.commands = new Collection();
 
@@ -150,10 +156,14 @@ if (require.main === module) {
 }
 
 // เข้าสู่ระบบ Discord
-console.log(`🌸 [Super Bot]: กำลังเริ่มเชื่อมต่อ Discord...`);
-client.login(DISCORD_TOKEN).catch(err => {
-    console.error('❌ ไม่สามารถล็อกอิน Super Bot (แม่พระของเซนโย) ได้:', err.message);
-});
+console.log(`🌸 [Super Bot]: กำลังเริ่มเชื่อมต่อ Discord (Token: ${DISCORD_TOKEN.slice(0, 10)}... ยาว ${DISCORD_TOKEN.length} ตัวอักษร)...`);
+client.login(DISCORD_TOKEN)
+    .then(() => {
+        console.log(`🌸 [Super Bot]: Login Promise สำเร็จ กำลังรอ Event Ready...`);
+    })
+    .catch(err => {
+        console.error('❌ ไม่สามารถล็อกอิน Super Bot (แม่พระของเซนโย) ได้:', err.message);
+    });
 
 module.exports = { client };
 

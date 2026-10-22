@@ -559,7 +559,7 @@ server.listen(PORT, () => {
         } catch (superErr) {
             console.error('❌ [Super Bot Load Error]:', superErr.message);
         }
-    }, 4500);
+    }, 7500);
 
     // 3️⃣ Bot 3: BunnyHelper (Fresshy Shop Bot 24/7)
     setTimeout(() => {
@@ -569,7 +569,7 @@ server.listen(PORT, () => {
         } catch (shopErr) {
             console.error('❌ [Shop Bot Load Error]:', shopErr.message);
         }
-    }, 7500);
+    }, 14000);
 
     // 4️⃣ Selfbot: blacklisthub (สตรีมมิ่งสีม่วง 24/7)
     setTimeout(() => {
@@ -579,7 +579,7 @@ server.listen(PORT, () => {
         } catch (presenceErr) {
             console.error('❌ [Presence Stream Error]:', presenceErr.message);
         }
-    }, 10500);
+    }, 21000);
 });
 
 // ==========================================

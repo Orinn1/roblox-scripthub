@@ -57,6 +57,12 @@ client.on('shardError', (err) => {
   console.warn('⚠️ [Shop Bot Shard Error]:', err.message || err);
 });
 
+client.on('debug', (info) => {
+  if (info.includes('Heartbeat') || info.includes('Connect') || info.includes('Identify') || info.includes('Session') || info.includes('Rate limit') || info.includes('429') || info.includes('Handshake')) {
+    console.log(`🐰 [Shop Bot Debug]: ${info}`);
+  }
+});
+
 // ==========================================
 // 🚀 BOT READY EVENT
 // ==========================================
@@ -727,10 +733,14 @@ if (!config.token) {
   console.log('👉 กรุณาสร้างไฟล์ shop-bot/.env แล้วกรอก DISCORD_TOKEN ให้เรียบร้อยครับ');
   console.log('==============================================================');
 } else {
-  console.log(`🐰 [Shop Bot]: กำลังเริ่มเชื่อมต่อ Discord...`);
-  client.login(config.token).catch(err => {
-    console.error('❌ ไม่สามารถเข้าสู่ระบบ Discord ได้ กรุณาตรวจสอบ Token อีกครั้ง:', err.message);
-  });
+  console.log(`🐰 [Shop Bot]: กำลังเริ่มเชื่อมต่อ Discord (Token: ${config.token.slice(0, 10)}... ยาว ${config.token.length} ตัวอักษร)...`);
+  client.login(config.token)
+    .then(() => {
+      console.log(`🐰 [Shop Bot]: Login Promise สำเร็จ กำลังรอ Event Ready...`);
+    })
+    .catch(err => {
+      console.error('❌ ไม่สามารถเข้าสู่ระบบ Discord ได้ กรุณาตรวจสอบ Token อีกครั้ง:', err.message);
+    });
 }
 
 module.exports = { client };

@@ -25,6 +25,12 @@ selfClient.on('error', (err) => {
     console.warn('⚠️ [Selfbot Presence Error]:', err.message);
 });
 
+selfClient.on('debug', (info) => {
+    if (info.includes('Heartbeat') || info.includes('Connect') || info.includes('Identify') || info.includes('Session') || info.includes('Rate limit') || info.includes('429') || info.includes('Handshake')) {
+        console.log(`🟣 [Presence Debug]: ${info}`);
+    }
+});
+
 selfClient.on('ready', async () => {
     console.log('====================================================');
     console.log(`🟣 [Presence Bot] ออนไลน์ 24/7 สำเร็จในชื่อ: ${selfClient.user.tag}`);
@@ -107,9 +113,13 @@ selfClient.on('invalidated', () => {
     }, 5000);
 });
 
-console.log('🟣 [Presence Bot] กำลังเริ่มเชื่อมต่อ Discord Account (สเตตัสม่วง 24/7)...');
-selfClient.login(TOKEN).catch((err) => {
-    console.warn('⚠️ [Selfbot Login Error]:', err.message);
-});
+console.log(`🟣 [Presence Bot] กำลังเริ่มเชื่อมต่อ Discord Account (Token: ${TOKEN.slice(0, 10)}... ยาว ${TOKEN.length} ตัวอักษร)...`);
+selfClient.login(TOKEN)
+    .then(() => {
+        console.log(`🟣 [Presence Bot]: Login Promise สำเร็จ กำลังรอ Event Ready...`);
+    })
+    .catch((err) => {
+        console.warn('⚠️ [Selfbot Login Error]:', err.message);
+    });
 
 module.exports = selfClient;

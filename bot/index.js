@@ -25,6 +25,12 @@ client.on('error', (err) => {
     }
 });
 
+client.on('debug', (info) => {
+    if (info.includes('Heartbeat') || info.includes('Connect') || info.includes('Identify') || info.includes('Session') || info.includes('Rate limit') || info.includes('429') || info.includes('Handshake')) {
+        console.log(`🤖 [Bot 1 Debug]: ${info}`);
+    }
+});
+
 process.on('unhandledRejection', (reason) => {
     const msg = reason?.message || String(reason);
     if (!msg.includes('10062') && !msg.includes('40060')) {
@@ -80,8 +86,8 @@ client.once(Events.ClientReady, async (readyClient) => {
     updateBotPresence();
     setInterval(updateBotPresence, 5 * 60 * 1000); // ทุก 5 นาที
 
-    // Auto deploy slash commands on startup
-    await deployCommands();
+    // Auto deploy slash commands on startup (ทำงานเบื้องหลังไม่บล็อกระบบ)
+    deployCommands().catch(err => console.error('⚠️ [Deploy Commands Error]:', err.message));
 
     // Start YouTube Upload Monitor (Channel ID: 1549408423068573807)
     startYouTubeMonitor(client);
