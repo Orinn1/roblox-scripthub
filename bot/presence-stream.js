@@ -37,16 +37,6 @@ selfClient.on('ready', async () => {
     console.log('====================================================');
 
     let cachedAssetPath = null;
-    if (STREAM_IMAGE_URL) {
-        try {
-            const ext = await RichPresence.getExternal(selfClient, '367827983903490050', STREAM_IMAGE_URL);
-            if (ext && ext.length > 0) {
-                cachedAssetPath = ext[0].external_asset_path;
-            }
-        } catch (err) {
-            console.warn('⚠️ ไม่สามารถแปลงลิงก์รูปสตรีมมิ่งได้:', err.message);
-        }
-    }
 
     function applyPresence() {
         try {
@@ -82,18 +72,42 @@ selfClient.on('ready', async () => {
         }
     }
 
+    // ⚡ แสดงสถานะสีม่วงทันที ไม่ต้องรอโหลดรูปภายนอก
     applyPresence();
-    // รีเฟรชสถานะทุก 10 นาทีเพื่อให้สตรีมค้างอยู่ตลอดเวลา
-    setInterval(applyPresence, 10 * 60 * 1000);
+
+    // ดึงรูปภายนอกแบบ Asynchronous ในพื้นหลัง
+    if (STREAM_IMAGE_URL) {
+        RichPresence.getExternal(selfClient, '367827983903490050', STREAM_IMAGE_URL)
+            .then(ext => {
+                if (ext && ext.length > 0) {
+                    cachedAssetPath = ext[0].external_asset_path;
+                    applyPresence();
+                }
+            })
+            .catch(err => {
+                console.warn('⚠️ ไม่สามารถแปลงลิงก์รูปสตรีมมิ่งได้ (ใช้ค่าเริ่มต้น):', err.message);
+            });
+    }
+
+    // รีเฟรชสถานะทุก 3 นาที เพื่อให้สตรีมมิ่งสีม่วงค้างอยู่ตลอดเวลา 24/7
+    setInterval(applyPresence, 3 * 60 * 1000);
 });
 
-selfClient.on('disconnect', () => {
-    console.warn('⚠️ [Selfbot] หลุดการเชื่อมต่อ กำลังเชื่อมต่อใหม่ใน 5 วินาที...');
+selfClient.on('shardDisconnect', () => {
+    console.warn('⚠️ [Selfbot] ขาดการเชื่อมต่อชั่วคราว กำลังเชื่อมต่อใหม่...');
     setTimeout(() => {
         selfClient.login(TOKEN).catch(() => {});
     }, 5000);
 });
 
+selfClient.on('invalidated', () => {
+    console.warn('⚠️ [Selfbot] เซสชันหมดอายุ กำลังเชื่อมต่อใหม่...');
+    setTimeout(() => {
+        selfClient.login(TOKEN).catch(() => {});
+    }, 5000);
+});
+
+console.log('🟣 [Presence Bot] กำลังเริ่มเชื่อมต่อ Discord Account (สเตตัสม่วง 24/7)...');
 selfClient.login(TOKEN).catch((err) => {
     console.warn('⚠️ [Selfbot Login Error]:', err.message);
 });

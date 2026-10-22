@@ -26,7 +26,9 @@ const path = require('path');
 
 // ตรวจสอบ Token (มี fallback ให้อัตโนมัติ ไม่ต้องกรอก Environment Variables บน Render ให้เหนื่อย)
 const DEFAULT_SUPER_TOKEN = Buffer.from('TVRVMk1qUXhORGc1TlRFek9EUTRNREU0T0EuR3NuM1FDLlgyd2tydlQ3X3AzcDNTNVhhaVRJNG5UN3BRN1ZNekhrVDdxd2FJ', 'base64').toString('utf8');
-const DISCORD_TOKEN = process.env.SUPER_BOT_TOKEN || process.env.DISCORD_SUPER_BOT_TOKEN || DEFAULT_SUPER_TOKEN;
+const DISCORD_TOKEN = (process.env.SUPER_BOT_TOKEN && process.env.SUPER_BOT_TOKEN.trim()) || 
+                      (process.env.DISCORD_SUPER_BOT_TOKEN && process.env.DISCORD_SUPER_BOT_TOKEN.trim()) || 
+                      DEFAULT_SUPER_TOKEN;
 if (!DISCORD_TOKEN) {
     console.error('❌ ไม่พบ DISCORD_TOKEN สำหรับ Super Bot');
     process.exit(1);
@@ -42,6 +44,14 @@ const client = new Client({
         GatewayIntentBits.GuildMembers      // จำเป็นสำหรับการมอบยศ
     ],
     partials: [Partials.Channel, Partials.Message, Partials.User, Partials.GuildMember]
+});
+
+client.on('error', (err) => {
+    console.error('⚠️ [Super Bot Client Error]:', err.message || err);
+});
+
+client.on('shardError', (err) => {
+    console.warn('⚠️ [Super Bot Shard Error]:', err.message || err);
 });
 
 // จัดเก็บ Slash Commands
@@ -140,6 +150,7 @@ if (require.main === module) {
 }
 
 // เข้าสู่ระบบ Discord
+console.log(`🌸 [Super Bot]: กำลังเริ่มเชื่อมต่อ Discord...`);
 client.login(DISCORD_TOKEN).catch(err => {
     console.error('❌ ไม่สามารถล็อกอิน Super Bot (แม่พระของเซนโย) ได้:', err.message);
 });

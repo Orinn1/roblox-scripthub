@@ -49,6 +49,14 @@ const client = new Client({
   partials: [Partials.Message, Partials.Channel]
 });
 
+client.on('error', (err) => {
+  console.error('⚠️ [Shop Bot Client Error]:', err.message || err);
+});
+
+client.on('shardError', (err) => {
+  console.warn('⚠️ [Shop Bot Shard Error]:', err.message || err);
+});
+
 // ==========================================
 // 🚀 BOT READY EVENT
 // ==========================================
@@ -719,7 +727,10 @@ if (!config.token) {
   console.log('👉 กรุณาสร้างไฟล์ shop-bot/.env แล้วกรอก DISCORD_TOKEN ให้เรียบร้อยครับ');
   console.log('==============================================================');
 } else {
+  console.log(`🐰 [Shop Bot]: กำลังเริ่มเชื่อมต่อ Discord...`);
   client.login(config.token).catch(err => {
     console.error('❌ ไม่สามารถเข้าสู่ระบบ Discord ได้ กรุณาตรวจสอบ Token อีกครั้ง:', err.message);
   });
 }
+
+module.exports = { client };

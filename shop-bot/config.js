@@ -6,7 +6,9 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const DEFAULT_SHOP_TOKEN = Buffer.from('TVRVMk1qZ3hNREE0TURnM09UazNOalV4T1EuR3UtUlVxLmtJWXRSTlFqQTFvTkViQ1BtaV9Qck5kX0RjQWJGTjg0UW10dlA0', 'base64').toString('utf8');
 
 module.exports = {
-  token: process.env.SHOP_BOT_TOKEN || process.env.DISCORD_SHOP_BOT_TOKEN || process.env.DISCORD_TOKEN || DEFAULT_SHOP_TOKEN,
+  token: (process.env.SHOP_BOT_TOKEN && process.env.SHOP_BOT_TOKEN.trim()) || 
+         (process.env.DISCORD_SHOP_BOT_TOKEN && process.env.DISCORD_SHOP_BOT_TOKEN.trim()) || 
+         DEFAULT_SHOP_TOKEN,
   guildId: process.env.SHOP_GUILD_ID || process.env.GUILD_ID || '1562800688440803420',
   staffRoleId: process.env.SHOP_STAFF_ROLE_ID || process.env.STAFF_ROLE_ID || '1562801839215214764',
   autoRoleId: process.env.SHOP_AUTO_ROLE_ID || process.env.AUTO_ROLE_ID || '1562802546446180472',

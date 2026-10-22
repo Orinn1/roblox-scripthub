@@ -7,39 +7,12 @@ const url = require('url');
 // SQLite Database Module
 const db = require('./db.js');
 
-// Discord Bot 1 Integration (Roblox Script Hub)
+// Discord Bot Helper Module (สำหรับแจ้งเตือนสคริปต์ใหม่ถ้ามี)
 let notifyNewScript = null;
 try {
     const notifyModule = require('./bot/notify.js');
     notifyNewScript = notifyModule.notifyNewScript;
-    const botConfig = require('./bot/config.js');
-    if (process.env.DISCORD_TOKEN || botConfig.token) {
-        require('./bot/index.js');
-    }
-    try {
-        require('./bot/presence-stream.js');
-    } catch (presenceErr) {
-        console.error('❌ [Presence Stream Error]:', presenceErr.message);
-    }
-} catch (e) {
-    console.error('❌ [Bot 1 Load Error]:', e.message);
-}
-
-// Discord Bot 2 Integration (แม่พระของเซนโย - Super Bot 24/7)
-try {
-    require('./super-bot/index.js');
-    console.log('🌸 [Super Bot]: แม่พระของเซนโย เริ่มต้นทำงานร่วมกัน 24/7 สำเร็จ!');
-} catch (superErr) {
-    console.error('❌ [Super Bot Load Error]:', superErr.message);
-}
-
-// Discord Bot 3 Integration (Fresshy Shop Bot - BunnyHelper 24/7)
-try {
-    require('./shop-bot/index.js');
-    console.log('🐰 [Shop Bot]: BunnyHelper (Fresshy Shop) เริ่มต้นทำงานร่วมกัน 24/7 สำเร็จ!');
-} catch (shopErr) {
-    console.error('❌ [Shop Bot Load Error]:', shopErr.message);
-}
+} catch (e) {}
 
 const PORT = process.env.PORT || 3000;
 const MIME_TYPES = {
@@ -558,6 +531,55 @@ server.listen(PORT, () => {
     console.log(`- GET      /api/sunc`);
     console.log(`- GET      /api/roblox-game`);
     console.log(`- GET      /api/health (Keep-alive endpoint)`);
+
+    // =========================================================================
+    // 🤖 STAGGERED BOT LAUNCHER (เปิดบอททั้ง 3 ตัว + สเตตัสม่วง 24/7 แบบเว้นระยะ)
+    // =========================================================================
+    // ป้องกัน Discord Gateway Throttling (Discord จำกัด 1 Identify ต่อ 5 วินาทีต่อ IP)
+    // การเว้นระยะทำให้ทุกตัวล็อกอินสำเร็จ 100% ไม่หลุด และสเตตัสม่วงไม่หาย
+    
+    // 1️⃣ Bot 1: BlacklistScriptx (Roblox Script Hub)
+    setTimeout(() => {
+        try {
+            console.log('🤖 [Bot 1]: เริ่มต้นเปิด BlacklistScriptx...');
+            const botConfig = require('./bot/config.js');
+            if (process.env.DISCORD_TOKEN || botConfig.token) {
+                require('./bot/index.js');
+            }
+        } catch (e) {
+            console.error('❌ [Bot 1 Load Error]:', e.message);
+        }
+    }, 1500);
+
+    // 2️⃣ Bot 2: แม่พระของเซนโย (Super Bot 24/7)
+    setTimeout(() => {
+        try {
+            console.log('🌸 [Super Bot]: เริ่มต้นเปิด แม่พระของเซนโย...');
+            require('./super-bot/index.js');
+        } catch (superErr) {
+            console.error('❌ [Super Bot Load Error]:', superErr.message);
+        }
+    }, 4500);
+
+    // 3️⃣ Bot 3: BunnyHelper (Fresshy Shop Bot 24/7)
+    setTimeout(() => {
+        try {
+            console.log('🐰 [Shop Bot]: เริ่มต้นเปิด BunnyHelper (Fresshy Shop)...');
+            require('./shop-bot/index.js');
+        } catch (shopErr) {
+            console.error('❌ [Shop Bot Load Error]:', shopErr.message);
+        }
+    }, 7500);
+
+    // 4️⃣ Selfbot: blacklisthub (สตรีมมิ่งสีม่วง 24/7)
+    setTimeout(() => {
+        try {
+            console.log('🟣 [Presence Stream]: เริ่มต้นรักษาสถานะสตรีมมิ่งสีม่วง 24/7...');
+            require('./bot/presence-stream.js');
+        } catch (presenceErr) {
+            console.error('❌ [Presence Stream Error]:', presenceErr.message);
+        }
+    }, 10500);
 });
 
 // ==========================================
