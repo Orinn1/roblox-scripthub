@@ -49,6 +49,13 @@ const client = new Client({
   partials: [Partials.Message, Partials.Channel]
 });
 
+// Bypass HTTP /gateway/bot to prevent Cloudflare/Render 429 rate-limiting
+client.ws.fetchGatewayInformation = async () => ({
+  url: 'wss://gateway.discord.gg',
+  shards: 1,
+  session_start_limit: { total: 1000, remaining: 999, reset_after: 0, max_concurrency: 1 }
+});
+
 client.on('error', (err) => {
   console.error('⚠️ [Shop Bot Client Error]:', err.message || err);
 });

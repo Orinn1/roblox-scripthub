@@ -21,6 +21,9 @@ const selfClient = new Client({
     checkUpdate: false
 });
 
+// Bypass unauthenticated HTTP /gateway to prevent Cloudflare 429 (Sublimit: 5218000ms) on Render/Cloud IP
+selfClient.api.gateway.get = async () => ({ url: 'wss://gateway.discord.gg' });
+
 selfClient.on('error', (err) => {
     console.warn('⚠️ [Selfbot Presence Error]:', err.message);
 });
