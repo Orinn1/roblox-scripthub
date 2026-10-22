@@ -13,8 +13,11 @@ const fs = require('fs');
 const db = require('../database');
 const config = require('../config');
 
+/**
+ * สร้างห้องตั๋วใหม่สำหรับลูกค้า หรือคืนค่าห้องเดิมหากมีตั๋วเปิดอยู่แล้ว
+ */
 async function createTicketChannel(guild, user) {
-  // Check if user already has an active open ticket
+  // 1. ตรวจสอบว่ามีตั๋วที่ยังเปิดอยู่แล้วหรือไม่
   const existingTicket = db.findOpenTicketByUser(user.id);
   if (existingTicket && existingTicket.channelId) {
     try {
@@ -22,13 +25,17 @@ async function createTicketChannel(guild, user) {
       if (existingChannel) {
         return { alreadyExists: true, channel: existingChannel };
       } else {
-        // Channel was deleted manually from Discord, close it in DB
+        // ห้องถูกลบไปแล้วจาก Discord ให้ปิดสถานะใน DB
         db.closeTicket(existingTicket.channelId, 'system_auto_cleanup');
       }
     } catch {}
   }
 
-  // Setup permission overwrites
+  // 2. ดึง Bot Member ID
+  const botMember = guild.members.me || await guild.members.fetchMe().catch(() => null);
+  const botId = botMember ? botMember.id : guild.client.user.id;
+
+  // 3. กำหนดสิทธิ์ของห้องตั๋ว (Private Ticket)
   const permissionOverwrites = [
     {
       id: guild.roles.everyone.id,
@@ -46,7 +53,7 @@ async function createTicketChannel(guild, user) {
       ]
     },
     {
-      id: guild.client.user.id,
+      id: botId,
       type: OverwriteType.Member,
       allow: [
         PermissionFlagsBits.ViewChannel,
@@ -54,12 +61,13 @@ async function createTicketChannel(guild, user) {
         PermissionFlagsBits.ManageChannels,
         PermissionFlagsBits.ManageMessages,
         PermissionFlagsBits.EmbedLinks,
-        PermissionFlagsBits.AttachFiles
+        PermissionFlagsBits.AttachFiles,
+        PermissionFlagsBits.ReadMessageHistory
       ]
     }
   ];
 
-  // Add staff role permissions if configured
+  // เพิ่มสิทธิ์ให้ยศ Staff/แอดมินร้าน
   if (config.staffRoleId) {
     permissionOverwrites.push({
       id: config.staffRoleId,
@@ -74,7 +82,7 @@ async function createTicketChannel(guild, user) {
     });
   }
 
-  // Create channel name (ticket-0001-username)
+  // 4. ตั้งชื่อห้องตั๋ว
   const nextNumber = db.getNextTicketNumber();
   const safeName = user.username.toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 15) || 'user';
   const channelName = `ticket-${nextNumber}-${safeName}`;
@@ -86,7 +94,7 @@ async function createTicketChannel(guild, user) {
     topic: `Ticket สำหรับคุณ ${user.tag || user.username} (ID: ${user.id})`
   };
 
-  // If category ID is set and exists
+  // หมวดหมู่ห้อง (Category) ถ้ามี
   if (config.ticketCategoryId) {
     try {
       const category = await guild.channels.fetch(config.ticketCategoryId).catch(() => null);
@@ -96,35 +104,26 @@ async function createTicketChannel(guild, user) {
     } catch {}
   }
 
+  // 5. สร้าง Channel บน Discord
   const channel = await guild.channels.create(channelOptions);
 
-  // Save ticket to database
+  // 6. บันทึกข้อมูลตั๋วลง Database
   const ticketRecord = db.createTicket(channel.id, user.id);
 
-  const bannerPath = path.join(__dirname, '..', 'assets', 'ticket-banner.png');
-  const files = [];
-
-  // Welcome Embed
+  // 7. เตรียม Welcome Embed & ปุ่มกด
   const welcomeEmbed = new EmbedBuilder()
     .setColor(config.colors.primary)
     .setTitle(`🎫 ตั๋วสั่งซื้อ #${ticketRecord.ticketNumber}`)
     .setDescription(
       `สวัสดีค่าคุณ <@${user.id}> ✨\n\n` +
-      `1️⃣ พิมพ์แจ้งสินค้า/สคริปต์ที่ต้องการ\n` +
-      `2️⃣ กดปุ่ม **[ 💳 ช่องทางชำระเงิน ]** ด้านล่าง\n` +
-      `3️⃣ โอนแล้ว **ส่งสลิปในห้องนี้** ได้เลยค่ะ\n\n` +
-      `💖 *แม่ค้าจะรีบเข้ามาส่งของให้เยย~*`
+      `1️⃣ พิมพ์แจ้งสินค้า/สคริปต์ที่ต้องการสั่งซื้อได้เลยค่ะ\n` +
+      `2️⃣ กดปุ่ม **[ 💳 ช่องทางชำระเงิน ]** ด้านล่างเพื่อดูบัญชีโอน\n` +
+      `3️⃣ เมื่อโอนเสร็จแล้ว **ส่งรูปสลิปในห้องนี้** ได้ทันที ระบบจะตรวจสลิปให้อัตโนมัติค่ะ\n\n` +
+      `💖 *แม่ค้าจะรีบเข้ามาตรวจสอบและจัดส่งของให้โดยเร็วที่สุดค่ะ~*`
     )
     .setFooter({ text: 'กดปุ่มด้านล่างเพื่อทำรายการ' })
     .setTimestamp();
 
-  if (fs.existsSync(bannerPath)) {
-    const bannerAttachment = new AttachmentBuilder(bannerPath, { name: 'ticket-banner.png' });
-    files.push(bannerAttachment);
-    welcomeEmbed.setImage('attachment://ticket-banner.png');
-  }
-
-  // Action Buttons for open ticket (Close & Payment)
   const buttonsRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('ticket_show_payment')
@@ -138,20 +137,47 @@ async function createTicketChannel(guild, user) {
       .setStyle(ButtonStyle.Secondary)
   );
 
-  // Send ping and embed
   const staffMention = config.staffRoleId ? `<@&${config.staffRoleId}>` : '';
-  await channel.send({
-    content: `ยินดีต้อนรับคุณ <@${user.id}> ${staffMention}`,
-    embeds: [welcomeEmbed],
-    files,
-    components: [buttonsRow]
-  });
+  const sendContent = `ยินดีต้อนรับคุณ <@${user.id}> ${staffMention}`.trim();
 
-  return { alreadyExists: false, channel };
+  // ส่งข้อความต้อนรับเข้าห้อง (มีระบบ Fallback หากส่งไฟล์รูป Banner ไม่สำเร็จ)
+  const bannerPath = path.join(__dirname, '..', 'assets', 'ticket-banner.png');
+  let sentSuccessfully = false;
+
+  if (fs.existsSync(bannerPath)) {
+    try {
+      const bannerAttachment = new AttachmentBuilder(bannerPath, { name: 'ticket-banner.png' });
+      welcomeEmbed.setImage('attachment://ticket-banner.png');
+      await channel.send({
+        content: sendContent,
+        embeds: [welcomeEmbed],
+        files: [bannerAttachment],
+        components: [buttonsRow]
+      });
+      sentSuccessfully = true;
+    } catch (bannerErr) {
+      console.warn('[Ticket Manager] Banner attach error, sending plain embed:', bannerErr.message);
+    }
+  }
+
+  if (!sentSuccessfully) {
+    try {
+      welcomeEmbed.setImage(null);
+      await channel.send({
+        content: sendContent,
+        embeds: [welcomeEmbed],
+        components: [buttonsRow]
+      });
+    } catch (sendErr) {
+      console.error('[Ticket Manager] Failed to send welcome message:', sendErr.message);
+    }
+  }
+
+  return { alreadyExists: false, channel, ticket: ticketRecord };
 }
 
 /**
- * Generate transcript text of channel messages
+ * สร้างไฟล์ Text ประวัติการสนทนา (Transcript)
  */
 async function generateTranscript(channel) {
   try {
@@ -189,7 +215,7 @@ async function generateTranscript(channel) {
 
     return Buffer.from(transcript, 'utf-8');
   } catch (error) {
-    console.error('[Transcript Error]:', error);
+    console.error('[Transcript Error]:', error.message || error);
     return null;
   }
 }

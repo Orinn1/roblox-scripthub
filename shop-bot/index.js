@@ -15,14 +15,16 @@ const {
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
+
 const config = require('./config');
 const db = require('./database');
-const { scanQRCodeFromImage } = require('./services/qr-scanner');
 const { createTicketChannel, generateTranscript } = require('./services/ticket-manager');
+const { getPaymentPayload } = require('./services/payment-helper');
+const { scanQRCodeFromImage, THAI_BANKS } = require('./services/qr-scanner');
 const { deployCommands } = require('./deploy-commands');
 
 // ==========================================
-// 🌐 KEEP-ALIVE WEB SERVER (สำหรับ Render 24/7 เมื่อรันแยกเดี่ยว)
+// 🌐 STANDALONE WEB SERVER (สำหรับกรณีรันแยกเดี่ยว)
 // ==========================================
 if (require.main === module && !process.env.IS_CHILD_WORKER) {
   const PORT = process.env.PORT || 3000;
@@ -35,10 +37,13 @@ if (require.main === module && !process.env.IS_CHILD_WORKER) {
       timestamp: new Date().toISOString()
     }));
   }).listen(PORT, () => {
-    console.log(`🌐 Standalone keep-alive server is listening on port ${PORT} (Render ready)`);
+    console.log(`🌐 [Shop Bot]: Standalone server listening on port ${PORT}`);
   });
 }
 
+// ==========================================
+// 🤖 DISCORD CLIENT INITIALIZATION
+// ==========================================
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -49,7 +54,7 @@ const client = new Client({
   partials: [Partials.Message, Partials.Channel]
 });
 
-// Bypass HTTP /gateway/bot to prevent Cloudflare/Render 429 rate-limiting
+// Bypass Gateway HTTP /gateway/bot to prevent Cloudflare 429 rate-limiting
 try {
   const { WebSocketManager } = require('@discordjs/ws');
   WebSocketManager.prototype.fetchGatewayInformation = async function() {
@@ -63,28 +68,6 @@ try {
 
 client.on('error', (err) => {
   console.error('⚠️ [Shop Bot Client Error]:', err.message || err);
-});
-
-client.on('shardError', (err) => {
-  console.warn('⚠️ [Shop Bot Shard Error]:', err.message || err);
-});
-
-client.on('debug', (info) => {
-  if (info.includes('Heartbeat') || info.includes('Connect') || info.includes('Identify') || info.includes('Session') || info.includes('Rate limit') || info.includes('429') || info.includes('Handshake')) {
-    console.log(`🐰 [Shop Bot Debug]: ${info}`);
-  }
-});
-
-client.on('raw', (packet) => {
-  if (packet.t === 'INTERACTION_CREATE') {
-    console.log(`🔥 [RAW GATEWAY]: ได้รับ INTERACTION_CREATE! คำสั่ง: ${packet.d?.data?.name || packet.d?.data?.custom_id || 'unknown'} จากผู้ใช้: ${packet.d?.user?.username || packet.d?.member?.user?.username}`);
-  }
-});
-
-client.rest.on('response', (req, res) => {
-  if (req.path.includes('interactions') || req.path.includes('callback')) {
-    console.log(`🌐 [REST Response]: ${req.method} ${req.path} -> Status ${res.statusCode}`);
-  }
 });
 
 // ==========================================
@@ -101,29 +84,17 @@ client.once('ready', async () => {
     status: 'online'
   });
 
-  // รันคำสั่ง Slash Commands ในพื้นหลังไม่บล็อกระบบ
-  deployCommands(client.user.id).catch(() => {
-    console.log('💡 Deploy commands will run when needed.');
+  // ลงทะเบียน Slash Commands ในพื้นหลัง
+  deployCommands(client.user.id).catch((err) => {
+    console.warn('⚠️ [Shop Bot]: Deploy commands notice:', err.message);
   });
 });
 
-// เมื่อบอทถูกเชิญเข้าเซิร์ฟเวอร์ใหม่
-client.on('guildCreate', async (guild) => {
-  console.log(`🎉 บอทถูกเชิญเข้าเซิร์ฟเวอร์: ${guild.name} (ID: ${guild.id})`);
-  try {
-    await deployCommands(client.user.id, guild.id);
-    console.log(`✅ ลงทะเบียน Slash Commands เข้า ${guild.name} สำเร็จ!`);
-  } catch (err) {
-    console.error('❌ Failed to deploy commands on guildCreate:', err.message);
-  }
-});
-
 // ==========================================
-// 👥 GUILD MEMBER ADD (AUTO-ROLE สมาชิกใหม่ทุกคน)
+// 👥 GUILD MEMBER ADD (AUTO-ROLE สมาชิกใหม่)
 // ==========================================
 client.on('guildMemberAdd', async (member) => {
   if (member.user.bot) return;
-
   const roleId = config.autoRoleId;
   if (!roleId) return;
 
@@ -131,9 +102,7 @@ client.on('guildMemberAdd', async (member) => {
     const role = member.guild.roles.cache.get(roleId) || await member.guild.roles.fetch(roleId).catch(() => null);
     if (role) {
       await member.roles.add(role);
-      console.log(`[Auto-Role] ✅ มอบยศ "${role.name}" ให้คุณ ${member.user.tag} (ID: ${member.id}) เรียบร้อยแล้ว`);
-    } else {
-      console.log(`[Auto-Role Warning] ⚠️ ไม่พบยศ ID: ${roleId} ในเซิร์ฟเวอร์ ${member.guild.name}`);
+      console.log(`[Auto-Role] ✅ มอบยศ "${role.name}" ให้คุณ ${member.user.tag} เรียบร้อยแล้ว`);
     }
   } catch (error) {
     console.error(`[Auto-Role Error] ไม่สามารถมอบยศให้ ${member.user.tag}:`, error.message);
@@ -150,7 +119,7 @@ client.on('interactionCreate', async (interaction) => {
     // ----------------------------------------
     if (interaction.isChatInputCommand()) {
       const { commandName } = interaction;
-      console.log(`📥 [Shop Bot]: ได้รับคำสั่ง /${commandName} จาก ${interaction.user.tag}`);
+      console.log(`📥 [Shop Bot]: คำสั่ง /${commandName} จาก ${interaction.user.tag}`);
 
       // /setup-ticket
       if (commandName === 'setup-ticket') {
@@ -163,24 +132,15 @@ client.on('interactionCreate', async (interaction) => {
           });
         }
 
-        const bannerPath = path.join(__dirname, 'assets', 'ticket-banner.png');
-        const files = [];
-
         const panelEmbed = new EmbedBuilder()
           .setColor(config.colors.primary)
           .setTitle('🛒 สั่งซื้อสินค้า & สอบถาม')
           .setDescription(
-            `กดปุ่ม **[ 🎫 เปิดตั๋วสั่งซื้อ ]** ด้านล่างได้เลยค่ะ ✨\n` +
-            `🔒 *ระบบจะสร้างห้องส่วนตัวให้คุยกับแม่ค้าโดยตรง ปลอดภัย 100%*`
+            `กดปุ่ม [ 🎫 **เปิดตั๋วสั่งซื้อ** ] ด้านล่างได้เลยค่ะ ✨\n` +
+            `🔒 ระบบจะสร้างห้องส่วนตัวให้คุยกับแม่ค้าโดยตรง ปลอดภัย 100%`
           )
           .setFooter({ text: 'Fresshy shop • ยินดีให้บริการตลอด 24 ชม.' })
           .setTimestamp();
-
-        if (fs.existsSync(bannerPath)) {
-          const bannerAttachment = new AttachmentBuilder(bannerPath, { name: 'ticket-banner.png' });
-          files.push(bannerAttachment);
-          panelEmbed.setImage('attachment://ticket-banner.png');
-        }
 
         const ticketButton = new ActionRowBuilder().addComponents(
           new ButtonBuilder()
@@ -190,6 +150,16 @@ client.on('interactionCreate', async (interaction) => {
             .setStyle(ButtonStyle.Primary)
         );
 
+        const bannerPath = path.join(__dirname, 'assets', 'ticket-banner.png');
+        const files = [];
+        if (fs.existsSync(bannerPath)) {
+          try {
+            const bannerAttachment = new AttachmentBuilder(bannerPath, { name: 'ticket-banner.png' });
+            files.push(bannerAttachment);
+            panelEmbed.setImage('attachment://ticket-banner.png');
+          } catch {}
+        }
+
         await targetChannel.send({
           embeds: [panelEmbed],
           files,
@@ -197,8 +167,15 @@ client.on('interactionCreate', async (interaction) => {
         });
 
         return interaction.editReply({
-          content: `✅ ส่งแผงตั๋วไปยังห้อง <#${targetChannel.id}> แล้วค่ะ!`
+          content: `✅ ส่งแผงเปิดตั๋วไปยังห้อง <#${targetChannel.id}> เรียบร้อยแล้วค่ะ!`
         });
+      }
+
+      // /payment-info
+      if (commandName === 'payment-info') {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        const payload = getPaymentPayload();
+        return interaction.editReply(payload);
       }
 
       // /shop-stats
@@ -207,7 +184,7 @@ client.on('interactionCreate', async (interaction) => {
         const stats = db.getStats();
         const statsEmbed = new EmbedBuilder()
           .setColor(config.colors.info)
-          .setTitle('📊 สถิติร้านค้า')
+          .setTitle('📊 สถิติร้านค้า Fresshy Shop')
           .addFields(
             { name: '🎫 ตั๋วทั้งหมด', value: `${stats.totalTickets || 0} ใบ`, inline: true },
             { name: '🧾 สลิปทั้งหมด', value: `${stats.totalSlips || 0} ใบ`, inline: true },
@@ -218,30 +195,18 @@ client.on('interactionCreate', async (interaction) => {
         return interaction.editReply({ embeds: [statsEmbed] });
       }
 
-      // /payment-info
-      if (commandName === 'payment-info') {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-        const payload = getPaymentPayload();
-        return interaction.editReply(payload);
-      }
-
-      // /sync-auto-role (ซิงค์ยศเริ่มต้นให้สมาชิกทุกคนที่อยู่ในเซิร์ฟเวอร์)
+      // /sync-auto-role
       if (commandName === 'sync-auto-role') {
-        await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
-
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const roleId = config.autoRoleId;
         if (!roleId) {
-          return interaction.editReply({
-            content: '❌ ไม่พบการตั้งค่า AUTO_ROLE_ID ในไฟล์ .env ค่ะ'
-          });
+          return interaction.editReply({ content: '❌ ไม่พบการตั้งค่า AUTO_ROLE_ID ในระบบค่ะ' });
         }
 
         try {
           const role = interaction.guild.roles.cache.get(roleId) || await interaction.guild.roles.fetch(roleId).catch(() => null);
           if (!role) {
-            return interaction.editReply({
-              content: `❌ ไม่พบยศ ID: \`${roleId}\` ในเซิร์ฟเวอร์นี้ค่ะ กรุณาตรวจสอบ ID อีกครั้ง`
-            });
+            return interaction.editReply({ content: `❌ ไม่พบยศ ID: \`${roleId}\` ในเซิร์ฟเวอร์นี้ค่ะ` });
           }
 
           const members = await interaction.guild.members.fetch();
@@ -256,13 +221,10 @@ client.on('interactionCreate', async (interaction) => {
           }
 
           return interaction.editReply({
-            content: `✅ มอบยศ **${role.name}** ให้สมาชิกในเซิร์ฟเวอร์เรียบร้อยแล้วทั้งหมด ${count} คนค่ะ!`
+            content: `✅ ซิงค์มอบยศ **${role.name}** ให้สมาชิกเรียบร้อยแล้วทั้งหมด ${count} คนค่ะ!`
           });
         } catch (err) {
-          console.error('[Sync Auto-Role Error]:', err);
-          return interaction.editReply({
-            content: `❌ เกิดข้อผิดพลาดในการมอบยศ: ${err.message}`
-          });
+          return interaction.editReply({ content: `❌ เกิดข้อผิดพลาด: ${err.message}` });
         }
       }
     }
@@ -273,9 +235,9 @@ client.on('interactionCreate', async (interaction) => {
     if (interaction.isButton()) {
       const customId = interaction.customId;
 
-      // 🎫 ปุ่ม: เปิดตั๋วสั่งซื้อ (ป้องกันการสแปมตั๋วซ้ำ)
+      // 🎫 ปุ่ม: เปิดตั๋วสั่งซื้อ
       if (customId === 'btn_open_ticket') {
-        await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
           const result = await createTicketChannel(interaction.guild, interaction.user);
@@ -286,19 +248,19 @@ client.on('interactionCreate', async (interaction) => {
           }
 
           return interaction.editReply({
-            content: `✅ สร้างห้องตั๋วของคุณแล้วค่ะ: <#${result.channel.id}>`
+            content: `✅ สร้างห้องตั๋วของคุณเรียบร้อยแล้วค่ะ: <#${result.channel.id}>`
           });
         } catch (err) {
           console.error('[Create Ticket Error]:', err);
           return interaction.editReply({
-            content: '❌ เกิดข้อผิดพลาดในการสร้างห้องตั๋ว กรุณาลองใหม่อีกครั้งค่ะ'
+            content: `❌ เกิดข้อผิดพลาดในการสร้างห้องตั๋ว: ${err.message || 'กรุณาลองใหม่อีกครั้ง'}`
           });
         }
       }
 
       // 💳 ปุ่ม: แสดงช่องทางชำระเงิน
       if (customId === 'ticket_show_payment') {
-        await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const payload = getPaymentPayload();
         return interaction.editReply(payload);
       }
@@ -309,7 +271,7 @@ client.on('interactionCreate', async (interaction) => {
         const ticket = db.getTicketByChannel(interaction.channel.id);
         db.closeTicket(interaction.channel.id, interaction.user.id);
 
-        // ปิดสิทธิ์ไม่ให้ลูกค้าพิมพ์ข้อความต่อในห้องที่ปิดแล้ว
+        // ล็อกสิทธิ์ไม่ให้ผู้ใช้พิมพ์ข้อความต่อ
         if (ticket && ticket.userId) {
           try {
             await interaction.channel.permissionOverwrites.edit(ticket.userId, {
@@ -320,21 +282,22 @@ client.on('interactionCreate', async (interaction) => {
 
         const closeEmbed = new EmbedBuilder()
           .setColor(config.colors.warning)
-          .setTitle('🔒 ปิดตั๋วเรียบร้อยแล้ว')
+          .setTitle('🔒 ตั๋วนี้ถูกปิดการใช้งานแล้ว')
           .setDescription(
-            `ตั๋วนี้ถูกปิดโดย <@${interaction.user.id}>\n` +
-            `📜 *ประวัติการสนทนาถูกส่งต่อไปยัง DM และห้องบันทึกประวัติเรียบร้อยแล้วค่ะ*`
-          );
+            `ตั๋วถูกปิดโดย <@${interaction.user.id}>\n` +
+            `หากต้องการเก็บบันทึกประวัติการคุย สามารถกดปุ่ม **[ 📜 ดูประวัติ (DM) ]** ด้านล่างได้เลยค่ะ`
+          )
+          .setTimestamp();
 
         const actionRow = new ActionRowBuilder().addComponents(
           new ButtonBuilder()
             .setCustomId('ticket_transcript')
-            .setLabel('ขอรับประวัติทาง DM')
+            .setLabel('ดูประวัติ (DM)')
             .setEmoji('📜')
             .setStyle(ButtonStyle.Secondary),
           new ButtonBuilder()
             .setCustomId('ticket_delete')
-            .setLabel('ลบห้องทันที')
+            .setLabel('ลบห้อง')
             .setEmoji('🗑️')
             .setStyle(ButtonStyle.Danger)
         );
@@ -344,15 +307,15 @@ client.on('interactionCreate', async (interaction) => {
           components: [actionRow]
         });
 
-        // ส่ง Transcript เข้า DM และห้องบันทึก Log และบันทึกสถานะเพื่อไม่ให้ส่งซ้ำตอนกดลบห้อง
+        // ส่ง Transcript ไปยัง DM และห้อง Log ในพื้นหลัง
         db.markTranscriptSent(interaction.channel.id);
         handleTicketTranscript(interaction.channel, ticket, interaction.user).catch(console.error);
         return;
       }
 
-      // 📜 ปุ่ม: บันทึก Transcript ไปยัง DM แบบกดเอง
+      // 📜 ปุ่ม: ส่ง Transcript ไปยัง DM
       if (customId === 'ticket_transcript') {
-        await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const ticket = db.getTicketByChannel(interaction.channel.id);
         const sent = await handleTicketTranscript(interaction.channel, ticket, interaction.user, true);
 
@@ -363,7 +326,7 @@ client.on('interactionCreate', async (interaction) => {
         });
       }
 
-      // 🗑️ ปุ่ม: ลบห้องตั๋ว (ปลอดภัย ไม่ส่ง DM ซ้ำ)
+      // 🗑️ ปุ่ม: ลบห้องตั๋ว
       if (customId === 'ticket_delete') {
         const isStaff = checkIsStaff(interaction);
         const ticket = db.getTicketByChannel(interaction.channel.id);
@@ -372,24 +335,26 @@ client.on('interactionCreate', async (interaction) => {
         if (!isStaff && !isOwner) {
           return interaction.reply({
             content: '❌ คุณไม่มีสิทธิ์ลบห้องนี้ (เฉพาะแอดมินหรือเจ้าของตั๋วเท่านั้น)',
-            flags: [MessageFlags.Ephemeral]
+            flags: MessageFlags.Ephemeral
           });
         }
 
-        await interaction.reply({ content: '🗑️ กำลังเตรียมลบห้อง...' });
+        await interaction.reply({ content: '🗑️ กำลังลบห้องตั๋ว...' });
 
-        // หากยังไม่ได้ส่ง Transcript (กรณีลบห้องโดยไม่เคยกดปิดตั๋วมาก่อน) ให้ส่ง 1 ครั้ง
+        // หากยังไม่เคยส่ง Transcript ให้ส่ง 1 ครั้งก่อนลบ
         const currentTicket = db.getTicketByChannel(interaction.channel.id) || ticket;
         if (!currentTicket || !currentTicket.transcriptSent) {
           db.markTranscriptSent(interaction.channel.id);
           await handleTicketTranscript(interaction.channel, currentTicket, interaction.user).catch(console.error);
         }
 
-        try {
-          await interaction.channel.delete('Ticket deleted');
-        } catch (err) {
-          console.error('[Delete Channel Error]:', err);
-        }
+        setTimeout(async () => {
+          try {
+            await interaction.channel.delete('Ticket deleted by user/staff');
+          } catch (delErr) {
+            console.error('[Delete Channel Error]:', delErr.message);
+          }
+        }, 1200);
         return;
       }
 
@@ -399,7 +364,7 @@ client.on('interactionCreate', async (interaction) => {
         if (!isStaff) {
           return interaction.reply({
             content: '❌ คุณไม่มีสิทธิ์กดอนุมัติสลิป (เฉพาะแอดมินหรือผู้ดูแลร้านเท่านั้น)',
-            flags: [MessageFlags.Ephemeral]
+            flags: MessageFlags.Ephemeral
           });
         }
 
@@ -407,43 +372,31 @@ client.on('interactionCreate', async (interaction) => {
 
         const slipId = customId.split(':')[1];
         const updatedSlip = db.updateSlipStatus(slipId, 'approved', interaction.user.id);
-        if (!updatedSlip) return;
+        if (!updatedSlip || updatedSlip.alreadyUpdated) return;
 
-        if (updatedSlip.alreadyUpdated) {
-          return interaction.followUp({
-            content: '⚠️ สลิปนี้ได้รับการประมวลผลไปแล้วค่ะ',
-            flags: [MessageFlags.Ephemeral]
-          });
-        }
-
-        // มอบยศลูกค้า (ถ้าตั้งค่าไว้)
+        // มอบยศลูกค้า (Customer Role) อัตโนมัติ
         let roleGivenText = '';
-        if (config.customerRoleId && updatedSlip.senderId) {
+        if (config.customerRoleId && interaction.guild) {
           try {
-            const member = await interaction.guild.members.fetch(updatedSlip.senderId);
-            if (member && !member.roles.cache.has(config.customerRoleId)) {
+            const member = await interaction.guild.members.fetch(updatedSlip.senderId).catch(() => null);
+            if (member) {
               await member.roles.add(config.customerRoleId);
-              roleGivenText = `\n🎖️ **มอบยศลูกค้าให้คุณ <@${updatedSlip.senderId}> เรียบร้อยแล้ว!**`;
+              roleGivenText = `\n🎁 มอบยศลูกค้า <@&${config.customerRoleId}> ให้เรียบร้อยแล้วค่ะ!`;
             }
-          } catch (e) {
-            console.log('Customer role add error:', e.message);
+          } catch (rErr) {
+            console.warn('[Give Customer Role Error]:', rErr.message);
           }
         }
 
-        const bankInfoText = updatedSlip.bankName ? `• **ธนาคาร:** ${updatedSlip.bankName}\n` : '';
-
-        // อัปเดต Embed ข้อความสลิปให้ถูกต้องและชัดเจน
-        const approvedEmbed = EmbedBuilder.from(interaction.message.embeds[0])
+        const approvedEmbed = new EmbedBuilder()
           .setColor(config.colors.success)
-          .setTitle('✅ ยืนยันยอดเงินสำเร็จ (อนุมัติแล้ว)')
+          .setTitle('✅ สลิปได้รับการอนุมัติเรียบร้อยแล้ว')
           .setDescription(
-            bankInfoText +
-            `• **รหัสธุรกรรม:** \`${updatedSlip.refId}\`\n` +
-            `• **ผู้ส่ง:** <@${updatedSlip.senderId}>\n` +
-            `• **สถานะ:** ✅ **อนุมัติเรียบร้อย** โดย <@${interaction.user.id}>`
+            `• **สถานะ:** ตรวจสอบผ่านสำเร็จ\n` +
+            `• **ผู้อนุมัติ:** <@${interaction.user.id}>\n` +
+            `• **ผู้โอน:** <@${updatedSlip.senderId}>\n` +
+            `• **เลขอ้างอิง:** \`${updatedSlip.refId || 'N/A'}\``
           )
-          .setFields([])
-          .setFooter({ text: 'อนุมัติเรียบร้อยแล้ว' })
           .setTimestamp();
 
         await interaction.editReply({
@@ -456,8 +409,8 @@ client.on('interactionCreate', async (interaction) => {
         return interaction.channel.send({
           content:
             `🎉 **ยืนยันการชำระเงินสำเร็จเรียบร้อย!** ขอบคุณคุณ <@${updatedSlip.senderId}> ที่อุดหนุนทางร้านนะคะ ✨${roleGivenText}\n\n` +
-            `💬 **คุณลูกค้าสามารถบอกชื่อ Server, ลิงก์ VIP หรือข้อมูลอื่นๆ ได้เลยนะคะ เดี๋ยวแม่ค้าจะรีบเข้าไปส่งของให้เยย~ 💖**\n\n` +
-            `🌟 *เมื่อได้รับสินค้าแล้ว ฝากแวะไปให้คะแนนหรือรีวิวที่ห้อง ${reviewChannelMention} ให้เค้าด้วยน้า ขอบคุณมากๆ ค่า!*`
+            `💬 **คุณลูกค้าสามารถพิมพ์แจ้งรายละเอียดสินค้า/สคริปต์ได้เลยค่ะ เดี๋ยวแม่ค้าจะรีบส่งของให้เยย~ 💖**\n\n` +
+            `🌟 *เมื่อได้รับสินค้าแล้ว ฝากแวะไปให้คะแนนหรือรีวิวที่ ${reviewChannelMention} ให้เค้าด้วยน้า ขอบคุณมากๆ ค่า!*`
         });
       }
 
@@ -467,7 +420,7 @@ client.on('interactionCreate', async (interaction) => {
         if (!isStaff) {
           return interaction.reply({
             content: '❌ คุณไม่มีสิทธิ์ปฏิเสธสลิป (เฉพาะแอดมินหรือผู้ดูแลร้านเท่านั้น)',
-            flags: [MessageFlags.Ephemeral]
+            flags: MessageFlags.Ephemeral
           });
         }
 
@@ -475,28 +428,16 @@ client.on('interactionCreate', async (interaction) => {
 
         const slipId = customId.split(':')[1];
         const updatedSlip = db.updateSlipStatus(slipId, 'rejected', interaction.user.id);
-        if (!updatedSlip) return;
+        if (!updatedSlip || updatedSlip.alreadyUpdated) return;
 
-        if (updatedSlip.alreadyUpdated) {
-          return interaction.followUp({
-            content: '⚠️ สลิปนี้ได้รับการประมวลผลไปแล้วค่ะ',
-            flags: [MessageFlags.Ephemeral]
-          });
-        }
-
-        const bankInfoText = updatedSlip.bankName ? `• **ธนาคาร:** ${updatedSlip.bankName}\n` : '';
-
-        const rejectedEmbed = EmbedBuilder.from(interaction.message.embeds[0])
+        const rejectedEmbed = new EmbedBuilder()
           .setColor(config.colors.danger)
-          .setTitle('❌ สลิปถูกปฏิเสธ (ไม่ผ่าน)')
+          .setTitle('❌ สลิปถูกปฏิเสธ')
           .setDescription(
-            bankInfoText +
-            `• **รหัสธุรกรรม:** \`${updatedSlip.refId}\`\n` +
-            `• **ผู้ส่ง:** <@${updatedSlip.senderId}>\n` +
-            `• **สถานะ:** ❌ **ปฏิเสธโดย <@${interaction.user.id}>** (ยอดเงินไม่เข้า หรือสลิปไม่ถูกต้อง)`
+            `• **สถานะ:** ไม่ผ่านการตรวจสอบ\n` +
+            `• **ผู้ดำเนินการ:** <@${interaction.user.id}>\n` +
+            `• **ผู้ส่ง:** <@${updatedSlip.senderId}>`
           )
-          .setFields([])
-          .setFooter({ text: 'สลิปนี้ถูกปฏิเสธ' })
           .setTimestamp();
 
         await interaction.editReply({
@@ -510,10 +451,10 @@ client.on('interactionCreate', async (interaction) => {
       }
     }
   } catch (err) {
-    console.error('[Interaction Error]:', err);
+    console.error('[Shop Bot Interaction Error]:', err);
     try {
       if (!interaction.replied && !interaction.deferred) {
-        await interaction.reply({ content: '❌ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้งค่ะ', flags: [MessageFlags.Ephemeral] });
+        await interaction.reply({ content: '❌ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้งค่ะ', flags: MessageFlags.Ephemeral });
       } else if (interaction.deferred && !interaction.replied) {
         await interaction.editReply({ content: '❌ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้งค่ะ' });
       }
@@ -535,121 +476,149 @@ client.on('messageCreate', async (message) => {
 
   if (!imageAttachment) return;
 
-  // ตรวจสอบว่ารูปถูกส่งในห้อง Ticket หรือไม่ (ปลอดภัยเมื่อ channel.name เป็น undefined)
-  const isTicketChannel =
-    (message.channel.name && message.channel.name.startsWith('ticket-')) ||
-    db.getTicketByChannel(message.channel.id);
+  // ตรวจสอบว่ารูปนี้ถูกส่งในห้อง Ticket ที่กำลังเปิดอยู่หรือไม่
+  const ticket = db.getTicketByChannel(message.channel.id);
+  if (!ticket || ticket.status !== 'open') return;
 
-  if (!isTicketChannel) return;
+  console.log(`📸 [Slip Detection]: พบรูปภาพส่งในห้อง #${message.channel.name} จาก ${message.author.tag}`);
+
+  let scanningMsg = null;
+  try {
+    scanningMsg = await message.reply({ content: '🔍 กำลังตรวจสอบ QR Code ในสลิปโอนเงิน...' });
+  } catch {}
 
   try {
-    await message.react('🔍').catch(() => {});
-
     const qrResult = await scanQRCodeFromImage(imageAttachment.url);
 
-    // 1. ถ้าไม่พบ QR Code
     if (!qrResult.success) {
-      await message.reactions.removeAll().catch(() => {});
-      await message.react('❓').catch(() => {});
+      if (scanningMsg) {
+        await scanningMsg.edit({
+          content: `⚠️ ${qrResult.message || 'ไม่พบ QR Code ในรูปภาพ กรุณาใช้สลิปโอนเงินที่มี Mini QR Code ชัดเจนค่ะ'}`
+        }).catch(() => {});
+      }
       return;
     }
 
-    // 2. ถ้าผู้ใช้ส่ง QR Code รับเงิน (PromptPay) เข้ามาแทนที่จะเป็นสลิปโอน
+    // กรณีเป็น QR Code พร้อมเพย์สำหรับรับเงิน ไม่ใช่สลิป
     if (qrResult.isPaymentQR) {
-      await message.reactions.removeAll().catch(() => {});
-      await message.react('⚠️').catch(() => {});
-
-      const paymentQrNotice = new EmbedBuilder()
-        .setColor(config.colors.warning)
-        .setTitle('⚠️ รูปภาพนี้คือ "QR Code สำหรับชำระเงิน"')
-        .setDescription(
-          `รูปที่คุณส่งมาคือ **QR Code พร้อมเพย์สำหรับรับเงิน** ไม่ใช่สลิปหลักฐานการโอนเงินค่ะ\n\n` +
-          `👉 **วิธีที่ถูกต้อง:**\n` +
-          `1. สแกน QR เพื่อโอนเงินในแอปธนาคาร\n` +
-          `2. บันทึกรูปสลิปจากแอปธนาคารหลังจากโอนเงินสำเร็จแล้ว\n` +
-          `3. ส่งรูปสลิปที่มี **Mini QR Code** เข้ามาในห้องนี้อีกครั้งนะคะ ✨`
-        )
-        .setFooter({ text: 'ระบบตรวจจับสลิปอัตโนมัติ' })
-        .setTimestamp();
-
-      return message.reply({ embeds: [paymentQrNotice] });
+      if (scanningMsg) {
+        await scanningMsg.edit({
+          content: '⚠️ รูปภาพนี้เป็น **QR Code สำหรับโอนเงิน/รับเงิน** ค่ะ ไม่ใช่สลิปหลักฐานการโอนเงิน กรุณาส่งสลิปที่ได้หลังจากโอนเงินสำเร็จแล้วนะคะ'
+        }).catch(() => {});
+      }
+      return;
     }
 
-    // 3. พบ QR Code สลิปโอนเงิน
-    await message.reactions.removeAll().catch(() => {});
-    await message.react('🧾').catch(() => {});
-
-    // 4. ตรวจสอบ "สลิปซ้ำ" (Anti-Reuse Check)
-    const existingSlip = db.findSlipByHash(qrResult.hash) || db.findSlipByRefId(qrResult.refId);
-
-    if (existingSlip) {
-      const duplicateEmbed = new EmbedBuilder()
+    // 1. ตรวจสอบสลิปซ้ำ (Anti-Reuse) ด้วย SHA256 Hash
+    const duplicateByHash = db.findSlipByHash(qrResult.hash);
+    if (duplicateByHash) {
+      const staffMention = config.staffRoleId ? `<@&${config.staffRoleId}>` : '';
+      const dupEmbed = new EmbedBuilder()
         .setColor(config.colors.danger)
-        .setTitle('⚠️ ตรวจพบสลิปซ้ำในระบบ!')
+        .setTitle('🚨 ตรวจพบสลิปซ้ำ! (DUPLICATE SLIP DETECTED)')
         .setDescription(
-          `❌ สลิปนี้เคยใช้งานไปแล้วค่ะ ไม่อนุญาตให้นำสลิปเดิมมาส่งซ้ำน้า\n\n` +
-          (existingSlip.bankName ? `• **ธนาคาร:** ${existingSlip.bankName}\n` : '') +
-          `• **รหัสธุรกรรม:** \`${existingSlip.refId || 'N/A'}\`\n` +
-          `• **ส่งเมื่อ:** <t:${Math.floor(new Date(existingSlip.createdAt).getTime() / 1000)}:R>`
+          `สลิปใบนี้ **เคยถูกใช้งานในระบบไปแล้ว** ❌\n\n` +
+          `• **ผู้ส่งครั้งนี้:** <@${message.author.id}>\n` +
+          `• **ผู้ส่งครั้งก่อน:** <@${duplicateByHash.senderId}>\n` +
+          `• **ใช้งานครั้งแรกเมื่อ:** <t:${Math.floor(new Date(duplicateByHash.createdAt).getTime() / 1000)}:R>\n` +
+          `• **รหัสอ้างอิง:** \`${duplicateByHash.refId || 'N/A'}\``
         )
-        .setFooter({ text: 'ระบบตรวจจับสลิปอัตโนมัติ' })
+        .setFooter({ text: 'ระบบป้องกันการใช้สลิปซ้ำ 100%' })
         .setTimestamp();
 
-      return message.reply({ embeds: [duplicateEmbed] });
+      if (scanningMsg) await scanningMsg.delete().catch(() => {});
+      return message.channel.send({
+        content: `🚨 **แจ้งเตือนแอดมิน** ${staffMention}`,
+        embeds: [dupEmbed]
+      });
     }
 
-    // 5. สลิปใหม่
-    const newSlip = db.saveSlip({
+    // 2. ตรวจสอบสลิปซ้ำด้วยเลขอ้างอิงธนาคาร (Ref ID)
+    if (qrResult.refId) {
+      const duplicateByRef = db.findSlipByRefId(qrResult.refId);
+      if (duplicateByRef) {
+        const staffMention = config.staffRoleId ? `<@&${config.staffRoleId}>` : '';
+        const dupEmbed = new EmbedBuilder()
+          .setColor(config.colors.danger)
+          .setTitle('🚨 ตรวจพบสลิปซ้ำจากเลขอ้างอิง!')
+          .setDescription(
+            `สลิปที่มีเลขอ้างอิง \`${qrResult.refId}\` **เคยถูกใช้งานไปแล้ว** ❌\n\n` +
+            `• **ผู้ส่งครั้งนี้:** <@${message.author.id}>\n` +
+            `• **ผู้ส่งครั้งก่อน:** <@${duplicateByRef.senderId}>\n` +
+            `• **ใช้งานเมื่อ:** <t:${Math.floor(new Date(duplicateByRef.createdAt).getTime() / 1000)}:R>`
+          )
+          .setFooter({ text: 'ระบบป้องกันการใช้สลิปซ้ำ 100%' })
+          .setTimestamp();
+
+        if (scanningMsg) await scanningMsg.delete().catch(() => {});
+        return message.channel.send({
+          content: `🚨 **แจ้งเตือนแอดมิน** ${staffMention}`,
+          embeds: [dupEmbed]
+        });
+      }
+    }
+
+    // 3. บันทึกสลิปใหม่ลงฐานข้อมูล
+    const bankName = (qrResult.bankCode && THAI_BANKS[qrResult.bankCode]) || 'ธนาคารไทย (QR PromptPay)';
+    const savedSlip = db.saveSlip({
       hash: qrResult.hash,
       refId: qrResult.refId,
       rawQr: qrResult.rawQr,
-      bankCode: qrResult.bankCode,
-      bankName: qrResult.bankName,
       senderId: message.author.id,
-      channelId: message.channel.id
+      channelId: message.channel.id,
+      bankCode: qrResult.bankCode,
+      bankName: bankName,
+      imageUrl: imageAttachment.url
     });
 
-    const bankInfoText = newSlip.bankName ? `• **ธนาคาร:** ${newSlip.bankName}\n` : '';
+    if (scanningMsg) await scanningMsg.delete().catch(() => {});
 
-    const slipEmbed = new EmbedBuilder()
-      .setColor(config.colors.info)
-      .setTitle('🧾 ได้รับสลิปแล้ว (รอแม่ค้ากดยืนยัน)')
+    // 4. ส่ง Embed ให้แอดมิน/Staff ตรวจสอบและกดอนุมัติ
+    const staffMention = config.staffRoleId ? `<@&${config.staffRoleId}>` : '';
+    const reviewEmbed = new EmbedBuilder()
+      .setColor(config.colors.primary)
+      .setTitle('🧾 พบสลิปโอนเงินใหม่ (รอการอนุมัติ)')
       .setDescription(
-        bankInfoText +
-        `• **รหัสธุรกรรม:** \`${newSlip.refId}\`\n` +
-        `• **ผู้ส่ง:** <@${message.author.id}>\n` +
-        `• **สลิปซ้ำ:** ✅ ผ่าน (ไม่ซ้ำ)\n\n` +
-        `⏳ *รอแม่ค้าตรวจสอบสักครู่นะคะ*`
+        `สลิปใบนี้ **ผ่านการตรวจสอบ ไม่เคยถูกใช้งานมาก่อน** ✅\n\n` +
+        `• **ผู้ส่งสลิป:** <@${message.author.id}> (\`${message.author.tag}\`)\n` +
+        `• **ธนาคารต้นทาง:** \`${bankName}\`\n` +
+        `• **เลขอ้างอิงสลิป:** \`${qrResult.refId || 'ตรวจพบจาก QR Hash'}\`\n` +
+        `• **เวลาส่ง:** <t:${Math.floor(Date.now() / 1000)}:F>`
       )
-      .setThumbnail(imageAttachment.url)
-      .setFooter({ text: 'ตรวจสอบยอดเงินจริงก่อนกดอนุมัติ' })
+      .setImage(imageAttachment.url)
+      .setFooter({ text: `Slip ID: ${savedSlip.id} • กดปุ่มด้านล่างเพื่อดำเนินการ` })
       .setTimestamp();
 
-    const staffActionRow = new ActionRowBuilder().addComponents(
+    const actionButtons = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId(`slip_approve:${newSlip.id}`)
-        .setLabel('อนุมัติยอดเงิน')
+        .setCustomId(`slip_approve:${savedSlip.id}`)
+        .setLabel('อนุมัติสลิป')
         .setEmoji('✅')
         .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
-        .setCustomId(`slip_reject:${newSlip.id}`)
-        .setLabel('ปฏิเสธ')
+        .setCustomId(`slip_reject:${savedSlip.id}`)
+        .setLabel('ปฏิเสธสลิป')
         .setEmoji('❌')
         .setStyle(ButtonStyle.Danger)
     );
 
-    const staffMention = config.staffRoleId ? `<@&${config.staffRoleId}>` : '';
-    return message.reply({
-      content: `🔔 แจ้งเตือนยอดโอนใหม่ค่ะ ${staffMention}`,
-      embeds: [slipEmbed],
-      components: [staffActionRow]
+    await message.channel.send({
+      content: `🔔 **พบสลิปใหม่ รอแอดมินตรวจสอบ** ${staffMention}`,
+      embeds: [reviewEmbed],
+      components: [actionButtons]
     });
+
   } catch (error) {
     console.error('[Slip Handler Error]:', error);
+    if (scanningMsg) {
+      await scanningMsg.edit({ content: '❌ เกิดข้อผิดพลาดในการตรวจสอบสลิป กรุณาแจ้งแอดมินค่ะ' }).catch(() => {});
+    }
   }
 });
 
-// Helper: ตรวจสอบว่าผู้ใช้มีสิทธิ์ Staff หรือไม่
+// ==========================================
+// 🛠️ HELPER FUNCTIONS
+// ==========================================
 function checkIsStaff(interaction) {
   if (!interaction.member) return false;
 
@@ -658,7 +627,7 @@ function checkIsStaff(interaction) {
     return true;
   }
 
-  // ตรวจสอบ Staff Role ID ทั้งแบบ GuildMember และ API Member
+  // ตรวจสอบ Staff Role ID
   if (config.staffRoleId) {
     if (interaction.member.roles?.cache) {
       if (interaction.member.roles.cache.has(config.staffRoleId)) return true;
@@ -670,7 +639,6 @@ function checkIsStaff(interaction) {
   return false;
 }
 
-// Helper: ส่ง Transcript ไปยัง DM และส่งไปยังห้อง Transcript Log Channel ของร้าน
 async function handleTicketTranscript(channel, ticket, actor, dmOnly = false) {
   try {
     const buffer = await generateTranscript(channel);
@@ -692,9 +660,7 @@ async function handleTicketTranscript(channel, ticket, actor, dmOnly = false) {
           });
           dmSent = true;
         }
-      } catch (err) {
-        console.log(`[DM Warning] Could not DM user ${uId}:`, err.message);
-      }
+      } catch {}
     }
 
     // ส่งเข้า Transcript Log Channel ของร้านค้า (ถ้ามีการตั้งค่าไว้)
@@ -720,53 +686,24 @@ async function handleTicketTranscript(channel, ticket, actor, dmOnly = false) {
 
     return dmSent;
   } catch (err) {
-    console.error('[handleTicketTranscript Error]:', err);
+    console.error('[handleTicketTranscript Error]:', err.message);
     return false;
   }
-}
-
-// Helper: สร้างข้อมูลชำระเงินพร้อมรูป QR
-function getPaymentPayload() {
-  const qrPath = path.join(__dirname, 'assets', 'payment-qr.jpg');
-  const files = [];
-
-  const paymentEmbed = new EmbedBuilder()
-    .setColor(config.colors.primary)
-    .setTitle('💳 ช่องทางการชำระเงิน')
-    .setDescription(
-      `• **ชื่อบัญชี:** \`${config.payment.promptpayName}\`\n` +
-      `• **พร้อมเพย์:** \`${config.payment.promptpayNumber}\`\n\n` +
-      `📱 สแกน QR ด้านล่างเพื่อโอนเงินได้เลยนะคะ\n` +
-      `⚠️ โอนแล้ว **ส่งสลิปในห้องนี้** ได้เลยน้า บอทตรวจให้อัตโนมัติค่ะ!`
-    )
-    .setFooter({ text: 'Fresshy shop • สแกนจ่ายได้ทุกธนาคาร' })
-    .setTimestamp();
-
-  if (fs.existsSync(qrPath)) {
-    const qrAttachment = new AttachmentBuilder(qrPath, { name: 'payment-qr.jpg' });
-    files.push(qrAttachment);
-    paymentEmbed.setImage('attachment://payment-qr.jpg');
-  }
-
-  return { embeds: [paymentEmbed], files, flags: [MessageFlags.Ephemeral] };
 }
 
 // ==========================================
 // 🔑 START BOT
 // ==========================================
 if (!config.token) {
-  console.log('⚠️ ==============================================================');
   console.log('❌ ยังไม่ได้ใส่ DISCORD_TOKEN ในไฟล์ shop-bot/.env');
-  console.log('👉 กรุณาสร้างไฟล์ shop-bot/.env แล้วกรอก DISCORD_TOKEN ให้เรียบร้อยครับ');
-  console.log('==============================================================');
 } else {
-  console.log(`🐰 [Shop Bot]: กำลังเริ่มเชื่อมต่อ Discord (Token: ${config.token.slice(0, 10)}... ยาว ${config.token.length} ตัวอักษร)...`);
+  console.log(`🐰 [Shop Bot]: กำลังเชื่อมต่อ Discord...`);
   client.login(config.token)
     .then(() => {
-      console.log(`🐰 [Shop Bot]: Login Promise สำเร็จ กำลังรอ Event Ready...`);
+      console.log(`🐰 [Shop Bot]: เข้าสู่ระบบสำเร็จ`);
     })
     .catch(err => {
-      console.error('❌ ไม่สามารถเข้าสู่ระบบ Discord ได้ กรุณาตรวจสอบ Token อีกครั้ง:', err.message);
+      console.error('❌ ไม่สามารถเข้าสู่ระบบ Discord ได้:', err.message);
     });
 }
 
