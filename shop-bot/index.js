@@ -24,7 +24,7 @@ const { deployCommands } = require('./deploy-commands');
 // ==========================================
 // 🌐 KEEP-ALIVE WEB SERVER (สำหรับ Render 24/7 เมื่อรันแยกเดี่ยว)
 // ==========================================
-if (require.main === module) {
+if (require.main === module && !process.env.IS_CHILD_WORKER) {
   const PORT = process.env.PORT || 3000;
   http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -514,6 +514,8 @@ client.on('interactionCreate', async (interaction) => {
     try {
       if (!interaction.replied && !interaction.deferred) {
         await interaction.reply({ content: '❌ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้งค่ะ', flags: [MessageFlags.Ephemeral] });
+      } else if (interaction.deferred && !interaction.replied) {
+        await interaction.editReply({ content: '❌ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้งค่ะ' });
       }
     } catch {}
   }

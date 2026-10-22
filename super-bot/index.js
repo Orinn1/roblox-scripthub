@@ -135,7 +135,7 @@ process.on('uncaughtException', (error) => {
 // ==========================================
 // 🌐 Built-in Web Server สำหรับ Render & UptimeRobot (รันเมื่อเรียกไฟล์นี้โดยตรง)
 // ==========================================
-if (require.main === module) {
+if (require.main === module && !process.env.IS_CHILD_WORKER) {
     const http = require('http');
     const PORT = process.env.PORT || 3000;
 
