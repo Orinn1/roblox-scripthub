@@ -484,8 +484,16 @@ client.on('messageCreate', async (message) => {
   if (!imageAttachment) return;
 
   // ตรวจสอบว่ารูปนี้ถูกส่งในห้อง Ticket ที่กำลังเปิดอยู่หรือไม่
-  const ticket = db.getTicketByChannel(message.channel.id);
-  if (!ticket || ticket.status !== 'open') return;
+  let ticket = db.getTicketByChannel(message.channel.id);
+  const isTicketChannel = (ticket && ticket.status === 'open') ||
+    (!ticket && (message.channel.name?.startsWith('ticket-') || message.channel.topic?.includes('Ticket')));
+
+  if (!isTicketChannel) return;
+
+  // หากไม่มีประวัติตั๋วใน DB ให้บันทึกอัตโนมัติเพื่อรองรับการตรวจสลิป
+  if (!ticket) {
+    ticket = db.createTicket(message.channel.id, message.author.id);
+  }
 
   console.log(`📸 [Slip Detection]: พบรูปภาพส่งในห้อง #${message.channel.name} จาก ${message.author.tag}`);
 
@@ -499,6 +507,19 @@ client.on('messageCreate', async (message) => {
 
     if (!qrResult.success) {
       if (scanningMsg) {
+        // หากคนส่งคือ Staff หรือ Admin แล้วรูปไม่มี QR (เช่น ส่งรูปสอนใช้งาน หรือส่งคีย์) ให้ลบข้อความสแกนเงียบๆ
+        const isStaff = message.member && (
+          message.member.permissions?.has(PermissionFlagsBits.Administrator) ||
+          (config.staffRoleId && (
+            message.member.roles?.cache?.has(config.staffRoleId) ||
+            (Array.isArray(message.member.roles) && message.member.roles.includes(config.staffRoleId))
+          ))
+        );
+        if (isStaff) {
+          await scanningMsg.delete().catch(() => {});
+          return;
+        }
+
         await scanningMsg.edit({
           content: `⚠️ ${qrResult.message || 'ไม่พบ QR Code ในรูปภาพ กรุณาใช้สลิปโอนเงินที่มี Mini QR Code ชัดเจนค่ะ'}`
         }).catch(() => {});
