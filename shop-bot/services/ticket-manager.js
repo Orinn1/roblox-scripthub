@@ -175,10 +175,8 @@ async function createTicketChannel(guild, user) {
   // 6. บันทึกข้อมูลตั๋วลง Database
   const ticketRecord = db.createTicket(channel.id, user.id);
 
-  // 7. สั่งส่งข้อความต้อนรับในห้องตั๋วทันที (ทำงานคู่ขนาน ไม่บล็อกการตอบกลับ interaction)
-  sendWelcomeMessage(channel, user, ticketRecord).catch(err => {
-    console.error('[sendWelcomeMessage Error]:', err.message);
-  });
+  // 7. ส่งข้อความต้อนรับและปุ่มกดลงในห้องตั๋วให้เรียบร้อยก่อนตอบกลับ
+  await sendWelcomeMessage(channel, user, ticketRecord);
 
   return { alreadyExists: false, channel, ticket: ticketRecord };
 }
