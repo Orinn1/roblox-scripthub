@@ -37,6 +37,7 @@ module.exports = {
         // 1. SLASH COMMANDS DISPATCHER
         // =========================================================================
         if (interaction.isChatInputCommand()) {
+            console.log(`📥 [Super Bot]: ได้รับคำสั่ง /${interaction.commandName} จาก ${interaction.user.tag}`);
             const command = interaction.client.commands.get(interaction.commandName);
             if (!command) return;
 

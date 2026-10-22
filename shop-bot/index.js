@@ -138,14 +138,16 @@ client.on('interactionCreate', async (interaction) => {
     // ----------------------------------------
     if (interaction.isChatInputCommand()) {
       const { commandName } = interaction;
+      console.log(`📥 [Shop Bot]: ได้รับคำสั่ง /${commandName} จาก ${interaction.user.tag}`);
 
       // /setup-ticket
       if (commandName === 'setup-ticket') {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
         const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
         if (!targetChannel || !targetChannel.isTextBased()) {
-          return interaction.reply({
-            content: '❌ กรุณาเลือกห้องข้อความ (Text Channel) ที่ถูกต้องค่ะ',
-            flags: [MessageFlags.Ephemeral]
+          return interaction.editReply({
+            content: '❌ กรุณาเลือกห้องข้อความ (Text Channel) ที่ถูกต้องค่ะ'
           });
         }
 
@@ -182,14 +184,14 @@ client.on('interactionCreate', async (interaction) => {
           components: [ticketButton]
         });
 
-        return interaction.reply({
-          content: `✅ ส่งแผงตั๋วไปยังห้อง <#${targetChannel.id}> แล้วค่ะ!`,
-          flags: [MessageFlags.Ephemeral]
+        return interaction.editReply({
+          content: `✅ ส่งแผงตั๋วไปยังห้อง <#${targetChannel.id}> แล้วค่ะ!`
         });
       }
 
       // /shop-stats
       if (commandName === 'shop-stats') {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const stats = db.getStats();
         const statsEmbed = new EmbedBuilder()
           .setColor(config.colors.info)
@@ -201,13 +203,14 @@ client.on('interactionCreate', async (interaction) => {
           )
           .setTimestamp();
 
-        return interaction.reply({ embeds: [statsEmbed], flags: [MessageFlags.Ephemeral] });
+        return interaction.editReply({ embeds: [statsEmbed] });
       }
 
       // /payment-info
       if (commandName === 'payment-info') {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const payload = getPaymentPayload();
-        return interaction.reply(payload);
+        return interaction.editReply(payload);
       }
 
       // /sync-auto-role (ซิงค์ยศเริ่มต้นให้สมาชิกทุกคนที่อยู่ในเซิร์ฟเวอร์)

@@ -35,6 +35,8 @@ module.exports = {
     },
 
     async execute(interaction) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
         const query = interaction.options.getString('query').trim();
         const scripts = await getScripts();
 
@@ -49,9 +51,8 @@ module.exports = {
         }
 
         if (!script) {
-            return interaction.reply({
-                content: `❌ ไม่พบสคริปต์ที่ตรงกับคำค้นหา: **"${query}"**\nลองใช้คำสั่ง \`/latest\` เพื่อดูสคริปต์ล่าสุด หรือค้นหาด้วยชื่อเกมสั้นๆ เช่น Blox Fruits, Rivals`,
-                flags: MessageFlags.Ephemeral
+            return interaction.editReply({
+                content: `❌ ไม่พบสคริปต์ที่ตรงกับคำค้นหา: **"${query}"**\nลองใช้คำสั่ง \`/latest\` เพื่อดูสคริปต์ล่าสุด หรือค้นหาด้วยชื่อเกมสั้นๆ เช่น Blox Fruits, Rivals`
             });
         }
 
@@ -119,6 +120,6 @@ module.exports = {
                 .setEmoji('⚡')
         );
 
-        return interaction.reply({ embeds: [embed], components: [row], flags: MessageFlags.Ephemeral });
+        return interaction.editReply({ embeds: [embed], components: [row] });
     }
 };

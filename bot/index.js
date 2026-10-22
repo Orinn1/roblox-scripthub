@@ -139,6 +139,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // 2. Handle Slash Commands
     if (interaction.isChatInputCommand()) {
+        console.log(`📥 [Bot 1]: ได้รับคำสั่ง /${interaction.commandName} จาก ${interaction.user.tag}`);
         const command = client.commands.get(interaction.commandName);
         if (!command) {
             console.error(`No command matching ${interaction.commandName} was found.`);
