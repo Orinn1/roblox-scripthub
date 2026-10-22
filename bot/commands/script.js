@@ -35,7 +35,9 @@ module.exports = {
     },
 
     async execute(interaction) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        if (!interaction.deferred && !interaction.replied) {
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        }
 
         const query = interaction.options.getString('query').trim();
         const scripts = await getScripts();

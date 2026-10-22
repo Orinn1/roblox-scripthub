@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { Client, Collection, GatewayIntentBits, ActivityType, Events, MessageFlags } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, ActivityType, Events, MessageFlags, PermissionFlagsBits } = require('discord.js');
 const botConfig = require('./config.js');
 const db = require('../db.js');
 const { getScripts, getScriptById, onScriptsSynced } = require('./scripts-helper.js');
@@ -98,8 +98,11 @@ client.once(Events.ClientReady, async (readyClient) => {
     updateBotPresence();
     setInterval(updateBotPresence, 5 * 60 * 1000); // ทุก 5 นาที
 
-    // Auto deploy slash commands on startup (ทำงานเบื้องหลังไม่บล็อกระบบ)
-    deployCommands().catch(err => console.error('⚠️ [Deploy Commands Error]:', err.message));
+    // Slash commands are already deployed on guild 1548669247998140438.
+    // If ever needed, run `node bot/deploy-commands.js` manually.
+    if (process.env.DEPLOY_ON_STARTUP === 'true') {
+        deployCommands().catch(err => console.error('⚠️ [Deploy Commands Error]:', err.message));
+    }
 
     // Start YouTube Upload Monitor (Channel ID: 1549408423068573807)
     startYouTubeMonitor(client);
@@ -139,24 +142,25 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // 2. Handle Slash Commands
     if (interaction.isChatInputCommand()) {
-        console.log(`📥 [Bot 1]: ได้รับคำสั่ง /${interaction.commandName} จาก ${interaction.user.tag}`);
+        console.log(`📥 [Bot 1]: ได้รับคำสั่ง /${interaction.commandName} จาก ${interaction.user.tag} (Channel ID: ${interaction.channelId})`);
         const command = client.commands.get(interaction.commandName);
         if (!command) {
-            console.error(`No command matching ${interaction.commandName} was found.`);
-            return;
+            console.error(`❌ No command matching /${interaction.commandName} was found.`);
+            return interaction.reply({ content: '❌ ไม่พบคำสั่งนี้', flags: MessageFlags.Ephemeral }).catch(() => {});
         }
 
-        // ตรวจสอบสิทธิ์เฉพาะยศที่กำหนด (Role ID: 1549727990542508083)
+        // ตรวจสอบสิทธิ์ (แอดมิน, เจ้าของ, หรือยศที่กำหนด)
+        const isOwner = interaction.user.id === '1289521242461835390' || interaction.guild?.ownerId === interaction.user.id;
         const requiredRoleId = botConfig.requiredRoleId || '1549727990542508083';
         const member = interaction.member;
         
-        let isAdmin = false;
-        if (interaction.memberPermissions && interaction.memberPermissions.has('Administrator')) {
+        let isAdmin = isOwner;
+        if (interaction.memberPermissions?.has?.(PermissionFlagsBits.Administrator)) {
             isAdmin = true;
         }
 
-        let hasRequiredRole = false;
-        if (member) {
+        let hasRequiredRole = isOwner || isAdmin;
+        if (member && !hasRequiredRole) {
             if (member.roles && member.roles.cache) {
                 hasRequiredRole = member.roles.cache.has(requiredRoleId);
             } else if (Array.isArray(member.roles)) {
@@ -164,31 +168,33 @@ client.on(Events.InteractionCreate, async (interaction) => {
             }
         }
 
-        // 1. ผู้ใช้ต้องมียศ 1549727990542508083 หรือเป็น Administrator
+        // 1. ผู้ใช้ต้องมียศ 1549727990542508083 หรือเป็น Administrator / Owner
         if (!hasRequiredRole && !isAdmin) {
+            console.log(`⛔ [Bot 1]: ${interaction.user.tag} ไม่มีสิทธิ์ใช้งานคำสั่ง /${interaction.commandName}`);
             return interaction.reply({
-                content: `⛔ **คุณไม่มีสิทธิ์ใช้งานคำสั่งนี้!**\nเฉพาะผู้ที่มียศ <@&${requiredRoleId}> เท่านั้นที่สามารถใช้คำสั่งของบอทได้ครับ`,
+                content: `⛔ **คุณไม่มีสิทธิ์ใช้งานคำสั่งนี้!**\nเฉพาะผู้ที่มียศ <@&${requiredRoleId}> หรือแอดมินเท่านั้นที่สามารถใช้คำสั่งของบอทได้ครับ`,
                 flags: MessageFlags.Ephemeral
-            }).catch(() => {});
+            }).catch(err => console.error('❌ [Perm Reply Error]:', err.message));
         }
 
         // 2. สำหรับผู้ที่มียศ 1549727990542508083 (ที่ไม่ใช่ Admin): อนุญาตให้ใช้ได้เฉพาะ /script, /exploits และ /vip เท่านั้น
         const allowedRoleCommands = ['script', 'exploits', 'vip'];
         if (!isAdmin && !allowedRoleCommands.includes(interaction.commandName)) {
+            console.log(`⛔ [Bot 1]: ${interaction.user.tag} ไม่อนุญาตให้ใช้ /${interaction.commandName}`);
             return interaction.reply({
                 content: `⛔ **ไม่อนุญาตให้ใช้งานคำสั่งนี้!**\nยศ <@&${requiredRoleId}> สามารถใช้งานได้เฉพาะคำสั่ง \`/script\`, \`/exploits\` และ \`/vip\` เท่านั้นครับ`,
                 flags: MessageFlags.Ephemeral
-            }).catch(() => {});
+            }).catch(err => console.error('❌ [Perm Reply Error]:', err.message));
         }
 
         try {
+            console.log(`⚡ [Bot 1]: กำลังประมวลผลคำสั่ง /${interaction.commandName}...`);
             await command.execute(interaction);
+            console.log(`✅ [Bot 1]: คำสั่ง /${interaction.commandName} ทำงานเสร็จสมบูรณ์!`);
         } catch (error) {
-            if (error.code !== 10062 && error.code !== 40060) {
-                console.error(`[Command Error: ${interaction.commandName}]:`, error);
-            }
+            console.error(`❌ [Command Error: /${interaction.commandName}]:`, error);
             const errorMessage = {
-                content: '❌ เกิดข้อผิดพลาดขณะประมวลผลคำสั่งนี้ กรุณาลองใหม่อีกครั้ง',
+                content: `❌ เกิดข้อผิดพลาดขณะประมวลผลคำสั่ง: ${error.message || 'กรุณาลองใหม่อีกครั้ง'}`,
                 flags: MessageFlags.Ephemeral
             };
             try {
@@ -197,7 +203,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 } else {
                     await interaction.reply(errorMessage);
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.error('❌ [Error Reply Failed]:', e.message);
+            }
         }
         return;
     }
