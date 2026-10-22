@@ -312,12 +312,24 @@ client.on('interactionCreate', async (interaction) => {
       if (customId === 'ticket_transcript') {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const ticket = db.getTicketByChannel(interaction.channel.id);
-        const sent = await handleTicketTranscript(interaction.channel, ticket, interaction.user, true);
+        const res = await handleTicketTranscript(interaction.channel, ticket, interaction.user, true);
+
+        if (res.success) {
+          return interaction.editReply({
+            content: '📜 **ส่งประวัติการสนทนาไปยังแชทส่วนตัว (DM) เรียบร้อยแล้วค่ะ!**\nกรุณาเปิดดูกล่องข้อความส่วนตัว (Direct Message) จากบอทได้เลยนะคะ 💖'
+          });
+        }
+
+        if (res.error === 'privacy_blocked') {
+          return interaction.editReply({
+            content: '⚠️ **ไม่สามารถส่งข้อความส่วนตัว (DM) ให้คุณได้**\n\n' +
+              '💡 **สาเหตุ:** คุณอาจปิดรับข้อความจากสมาชิกในเซิร์ฟเวอร์ไว้ค่ะ\n' +
+              '👉 **วิธีเปิด:** ไปที่ **User Settings (การตั้งค่า)** > **Privacy & Safety (ความเป็นส่วนตัว)** > เปิด **"Allow direct messages from server members"** แล้วกดปุ่มใหม่อีกครั้งค่ะ!'
+          });
+        }
 
         return interaction.editReply({
-          content: sent
-            ? '📜 ส่งประวัติการสนทนาไปยังแชทส่วนตัว (DM) เรียบร้อยแล้วค่ะ!'
-            : '⚠️ ไม่สามารถส่ง DM ได้ (กรุณาเปิดรับข้อความส่วนตัวจากสมาชิกในเซิร์ฟเวอร์ค่ะ)'
+          content: '⚠️ ไม่สามารถส่ง DM ได้ในขณะนี้ กรุณาลองกดใหม่อีกครั้ง หรือติดต่อเจ้าหน้าที่ค่ะ'
         });
       }
 
@@ -637,25 +649,59 @@ function checkIsStaff(interaction) {
 async function handleTicketTranscript(channel, ticket, actor, dmOnly = false) {
   try {
     const buffer = await generateTranscript(channel);
-    if (!buffer) return false;
+    if (!buffer) {
+      console.warn('[handleTicketTranscript]: Could not generate transcript buffer for channel:', channel.id);
+      return { success: false, error: 'failed_generate' };
+    }
 
-    const attachment = new AttachmentBuilder(buffer, { name: `transcript-${channel.name}.txt` });
+    const channelName = channel.name || 'ticket';
     const userIds = new Set();
-    if (ticket && ticket.userId) userIds.add(ticket.userId);
-    if (actor && actor.id) userIds.add(actor.id);
+
+    if (dmOnly) {
+      if (actor && actor.id) userIds.add(actor.id);
+    } else {
+      if (ticket && ticket.userId) userIds.add(ticket.userId);
+      // Fallback: หาก DB ไม่มีข้อมูลตั๋ว ให้ลองดึง ID ผู้เปิดตั๋วจาก Topic ของห้อง
+      if (!ticket || !ticket.userId) {
+        const topicMatch = channel.topic?.match(/ID:\s*(\d+)/);
+        if (topicMatch) userIds.add(topicMatch[1]);
+      }
+      if (actor && actor.id) userIds.add(actor.id);
+    }
 
     let dmSent = false;
+    let lastError = null;
+
     for (const uId of userIds) {
       try {
         const u = await channel.client.users.fetch(uId);
         if (u) {
+          const userFile = new AttachmentBuilder(buffer, { name: `transcript-${channelName}.txt` });
+          const dmEmbed = new EmbedBuilder()
+            .setColor(config.colors.primary || 0x5865F2)
+            .setTitle(`📜 บันทึกประวัติการสนทนาห้อง #${channelName}`)
+            .setDescription(`ขอบคุณที่ใช้บริการร้าน **Fresshy shop** นะคะ 💖\nด้านล่างนี้คือไฟล์บันทึกข้อความทั้งหมดจากห้องตั๋วของคุณค่ะ`)
+            .addFields(
+              { name: '🎫 ชื่อห้อง', value: `#${channelName}`, inline: true },
+              { name: '📅 วันที่บันทึก', value: `<t:${Math.floor(Date.now() / 1000)}:f>`, inline: true }
+            )
+            .setFooter({ text: 'Fresshy shop • ระบบบันทึกประวัติตั๋วอัตโนมัติ' })
+            .setTimestamp();
+
           await u.send({
-            content: `📜 **ประวัติการสนทนาห้อง #${channel.name}**\nขอบคุณที่ใช้บริการร้าน Fresshy shop นะคะ 💖`,
-            files: [attachment]
+            embeds: [dmEmbed],
+            files: [userFile]
           });
           dmSent = true;
         }
-      } catch {}
+      } catch (dmErr) {
+        console.error(`[DM Error for ${uId}]:`, dmErr.message || dmErr);
+        if (dmErr.code === 50007) {
+          lastError = 'privacy_blocked';
+        } else {
+          lastError = dmErr.message || 'send_failed';
+        }
+      }
     }
 
     // ส่งเข้า Transcript Log Channel ของร้านค้า (ถ้ามีการตั้งค่าไว้)
@@ -663,26 +709,27 @@ async function handleTicketTranscript(channel, ticket, actor, dmOnly = false) {
       try {
         const logChannel = await channel.guild.channels.fetch(config.transcriptChannelId).catch(() => null);
         if (logChannel && logChannel.isTextBased()) {
+          const logFile = new AttachmentBuilder(buffer, { name: `transcript-${channelName}.txt` });
           const logEmbed = new EmbedBuilder()
             .setColor(config.colors.info)
-            .setTitle(`📜 บันทึกประวัติตั๋ว: #${channel.name}`)
+            .setTitle(`📜 บันทึกประวัติตั๋ว: #${channelName}`)
             .addFields(
               { name: '🎫 ผู้เปิดตั๋ว', value: ticket?.userId ? `<@${ticket.userId}>` : 'ไม่ระบุ', inline: true },
               { name: '🔒 ผู้ปิด/ลบตั๋ว', value: actor?.id ? `<@${actor.id}>` : 'ไม่ระบุ', inline: true }
             )
             .setTimestamp();
 
-          await logChannel.send({ embeds: [logEmbed], files: [attachment] });
+          await logChannel.send({ embeds: [logEmbed], files: [logFile] });
         }
       } catch (logErr) {
         console.error('[Transcript Log Channel Error]:', logErr.message);
       }
     }
 
-    return dmSent;
+    return { success: dmSent, error: dmSent ? null : lastError };
   } catch (err) {
     console.error('[handleTicketTranscript Error]:', err.message);
-    return false;
+    return { success: false, error: err.message };
   }
 }
 

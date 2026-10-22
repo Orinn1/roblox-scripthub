@@ -165,11 +165,20 @@ async function createTicketChannel(guild, user) {
  */
 async function generateTranscript(channel) {
   try {
-    const messages = await channel.messages.fetch({ limit: 100 });
+    let textChannel = channel;
+    if (!textChannel.messages || typeof textChannel.messages.fetch !== 'function') {
+      textChannel = await channel.client.channels.fetch(channel.id, { force: true }).catch(() => null);
+    }
+    if (!textChannel || !textChannel.messages || typeof textChannel.messages.fetch !== 'function') {
+      console.warn('[generateTranscript]: Channel has no messages manager:', channel.id);
+      return null;
+    }
+
+    const messages = await textChannel.messages.fetch({ limit: 100 });
     const sorted = Array.from(messages.values()).reverse();
 
     let transcript = `====================================================\n`;
-    transcript += `TRANSCRIPT TICKET LOG: #${channel.name}\n`;
+    transcript += `TRANSCRIPT TICKET LOG: #${textChannel.name || channel.name || 'ticket'}\n`;
     transcript += `Channel ID: ${channel.id}\n`;
     transcript += `Date: ${new Date().toLocaleString('th-TH')}\n`;
     transcript += `====================================================\n\n`;
