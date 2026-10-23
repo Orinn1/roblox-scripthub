@@ -8,8 +8,8 @@ const STREAM_DETAILS = (process.env.STREAM_DETAILS || 'ʚ pure serenity ɞ').tri
 const STREAM_STATE = (process.env.STREAM_STATE || '𐦍 floating in heaven ☁️').trim();
 const STATUS_TYPE = (process.env.STATUS_TYPE || 'online').trim();
 const STREAM_IMAGE_URL = (process.env.STREAM_IMAGE_URL || 'https://media1.tenor.com/m/7MQLAaLbgZEAAAAC/banner-angelcore.gif').trim();
-const CUSTOM_STATUS = (process.env.CUSTOM_STATUS || 'ʚ ໒꒱ ɞ @ 𝙱𝚕𝚊𝚌𝚔𝚕𝚒𝚜𝚝 𝙷𝚞𝚋').trim();
-const CUSTOM_STATUS_EMOJI = (process.env.CUSTOM_STATUS_EMOJI || '🪽').trim();
+const CUSTOM_STATUS = (process.env.CUSTOM_STATUS || '').trim();
+const CUSTOM_STATUS_EMOJI = (process.env.CUSTOM_STATUS_EMOJI || '').trim();
 const YOUTUBE_URL = (process.env.YOUTUBE_URL || 'https://www.youtube.com/@Blacklistxyx').trim();
 
 if (!TOKEN) {
@@ -50,7 +50,11 @@ selfClient.on('ready', async () => {
     console.log('====================================================');
     console.log(`🟣 [Presence Bot] ออนไลน์ 24/7 สำเร็จในชื่อ: ${selfClient.user.tag}`);
     console.log(`🆔 User ID: ${selfClient.user.id}`);
-    console.log(`💬 สถานะโปรไฟล์: ${CUSTOM_STATUS}`);
+    if (CUSTOM_STATUS || CUSTOM_STATUS_EMOJI) {
+        console.log(`💬 สถานะโปรไฟล์: ${CUSTOM_STATUS_EMOJI} ${CUSTOM_STATUS}`);
+    } else {
+        console.log('💬 สถานะโปรไฟล์: ปิดบอลลูนข้อความสถานะ (แสดงเฉพาะสตรีมม่วง)');
+    }
     console.log(`🎮 ชื่อสตรีม: ${STREAM_TITLE}`);
     console.log(`🔗 ลิงก์สตรีม: ${STREAM_URL}`);
     console.log(`📸 ดีเทล: ${STREAM_DETAILS} | ${STREAM_STATE}`);
@@ -65,12 +69,7 @@ selfClient.on('ready', async () => {
 
     function applyPresence() {
         try {
-            const customStatus = new CustomStatus(selfClient)
-                .setState(CUSTOM_STATUS);
-
-            if (CUSTOM_STATUS_EMOJI) {
-                customStatus.setEmoji(CUSTOM_STATUS_EMOJI);
-            }
+            const activities = [];
 
             const rpc = new RichPresence(selfClient)
                 .setApplicationId('367827983903490050')
@@ -87,10 +86,25 @@ selfClient.on('ready', async () => {
                     .setAssetsLargeText('ʚ Angelcore ɞ');
             }
 
+            activities.push(rpc);
+
+            if (CUSTOM_STATUS || CUSTOM_STATUS_EMOJI) {
+                const customStatus = new CustomStatus(selfClient);
+                if (CUSTOM_STATUS) customStatus.setState(CUSTOM_STATUS);
+                if (CUSTOM_STATUS_EMOJI) customStatus.setEmoji(CUSTOM_STATUS_EMOJI);
+                activities.push(customStatus);
+            }
+
             selfClient.user.setPresence({
                 status: STATUS_TYPE,
-                activities: [rpc, customStatus]
+                activities
             });
+
+            // ล้าง Custom Status (บอลลูนข้อความ) ออกจากโปรไฟล์บน Discord ทันที
+            if (!CUSTOM_STATUS && !CUSTOM_STATUS_EMOJI && selfClient.user.settings?.setCustomStatus) {
+                selfClient.user.settings.setCustomStatus(null).catch(() => {});
+            }
+
             console.log(`[${new Date().toLocaleTimeString()}] 🟣 รักษาสถานะสตรีมมิ่งสีม่วง 24/7 สำเร็จ`);
         } catch (err) {
             console.error('⚠️ [Presence Error]:', err.message);
