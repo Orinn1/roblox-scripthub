@@ -2950,10 +2950,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     <img class="row-thumb" src="${escapeHtml(display.thumbnail)}" alt="${escapeHtml(display.title)}" loading="lazy">
                     <div class="row-thumb-overlay"></div>
                     <div class="thumb-badge-top-left">
-                        <span class="row-game-badge">
+                        <span class="row-game-badge" title="${escapeHtml(item.game || 'Roblox')}">
                             <i data-lucide="gamepad-2" style="width: 11px; height: 11px;"></i> ${escapeHtml(item.game || 'Roblox')}
                         </span>
-                        ${badgeHtml}
                     </div>
                     <div class="thumb-badge-top-right">
                         <span class="tag-badge ${item.isKeyless ? 'keyless' : 'has-key'}">
@@ -2961,6 +2960,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             ${item.isKeyless ? t.tagKeyless : t.tagHasKey}
                         </span>
                     </div>
+                    ${badgeHtml ? `<div class="thumb-badge-bottom-left">${badgeHtml}</div>` : ''}
                 </div>
 
                 <div class="row-meta">

@@ -1,5 +1,24 @@
 [
   {
+    "id": "script-1792789887495",
+    "title": "🔥 Break & Steal an Egg แจกสคริปต์ฟรี! 🥚 AUTO BREAK + AUTO FARM | NO KEY",
+    "title_en": "🔥 Break & Steal an Egg แจกสคริปต์ฟรี! 🥚 AUTO BREAK + AUTO FARM | NO KEY",
+    "game": "Break and steal an egg",
+    "category": "break and steal an egg",
+    "version": "v1.0",
+    "updated": "วันนี้",
+    "isKeyless": true,
+    "isMobile": true,
+    "isPC": true,
+    "status": "working",
+    "badge": "มาใหม่",
+    "thumbnail": "https://i.postimg.cc/0NQJfcQm/Fiery-Egg-Heist-Thumbnail.png",
+    "thumbnail_en": "https://i.postimg.cc/0NQJfcQm/Fiery-Egg-Heist-Thumbnail.png",
+    "description": "สคริปต์ Break and steal an egg อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
+    "description_en": "",
+    "loadstring": "loadstring(game:HttpGet(\"https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua\"))()"
+  },
+  {
     "id": "script-1792734532102",
     "title": "🔥 [UPD] แจกสคริปต์ Fisch 🎣 Auto Fish + Auto Farm ฟาร์มไว ออโต้ครบ! [ไม่มีคีย์] | Roblox",
     "title_en": "🔥 [UPD] แจกสคริปต์ Fisch 🎣 Auto Fish + Auto Farm ฟาร์มไว ออโต้ครบ! [ไม่มีคีย์] | Roblox",
