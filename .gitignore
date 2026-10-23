@@ -22,4 +22,6 @@ shop-bot/data/*.json
 shop-bot/data/*.bak
 shop-bot/data/*.tmp
 shop-bot/node_modules/
+bio-website/
+public/bio/
 
