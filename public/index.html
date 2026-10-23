@@ -183,7 +183,7 @@
         }
     </script>
 
-    <link rel="stylesheet" href="css/style.css?v=20261024_mobile_v1">
+    <link rel="stylesheet" href="css/style.css?v=20261024_mobile_v2">
     <link rel="stylesheet" href="css/sunc.css?v=20260919_v5">
     <!-- Favicon Logo.ico -->
     <link rel="icon" type="image/x-icon" href="Logo.ico">
@@ -321,24 +321,6 @@
                             <span class="core-tab-badge" id="gameCountBadge">0</span>
                             <i data-lucide="chevron-down" class="dropdown-chevron-icon"></i>
                         </button>
-
-                        <!-- Floating Glassmorphic Dropdown Menu -->
-                        <div class="core-game-dropdown-menu" id="coreGameDropdownMenu" role="menu" aria-orientation="vertical">
-                            <div class="game-dropdown-header">
-                                <div class="game-dropdown-title-row">
-                                    <span class="game-dropdown-title" id="lblGameDropdownTitle">Select Game</span>
-                                    <span class="game-dropdown-badge" id="gameDropdownCountBadge">0</span>
-                                </div>
-                                <div class="game-dropdown-search-box">
-                                    <i data-lucide="search" class="search-mini-icon"></i>
-                                    <input type="text" id="gameDropdownSearchInput" placeholder="Filter games..." autocomplete="off" />
-                                    <button type="button" id="gameDropdownSearchClear" class="search-clear-btn" style="display:none;">&times;</button>
-                                </div>
-                            </div>
-                            <div class="game-dropdown-list" id="gameMenu">
-                                <!-- Populated dynamically via updateCategoryBadges() -->
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -346,6 +328,24 @@
                 <div class="core-tabs-fade-right" aria-hidden="true"></div>
             </div>
         </header>
+
+        <!-- Floating Glassmorphic Dropdown Menu (Accessible from both Desktop & Mobile) -->
+        <div class="core-game-dropdown-menu" id="coreGameDropdownMenu" role="menu" aria-orientation="vertical">
+            <div class="game-dropdown-header">
+                <div class="game-dropdown-title-row">
+                    <span class="game-dropdown-title" id="lblGameDropdownTitle">Select Game</span>
+                    <span class="game-dropdown-badge" id="gameDropdownCountBadge">0</span>
+                </div>
+                <div class="game-dropdown-search-box">
+                    <i data-lucide="search" class="search-mini-icon"></i>
+                    <input type="text" id="gameDropdownSearchInput" placeholder="Filter games..." autocomplete="off" />
+                    <button type="button" id="gameDropdownSearchClear" class="search-clear-btn" style="display:none;">&times;</button>
+                </div>
+            </div>
+            <div class="game-dropdown-list" id="gameMenu">
+                <!-- Populated dynamically via updateCategoryBadges() -->
+            </div>
+        </div>
 
         <!-- ===================================================================
              MAIN AREA (Full Widescreen 100%)
@@ -358,6 +358,14 @@
                      ======================================================= -->
                 <div class="home-view" id="homeView">
 
+                    <!-- Mobile Dedicated Search Bar for Home View -->
+                    <div class="mobile-search-box mobile-home-search-box" id="mobileHomeSearchBox">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" id="mobileHomeSearchInput" placeholder="ค้นหาสคริปต์ / Search scripts..." autocomplete="off">
+                        <button type="button" class="mobile-search-clear-btn" id="mobileHomeSearchClear" style="display: none;" aria-label="Clear search">
+                            <i data-lucide="x" style="width: 13px; height: 13px;"></i>
+                        </button>
+                    </div>
 
                     <!-- 3D Curved Cylinder Horizon Showcase (21st.dev TiltedGridHero) -->
                     <section class="tilted-hero-section" id="tiltedHeroSection">
@@ -1098,7 +1106,7 @@
         <script src="js/config.js?v=20261004_blackpass_v1"></script>
         <script src="js/firebase-db.js?v=20261004_blackpass_v1"></script>
         <script src="js/scripts-data.js?v=20261004_blackpass_v1"></script>
-        <script src="js/app.js?v=20261024_mobile_v1"></script>
+        <script src="js/app.js?v=20261024_mobile_v2"></script>
 
         <!-- In-App Browser Notice Logic -->
         <script>

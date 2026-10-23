@@ -4142,7 +4142,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const gameDropdownSearchClear = document.getElementById("gameDropdownSearchClear");
 
     function positionGameDropdown() {
-        if (!coreGameDropdownBtn || !coreGameDropdownMenu) return;
+        if (!coreGameDropdownMenu) return;
+        if (window.innerWidth <= 768) {
+            coreGameDropdownMenu.style.top = "62px";
+            coreGameDropdownMenu.style.left = "50%";
+            coreGameDropdownMenu.style.transform = "translateX(-50%)";
+            coreGameDropdownMenu.style.width = "calc(100vw - 24px)";
+            coreGameDropdownMenu.style.maxHeight = "calc(100vh - 145px)";
+            return;
+        }
+        if (!coreGameDropdownBtn) return;
         const rect = coreGameDropdownBtn.getBoundingClientRect();
         const menuWidth = 330;
         let left = rect.left;
@@ -4151,28 +4160,37 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (left < 12) left = 12;
 
+        coreGameDropdownMenu.style.transform = "none";
         coreGameDropdownMenu.style.top = `${rect.bottom + 6}px`;
         coreGameDropdownMenu.style.left = `${left}px`;
+        coreGameDropdownMenu.style.width = "330px";
     }
 
     function toggleGameDropdown(forceState) {
-        if (!coreGameDropdownWrapper) return;
-        const willOpen = forceState !== undefined ? forceState : !coreGameDropdownWrapper.classList.contains("open");
+        if (!coreGameDropdownMenu) return;
+        const isOpen = coreGameDropdownMenu.classList.contains("open") || (coreGameDropdownWrapper && coreGameDropdownWrapper.classList.contains("open"));
+        const willOpen = forceState !== undefined ? forceState : !isOpen;
         if (willOpen) {
             positionGameDropdown();
-            coreGameDropdownWrapper.classList.add("open");
+            coreGameDropdownMenu.classList.add("open");
+            if (coreGameDropdownWrapper) coreGameDropdownWrapper.classList.add("open");
             if (coreGameDropdownBtn) coreGameDropdownBtn.setAttribute("aria-expanded", "true");
             setTimeout(() => {
                 if (gameDropdownSearchInput) gameDropdownSearchInput.focus();
             }, 60);
         } else {
-            coreGameDropdownWrapper.classList.remove("open");
+            coreGameDropdownMenu.classList.remove("open");
+            if (coreGameDropdownWrapper) coreGameDropdownWrapper.classList.remove("open");
             if (coreGameDropdownBtn) coreGameDropdownBtn.setAttribute("aria-expanded", "false");
             if (gameDropdownSearchInput && gameDropdownSearchInput.value) {
                 gameDropdownSearchInput.value = "";
                 filterGameDropdown("");
             }
         }
+    }
+
+    function openGameDropdown() {
+        toggleGameDropdown(true);
     }
 
     function closeGameDropdown() {
@@ -4377,6 +4395,10 @@ document.addEventListener("DOMContentLoaded", () => {
             mobileFeedSearchInput.value = e.target.value;
             if (mobileFeedSearchClear) mobileFeedSearchClear.style.display = val.length > 0 ? "inline-flex" : "none";
         }
+        if (mobileHomeSearchInput && mobileHomeSearchInput.value !== e.target.value) {
+            mobileHomeSearchInput.value = e.target.value;
+            if (mobileHomeSearchClear) mobileHomeSearchClear.style.display = val.length > 0 ? "inline-flex" : "none";
+        }
         if (searchClearBtn) {
             if (val.length > 0) {
                 searchClearBtn.style.display = "inline-flex";
@@ -4399,32 +4421,63 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 180);
     });
 
-    // Mobile Search Bar Two-Way Sync
+    // Mobile Search Bar Two-Way Sync (Feed & Home)
     const mobileFeedSearchInput = document.getElementById("mobileFeedSearchInput");
     const mobileFeedSearchClear = document.getElementById("mobileFeedSearchClear");
+    const mobileHomeSearchInput = document.getElementById("mobileHomeSearchInput");
+    const mobileHomeSearchClear = document.getElementById("mobileHomeSearchClear");
 
-    if (mobileFeedSearchInput) {
-        mobileFeedSearchInput.addEventListener("input", (e) => {
+    function handleMobileSearchInput(sourceInput, clearBtn) {
+        if (!sourceInput) return;
+        sourceInput.addEventListener("input", (e) => {
             const val = e.target.value;
-            if (mobileFeedSearchClear) {
-                mobileFeedSearchClear.style.display = val.trim().length > 0 ? "inline-flex" : "none";
+            if (clearBtn) {
+                clearBtn.style.display = val.trim().length > 0 ? "inline-flex" : "none";
+            }
+            if (mobileFeedSearchInput && mobileFeedSearchInput !== sourceInput && mobileFeedSearchInput.value !== val) {
+                mobileFeedSearchInput.value = val;
+            }
+            if (mobileHomeSearchInput && mobileHomeSearchInput !== sourceInput && mobileHomeSearchInput.value !== val) {
+                mobileHomeSearchInput.value = val;
             }
             if (globalSearch && globalSearch.value !== val) {
                 globalSearch.value = val;
                 globalSearch.dispatchEvent(new Event("input"));
             }
+            if (val.trim().length > 0 && currentView !== "feed") {
+                switchView("feed");
+            }
         });
     }
+
+    handleMobileSearchInput(mobileFeedSearchInput, mobileFeedSearchClear);
+    handleMobileSearchInput(mobileHomeSearchInput, mobileHomeSearchClear);
 
     if (mobileFeedSearchClear && mobileFeedSearchInput) {
         mobileFeedSearchClear.addEventListener("click", () => {
             mobileFeedSearchInput.value = "";
             mobileFeedSearchClear.style.display = "none";
+            if (mobileHomeSearchInput) mobileHomeSearchInput.value = "";
+            if (mobileHomeSearchClear) mobileHomeSearchClear.style.display = "none";
             if (globalSearch) {
                 globalSearch.value = "";
                 globalSearch.dispatchEvent(new Event("input"));
             }
             mobileFeedSearchInput.focus();
+        });
+    }
+
+    if (mobileHomeSearchClear && mobileHomeSearchInput) {
+        mobileHomeSearchClear.addEventListener("click", () => {
+            mobileHomeSearchInput.value = "";
+            mobileHomeSearchClear.style.display = "none";
+            if (mobileFeedSearchInput) mobileFeedSearchInput.value = "";
+            if (mobileFeedSearchClear) mobileFeedSearchClear.style.display = "none";
+            if (globalSearch) {
+                globalSearch.value = "";
+                globalSearch.dispatchEvent(new Event("input"));
+            }
+            mobileHomeSearchInput.focus();
         });
     }
 
@@ -4765,7 +4818,10 @@ document.addEventListener("DOMContentLoaded", () => {
             tiltedGridHeroState.lastWidth = width;
             tiltedGridHeroState.lastHeight = height;
 
-            const heightPx = Math.min((tileHeight / 100) * height, ((MAX_WIDTH / 100) * width) / aspectRatio);
+            const isMobile = width <= 768;
+            const effectiveMaxW = isMobile ? 74 : MAX_WIDTH;
+            const effectiveTileH = isMobile ? 86 : tileHeight;
+            const heightPx = Math.min((effectiveTileH / 100) * height, ((effectiveMaxW / 100) * width) / aspectRatio);
             const tileWidthPx = heightPx * aspectRatio;
             const radiusPx = width * arc(bend);
             if (!(heightPx > 0) || !(radiusPx > 0)) return;
@@ -4774,7 +4830,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const unit = deg(heightPx / radiusPx);
             const pitch = (aspectRatio + gap / 100) * unit;
             const limit = deg(bend) + (aspectRatio * unit) / 2;
-            const columns = Math.min(60, Math.max(2, Math.ceil((2 * limit) / pitch)));
+            const columns = Math.min(60, Math.max(isMobile ? 3 : 2, Math.ceil((2 * limit) / pitch)));
             const sweep = (columns * pitch) / 2;
 
             const turnPx = (d) => `translateZ(${radiusPx.toFixed(2)}px) rotateY(${+d.toFixed(4)}deg) translateZ(-${radiusPx.toFixed(2)}px)`;

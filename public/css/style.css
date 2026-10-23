@@ -582,6 +582,7 @@ body {
     overflow: hidden;
 }
 
+.core-game-dropdown-menu.open,
 .core-game-dropdown-wrapper.open .core-game-dropdown-menu {
     display: flex;
     animation: dropdownPop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
@@ -825,13 +826,17 @@ body {
 }
 
 @media (max-width: 768px) {
+    /* Hide redundant secondary navbar on mobile (bottom nav handles navigation) */
+    .core-secondary-navbar {
+        display: none !important;
+    }
     .core-simple-navbar {
-        height: 54px;
+        height: 52px;
         padding: 0 12px;
         gap: 8px;
     }
     .core-brand-title {
-        font-size: 15px;
+        font-size: 14.5px;
     }
     .core-search-box {
         display: none;
@@ -850,7 +855,7 @@ body {
         letter-spacing: 0.6px;
     }
     .app-main {
-        padding: 0 12px 70px 12px;
+        padding: 0 12px 75px 12px;
     }
 }
 
@@ -5468,17 +5473,49 @@ body:has(#lootlabsGateOverlay:not([style*="display: none"])) #siteNoticePopup {
 }
 
 @media (max-width: 768px) {
+    .tilted-hero-section {
+        margin: 8px 0 12px 0 !important;
+        border-radius: 16px !important;
+        background: radial-gradient(circle at 50% 20%, rgba(14, 165, 233, 0.12) 0%, rgba(6, 9, 18, 0.98) 70%), #05070d !important;
+    }
     .tilted-hero-header {
-        padding: 20px 16px 4px 16px;
+        padding: 14px 14px 0 14px !important;
+    }
+    .tilted-hero-badge {
+        font-size: 10px !important;
+        padding: 3px 10px !important;
+        margin-bottom: 5px !important;
     }
     .tilted-hero-title {
-        font-size: 22px;
+        font-size: 18px !important;
+        margin-bottom: 3px !important;
+        line-height: 1.2 !important;
     }
     .tilted-hero-desc {
-        font-size: 12px;
+        font-size: 11px !important;
+        line-height: 1.4 !important;
+        max-width: 320px !important;
     }
     .tilted-grid-hero {
-        height: 290px;
+        height: 165px !important;
+    }
+    .home-executors-section {
+        margin-bottom: 14px !important;
+    }
+    .executors-marquee-container {
+        padding: 4px 0 10px 0 !important;
+    }
+    .executor-marquee-card {
+        padding: 8px 13px !important;
+        border-radius: 12px !important;
+    }
+    .home-scripts-section {
+        margin-top: 6px !important;
+        margin-bottom: 20px !important;
+    }
+    .mobile-home-search-box {
+        margin-top: 8px !important;
+        margin-bottom: 10px !important;
     }
 }
 
