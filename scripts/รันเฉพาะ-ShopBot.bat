@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0.."
 title 🐰 Shop Bot - BunnyHelper (Fresshy Shop)
 chcp 65001 >nul
 color 0A

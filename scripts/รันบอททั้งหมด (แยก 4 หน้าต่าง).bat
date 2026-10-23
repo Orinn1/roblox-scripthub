@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0.."
 title Multi-Bot Launcher (Separate Windows)
 chcp 65001 >nul
 

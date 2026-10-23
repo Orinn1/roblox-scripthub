@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0.."
 title Discord Multi-Bot Master Runner
 chcp 65001 >nul
 color 0B

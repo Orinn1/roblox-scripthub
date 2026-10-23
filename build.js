@@ -26,21 +26,9 @@ function copyRecursiveSync(src, dest) {
     }
 }
 
-// Copy essential web files to public/
+// ไฟล์เว็บทั้งหมดแก้ใน public/ โดยตรงแล้ว เหลือแค่ sync data/ (ที่ db.js เขียน) ไป public/data
 const itemsToCopy = [
-    'index.html',
-    'admin.html',
-    'css',
-    'js',
-    'data',
-    'assets',
-    'Logo.ico',
-    'favicon.ico',
-    'Logo.png',
-    'Banner.png',
-    'popup.png',
-    'sw.js',
-    'gateflow'
+    'data'
 ];
 
 for (const item of itemsToCopy) {

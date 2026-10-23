@@ -520,7 +520,9 @@ const server = http.createServer(async (req, res) => {
     // =========================================================================
     // Static Files Handler
     // =========================================================================
-    let filePath = path.join(__dirname, pathname === '/' ? 'index.html' : pathname);
+    // ไฟล์เว็บอยู่ใน public/ ส่วน /data/* ยังอ่านจาก data/ ที่ root (db.js เขียนที่นั่น)
+    const staticRoot = pathname.startsWith('/data/') ? __dirname : path.join(__dirname, 'public');
+    let filePath = path.join(staticRoot, pathname === '/' ? 'index.html' : pathname);
     const extname = String(path.extname(filePath)).toLowerCase();
     const contentType = MIME_TYPES[extname] || 'application/octet-stream';
 
@@ -617,18 +619,3 @@ server.listen(PORT, () => {
         }, botGroup === 'hub' ? 6000 : 16000);
     }
 });
-
-// ==========================================
-// 🔄 AUTO KEEP-ALIVE (ยิง Ping หาตัวเองทุก 10 นาที เพื่อไม่ให้ Render หลับ)
-// ==========================================
-const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || 'https://roblox-scripthub.onrender.com';
-if (RENDER_EXTERNAL_URL) {
-    const https = require('https');
-    setInterval(() => {
-        try {
-            https.get(`${RENDER_EXTERNAL_URL}/api/health`, (res) => {
-                // Heartbeat ping OK
-            }).on('error', () => {});
-        } catch (e) {}
-    }, 10 * 60 * 1000); // ทุก 10 นาที (Render Sleep ถ้าไม่มี request เกิน 15 นาที)
-}

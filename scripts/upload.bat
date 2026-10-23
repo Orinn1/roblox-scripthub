@@ -1,6 +1,6 @@
 @echo off
 title Uploading to GitHub...
-cd /d "%~dp0"
+cd /d "%~dp0.."
 set "PATH=C:\Program Files\GitHub CLI;C:\Program Files\Git\cmd;%PATH%"
 
 echo [1/2] Staging and committing changes...

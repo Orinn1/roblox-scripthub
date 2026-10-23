@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0.."
 title 🤖 Bot 1 - BlacklistScriptx (Roblox Script Hub)
 chcp 65001 >nul
 color 0B

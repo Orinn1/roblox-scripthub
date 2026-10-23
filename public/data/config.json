@@ -20,10 +20,8 @@
   "adsterraSmartlinkUrl": "https://omg10.com/4/11911452",
   "executorDirectLinkUrl": "https://omg10.com/4/11919658",
   "lootlabsGate": {
-    "provider": "blackpass",
-    "blackpassLockerUrl": "/gateflow/locker.html?slug=hub-access",
-    "shrinkmeUrl": "https://shrinkme.click/cBGgRn",
-    "bypassMessage": "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+    "provider": "shrinkearn",
+    "bypassMessage": "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
   },
   "firebaseConfig": {
     "apiKey": "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI",
@@ -39,14 +37,13 @@
     "binId": "6aa6a183ac6210605ac7dcf7",
     "masterKey": "$2a$10$IYkvYSXXCqfb9lO86OX8.ehEV.hMZwInw.esSiflJGjjaiYEs5eQ6"
   },
-  "last_roblox_client_version": "version-2366ba214ec740ca",
   "stock_live_panels": [
     {
       "channelId": "1549774966474674259",
       "messageId": "1550102814699683972",
       "guildId": "1548669247998140438",
       "dealer": "all",
-      "updatedAt": 1790174332896
+      "updatedAt": 1792698774591
     }
   ],
   "notified_youtube_video_ids": [
@@ -67,7 +64,24 @@
     "XNmYbkV6rg4",
     "LNnkv6kP_ww",
     "jZtuKkNOUoo",
-    "ePwB1Df8YrY"
+    "ePwB1Df8YrY",
+    "tH4DKi1Kvwk",
+    "AZuOE7jV2AM",
+    "k0iLDVOatIw",
+    "ocqkjfd2p6I",
+    "m1rCoh1ZWVo",
+    "B02sCTNwyYc",
+    "RPfMwlLrhhQ",
+    "Hx9nFrY6Igs",
+    "mcuBmhenuSA",
+    "iMz73F7iwy8",
+    "zWRSkH_LZQ0",
+    "dONxZwoqi0I",
+    "_7Kx3FC4CfU",
+    "59EIPC3xC10",
+    "miVaUIZJur8",
+    "aHzPHhq8xis"
   ],
-  "youtube_last_published_time": 1790593061000
+  "youtube_last_published_time": 1792670799000,
+  "last_roblox_client_version": "version-9ac8595712b447a7"
 }
