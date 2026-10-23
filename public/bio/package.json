@@ -1,0 +1,18 @@
+{
+  "name": "blacklist-bio-link",
+  "version": "1.0.0",
+  "description": "Aesthetic Cyber Dark Bio Link Website (slat.cc / guns.lol style)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "bio-link",
+    "guns.lol",
+    "slat.cc",
+    "portfolio",
+    "cyber-dark"
+  ],
+  "author": "Blacklist",
+  "license": "MIT"
+}
