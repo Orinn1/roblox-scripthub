@@ -183,7 +183,7 @@
         }
     </script>
 
-    <link rel="stylesheet" href="css/style.css?v=20261006_fadein_v1">
+    <link rel="stylesheet" href="css/style.css?v=20261024_mobile_v1">
     <link rel="stylesheet" href="css/sunc.css?v=20260919_v5">
     <!-- Favicon Logo.ico -->
     <link rel="icon" type="image/x-icon" href="Logo.ico">
@@ -210,100 +210,72 @@
 
     <div class="app-wrapper">
         <!-- ===================================================================
-             SIDEBAR
+             CORE HEADER NAVBAR (21st.dev CoreHeader: SimpleNavbar + SecondaryNavbar)
              =================================================================== -->
-        <aside class="app-sidebar" id="appSidebar">
-            <div class="sidebar-brand" id="brandLogo">
-                <div class="brand-icon" style="background: transparent;">
-                    <img src="Logo.ico" alt="Logo" style="width: 28px; height: 28px; object-fit: contain;">
-                </div>
-                <div class="brand-title" id="brandTitleText">Blacklist<span>Scriptx</span></div>
-                <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close menu">
-                    <i data-lucide="x"></i>
-                </button>
-            </div>
+        <header class="core-header-wrapper" id="coreHeaderWrapper">
+            <!-- Tier 1: SimpleNavbar -->
+            <nav class="core-simple-navbar" id="coreSimpleNavbar">
+                <!-- Background Grid Matrix with Radial Mask (21st.dev Pattern) -->
+                <div class="core-nav-grid-bg" aria-hidden="true"></div>
 
-            <div class="sidebar-scroll">
-                <div>
-                    <div class="sidebar-group-label" id="lblMainMenu">Main Menu</div>
-                    <ul class="sidebar-menu" id="mainMenu">
-                        <li class="menu-item active" data-nav="home">
-                            <div class="menu-left"><i data-lucide="home"></i> <span id="lblNavHome">Home</span></div>
-                        </li>
-                        <li class="menu-item" data-nav="feed" data-filter="all">
-                            <div class="menu-left"><i data-lucide="folder"></i> <span id="lblNavAll">All Scripts</span>
-                            </div>
-                            <span class="menu-badge" id="totalCount">0</span>
-                        </li>
-                        <li class="menu-item" data-nav="feed" data-filter="keyless">
-                            <div class="menu-left"><i data-lucide="key"></i> <span id="lblNavKeyless">Keyless</span>
-                            </div>
-                        </li>
-                        <li class="menu-item" data-nav="feed" data-filter="mobile">
-                            <div class="menu-left"><i data-lucide="smartphone"></i> <span id="lblNavMobile">Mobile
-                                    Supported</span></div>
-                        </li>
-                        <!-- เมนู WEAO API: สถานะตัวรัน & sUNC -->
-                        <li class="menu-item" data-nav="exploits">
-                            <div class="menu-left"><i data-lucide="cpu"></i> <span id="lblNavExploits">Executor Status &
-                                    sUNC</span></div>
-                            <span class="menu-badge"
-                                style="background: rgba(34, 197, 94, 0.2); color: #4ade80;">WEAO</span>
-                        </li>
-                    </ul>
+                <!-- Brand / Logo on the Left -->
+                <div class="core-brand" id="brandLogo">
+                    <div class="core-brand-icon">
+                        <img src="Logo.ico" alt="Logo" style="width: 26px; height: 26px; object-fit: contain;">
+                    </div>
+                    <h1 class="core-brand-title" id="brandTitleText">Blacklist<span class="text-sky-glow">Scriptx</span></h1>
                 </div>
 
-                <div>
-                    <div class="sidebar-group-label" id="lblGameCat">Game Categories</div>
-                    <ul class="sidebar-menu" id="gameMenu">
-                        <!-- โหลดหมวดหมู่เกมอัตโนมัติตามสคริปต์ที่มีจริงในระบบ -->
-                    </ul>
-                </div>
-            </div>
-
-            <!-- เมนูด้านล่าง -->
-            <div class="sidebar-footer">
-                <a href="https://www.youtube.com/@Blacklistxyx" target="_blank" class="sidebar-btn yt-btn"
-                    id="sideYtBtn">
-                    <i data-lucide="video"></i> <span id="lblSideYt">YouTube Channel</span>
-                </a>
-                <a href="https://discord.gg" target="_blank" class="sidebar-btn dc-btn" id="sideDcBtn">
-                    <i data-lucide="message-square"></i> <span id="lblSideDc">Join Discord</span>
-                </a>
-            </div>
-        </aside>
-
-        <!-- ===================================================================
-             MAIN AREA
-             =================================================================== -->
-        <div class="app-main">
-            <!-- Topbar บาร์ค้นหาด้านบน -->
-            <header class="app-topbar">
-                <div class="mobile-topbar-left">
-                    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
-                        <i data-lucide="menu"></i>
+                <!-- Center: Global Search Bar -->
+                <div class="core-search-box" id="topbarSearchBox">
+                    <i data-lucide="search" class="search-icon" style="color: var(--text-muted); flex-shrink: 0;"></i>
+                    <input type="text" id="globalSearch" placeholder="Search games, scripts, or executors..." autocomplete="off" spellcheck="false">
+                    <button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Clear search" style="display: none;">
+                        <i data-lucide="x" style="width: 13px; height: 13px;"></i>
                     </button>
-                    <div class="mobile-brand">
-                        <img src="Logo.ico" alt="Logo" style="width: 24px; height: 24px; object-fit: contain;">
-                        <div class="brand-title" id="mobileBrandTitle">Blacklist<span>Scriptx</span></div>
+                    <div class="search-kbd-badge" id="searchKbdBadge" title="Press Ctrl + K or / to search">
+                        <span>Ctrl</span><span>K</span>
                     </div>
                 </div>
 
-                <div class="topbar-search">
-                    <i data-lucide="search" style="color: var(--text-muted);"></i>
-                    <input type="text" id="globalSearch" placeholder="Search games, scripts, or executors...">
-                </div>
+                <!-- Right: Social Links, User Identity Card, Language -->
+                <div class="core-nav-actions">
+                    <!-- YouTube Quick Button with Official SVG Logo -->
+                    <a href="https://www.youtube.com/@Blacklistxyx" target="_blank" class="core-action-btn yt-btn" id="sideYtBtn" title="YouTube Channel">
+                        <svg class="social-svg yt-svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                            <path class="yt-pill" fill="currentColor" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                            <path class="yt-play" fill="#ffffff" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                        <span class="btn-text" id="lblSideYt">YouTube</span>
+                    </a>
 
-                <div class="topbar-right">
-                    <!-- VIP Member Status / Login Button -->
-                    <div id="vipNavContainer" class="vip-nav-container">
-                        <button type="button" class="vip-badge-btn" id="vipNavBtn" aria-label="Login">
-                            <span class="vip-btn-icon" id="vipBtnIcon"><i data-lucide="log-in"
-                                    style="width: 14px; height: 14px;"></i></span>
-                            <span id="vipNavText">Login</span>
+                    <!-- Discord Quick Button with Official SVG Logo -->
+                    <a href="https://discord.gg" target="_blank" class="core-action-btn dc-btn" id="sideDcBtn" title="Join Discord">
+                        <svg class="social-svg dc-svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                        </svg>
+                        <span class="btn-text" id="lblSideDc">Discord</span>
+                    </a>
+
+                    <!-- CoreHeader User Identity (Minimal Avatar Profile) -->
+                    <div class="core-user-identity" id="vipNavContainer">
+                        <button type="button" class="core-user-card-btn" id="vipNavBtn" aria-label="User Account" title="Discord Login / VIP Status">
+                            <div class="core-avatar-frame" id="vipBtnIcon">
+                                <img src="https://i.postimg.cc/QMT9KvP4/Holy-Grail-Smoking-GIF.gif" alt="User Profile" class="core-avatar-img" id="coreUserAvatarImg">
+                            </div>
+                            <span class="core-avatar-status-dot" id="coreUserStatusDot" aria-hidden="true"></span>
+                            <!-- Hidden elements preserved for JS and accessibility compatibility -->
+                            <div class="core-user-info" style="display: none !important;">
+                                <span class="core-user-name" id="vipNavText">Discord Login</span>
+                                <div class="core-user-status" id="coreUserStatus">
+                                    <span class="pulse-dot green"></span>
+                                    <span id="coreUserStatusText">Active Now</span>
+                                </div>
+                            </div>
                         </button>
                     </div>
 
+                    <!-- Language Switcher -->
                     <div class="lang-switcher" id="langSwitcher" role="group" aria-label="Language Switcher">
                         <button type="button" class="lang-btn active" id="langBtnEn" data-lang="en">
                             <i data-lucide="globe" style="width: 13px; height: 13px;"></i> <span>EN</span>
@@ -313,84 +285,144 @@
                         </button>
                     </div>
                 </div>
-            </header>
+            </nav>
+
+            <!-- Tier 2: SecondaryNavbar (Sleek Horizontal Navigation + Game Dropdown) -->
+            <div class="core-secondary-navbar" id="coreSecondaryNavbar">
+                <div class="core-tabs-scroll-area" id="coreTabsScrollArea">
+                    <!-- Main Menu Tabs -->
+                    <div class="core-tabs-group" id="mainMenu">
+                        <div class="core-nav-tab menu-item active" data-nav="home">
+                            <span class="menu-left"><i data-lucide="home"></i> <span id="lblNavHome">Home</span></span>
+                        </div>
+                        <div class="core-nav-tab menu-item" data-nav="feed" data-filter="all">
+                            <span class="menu-left"><i data-lucide="folder"></i> <span id="lblNavAll">All Scripts</span></span>
+                            <span class="core-tab-badge menu-badge" id="totalCount">0</span>
+                        </div>
+                        <div class="core-nav-tab menu-item" data-nav="feed" data-filter="keyless">
+                            <span class="menu-left"><i data-lucide="key"></i> <span id="lblNavKeyless">Keyless</span></span>
+                        </div>
+                        <div class="core-nav-tab menu-item" data-nav="feed" data-filter="mobile">
+                            <span class="menu-left"><i data-lucide="smartphone"></i> <span id="lblNavMobile">Mobile</span></span>
+                        </div>
+                        <div class="core-nav-tab menu-item" data-nav="exploits">
+                            <span class="menu-left"><i data-lucide="cpu"></i> <span id="lblNavExploits">Executor Status & sUNC</span></span>
+                            <span class="core-tab-badge green menu-badge">WEAO</span>
+                        </div>
+                    </div>
+
+                    <!-- Divider Separator -->
+                    <div class="core-tabs-separator" aria-hidden="true"></div>
+
+                    <!-- Game Category Dropdown Trigger -->
+                    <div class="core-game-dropdown-wrapper" id="coreGameDropdownWrapper">
+                        <button type="button" class="core-nav-tab core-game-dropdown-btn" id="coreGameDropdownBtn" aria-expanded="false" aria-haspopup="true">
+                            <span class="menu-left"><i data-lucide="gamepad-2"></i> <span id="lblNavGames">Games</span></span>
+                            <span class="core-tab-badge" id="gameCountBadge">0</span>
+                            <i data-lucide="chevron-down" class="dropdown-chevron-icon"></i>
+                        </button>
+
+                        <!-- Floating Glassmorphic Dropdown Menu -->
+                        <div class="core-game-dropdown-menu" id="coreGameDropdownMenu" role="menu" aria-orientation="vertical">
+                            <div class="game-dropdown-header">
+                                <div class="game-dropdown-title-row">
+                                    <span class="game-dropdown-title" id="lblGameDropdownTitle">Select Game</span>
+                                    <span class="game-dropdown-badge" id="gameDropdownCountBadge">0</span>
+                                </div>
+                                <div class="game-dropdown-search-box">
+                                    <i data-lucide="search" class="search-mini-icon"></i>
+                                    <input type="text" id="gameDropdownSearchInput" placeholder="Filter games..." autocomplete="off" />
+                                    <button type="button" id="gameDropdownSearchClear" class="search-clear-btn" style="display:none;">&times;</button>
+                                </div>
+                            </div>
+                            <div class="game-dropdown-list" id="gameMenu">
+                                <!-- Populated dynamically via updateCategoryBadges() -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Fade Edge for Smooth Overflow Scrolling on Mobile -->
+                <div class="core-tabs-fade-right" aria-hidden="true"></div>
+            </div>
+        </header>
+
+        <!-- ===================================================================
+             MAIN AREA (Full Widescreen 100%)
+             =================================================================== -->
+        <div class="app-main">
 
             <main class="content-body">
                 <!-- =======================================================
                      VIEW 1: หน้าหลัก (HOME VIEW)
                      ======================================================= -->
                 <div class="home-view" id="homeView">
-                    <!-- Spotlight Featured Script Banner -->
-                    <section class="home-spotlight" id="homeSpotlight" style="display: none;">
-                        <div class="spotlight-grid">
-                            <div class="spotlight-content">
-                                <div class="spotlight-badge-row">
-                                    <span class="spotlight-badge">
-                                        <i data-lucide="flame" style="width: 13px; height: 13px;"></i> <span
-                                            id="lblSpotBadge">#1 Trending Script</span>
-                                    </span>
-                                    <span class="spotlight-status-tag" id="spotlightStatusTag">
-                                        <i data-lucide="check-circle" style="width: 12px; height: 12px;"></i>
-                                        <span>Working • Verified</span>
-                                    </span>
-                                </div>
-                                <h2 class="spotlight-title" id="spotlightTitle">Blox Fruits - Redz Hub (Auto Farm 1-Max)</h2>
-                                <p class="spotlight-desc" id="lblSpotDesc">The most stable level farming script. Auto farm,
-                                    quests, dual katanas, fully awakened fruits. Mobile & PC supported.</p>
-                                <div class="spotlight-actions">
-                                    <button class="btn-spotlight" id="btnSpotlightGet" onclick="openLocker('blox-fruits-redz')">
-                                        <i data-lucide="unlock" style="width: 14px; height: 14px;"></i>
-                                        <span id="lblSpotGet">Get This Script</span>
-                                    </button>
-                                    <button class="btn-spotlight-secondary" id="btnGoFeedAll">
-                                        <span id="lblSpotAll">View All Scripts</span>
-                                        <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
-                                    </button>
-                                </div>
+
+
+                    <!-- 3D Curved Cylinder Horizon Showcase (21st.dev TiltedGridHero) -->
+                    <section class="tilted-hero-section" id="tiltedHeroSection">
+                        <div class="tilted-hero-header">
+                            <div class="tilted-hero-badge">
+                                <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i>
+                                <span id="lblTiltedBadge">ROBLOX GAME EXPERIENCES</span>
                             </div>
-                            <div class="spotlight-media" id="spotlightMediaBox" title="Click to view script">
-                                <div class="spotlight-thumb-wrap">
-                                    <img id="spotlightThumbImg" src="Logo.ico" alt="Featured Script Preview" loading="lazy">
-                                    <div class="spotlight-media-overlay">
-                                        <span class="spotlight-media-label">
-                                            <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> Featured Script
-                                        </span>
-                                    </div>
-                                </div>
+                            <h2 class="tilted-hero-title">
+                                <span id="lblTiltedTitle">สำรวจสคริปต์</span> <span class="text-sky-glow" id="lblTiltedTitleAccent">แมพยอดนิยม</span>
+                            </h2>
+                            <p class="tilted-hero-desc" id="lblTiltedDesc">
+                                ภาพแมพเกม Roblox อัปเดตล่าสุด &bull; คลิกเลือกแมพเพื่อค้นหาสคริปต์ที่ต้องการได้ทันที
+                            </p>
+                        </div>
+                        <div class="tilted-grid-hero" id="tiltedGridHero">
+                            <div class="tilted-grid-band" id="tiltedGridBand" aria-hidden="true">
+                                <!-- Dynamically generated 3D tiles with 16 slices each -->
                             </div>
+                            <!-- Edge Fade Overlays for Guaranteed Smooth Dissolve -->
+                            <div class="tgh-fade-edge tgh-fade-left"></div>
+                            <div class="tgh-fade-edge tgh-fade-right"></div>
                         </div>
                     </section>
 
-
-
-                    <!-- Trending Scripts -->
-                    <section>
+                    <!-- Executors Live from WEAO API (Infinite Marquee with Real Logos) -->
+                    <section class="home-executors-section">
                         <div class="section-head">
-                            <h3><i data-lucide="zap"></i> <span id="lblTrendingHead">Trending Scripts</span></h3>
-                            <button class="btn-view-all" id="btnSeeAllScripts"><span id="lblSeeAllScripts">View
-                                    All</span> <i data-lucide="arrow-right"
-                                    style="width: 14px; height: 14px;"></i></button>
-                        </div>
-                        <div class="scripts-feed" id="homeRecentScripts">
-                            <!-- Loaded from JS -->
-                        </div>
-                    </section>
-
-                    <!-- Executors Live from WEAO API -->
-                    <section>
-                        <div class="section-head">
-                            <h3><i data-lucide="cpu"></i> <span id="lblExecutorsHead">Live Executor Status & sUNC
-                                    (WEAO)</span></h3>
+                            <div class="section-head-title">
+                                <span class="section-icon-glow green"><i data-lucide="cpu"></i></span>
+                                <h3><span id="lblExecutorsHead">Live Executor Status & sUNC (WEAO)</span></h3>
+                                <span class="section-pill-badge green"><span class="pulse-dot green"></span> SYNCED</span>
+                            </div>
                             <button class="btn-view-all" id="btnSeeAllExploits"><span id="lblSeeAllExploits">View All
                                     30+ Executors</span> <i data-lucide="arrow-right"
                                     style="width: 14px; height: 14px;"></i></button>
                         </div>
-                        <div class="executors-grid" id="homeExecutorsGrid">
-                            <!-- Loaded from WEAO API -->
-                            <div style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--text-muted);"
-                                id="lblLoadingExploits">
-                                <i data-lucide="loader-2" class="spin"></i> Loading executor status from WEAO API...
+                        <div class="executors-marquee-container" id="homeExecutorsContainer">
+                            <div class="executors-marquee-track" id="homeExecutorsGrid">
+                                <!-- Loaded dynamically from WEAO API with infinite logo marquee -->
+                                <div style="padding: 24px; color: var(--text-muted); text-align: center; width: 100%;"
+                                    id="lblLoadingExploits">
+                                    <i data-lucide="loader-2" class="spin"></i> Loading executor status from WEAO API...
+                                </div>
                             </div>
+                            <div class="marquee-fade-edge marquee-fade-left"></div>
+                            <div class="marquee-fade-edge marquee-fade-right"></div>
+                        </div>
+                    </section>
+
+                    <!-- Home Scripts Feed Section (Trending & Recent Scripts) -->
+                    <section class="home-scripts-section" id="homeScriptsSection">
+                        <div class="section-head">
+                            <div class="section-head-title">
+                                <span class="section-icon-glow"><i data-lucide="sparkles"></i></span>
+                                <h3><span id="lblTrendingHead">สคริปต์มาแรงล่าสุด</span></h3>
+                                <span class="section-pill-badge"><span class="pulse-dot"></span> UPDATED</span>
+                            </div>
+                            <button type="button" class="btn-view-all" id="btnSeeAllScripts">
+                                <span id="lblSeeAllScripts">ดูทั้งหมด</span> 
+                                <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+                            </button>
+                        </div>
+                        <div class="scripts-feed" id="homeRecentScripts">
+                            <!-- Populated dynamically by renderHomeRecent() in app.js -->
                         </div>
                     </section>
                 </div>
@@ -403,6 +435,15 @@
                         <div class="view-title-group">
                             <h2 id="currentViewTitle">All Scripts</h2>
                             <p id="currentViewDesc">Select a script to unlock its code</p>
+                        </div>
+
+                        <!-- Mobile-Friendly Dedicated Search Input -->
+                        <div class="mobile-search-box" id="mobileFeedSearchBox">
+                            <i data-lucide="search" class="search-icon"></i>
+                            <input type="text" id="mobileFeedSearchInput" placeholder="ค้นหาสคริปต์ / Search scripts..." autocomplete="off">
+                            <button type="button" class="mobile-search-clear-btn" id="mobileFeedSearchClear" style="display: none;" aria-label="Clear search">
+                                <i data-lucide="x" style="width: 13px; height: 13px;"></i>
+                            </button>
                         </div>
 
                         <div class="view-filter-chips">
@@ -655,8 +696,125 @@
          SECURITY ACCESS GATE (Cinematic Cyber & Ambient Bloom Edition)
          ======================================================================= -->
     <div class="lootlabs-gate-overlay" id="lootlabsGateOverlay" style="display: none;">
-        <!-- Canvas Background for Ambient Floating Particles / Stars -->
-        <canvas id="gateParticleCanvas" class="gate-particle-canvas"></canvas>
+        <!-- 3D Isometric Script Wall Background (Darkened, moody, non-clickable) -->
+        <div class="gate-3d-bg-wrap" id="gate3dMarqueeBg" aria-hidden="true">
+            <div class="gate-3d-dark-vignette"></div>
+            <div class="marquee-3d-stage gate-marquee-stage">
+                <!-- Col 1: Moves Up -->
+                <div class="marquee-3d-col marquee-col-up">
+                    <div class="marquee-3d-card">
+                        <img src="https://i.postimg.cc/LXwvsz1d/Neon-Blox-Fruits-Script-Thumbnail.png" alt="Blox Fruits" loading="lazy">
+                        <div class="marquee-card-label">⚔️ Blox Fruits Redz</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="https://i.postimg.cc/tgX1dhD7/Neon-Fisch-Night-Fishing-Thumbnail.png" alt="Fisch" loading="lazy">
+                        <div class="marquee-card-label">🎣 Fisch Auto Catch</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="assets/thumbnails/script-1789655182421.webp" alt="Slayers 2" loading="lazy">
+                        <div class="marquee-card-label">⚡ Slayers 2 Auto</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="https://i.postimg.cc/7LFmc3YZ/Chat-GPT-Image-Oct-7-2026-05-35-28-PM.png" alt="Steal An Egg" loading="lazy">
+                        <div class="marquee-card-label">🥚 Steal An Egg</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="assets/thumbnails/script-1789880768357.webp" alt="Blox Fruits" loading="lazy">
+                        <div class="marquee-card-label">🌊 Blox Fruits Farm</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="https://i.postimg.cc/d1HrjZbT/2.png" alt="Slayers 2" loading="lazy">
+                        <div class="marquee-card-label">🔥 Slayers 2 Boss</div>
+                    </div>
+                </div>
+
+                <!-- Col 2: Moves Down -->
+                <div class="marquee-3d-col marquee-col-down">
+                    <div class="marquee-3d-card">
+                        <img src="assets/thumbnails/script-1789880900671.webp" alt="Rivals" loading="lazy">
+                        <div class="marquee-card-label">🎯 Rivals Aimbot</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="https://i.postimg.cc/0NDV9yKX/Anime-Zero-Red-Neon-Gaming-Banner.png" alt="Anime Zero" loading="lazy">
+                        <div class="marquee-card-label">🛡️ Anime Zero</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="assets/thumbnails/script-1790231804563.webp" alt="King Legacy" loading="lazy">
+                        <div class="marquee-card-label">👑 King Legacy</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="https://i.postimg.cc/25nxKBzN/Golden-Lightning-Slayers-2-Thumbnail.png" alt="Slayers 2 GLU" loading="lazy">
+                        <div class="marquee-card-label">⚔️ Slayers 2 GLU</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="assets/thumbnails/script-1790340787892.webp" alt="Pet Sim 99" loading="lazy">
+                        <div class="marquee-card-label">🐾 Pet Simulator 99</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="https://i.postimg.cc/bJ8pT0HL/Breaking-the-Lava-Egg-with-a-Pet.png" alt="Lava Egg" loading="lazy">
+                        <div class="marquee-card-label">🥚 Lava Egg Pet</div>
+                    </div>
+                </div>
+
+                <!-- Col 3: Moves Up -->
+                <div class="marquee-3d-col marquee-col-up">
+                    <div class="marquee-3d-card">
+                        <img src="assets/thumbnails/script-1790345741707.webp" alt="Brookhaven" loading="lazy">
+                        <div class="marquee-card-label">🏡 Brookhaven RP</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="https://i.postimg.cc/mgbyh7wX/Chat-GPT-Image-Oct-7-2026-07-26-51-PM.png" alt="Anime Zero" loading="lazy">
+                        <div class="marquee-card-label">🌀 Anime Zero Auto</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="assets/thumbnails/script-1790502533341.webp" alt="Blade Ball" loading="lazy">
+                        <div class="marquee-card-label">⚽ Blade Ball Parry</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="https://i.postimg.cc/2yBX3H7m/Chat-GPT-Image-Oct-5-2026-09-15-14-AM.png" alt="Slayers 2" loading="lazy">
+                        <div class="marquee-card-label">⚡ Slayers 2 Farm</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="assets/thumbnails/script-1790593586261.webp" alt="Da Hood" loading="lazy">
+                        <div class="marquee-card-label">🔫 Da Hood Lock</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="https://i.postimg.cc/LXwvsz1d/Neon-Blox-Fruits-Script-Thumbnail.png" alt="Blox Fruits" loading="lazy">
+                        <div class="marquee-card-label">⚔️ Blox Fruits Ovaz</div>
+                    </div>
+                </div>
+
+                <!-- Col 4: Moves Down -->
+                <div class="marquee-3d-col marquee-col-down">
+                    <div class="marquee-3d-card">
+                        <img src="assets/thumbnails/script-1790763605119.webp" alt="Demon Slayer" loading="lazy">
+                        <div class="marquee-card-label">🗡️ Demon Slayer Farm</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="https://i.postimg.cc/tgX1dhD7/Neon-Fisch-Night-Fishing-Thumbnail.png" alt="Fisch" loading="lazy">
+                        <div class="marquee-card-label">🎣 Fisch Script</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="https://i.postimg.cc/7LFmc3YZ/Chat-GPT-Image-Oct-7-2026-05-35-28-PM.png" alt="Steal An Egg" loading="lazy">
+                        <div class="marquee-card-label">🥚 Steal An Egg</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="https://i.postimg.cc/0NDV9yKX/Anime-Zero-Red-Neon-Gaming-Banner.png" alt="Anime Zero" loading="lazy">
+                        <div class="marquee-card-label">🛡️ Anime Zero</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="assets/thumbnails/script-1789655182421.webp" alt="Slayers 2" loading="lazy">
+                        <div class="marquee-card-label">⚡ Slayers 2 Pro</div>
+                    </div>
+                    <div class="marquee-3d-card">
+                        <img src="https://i.postimg.cc/25nxKBzN/Golden-Lightning-Slayers-2-Thumbnail.png" alt="Slayers 2 GLU" loading="lazy">
+                        <div class="marquee-card-label">⚔️ Slayers 2 GLU</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
 
         <!-- Center Stage Container -->
         <div class="gate-stage" id="gateStage">
@@ -754,6 +912,10 @@
          ======================================================================= -->
     <div class="vip-modal-overlay" id="vipModalOverlay" style="display: none;">
         <div class="vip-modal-box">
+            <!-- WebGL Silk Shader Canvas Background -->
+            <canvas id="vipSilkCanvas" class="vip-silk-canvas"></canvas>
+            <div class="vip-silk-overlay"></div>
+
             <button class="vip-modal-close" id="vipModalCloseBtn" aria-label="Close modal"><i
                     data-lucide="x"></i></button>
             <div class="vip-modal-header">
@@ -896,7 +1058,9 @@
             </p>
             <div class="adblock-toast-btns">
                 <a href="/api/discord-auth?action=login" class="adblock-btn-dc" id="btnToastDiscord">
-                    <i data-lucide="sparkles"></i>
+                    <svg class="social-svg dc-svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="margin-right: 2px;">
+                        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                    </svg>
                     <span id="lblToastBtnDc">เข้าสู่ระบบ Discord (ไร้โฆษณา)</span>
                 </a>
                 <button class="adblock-btn-dismiss" id="btnDismissAdblockToast">
@@ -934,7 +1098,7 @@
         <script src="js/config.js?v=20261004_blackpass_v1"></script>
         <script src="js/firebase-db.js?v=20261004_blackpass_v1"></script>
         <script src="js/scripts-data.js?v=20261004_blackpass_v1"></script>
-        <script src="js/app.js?v=20261006_fadein_v1"></script>
+        <script src="js/app.js?v=20261024_mobile_v1"></script>
 
         <!-- In-App Browser Notice Logic -->
         <script>

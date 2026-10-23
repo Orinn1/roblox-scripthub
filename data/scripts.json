@@ -19,7 +19,7 @@
     "thumbnail_en": "https://i.postimg.cc/d1HrjZbT/2.png",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://airflowscript.com/loader\"))()",
-    "created_at": 1792698772380
+    "created_at": 1792785661883
   },
   {
     "id": "script-1791110274471",
@@ -41,7 +41,7 @@
     "thumbnail_en": "Logo.ico",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/hanniii1/Loader/refs/heads/main/BFLoader.lua\"))()",
-    "created_at": 1792698772378
+    "created_at": 1792785661880
   },
   {
     "id": "script-1791369665123",
@@ -63,7 +63,7 @@
     "thumbnail_en": "https://i.postimg.cc/7LFmc3YZ/Chat-GPT-Image-Oct-7-2026-05-35-28-PM.png",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua\"))()",
-    "created_at": 1792698772376
+    "created_at": 1792785661877
   },
   {
     "id": "script-1791376050179",
@@ -85,7 +85,7 @@
     "thumbnail_en": "https://i.postimg.cc/mgbyh7wX/Chat-GPT-Image-Oct-7-2026-07-26-51-PM.png",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua\"))()",
-    "created_at": 1792698772373
+    "created_at": 1792785661874
   },
   {
     "id": "script-1791617676999",
@@ -107,7 +107,7 @@
     "thumbnail_en": "https://i.postimg.cc/bJ8pT0HL/Breaking-the-Lava-Egg-with-a-Pet.png",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua\"))()",
-    "created_at": 1792698772371
+    "created_at": 1792785661871
   },
   {
     "id": "script-1792125260315",
@@ -129,7 +129,7 @@
     "thumbnail_en": "https://i.postimg.cc/25nxKBzN/Golden-Lightning-Slayers-2-Thumbnail.png",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://api.jnkie.com/api/v1/luascripts/public/5e817887a168ed6c3f1cefd0129eb59b405e4cd5d47f28d68dee8aa3c7d8a2e7/download\"))()",
-    "created_at": 1792698772369
+    "created_at": 1792785661868
   },
   {
     "id": "script-1792410334386",
@@ -151,7 +151,7 @@
     "thumbnail_en": "https://i.postimg.cc/0NDV9yKX/Anime-Zero-Red-Neon-Gaming-Banner.png",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/hanniii1/Loader/refs/heads/main/BFLoader.lua\"))()",
-    "created_at": 1792698772366
+    "created_at": 1792785661865
   },
   {
     "id": "script-1792670789287",
@@ -173,6 +173,28 @@
     "thumbnail_en": "https://i.postimg.cc/LXwvsz1d/Neon-Blox-Fruits-Script-Thumbnail.png",
     "description_en": "",
     "loadstring": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/bloxfruitsnokey/Redz-Hub/refs/heads/main/Ovaz/new.luau\"))()",
-    "created_at": 1792698772364
+    "created_at": 1792785661862
+  },
+  {
+    "id": "script-1792734532102",
+    "title": "🔥 [UPD] แจกสคริปต์ Fisch 🎣 Auto Fish + Auto Farm ฟาร์มไว ออโต้ครบ! [ไม่มีคีย์] | Roblox",
+    "game": "Fisch",
+    "category": "fisch",
+    "version": "v1.0",
+    "updated": "วันนี้",
+    "views": 0,
+    "likes": 0,
+    "isKeyless": true,
+    "isMobile": true,
+    "isPC": true,
+    "status": "working",
+    "badge": "มาใหม่",
+    "thumbnail": "https://i.postimg.cc/tgX1dhD7/Neon-Fisch-Night-Fishing-Thumbnail.png",
+    "description": "สคริปต์ Fisch อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี",
+    "title_en": "🔥 [UPD] แจกสคริปต์ Fisch 🎣 Auto Fish + Auto Farm ฟาร์มไว ออโต้ครบ! [ไม่มีคีย์] | Roblox",
+    "thumbnail_en": "https://i.postimg.cc/tgX1dhD7/Neon-Fisch-Night-Fishing-Thumbnail.png",
+    "description_en": "",
+    "loadstring": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/GrexXMeng/Mengs/refs/heads/main/library\"))()",
+    "created_at": 1792785661858
   }
 ]

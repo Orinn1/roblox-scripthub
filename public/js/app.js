@@ -227,6 +227,9 @@ document.addEventListener("DOMContentLoaded", () => {
             navKeyless: "Keyless",
             navMobile: "Mobile Supported",
             navExploits: "Executor Status & sUNC",
+            navGames: "Games",
+            gameDropdownTitle: "Game Categories",
+            gameFilterPlaceholder: "Filter games...",
             gameCat: "Game Categories",
             sideYt: "YouTube Channel",
             sideDc: "Join Discord",
@@ -383,7 +386,12 @@ document.addEventListener("DOMContentLoaded", () => {
             mobHome: "Home",
             mobScripts: "Scripts",
             mobExploits: "Executors",
-            mobCats: "Categories"
+            mobCats: "Categories",
+            // Tilted Hero 3D Showcase
+            tiltedBadge: "ROBLOX GAME EXPERIENCES",
+            tiltedTitle: "Explore Top",
+            tiltedTitleAccent: "Roblox Maps",
+            tiltedDesc: "Curved 3D horizon showcase • Click any map to filter and discover its latest scripts"
         },
         th: {
             pageTitle: "BlacklistScriptX แจกสคริป Roblox & สถานะตัวรัน",
@@ -394,6 +402,9 @@ document.addEventListener("DOMContentLoaded", () => {
             navKeyless: "ไร้คีย์ (Keyless)",
             navMobile: "รองรับมือถือ",
             navExploits: "สถานะตัวรัน & sUNC",
+            navGames: "หมวดหมู่เกม",
+            gameDropdownTitle: "เลือกหมวดหมู่เกม",
+            gameFilterPlaceholder: "ค้นหาชื่อเกม...",
             gameCat: "หมวดหมู่เกม",
             sideYt: "ช่อง YouTube",
             sideDc: "เข้า Discord",
@@ -406,6 +417,11 @@ document.addEventListener("DOMContentLoaded", () => {
             executorsHead: "สถานะตัวรันยอดนิยม & sUNC (Live WEAO)",
             seeAllExploits: "ดูตัวรันทั้งหมด 30+ ตัว",
             loadingExploits: "กำลังโหลดข้อมูลสถานะตัวรันจาก WEAO API...",
+            // Tilted Hero 3D Showcase
+            tiltedBadge: "ROBLOX GAME EXPERIENCES",
+            tiltedTitle: "สำรวจสคริปต์",
+            tiltedTitleAccent: "แมพยอดนิยม",
+            tiltedDesc: "ภาพแมพเกม Roblox อัปเดตล่าสุด • คลิกเลือกแมพเพื่อค้นหาสคริปต์ที่ต้องการได้ทันที",
             viewTitleAll: "สคริปต์ทั้งหมด",
             viewDescAll: "คลิกเลือกสคริปต์ที่ต้องการเพื่อรับโค้ดไปรันในเกมได้ทันที",
             viewTitleKeyless: "สคริปต์ไร้คีย์ (Keyless)",
@@ -573,6 +589,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (lblNavMobile) lblNavMobile.textContent = t.navMobile;
         const lblNavExploits = document.getElementById("lblNavExploits");
         if (lblNavExploits) lblNavExploits.textContent = t.navExploits;
+        const lblNavGames = document.getElementById("lblNavGames");
+        if (lblNavGames) lblNavGames.textContent = t.navGames;
+        const lblGameDropdownTitle = document.getElementById("lblGameDropdownTitle");
+        if (lblGameDropdownTitle) lblGameDropdownTitle.textContent = t.gameDropdownTitle;
+        const gameDropdownSearchInput = document.getElementById("gameDropdownSearchInput");
+        if (gameDropdownSearchInput) gameDropdownSearchInput.placeholder = t.gameFilterPlaceholder;
         const lblGameCat = document.getElementById("lblGameCat");
         if (lblGameCat) lblGameCat.textContent = t.gameCat;
         const lblSideYt = document.getElementById("lblSideYt");
@@ -780,6 +802,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (lblToastBtnDc) lblToastBtnDc.textContent = t.adblockToastBtnDc;
         const lblToastBtnDismiss = document.getElementById("lblToastBtnDismiss");
         if (lblToastBtnDismiss) lblToastBtnDismiss.textContent = t.adblockToastBtnDismiss;
+
+        // Tilted Hero 3D Showcase
+        const lblTiltedBadge = document.getElementById("lblTiltedBadge");
+        if (lblTiltedBadge && t.tiltedBadge) lblTiltedBadge.textContent = t.tiltedBadge;
+        const lblTiltedTitle = document.getElementById("lblTiltedTitle");
+        if (lblTiltedTitle && t.tiltedTitle) lblTiltedTitle.textContent = t.tiltedTitle;
+        const lblTiltedTitleAccent = document.getElementById("lblTiltedTitleAccent");
+        if (lblTiltedTitleAccent && t.tiltedTitleAccent) lblTiltedTitleAccent.textContent = t.tiltedTitleAccent;
+        const lblTiltedDesc = document.getElementById("lblTiltedDesc");
+        if (lblTiltedDesc && t.tiltedDesc) lblTiltedDesc.textContent = t.tiltedDesc;
     }
 
     function setLanguage(lang, isManual = false) {
@@ -1168,6 +1200,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateVipUI() {
+        const CUSTOM_GIF_AVATAR = "https://i.postimg.cc/QMT9KvP4/Holy-Grail-Smoking-GIF.gif";
         const session = getVipData();
         const vipNavBtn = document.getElementById("vipNavBtn");
         const vipNavText = document.getElementById("vipNavText");
@@ -1213,13 +1246,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     vipNavText.innerHTML = `${escapeHtml(username)} <span class="nav-role-pill" style="background: ${role.color}22; color: ${role.color}; border: 1px solid ${role.color}55;">${role.tag || role.name}</span>`;
                 }
                 if (vipBtnIcon) {
-                    if (avatarUrl) {
-                        vipBtnIcon.innerHTML = `<img src="${avatarUrl}" class="vip-user-nav-avatar" alt="${escapeHtml(username)}">`;
-                    } else {
-                        vipBtnIcon.innerHTML = `<div class="vip-user-nav-avatar-placeholder">${escapeHtml(username.charAt(0).toUpperCase())}</div>`;
-                    }
+                    vipBtnIcon.innerHTML = `<img src="${CUSTOM_GIF_AVATAR}" class="vip-user-nav-avatar" alt="${escapeHtml(username)}">`;
                 }
-                vipNavBtn.title = `${username} (${role.name})`;
+                const coreUserAvatarImg = document.getElementById("coreUserAvatarImg");
+                const coreUserStatusText = document.getElementById("coreUserStatusText");
+                if (coreUserAvatarImg) coreUserAvatarImg.src = CUSTOM_GIF_AVATAR;
+                if (coreUserStatusText) coreUserStatusText.textContent = canBypass ? "VIP Bypass • Active" : `${role.name} • Active`;
+                vipNavBtn.title = canBypass ? `${username} (${role.tag || role.name} • VIP Bypass Active)` : `${username} (${role.tag || role.name})`;
             }
 
             if (vipActivePanel) vipActivePanel.style.display = "block";
@@ -1262,11 +1295,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (vipUserAvatar) {
-                if (avatarUrl) {
-                    vipUserAvatar.innerHTML = `<img src="${avatarUrl}" alt="${escapeHtml(username)}">`;
-                } else {
-                    vipUserAvatar.innerHTML = `<i data-lucide="user" style="width: 24px; height: 24px;"></i>`;
-                }
+                vipUserAvatar.innerHTML = `<img src="${CUSTOM_GIF_AVATAR}" alt="${escapeHtml(username)}">`;
             }
 
             if (vipExpiryText) {
@@ -1294,7 +1323,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if (vipNavBtn) {
                 vipNavBtn.classList.remove("is-active");
                 if (vipNavText) vipNavText.textContent = "Login";
-                if (vipBtnIcon) vipBtnIcon.innerHTML = `<i data-lucide="log-in" style="width: 14px; height: 14px;"></i>`;
+                if (vipBtnIcon) vipBtnIcon.innerHTML = `<img src="${CUSTOM_GIF_AVATAR}" class="vip-user-nav-avatar" alt="User Profile">`;
+                const coreUserAvatarImg = document.getElementById("coreUserAvatarImg");
+                const coreUserStatusText = document.getElementById("coreUserStatusText");
+                if (coreUserAvatarImg) coreUserAvatarImg.src = CUSTOM_GIF_AVATAR;
+                if (coreUserStatusText) coreUserStatusText.textContent = "Connect Discord";
+                vipNavBtn.title = "Discord Login / VIP Access";
                 if (typeof refreshIcons === "function") refreshIcons();
             }
             if (vipActivePanel) vipActivePanel.style.display = "none";
@@ -1384,6 +1418,210 @@ document.addEventListener("DOMContentLoaded", () => {
         const vipModalCloseBtn = document.getElementById("vipModalCloseBtn");
         const vipLogoutBtn = document.getElementById("vipLogoutBtn");
 
+        // =========================================================================
+        // 21st.dev WebGL Silk Shader Component for VIP Discord Modal
+        // =========================================================================
+        let vipSilkAnimFrame = null;
+        let vipSilkGl = null;
+        let vipSilkProgram = null;
+        let vipSilkUniforms = null;
+        let vipSilkMouse = { x: 0, y: 0, z: 0 };
+        let vipSilkClickPos = { x: 0, y: 0 };
+        let vipSilkClickTime = 0;
+        let vipSilkStartTime = 0;
+        let vipSilkInitialized = false;
+
+        function initVipSilkShader() {
+            if (vipSilkInitialized) return;
+            const canvas = document.getElementById("vipSilkCanvas");
+            const modalBox = document.querySelector(".vip-modal-box");
+            if (!canvas || !modalBox) return;
+
+            const gl = canvas.getContext("webgl", { alpha: true, antialias: true, depth: false });
+            if (!gl) return;
+            vipSilkGl = gl;
+
+            const vsSource = `
+                attribute vec2 position;
+                void main() {
+                    gl_Position = vec4(position, 0.0, 1.0);
+                }
+            `;
+
+            const fsSource = `
+                precision highp float;
+                uniform vec2 iResolution;
+                uniform float iTime;
+                uniform vec3 iMouse;
+                uniform vec2 iClickPos;
+                uniform float iClickTime;
+
+                float noise(vec2 p) {
+                    return smoothstep(-0.5, 80.9, sin((p.x - p.y) * 55.0) * sin(p.y * 204.0)) - 0.4;
+                }
+
+                float fabric(vec2 p) {
+                    mat2 m = mat2(50.6, 0.2, 70.2, -0.6);
+                    float f = 0.2 * noise(p);
+                    f += -90.3 * noise(p = m * p);
+                    f += -0.1 * noise(p = m * p);
+                    return f + 0.1 * noise(m * p);
+                }
+
+                float silk(vec2 uv, float t) {
+                    float s = sin(5.0 * (uv.x + uv.y + cos(2.0 * uv.x + 5.0 * uv.y)) + sin(19.0 * (uv.x + uv.y)) - t);
+                    s = 0.7 + 1.2 * (s * s * 0.05 + s);
+                    s *= 400.8 - 19.1 * fabric(uv * min(iResolution.x, iResolution.y) * 0.0006);
+                    return s * 0.8 + 0.5;
+                }
+
+                float silkd(vec2 uv, float t) {
+                    float xy = uv.x + uv.y;
+                    float d = (-1.0 * (1.0 - 2.0 * sin(20.0 * uv.x + -5.0 * uv.y)) + 14.0 * cos(12.0 * xy)) * 
+                              cos(5.0 * (cos(-84.0 * uv.x + 54.0 * uv.y) + xy) + sin(-1.0 * xy) - t);
+                    return 0.1 * d * (sign(d) * -2.0);
+                }
+
+                void main() {
+                    float mr = min(iResolution.x, iResolution.y);
+                    vec2 uv = gl_FragCoord.xy / mr;
+                    float t = iTime;
+                    
+                    uv.y += 0.0008 * sin(1.0 * uv.x - t);
+                    
+                    float timeSinceClick = t - iClickTime;
+                    
+                    if (timeSinceClick < 3.0 && iClickTime > 0.0) {
+                        vec2 clickUv = iClickPos.xy / mr;
+                        float dist = distance(clickUv, uv);
+                        float ripple = sin(dist * 600.0 - timeSinceClick * 2.0) * exp(-dist * 20.0 - timeSinceClick * 2.0);
+                        uv += normalize(uv - clickUv) * ripple * 0.08;
+                    }
+                    
+                    float s = sqrt(max(0.0, silk(uv, t)));
+                    float d = silkd(uv, t);
+                    
+                    vec3 c = vec3(s);
+                    c += 0.7 * vec3(1.0, -0.83, -4.6) * d;
+                    c *= 1.0 - max(0.0, 1.8 * d);
+                    
+                    c = pow(clamp(c, 0.001, 10.0), 0.3 / vec3(0.52, 0.5, 0.4));
+                    c = 1.0 - c;
+                    
+                    vec3 discordBlue = vec3(0.345, 0.396, 0.949);
+                    vec3 darkBg = vec3(0.05, 0.07, 0.14);
+                    c = mix(darkBg, discordBlue, clamp(c.r * 0.9, 0.0, 1.0));
+                    
+                    gl_FragColor = vec4(c, 1.0);
+                }
+            `;
+
+            function createShader(type, src) {
+                const s = gl.createShader(type);
+                gl.shaderSource(s, src);
+                gl.compileShader(s);
+                if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+                    gl.deleteShader(s);
+                    return null;
+                }
+                return s;
+            }
+
+            const vs = createShader(gl.VERTEX_SHADER, vsSource);
+            const fs = createShader(gl.FRAGMENT_SHADER, fsSource);
+            if (!vs || !fs) return;
+
+            const prog = gl.createProgram();
+            gl.attachShader(prog, vs);
+            gl.attachShader(prog, fs);
+            gl.linkProgram(prog);
+            if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+
+            gl.useProgram(prog);
+            vipSilkProgram = prog;
+
+            const posBuf = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+
+            const posLoc = gl.getAttribLocation(prog, "position");
+            gl.enableVertexAttribArray(posLoc);
+            gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+            vipSilkUniforms = {
+                iResolution: gl.getUniformLocation(prog, "iResolution"),
+                iTime: gl.getUniformLocation(prog, "iTime"),
+                iMouse: gl.getUniformLocation(prog, "iMouse"),
+                iClickPos: gl.getUniformLocation(prog, "iClickPos"),
+                iClickTime: gl.getUniformLocation(prog, "iClickTime")
+            };
+
+            vipSilkStartTime = Date.now();
+
+            modalBox.addEventListener("mousemove", (e) => {
+                if (!canvas) return;
+                const rect = canvas.getBoundingClientRect();
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                vipSilkMouse.x = (e.clientX - rect.left) * dpr;
+                vipSilkMouse.y = canvas.height - (e.clientY - rect.top) * dpr;
+            });
+
+            modalBox.addEventListener("mousedown", (e) => {
+                if (!canvas) return;
+                const rect = canvas.getBoundingClientRect();
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                vipSilkMouse.z = 2;
+                vipSilkClickPos.x = (e.clientX - rect.left) * dpr;
+                vipSilkClickPos.y = canvas.height - (e.clientY - rect.top) * dpr;
+                vipSilkClickTime = (Date.now() - vipSilkStartTime) / 1000;
+            });
+
+            modalBox.addEventListener("mouseup", () => { vipSilkMouse.z = 0; });
+            modalBox.addEventListener("mouseleave", () => { vipSilkMouse.z = 0; });
+
+            vipSilkInitialized = true;
+        }
+
+        function startVipSilkShader() {
+            initVipSilkShader();
+            const canvas = document.getElementById("vipSilkCanvas");
+            if (!canvas || !vipSilkGl || !vipSilkProgram || !vipSilkUniforms) return;
+
+            const gl = vipSilkGl;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = Math.floor(canvas.clientWidth * dpr);
+            canvas.height = Math.floor(canvas.clientHeight * dpr);
+
+            if (vipSilkAnimFrame) cancelAnimationFrame(vipSilkAnimFrame);
+
+            function render() {
+                if (!vipModalOverlay || vipModalOverlay.style.display === "none") return;
+
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                gl.useProgram(vipSilkProgram);
+
+                const t = (Date.now() - vipSilkStartTime) / 1000;
+                gl.uniform2f(vipSilkUniforms.iResolution, canvas.width, canvas.height);
+                gl.uniform1f(vipSilkUniforms.iTime, t);
+                gl.uniform3f(vipSilkUniforms.iMouse, vipSilkMouse.x, vipSilkMouse.y, vipSilkMouse.z);
+                gl.uniform2f(vipSilkUniforms.iClickPos, vipSilkClickPos.x, vipSilkClickPos.y);
+                gl.uniform1f(vipSilkUniforms.iClickTime, vipSilkClickTime);
+
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+                vipSilkAnimFrame = requestAnimationFrame(render);
+            }
+
+            vipSilkAnimFrame = requestAnimationFrame(render);
+        }
+
+        function stopVipSilkShader() {
+            if (vipSilkAnimFrame) {
+                cancelAnimationFrame(vipSilkAnimFrame);
+                vipSilkAnimFrame = null;
+            }
+        }
+
         function openVipModal() {
             updateVipUI();
             if (vipModalOverlay) {
@@ -1391,6 +1629,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 vipModalOverlay.style.visibility = "visible";
                 vipModalOverlay.style.pointerEvents = "auto";
                 refreshIcons();
+                startVipSilkShader();
             }
         }
 
@@ -1399,6 +1638,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 vipModalOverlay.style.display = "none";
                 vipModalOverlay.style.visibility = "hidden";
                 vipModalOverlay.style.pointerEvents = "none";
+                stopVipSilkShader();
             }
         }
 
@@ -2355,11 +2595,18 @@ document.addEventListener("DOMContentLoaded", () => {
             gameMap.get(catKey).count++;
         });
 
+        const gameCountBadge = document.getElementById("gameCountBadge");
+        if (gameCountBadge) gameCountBadge.textContent = gameMap.size;
+        const gameDropdownCountBadge = document.getElementById("gameDropdownCountBadge");
+        if (gameDropdownCountBadge) {
+            gameDropdownCountBadge.textContent = currentLang === 'th' ? `${gameMap.size} เกม` : `${gameMap.size} games`;
+        }
+
         if (gameMap.size === 0) {
             gameMenu.innerHTML = `
-                <li style="padding: 10px 16px; font-size: 12px; color: var(--text-muted); list-style: none;">
+                <div style="padding: 18px 12px; font-size: 12px; color: var(--text-muted); text-align: center;">
                     ${(I18N[currentLang] || I18N.en).emptyCategories || "No game categories yet"}
-                </li>
+                </div>
             `;
             return;
         }
@@ -2372,10 +2619,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const icon = getGameIcon(item.category, item.gameName);
             const isActive = activeGame && (activeGame.toLowerCase() === item.category.toLowerCase());
             html += `
-                <li class="menu-item ${isActive ? 'active' : ''}" data-nav="feed" data-game="${escapeHtml(item.category)}">
-                    <div class="menu-left"><i data-lucide="${icon}"></i> ${escapeHtml(item.gameName)}</div>
+                <div class="game-dropdown-item menu-item ${isActive ? 'active' : ''}" data-nav="feed" data-game="${escapeHtml(item.category)}">
+                    <span class="menu-left"><i data-lucide="${icon}"></i> <span>${escapeHtml(item.gameName)}</span></span>
                     <span class="menu-badge">${item.count}</span>
-                </li>
+                </div>
             `;
         });
 
@@ -2456,6 +2703,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         renderHomeRecent();
                         if (currentView === "feed") renderFeed(true);
                         updateCategoryBadges();
+                        if (window.refreshTiltedGridHero) window.refreshTiltedGridHero();
                     }
                 }
             }
@@ -2484,6 +2732,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 renderHomeRecent();
                 if (currentView === "feed") renderFeed();
                 updateCategoryBadges();
+                if (window.refreshTiltedGridHero) window.refreshTiltedGridHero();
             } catch (err) {}
         }
     });
@@ -2526,23 +2775,26 @@ document.addEventListener("DOMContentLoaded", () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
         refreshIcons();
     }
+    window.switchView = switchView;
 
     function highlightSidebarItem(type, val = null) {
-        mainMenu.querySelectorAll(".menu-item").forEach(i => i.classList.remove("active"));
-        gameMenu.querySelectorAll(".menu-item").forEach(i => i.classList.remove("active"));
+        document.querySelectorAll(".core-nav-tab, .menu-item").forEach(i => i.classList.remove("active"));
+        const coreGameDropdownBtn = document.getElementById("coreGameDropdownBtn");
+        if (coreGameDropdownBtn) coreGameDropdownBtn.classList.remove("active");
 
         if (type === "home") {
-            const homeItem = mainMenu.querySelector('[data-nav="home"]');
+            const homeItem = document.querySelector('[data-nav="home"]');
             if (homeItem) homeItem.classList.add("active");
         } else if (type === "exploits") {
-            const expItem = mainMenu.querySelector('[data-nav="exploits"]');
+            const expItem = document.querySelector('[data-nav="exploits"]');
             if (expItem) expItem.classList.add("active");
         } else if (type === "filter") {
-            const filterItem = mainMenu.querySelector(`[data-filter="${val}"]`);
+            const filterItem = document.querySelector(`[data-filter="${val}"]`);
             if (filterItem) filterItem.classList.add("active");
         } else if (type === "game") {
-            const gameItem = gameMenu.querySelector(`[data-game="${val}"]`);
+            const gameItem = document.querySelector(`[data-game="${val}"]`);
             if (gameItem) gameItem.classList.add("active");
+            if (coreGameDropdownBtn) coreGameDropdownBtn.classList.add("active");
         }
     }
 
@@ -2693,41 +2945,42 @@ document.addEventListener("DOMContentLoaded", () => {
             : 'PC Only';
 
         return `
-            <div class="script-row" data-script-id="${escapeHtml(item.id)}">
-                <div class="row-left">
-                    <div class="row-thumb-wrap" onclick="openLocker('${escapeHtml(item.id)}')" title="${escapeHtml(display.title)}">
-                        <img class="row-thumb" src="${escapeHtml(display.thumbnail)}" alt="${escapeHtml(display.title)}" loading="lazy">
+            <div class="script-row" data-script-id="${escapeHtml(item.id)}" onclick="openLocker('${escapeHtml(item.id)}')">
+                <div class="row-thumb-wrap" title="${escapeHtml(display.title)}">
+                    <img class="row-thumb" src="${escapeHtml(display.thumbnail)}" alt="${escapeHtml(display.title)}" loading="lazy">
+                    <div class="row-thumb-overlay"></div>
+                    <div class="thumb-badge-top-left">
+                        <span class="row-game-badge">
+                            <i data-lucide="gamepad-2" style="width: 11px; height: 11px;"></i> ${escapeHtml(item.game || 'Roblox')}
+                        </span>
+                        ${badgeHtml}
                     </div>
-                    <div class="row-meta">
-                        <div class="row-header-line">
-                            <span class="row-game-badge">
-                                <i data-lucide="gamepad-2" style="width: 12px; height: 12px;"></i> ${escapeHtml(item.game || 'Roblox')}
-                            </span>
-                            <span class="row-ver-badge">${escapeHtml(item.version || 'v1.0')}</span>
-                            ${badgeHtml}
-                        </div>
-                        <div class="row-title" onclick="openLocker('${escapeHtml(item.id)}')">${escapeHtml(display.title)}</div>
-                        <div class="row-features">${escapeHtml(display.description)}</div>
-                        <div class="row-tags">
-                            <span class="tag-badge ${item.isKeyless ? 'keyless' : 'has-key'}">
-                                <i data-lucide="${item.isKeyless ? 'check' : 'key'}" style="width: 11px; height: 11px;"></i>
-                                ${item.isKeyless ? t.tagKeyless : t.tagHasKey}
-                            </span>
-                            <span class="tag-badge platform">
-                                <i data-lucide="smartphone" style="width: 11px; height: 11px;"></i>
-                                ${platformText}
-                            </span>
-                            <span class="tag-badge working">
-                                <span class="dot-working"></span> ${t.tagStatusNormal}
-                            </span>
-                        </div>
+                    <div class="thumb-badge-top-right">
+                        <span class="tag-badge ${item.isKeyless ? 'keyless' : 'has-key'}">
+                            <i data-lucide="${item.isKeyless ? 'check' : 'key'}" style="width: 13px; height: 13px; stroke-width: 2.8px;"></i>
+                            ${item.isKeyless ? t.tagKeyless : t.tagHasKey}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="row-meta">
+                    <h3 class="row-title">${escapeHtml(display.title)}</h3>
+                    <p class="row-features">${escapeHtml(display.description)}</p>
+                    <div class="row-tags">
+                        <span class="tag-badge platform">
+                            <i data-lucide="smartphone" style="width: 11px; height: 11px;"></i>
+                            ${platformText}
+                        </span>
+                        <span class="tag-badge working">
+                            <span class="dot-working"></span> ${t.tagStatusNormal}
+                        </span>
                     </div>
                 </div>
 
                 <div class="row-right">
-                    <button class="btn-get" onclick="openLocker('${escapeHtml(item.id)}')">
+                    <button type="button" class="btn-get" onclick="event.stopPropagation(); openLocker('${escapeHtml(item.id)}')">
                         <span>${t.btnGetScript}</span>
-                        <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
+                        <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
             </div>
@@ -2794,10 +3047,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        const top3 = scripts.slice(0, 3);
+        const topRecent = scripts.slice(0, 8);
         if (homeRecentScripts) {
-            homeRecentScripts.innerHTML = top3.map(createScriptRow).join("");
+            homeRecentScripts.innerHTML = topRecent.map(createScriptRow).join("");
         }
+        if (window.refreshTiltedGridHero) window.refreshTiltedGridHero();
         refreshIcons();
     }
 
@@ -2956,7 +3210,39 @@ document.addEventListener("DOMContentLoaded", () => {
         return null;
     }
 
-    // Render 4 top executors on Homepage (เฉพาะตัวรันยอดนิยม)
+    // Official Executor Logos Map (CDN Fallback)
+    const EXECUTOR_LOGOS = {
+        "delta": "https://cdn.weao.gg/slug/delta/logo.png",
+        "codex": "https://cdn.weao.gg/slug/codex/logo.png",
+        "solara": "https://cdn.weao.gg/slug/solara/logo.png",
+        "wave": "https://cdn.weao.gg/slug/wave/logo.png",
+        "synapse z": "https://cdn.weao.gg/slug/synapsez/logo.png",
+        "volt": "https://cdn.weao.gg/slug/volt/logo.png",
+        "potassium": "https://cdn.weao.gg/slug/potassium/logo.png",
+        "real": "https://cdn.weao.gg/slug/real/logo.png",
+        "sirhurt": "https://cdn.weao.gg/slug/sirhurt/logo.png",
+        "cosmic": "https://cdn.weao.gg/slug/cosmic/cosmic-transparent.png",
+        "ronin": "https://cdn.weao.gg/slug/ronin/logo.png",
+        "velocity": "https://cdn.weao.gg/slug/velocity/logo.png",
+        "opiumware": "https://cdn.weao.gg/slug/opiumware/logo.png",
+        "xeno": "https://cdn.weao.gg/slug/xeno/logo.png",
+        "macsploit": "https://cdn.weao.gg/slug/macsploit/logo.png",
+        "madium": "https://cdn.weao.gg/slug/madium/logo.png",
+        "volcano": "https://cdn.weao.gg/slug/volcano/logo.png",
+        "seliware": "https://cdn.weao.gg/slug/seliware/logo.png"
+    };
+
+    function getExecutorLogo(exp) {
+        if (!exp) return "";
+        if (exp.slug && exp.slug.logo) return exp.slug.logo;
+        const title = (exp.title || "").toLowerCase();
+        for (const [key, url] of Object.entries(EXECUTOR_LOGOS)) {
+            if (title.includes(key)) return url;
+        }
+        return "";
+    }
+
+    // Render continuous scrolling executor cards with logos on Homepage
     function renderHomeExecutors() {
         if (!homeExecutorsGrid) return;
         if (allExploits.length === 0) return;
@@ -2970,35 +3256,68 @@ document.addEventListener("DOMContentLoaded", () => {
             return pA - pB;
         });
 
-        const topExecutors = famousList.length > 0 ? famousList.slice(0, 4) : allExploits.slice(0, 4);
-        homeExecutorsGrid.innerHTML = topExecutors.map(exp => {
+        // นำตัวรันยอดนิยมมารวมกับตัวรันที่มีโลโก้จาก API เพื่อให้แถบเลื่อนมีตัวเลือกหลากหลาย
+        let displayList = [...famousList];
+        allExploits.forEach(exp => {
+            if (!displayList.some(d => (d.title || '').toLowerCase() === (exp.title || '').toLowerCase() && d.platform === exp.platform)) {
+                if (exp.slug && exp.slug.logo) {
+                    displayList.push(exp);
+                }
+            }
+        });
+
+        if (displayList.length < 8) {
+            displayList = allExploits.slice(0, 12);
+        } else {
+            displayList = displayList.slice(0, 16);
+        }
+
+        function renderCard(exp) {
             const isOnline = !!exp.updateStatus;
             const statusClass = isOnline ? "status-working" : "status-outdated";
             const statusText = isOnline ? t.statusWorking : t.statusUpdating;
             const suncScore = typeof exp.suncPercentage === "number" ? `${exp.suncPercentage}%` : (typeof exp.uncPercentage === "number" ? `${exp.uncPercentage}%` : t.suncNoData);
             const platform = exp.platform || "Multi";
+            const platformLower = platform.toLowerCase();
+            const platformIcon = platformLower.includes("android") ? "smartphone" : (platformLower.includes("ios") ? "tablet" : "monitor");
             const price = exp.free ? t.priceFree : (exp.cost || t.pricePaid);
+            const logoUrl = getExecutorLogo(exp);
 
             return `
-                <div class="executor-card" style="cursor: pointer;" onclick="openExploitsView()">
-                    <div class="executor-info">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <h4>${escapeHtml(exp.title)}</h4>
-                            <span class="badge-popular"><i data-lucide="star" style="width: 10px; height: 10px;"></i> ${t.badgePopular}</span>
-                            <span class="exploit-status-badge ${statusClass}" style="font-size: 10px; padding: 1px 6px;">${statusText}</span>
-                        </div>
-                        <p style="margin-top: 4px; display: flex; gap: 8px; font-size: 11px;">
-                            <span><i data-lucide="monitor" style="width: 12px; height: 12px;"></i> ${escapeHtml(platform)}</span>
-                            <span><i data-lucide="tag" style="width: 12px; height: 12px;"></i> ${escapeHtml(price)}</span>
-                            <span>sUNC: <strong style="color: #38bdf8;">${suncScore}</strong></span>
-                        </p>
+                <div class="executor-marquee-card" onclick="openExploitsView()" title="${escapeHtml(exp.title)}">
+                    <div class="executor-marquee-logo-wrapper">
+                        ${logoUrl ? `
+                            <img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(exp.title)}" class="executor-marquee-logo" loading="lazy" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
+                            <div class="executor-marquee-logo-fallback" style="display: none;"><i data-lucide="cpu"></i></div>
+                        ` : `
+                            <div class="executor-marquee-logo-fallback"><i data-lucide="cpu"></i></div>
+                        `}
                     </div>
-                    <div style="color: var(--text-muted);">
-                        <i data-lucide="chevron-right"></i>
+                    <div class="executor-marquee-info">
+                        <div class="executor-marquee-top">
+                            <h4 class="executor-marquee-title">${escapeHtml(exp.title)}</h4>
+                            <span class="badge-popular"><i data-lucide="star" style="width: 10px; height: 10px;"></i> ${t.badgePopular}</span>
+                            <span class="executor-marquee-status ${statusClass}">
+                                <span class="pulse-dot ${isOnline ? 'green' : 'red'}" style="width: 5px; height: 5px;"></span>
+                                ${statusText}
+                            </span>
+                        </div>
+                        <div class="executor-marquee-bottom">
+                            <span><i data-lucide="${platformIcon}" style="width: 12px; height: 12px;"></i> ${escapeHtml(platform)}</span>
+                            <span><i data-lucide="tag" style="width: 12px; height: 12px;"></i> ${escapeHtml(price)}</span>
+                            <span>sUNC: <strong class="executor-marquee-sunc">${suncScore}</strong></span>
+                        </div>
+                    </div>
+                    <div class="executor-marquee-arrow">
+                        <i data-lucide="chevron-right" style="width: 15px; height: 15px;"></i>
                     </div>
                 </div>
             `;
-        }).join("");
+        }
+
+        // Duplicate the cards twice to create a seamless infinite loop
+        const cardsHtml = displayList.map(exp => renderCard(exp)).join("");
+        homeExecutorsGrid.innerHTML = cardsHtml + cardsHtml;
         refreshIcons();
     }
 
@@ -3743,7 +4062,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (mobileMenuBtn) mobileMenuBtn.addEventListener("click", openMobileSidebar);
-    if (bottomNavMenuBtn) bottomNavMenuBtn.addEventListener("click", openMobileSidebar);
+    if (bottomNavMenuBtn) {
+        bottomNavMenuBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (coreGameDropdownWrapper && coreGameDropdownWrapper.classList.contains("open")) {
+                closeGameDropdown();
+            } else {
+                openGameDropdown();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        });
+    }
     if (sidebarCloseBtn) sidebarCloseBtn.addEventListener("click", closeMobileSidebar);
     if (sidebarBackdrop) sidebarBackdrop.addEventListener("click", closeMobileSidebar);
 
@@ -3803,10 +4132,126 @@ document.addEventListener("DOMContentLoaded", () => {
         switchView("feed");
     });
 
+    // =========================================================================
+    // Core Game Dropdown Interactions (Positioning, Search, Outside Click)
+    // =========================================================================
+    const coreGameDropdownWrapper = document.getElementById("coreGameDropdownWrapper");
+    const coreGameDropdownBtn = document.getElementById("coreGameDropdownBtn");
+    const coreGameDropdownMenu = document.getElementById("coreGameDropdownMenu");
+    const gameDropdownSearchInput = document.getElementById("gameDropdownSearchInput");
+    const gameDropdownSearchClear = document.getElementById("gameDropdownSearchClear");
+
+    function positionGameDropdown() {
+        if (!coreGameDropdownBtn || !coreGameDropdownMenu) return;
+        const rect = coreGameDropdownBtn.getBoundingClientRect();
+        const menuWidth = 330;
+        let left = rect.left;
+        if (left + menuWidth > window.innerWidth - 12) {
+            left = window.innerWidth - menuWidth - 12;
+        }
+        if (left < 12) left = 12;
+
+        coreGameDropdownMenu.style.top = `${rect.bottom + 6}px`;
+        coreGameDropdownMenu.style.left = `${left}px`;
+    }
+
+    function toggleGameDropdown(forceState) {
+        if (!coreGameDropdownWrapper) return;
+        const willOpen = forceState !== undefined ? forceState : !coreGameDropdownWrapper.classList.contains("open");
+        if (willOpen) {
+            positionGameDropdown();
+            coreGameDropdownWrapper.classList.add("open");
+            if (coreGameDropdownBtn) coreGameDropdownBtn.setAttribute("aria-expanded", "true");
+            setTimeout(() => {
+                if (gameDropdownSearchInput) gameDropdownSearchInput.focus();
+            }, 60);
+        } else {
+            coreGameDropdownWrapper.classList.remove("open");
+            if (coreGameDropdownBtn) coreGameDropdownBtn.setAttribute("aria-expanded", "false");
+            if (gameDropdownSearchInput && gameDropdownSearchInput.value) {
+                gameDropdownSearchInput.value = "";
+                filterGameDropdown("");
+            }
+        }
+    }
+
+    function closeGameDropdown() {
+        toggleGameDropdown(false);
+    }
+
+    if (coreGameDropdownBtn) {
+        coreGameDropdownBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggleGameDropdown();
+        });
+    }
+
+    if (coreGameDropdownMenu) {
+        coreGameDropdownMenu.addEventListener("click", (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    function filterGameDropdown(query) {
+        const q = (query || "").toLowerCase().trim();
+        const items = document.querySelectorAll("#gameMenu .game-dropdown-item");
+        items.forEach(el => {
+            const text = (el.textContent || "").toLowerCase();
+            const match = !q || text.includes(q);
+            el.style.display = match ? "flex" : "none";
+        });
+
+        if (gameDropdownSearchClear) {
+            gameDropdownSearchClear.style.display = q ? "block" : "none";
+        }
+    }
+
+    if (gameDropdownSearchInput) {
+        gameDropdownSearchInput.addEventListener("input", (e) => {
+            filterGameDropdown(e.target.value);
+        });
+    }
+
+    if (gameDropdownSearchClear) {
+        gameDropdownSearchClear.addEventListener("click", () => {
+            if (gameDropdownSearchInput) {
+                gameDropdownSearchInput.value = "";
+                gameDropdownSearchInput.focus();
+                filterGameDropdown("");
+            }
+        });
+    }
+
+    document.addEventListener("click", (e) => {
+        if (coreGameDropdownWrapper && coreGameDropdownWrapper.classList.contains("open")) {
+            if (!coreGameDropdownWrapper.contains(e.target) && (!coreGameDropdownMenu || !coreGameDropdownMenu.contains(e.target))) {
+                closeGameDropdown();
+            }
+        }
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && coreGameDropdownWrapper && coreGameDropdownWrapper.classList.contains("open")) {
+            closeGameDropdown();
+        }
+    });
+
+    window.addEventListener("resize", () => {
+        if (coreGameDropdownWrapper && coreGameDropdownWrapper.classList.contains("open")) {
+            positionGameDropdown();
+        }
+    });
+    window.addEventListener("scroll", () => {
+        if (coreGameDropdownWrapper && coreGameDropdownWrapper.classList.contains("open")) {
+            positionGameDropdown();
+        }
+    }, { passive: true });
+
     gameMenu.addEventListener("click", (e) => {
         const item = e.target.closest(".menu-item");
         if (!item) return;
 
+        closeGameDropdown();
         closeMobileSidebar();
         activeGame = item.dataset.game;
         activeFilter = "all";
@@ -3882,12 +4327,68 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // =========================================================================
+    // 21st.dev Spotlight Command Bar & Cursor Hover Engine
+    // =========================================================================
+    const searchClearBtn = document.getElementById("searchClearBtn");
+    const searchKbdBadge = document.getElementById("searchKbdBadge");
+
+    if (searchKbdBadge && /Mac|iPhone|iPad|iPod/i.test(navigator.platform || '')) {
+        searchKbdBadge.innerHTML = '<span>⌘</span><span>K</span>';
+    }
+
+    // Global Command-K / Slash to focus search
+    window.addEventListener("keydown", (e) => {
+        const isModifier = e.ctrlKey || e.metaKey;
+        const isK = e.key === "k" || e.key === "K";
+        const isSlash = e.key === "/" && !["INPUT", "TEXTAREA"].includes((document.activeElement && document.activeElement.tagName) || "");
+        if ((isModifier && isK) || isSlash) {
+            e.preventDefault();
+            if (globalSearch) {
+                globalSearch.focus();
+                globalSearch.select();
+            }
+        } else if (e.key === "Escape" && document.activeElement === globalSearch) {
+            globalSearch.blur();
+        }
+    });
+
+    if (searchClearBtn && globalSearch) {
+        searchClearBtn.addEventListener("click", () => {
+            globalSearch.value = "";
+            searchQuery = "";
+            searchClearBtn.style.display = "none";
+            if (mobileFeedSearchInput) {
+                mobileFeedSearchInput.value = "";
+                if (mobileFeedSearchClear) mobileFeedSearchClear.style.display = "none";
+            }
+            if (searchKbdBadge) searchKbdBadge.style.display = "inline-flex";
+            if (currentView === "feed") renderFeed(true);
+            else if (currentView === "exploits") renderExploits();
+            globalSearch.focus();
+        });
+    }
+
     // Global Search (Debounced 180ms เพื่อความลื่นไหลเมื่อมีสคริปต์เยอะ)
     let searchDebounceTimer = null;
     globalSearch.addEventListener("input", (e) => {
+        const val = e.target.value.trim();
+        if (mobileFeedSearchInput && mobileFeedSearchInput.value !== e.target.value) {
+            mobileFeedSearchInput.value = e.target.value;
+            if (mobileFeedSearchClear) mobileFeedSearchClear.style.display = val.length > 0 ? "inline-flex" : "none";
+        }
+        if (searchClearBtn) {
+            if (val.length > 0) {
+                searchClearBtn.style.display = "inline-flex";
+                if (searchKbdBadge) searchKbdBadge.style.display = "none";
+            } else {
+                searchClearBtn.style.display = "none";
+                if (searchKbdBadge) searchKbdBadge.style.display = "inline-flex";
+            }
+        }
         clearTimeout(searchDebounceTimer);
         searchDebounceTimer = setTimeout(() => {
-            searchQuery = e.target.value.trim();
+            searchQuery = val;
             if (currentView === "home" && searchQuery) {
                 switchView("feed");
             } else if (currentView === "exploits") {
@@ -3896,6 +4397,44 @@ document.addEventListener("DOMContentLoaded", () => {
                 renderFeed(true);
             }
         }, 180);
+    });
+
+    // Mobile Search Bar Two-Way Sync
+    const mobileFeedSearchInput = document.getElementById("mobileFeedSearchInput");
+    const mobileFeedSearchClear = document.getElementById("mobileFeedSearchClear");
+
+    if (mobileFeedSearchInput) {
+        mobileFeedSearchInput.addEventListener("input", (e) => {
+            const val = e.target.value;
+            if (mobileFeedSearchClear) {
+                mobileFeedSearchClear.style.display = val.trim().length > 0 ? "inline-flex" : "none";
+            }
+            if (globalSearch && globalSearch.value !== val) {
+                globalSearch.value = val;
+                globalSearch.dispatchEvent(new Event("input"));
+            }
+        });
+    }
+
+    if (mobileFeedSearchClear && mobileFeedSearchInput) {
+        mobileFeedSearchClear.addEventListener("click", () => {
+            mobileFeedSearchInput.value = "";
+            mobileFeedSearchClear.style.display = "none";
+            if (globalSearch) {
+                globalSearch.value = "";
+                globalSearch.dispatchEvent(new Event("input"));
+            }
+            mobileFeedSearchInput.focus();
+        });
+    }
+
+    // 21st.dev Spotlight Cursor Tracking Engine for Cards
+    document.addEventListener("mousemove", (e) => {
+        const card = e.target.closest(".script-row, .executor-card, .game-tile");
+        if (!card) return;
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
+        card.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
     });
 
     function showToast(msg) {
@@ -4130,6 +4669,256 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(runAdblockCheck, 1800);
     }
 
+    // =========================================================================
+    // 3D Curved Cylinder Horizon Showcase (21st.dev TiltedGridHero)
+    // =========================================================================
+    let tiltedGridHeroResizeObserver = null;
+    let tiltedGridHeroState = {
+        shown: {},
+        currentImages: []
+    };
+
+    function getTiltedGridImages() {
+        const list = [];
+        const seenGames = new Set();
+
+        // 1. Collect all unique games with covers from user scripts (excluding expired rbxcdn URLs)
+        if (Array.isArray(scripts) && scripts.length > 0) {
+            scripts.forEach(s => {
+                if (!s) return;
+                const gName = (s.game || s.category || "").trim();
+                const thumb = (s.thumbnail || "").trim();
+                if (gName && thumb && !thumb.includes("tr.rbxcdn.com") && !seenGames.has(gName.toLowerCase())) {
+                    seenGames.add(gName.toLowerCase());
+                    list.push({
+                        title: gName,
+                        src: thumb,
+                        alt: `${gName} Roblox Script`
+                    });
+                }
+            });
+        }
+
+        // 2. High-quality permanent PostImage gaming thumbnails that never expire
+        const fallbackCovers = [
+            { title: "Fisch", src: "https://i.postimg.cc/tgX1dhD7/Neon-Fisch-Night-Fishing-Thumbnail.png" },
+            { title: "Blox Fruits", src: "https://i.postimg.cc/LXwvsz1d/Neon-Blox-Fruits-Script-Thumbnail.png" },
+            { title: "Anime Zero", src: "https://i.postimg.cc/0NDV9yKX/Anime-Zero-Red-Neon-Gaming-Banner.png" },
+            { title: "Slayers 2", src: "https://i.postimg.cc/25nxKBzN/Golden-Lightning-Slayers-2-Thumbnail.png" },
+            { title: "Steal An Egg", src: "https://i.postimg.cc/bJ8pT0HL/Breaking-the-Lava-Egg-with-a-Pet.png" },
+            { title: "Anime Zero", src: "https://i.postimg.cc/mgbyh7wX/Chat-GPT-Image-Oct-7-2026-07-26-51-PM.png" },
+            { title: "Steal An Egg", src: "https://i.postimg.cc/7LFmc3YZ/Chat-GPT-Image-Oct-7-2026-05-35-28-PM.png" },
+            { title: "Slayers 2", src: "https://i.postimg.cc/2yBX3H7m/Chat-GPT-Image-Oct-5-2026-09-15-14-AM.png" },
+            { title: "Slayers 2", src: "https://i.postimg.cc/d1HrjZbT/2.png" }
+        ];
+
+        fallbackCovers.forEach(fb => {
+            if (!seenGames.has(fb.title.toLowerCase()) || list.length < 9) {
+                seenGames.add(fb.title.toLowerCase());
+                list.push({
+                    title: fb.title,
+                    src: fb.src,
+                    alt: fb.title
+                });
+            }
+        });
+
+        return list;
+    }
+
+    function initTiltedGridHero(forceRerender = false) {
+        const heroEl = document.getElementById("tiltedGridHero");
+        const bandEl = document.getElementById("tiltedGridBand");
+        if (!heroEl || !bandEl) return;
+
+        const images = getTiltedGridImages();
+        tiltedGridHeroState.currentImages = images;
+
+        // If already rendered and not forced, avoid wiping the active animation DOM
+        if (tiltedGridHeroState.isRendered && bandEl.children.length > 0 && !forceRerender) {
+            return;
+        }
+
+        // Constants from 21st.dev component (Tuned for panoramic full-screen coverage)
+        const SLICES = 16;
+        const CAMERA = 1.6;
+        const MAX_WIDTH = 68;
+        const speed = 4;
+        const tileHeight = 78;
+        const aspectRatio = 16 / 9;
+        const gap = 6;
+        const axis = 50;
+        const curve = 54;
+
+        const bend = (Math.min(85, Math.max(5, curve)) * Math.PI) / 180;
+
+        function arc(b) {
+            return (CAMERA - 1 + Math.cos(b)) / (2 * CAMERA * Math.sin(b));
+        }
+
+        function renderCylinder() {
+            const rect = heroEl.getBoundingClientRect();
+            const width = Math.round(rect.width || heroEl.offsetWidth || 1200);
+            const height = Math.round(rect.height || heroEl.offsetHeight || 380);
+            if (width <= 0 || height <= 0) return;
+
+            tiltedGridHeroState.lastWidth = width;
+            tiltedGridHeroState.lastHeight = height;
+
+            const heightPx = Math.min((tileHeight / 100) * height, ((MAX_WIDTH / 100) * width) / aspectRatio);
+            const tileWidthPx = heightPx * aspectRatio;
+            const radiusPx = width * arc(bend);
+            if (!(heightPx > 0) || !(radiusPx > 0)) return;
+
+            const deg = (rad) => (rad * 180) / Math.PI;
+            const unit = deg(heightPx / radiusPx);
+            const pitch = (aspectRatio + gap / 100) * unit;
+            const limit = deg(bend) + (aspectRatio * unit) / 2;
+            const columns = Math.min(60, Math.max(2, Math.ceil((2 * limit) / pitch)));
+            const sweep = (columns * pitch) / 2;
+
+            const turnPx = (d) => `translateZ(${radiusPx.toFixed(2)}px) rotateY(${+d.toFixed(4)}deg) translateZ(-${radiusPx.toFixed(2)}px)`;
+
+            // Inject 100% valid standard pixel-based @keyframes
+            let styleTag = document.getElementById("tghOrbitStyle");
+            if (!styleTag) {
+                styleTag = document.createElement("style");
+                styleTag.id = "tghOrbitStyle";
+                document.head.appendChild(styleTag);
+            }
+            styleTag.innerHTML = `
+                @keyframes tghOrbit {
+                    0% {
+                        transform: ${turnPx(-sweep)};
+                    }
+                    100% {
+                        transform: ${turnPx(sweep)};
+                    }
+                }
+            `;
+
+            bandEl.style.perspective = `${(radiusPx * CAMERA).toFixed(2)}px`;
+            bandEl.style.perspectiveOrigin = `50% ${axis}%`;
+            bandEl.style.opacity = "1";
+
+            const share = aspectRatio / SLICES;
+            const sharePx = tileWidthPx / SLICES;
+            const duration = columns * speed;
+
+            bandEl.innerHTML = "";
+
+            for (let t = 0; t < columns; t++) {
+                const first = columns - 1 - t;
+                const imgIdx = (tiltedGridHeroState.shown[t] !== undefined ? tiltedGridHeroState.shown[t] : first) % Math.max(images.length, 1);
+                const item = images[imgIdx] || images[0];
+
+                const tileEl = document.createElement("div");
+                tileEl.className = "tgh-tile";
+                tileEl.setAttribute("data-tile-index", String(t));
+                tileEl.setAttribute("title", item ? item.title : "");
+                tileEl.style.left = `calc(50% - ${(tileWidthPx / 2).toFixed(2)}px)`;
+                tileEl.style.top = `calc(${axis}% - ${(heightPx / 2).toFixed(2)}px)`;
+                tileEl.style.width = `${tileWidthPx.toFixed(2)}px`;
+                tileEl.style.height = `${heightPx.toFixed(2)}px`;
+                tileEl.style.animation = `tghOrbit ${duration}s linear ${(-t * speed).toFixed(2)}s infinite`;
+
+                let currentTileLap = 0;
+
+                // Pause rotation ONLY when hovering directly over this card
+                tileEl.addEventListener("mouseenter", () => {
+                    heroEl.classList.add("tile-hovered");
+                });
+                tileEl.addEventListener("mouseleave", () => {
+                    heroEl.classList.remove("tile-hovered");
+                });
+
+                // Interactive: Click tile to filter and switch to script feed for this game
+                tileEl.addEventListener("click", () => {
+                    const currentImgIdx = (currentTileLap * columns + first) % Math.max(images.length, 1);
+                    const clickedItem = images[currentImgIdx] || item;
+                    if (clickedItem && clickedItem.title) {
+                        activeGame = clickedItem.title.toLowerCase();
+                        activeFilter = "all";
+                        highlightSidebarItem("game", activeGame);
+                        const tr = I18N[currentLang] || I18N.en;
+                        currentViewTitle.textContent = typeof tr.viewTitleGame === "function" ? tr.viewTitleGame(clickedItem.title) : `Scripts for ${clickedItem.title}`;
+                        currentViewDesc.textContent = typeof tr.viewDescGame === "function" ? tr.viewDescGame(clickedItem.title) : `All scripts for ${clickedItem.title}`;
+                        switchView("feed");
+                    }
+                });
+
+                // Cycle image safely on animation loop without relying on elapsedTime
+                tileEl.addEventListener("animationiteration", () => {
+                    currentTileLap++;
+                    const nextIdx = (currentTileLap * columns + first) % Math.max(images.length, 1);
+                    const nextImg = images[nextIdx];
+                    if (nextImg && nextImg.src) {
+                        tileEl.setAttribute("title", nextImg.title || "");
+                        const imgs = tileEl.querySelectorAll("img");
+                        imgs.forEach(img => {
+                            if (img.getAttribute("src") !== nextImg.src) {
+                                img.src = nextImg.src;
+                                img.alt = nextImg.title || "";
+                            }
+                        });
+                    }
+                });
+
+                // Build 16 slices with exact pixel dimensions
+                for (let k = 0; k < SLICES; k++) {
+                    const slice = document.createElement("div");
+                    slice.className = "tgh-slice" + (k === 0 ? " first-slice" : "") + (k === SLICES - 1 ? " last-slice" : "");
+                    slice.style.left = `${((tileWidthPx - sharePx) / 2).toFixed(2)}px`;
+                    slice.style.width = (k === SLICES - 1) ? `${sharePx.toFixed(2)}px` : `${(sharePx + 0.85).toFixed(2)}px`;
+                    slice.style.height = `${heightPx.toFixed(2)}px`;
+                    slice.style.transform = turnPx((aspectRatio / 2 - (k + 0.5) * share) * unit);
+
+                    if (item) {
+                        const img = document.createElement("img");
+                        img.src = item.src;
+                        img.alt = k === 0 ? (item.alt || item.title) : "";
+                        img.draggable = false;
+                        img.style.left = `${(-k * sharePx).toFixed(2)}px`;
+                        img.style.width = `${tileWidthPx.toFixed(2)}px`;
+                        img.style.height = `${heightPx.toFixed(2)}px`;
+                        img.onerror = function() {
+                            this.onerror = null;
+                            this.src = "https://i.postimg.cc/LXwvsz1d/Neon-Blox-Fruits-Script-Thumbnail.png";
+                        };
+                        slice.appendChild(img);
+                    }
+                    tileEl.appendChild(slice);
+                }
+
+                bandEl.appendChild(tileEl);
+            }
+
+            tiltedGridHeroState.isRendered = true;
+        }
+
+        renderCylinder();
+
+        if (!tiltedGridHeroResizeObserver && window.ResizeObserver) {
+            tiltedGridHeroResizeObserver = new ResizeObserver((entries) => {
+                for (const entry of entries) {
+                    const { width, height } = entry.contentRect;
+                    if (Math.abs(width - tiltedGridHeroState.lastWidth) > 20 || Math.abs(height - tiltedGridHeroState.lastHeight) > 20) {
+                        renderCylinder();
+                    }
+                }
+            });
+            tiltedGridHeroResizeObserver.observe(heroEl);
+        }
+    }
+
+    // Expose refresh function to re-render when new scripts/covers are added
+    window.refreshTiltedGridHero = function(force = false) {
+        const bandEl = document.getElementById("tiltedGridBand");
+        if (bandEl) {
+            initTiltedGridHero(force);
+        }
+    };
+
     // Initialize App
     setLanguage(currentLang);
     applySiteConfig();
@@ -4143,6 +4932,7 @@ document.addEventListener("DOMContentLoaded", () => {
     syncDataFromServer();
     initSiteNoticePopup();
     initGentleAntiAdblock();
+    initTiltedGridHero();
     refreshIcons();
 
     // Check ban status on tab focus instead of aggressive polling (throttled to at most once per 5 minutes)
