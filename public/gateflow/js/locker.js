@@ -1,6 +1,6 @@
 /* ==========================================================================
    ShrinkMe-Style Multi-Round Gateway (3 Rounds / Steps)
-   Round 1 (Ad 1 -> 7s) -> Round 2 (Ad 2 -> 7s) -> Round 3 (Ad 3 -> GET LINK)
+   Round 1 (Ad 1 -> 10s Away-Dwell) -> Round 2 (Ad 2 -> 10s Away-Dwell) -> Round 3 (Ad 3 -> GET LINK)
    100% Monetag Direct Links + In-Page Push Banner (Zone 12157090)
    ========================================================================== */
 
@@ -16,17 +16,20 @@ const AD_DIRECT_POOL = [
 ];
 
 const TOTAL_ROUNDS = 3;
-const ROUND_DURATION = 7; // 7 seconds per round (Fast, highly satisfying)
+const ROUND_DURATION = 10; // 10 seconds per round with Away-Dwell verification
 
 let currentRound = 1;
-let roundState = 'READY'; // 'READY' | 'COUNTING' | 'COMPLETED'
+let roundState = 'READY'; // 'READY' | 'COUNTING' | 'PAUSED' | 'COMPLETED'
 let remainingSeconds = ROUND_DURATION;
 let countdownTimer = null;
+let targetEndTime = 0;
+let gracePeriodActive = false;
 
 document.addEventListener('DOMContentLoaded', () => {
   initLockerLang();
   initDestinationUrl();
   checkInAppBrowser();
+  initAwayDwellListeners();
   setRound(1);
 });
 
@@ -115,6 +118,7 @@ function setRound(roundNum) {
     clearInterval(countdownTimer);
     countdownTimer = null;
   }
+  gracePeriodActive = false;
 
   currentRound = roundNum;
   roundState = (currentRound === 3) ? 'COMPLETED' : 'READY';
@@ -203,18 +207,27 @@ function renderCurrentRoundUI() {
   const btnArrow = document.getElementById('btnShrinkArrow');
   const hintText = document.getElementById('actionSubHintText');
 
+  // Reset indicator colors
+  if (statusDot && roundState !== 'PAUSED' && roundState !== 'COMPLETED') {
+    statusDot.style.background = '';
+    statusDot.style.boxShadow = '';
+  }
+  if (bar && roundState !== 'PAUSED' && roundState !== 'COMPLETED') {
+    bar.style.background = '';
+  }
+
   // --- ROUND 1 ---
   if (currentRound === 1) {
     if (badgeText) badgeText.textContent = 'STEP 1 OF 3';
     if (mainTitle) mainTitle.textContent = isTh ? 'ขั้นตอนที่ 1 / 3: กำลังเตรียมลิงก์เข้าใช้งาน' : 'Step 1 of 3: Preparing Website Access Link';
     if (subTitle) subTitle.textContent = isTh
-      ? 'แตะปุ่มด้านล่างเพื่อเปิดหน้าสปอนเซอร์และเริ่มนับเวลา 7 วินาที'
-      : 'Click the button below to open sponsor ad & start 7s countdown.';
+      ? 'แตะปุ่มด้านล่างเพื่อเปิดหน้าสปอนเซอร์และรับชม 10 วินาที'
+      : 'Click button below to open sponsor ad & stay for 10s.';
 
     if (roundState === 'READY') {
-      if (timerNum) timerNum.textContent = '7';
+      if (timerNum) timerNum.textContent = '10';
       if (timerUnit) timerUnit.textContent = isTh ? 'วินาที' : 'seconds';
-      if (statusTitle) statusTitle.textContent = isTh ? 'พร้อมเริ่มขั้นตอนที่ 1' : 'Ready to start Step 1';
+      if (statusTitle) statusTitle.innerHTML = isTh ? 'พร้อมเริ่มขั้นตอนที่ 1' : 'Ready to start Step 1';
       if (statusSub) statusSub.textContent = isTh ? 'กดปุ่มด้านล่างเพื่อเปิดหน้าสปอนเซอร์และเริ่มนับเวลา' : 'Click button below to open ad and start timer';
       if (bar) bar.style.width = '0%';
 
@@ -222,7 +235,7 @@ function renderCurrentRoundUI() {
         btn.disabled = false;
         btn.className = 'btn-enter-website ready';
       }
-      if (btnText) btnText.textContent = isTh ? 'แตะเพื่อเริ่มขั้นตอนที่ 1 (Start 7s) ⚡' : 'Start Step 1 (7s) ⚡';
+      if (btnText) btnText.textContent = isTh ? 'แตะเพื่อเริ่มขั้นตอนที่ 1 (Start 10s) ⚡' : 'Start Step 1 (10s) ⚡';
       if (btnIcon) {
         btnIcon.setAttribute('data-lucide', 'play');
         btnIcon.classList.remove('spin');
@@ -233,8 +246,8 @@ function renderCurrentRoundUI() {
     } else if (roundState === 'COUNTING') {
       if (timerNum) timerNum.textContent = remainingSeconds;
       if (timerUnit) timerUnit.textContent = isTh ? 'วินาที' : 'seconds';
-      if (statusTitle) statusTitle.textContent = isTh ? `กำลังเตรียมลิงก์... (${remainingSeconds}s)` : `Preparing link... (${remainingSeconds}s)`;
-      if (statusSub) statusSub.textContent = isTh ? 'ระบบกำลังเชื่อมต่อและยืนยันข้อมูลอุปกรณ์' : 'Connecting and verifying device data';
+      if (statusTitle) statusTitle.innerHTML = isTh ? `กำลังเตรียมลิงก์... (${remainingSeconds}s)` : `Preparing link... (${remainingSeconds}s)`;
+      if (statusSub) statusSub.textContent = isTh ? 'กรุณาเปิดหน้าสปอนเซอร์ค้างไว้ ระบบกำลังเชื่อมต่อข้อมูล' : 'Please keep sponsor page open, verifying dwell time...';
       if (bar) {
         const pct = Math.round(((ROUND_DURATION - remainingSeconds) / ROUND_DURATION) * 100);
         bar.style.width = `${pct}%`;
@@ -244,7 +257,7 @@ function renderCurrentRoundUI() {
         btn.disabled = true;
         btn.className = 'btn-enter-website disabled';
       }
-      if (btnText) btnText.textContent = isTh ? `กรุณารอสักครู่... (${remainingSeconds}s)` : `Please wait... (${remainingSeconds}s)`;
+      if (btnText) btnText.textContent = isTh ? `กรุณาเปิดหน้าสปอนเซอร์ค้างไว้... (${remainingSeconds}s)` : `Keep sponsor page open... (${remainingSeconds}s)`;
       if (btnIcon) {
         btnIcon.setAttribute('data-lucide', 'loader-2');
         btnIcon.classList.add('spin');
@@ -252,12 +265,48 @@ function renderCurrentRoundUI() {
       if (btnArrow) btnArrow.style.opacity = '0.3';
       if (hintText) hintText.textContent = isTh ? `รอเวลาให้ครบ ${remainingSeconds} วินาทีเพื่อไปยังขั้นตอนถัดไป` : `Wait ${remainingSeconds}s to unlock next step`;
 
+    } else if (roundState === 'PAUSED') {
+      if (timerNum) timerNum.innerHTML = `<span style="color: #F59E0B; display: inline-flex; align-items: center; gap: 4px;">⏸️ ${remainingSeconds}</span>`;
+      if (timerUnit) timerUnit.textContent = isTh ? 'หยุดชั่วคราว' : 'PAUSED';
+      if (statusDot) {
+        statusDot.style.background = '#F59E0B';
+        statusDot.style.boxShadow = '0 0 10px #F59E0B';
+      }
+      if (statusTitle) statusTitle.innerHTML = `<span style="color: #F59E0B;">⏸️ ${isTh ? 'หยุดนับเวลาชั่วคราว!' : 'Timer Paused!'} (${remainingSeconds}s)</span>`;
+      if (statusSub) statusSub.textContent = isTh
+        ? 'ระบบตรวจพบว่าคุณไม่ได้เปิดหน้าสปอนเซอร์ กรุณาสลับกลับไปดูโฆษณาให้ครบเวลา'
+        : 'Please stay on the sponsor page to resume countdown';
+      if (bar) {
+        const pct = Math.round(((ROUND_DURATION - remainingSeconds) / ROUND_DURATION) * 100);
+        bar.style.width = `${pct}%`;
+        bar.style.background = 'linear-gradient(90deg, #F59E0B, #EA580C)';
+      }
+
+      if (btn) {
+        btn.disabled = false;
+        btn.className = 'btn-enter-website paused';
+      }
+      if (btnText) btnText.textContent = isTh ? `⚡ แตะกลับไปดูโฆษณาต่อ (เหลือ ${remainingSeconds}s)` : `⚡ Resume Sponsor Ad (${remainingSeconds}s left)`;
+      if (btnIcon) {
+        btnIcon.setAttribute('data-lucide', 'external-link');
+        btnIcon.classList.remove('spin');
+      }
+      if (btnArrow) btnArrow.style.opacity = '1';
+      if (hintText) hintText.textContent = isTh ? 'แตะปุ่มเพื่อเปิดหน้าสปอนเซอร์ใหม่อีกครั้ง' : 'Click button to open sponsor ad again';
+
     } else if (roundState === 'COMPLETED') {
       if (timerNum) timerNum.innerHTML = '<i data-lucide="check" style="width: 28px; height: 28px; color: #10B981;"></i>';
       if (timerUnit) timerUnit.textContent = isTh ? 'เสร็จสิ้น' : 'Done';
-      if (statusTitle) statusTitle.textContent = isTh ? '🎉 ขั้นตอนที่ 1 เสร็จเรียบร้อยแล้ว!' : '🎉 Step 1 Completed!';
+      if (statusDot) {
+        statusDot.style.background = '#10B981';
+        statusDot.style.boxShadow = '0 0 10px #10B981';
+      }
+      if (statusTitle) statusTitle.innerHTML = isTh ? '🎉 ขั้นตอนที่ 1 เสร็จเรียบร้อยแล้ว!' : '🎉 Step 1 Completed!';
       if (statusSub) statusSub.textContent = isTh ? 'คลิกปุ่มด้านล่างเพื่อไปยังขั้นตอนที่ 2' : 'Click button below to advance to Step 2';
-      if (bar) bar.style.width = '100%';
+      if (bar) {
+        bar.style.width = '100%';
+        bar.style.background = 'linear-gradient(90deg, #10B981, #059669)';
+      }
 
       if (btn) {
         btn.disabled = false;
@@ -277,13 +326,13 @@ function renderCurrentRoundUI() {
     if (badgeText) badgeText.textContent = 'STEP 2 OF 3';
     if (mainTitle) mainTitle.textContent = isTh ? 'ขั้นตอนที่ 2 / 3: ยืนยันสิทธิ์สปอนเซอร์' : 'Step 2 of 3: Sponsor Key Verification';
     if (subTitle) subTitle.textContent = isTh
-      ? 'แตะปุ่มด้านล่างเพื่อเปิดหน้าสปอนเซอร์และสร้างรหัสผ่าน 24 ชั่วโมง'
-      : 'Click button below to open sponsor ad & generate 24h pass key.';
+      ? 'แตะปุ่มด้านล่างเพื่อเปิดหน้าสปอนเซอร์และสร้างรหัสผ่าน 24 ชั่วโมง (10 วิ)'
+      : 'Click button below to open sponsor ad & generate 24h pass (10s)';
 
     if (roundState === 'READY') {
-      if (timerNum) timerNum.textContent = '7';
+      if (timerNum) timerNum.textContent = '10';
       if (timerUnit) timerUnit.textContent = isTh ? 'วินาที' : 'seconds';
-      if (statusTitle) statusTitle.textContent = isTh ? 'พร้อมเริ่มขั้นตอนที่ 2' : 'Ready to start Step 2';
+      if (statusTitle) statusTitle.innerHTML = isTh ? 'พร้อมเริ่มขั้นตอนที่ 2' : 'Ready to start Step 2';
       if (statusSub) statusSub.textContent = isTh ? 'กดปุ่มด้านล่างเพื่อเปิดหน้าสปอนเซอร์และเริ่มนับเวลา' : 'Click button below to open ad and start timer';
       if (bar) bar.style.width = '0%';
 
@@ -291,7 +340,7 @@ function renderCurrentRoundUI() {
         btn.disabled = false;
         btn.className = 'btn-enter-website ready';
       }
-      if (btnText) btnText.textContent = isTh ? 'แตะเพื่อเริ่มขั้นตอนที่ 2 (Start 7s) ⚡' : 'Start Step 2 (7s) ⚡';
+      if (btnText) btnText.textContent = isTh ? 'แตะเพื่อเริ่มขั้นตอนที่ 2 (Start 10s) ⚡' : 'Start Step 2 (10s) ⚡';
       if (btnIcon) {
         btnIcon.setAttribute('data-lucide', 'play');
         btnIcon.classList.remove('spin');
@@ -302,8 +351,8 @@ function renderCurrentRoundUI() {
     } else if (roundState === 'COUNTING') {
       if (timerNum) timerNum.textContent = remainingSeconds;
       if (timerUnit) timerUnit.textContent = isTh ? 'วินาที' : 'seconds';
-      if (statusTitle) statusTitle.textContent = isTh ? `กำลังสร้างรหัสผ่าน 24 ชม.... (${remainingSeconds}s)` : `Generating 24h pass... (${remainingSeconds}s)`;
-      if (statusSub) statusSub.textContent = isTh ? 'ระบบกำลังเข้ารหัส Session Token ปลอดภัย 100%' : 'Encrypting secure 24-hour session token';
+      if (statusTitle) statusTitle.innerHTML = isTh ? `กำลังสร้างรหัสผ่าน 24 ชม.... (${remainingSeconds}s)` : `Generating 24h pass... (${remainingSeconds}s)`;
+      if (statusSub) statusSub.textContent = isTh ? 'กรุณาเปิดหน้าสปอนเซอร์ค้างไว้ ระบบกำลังเข้ารหัส Session Token' : 'Keep sponsor page open, encrypting secure session token...';
       if (bar) {
         const pct = Math.round(((ROUND_DURATION - remainingSeconds) / ROUND_DURATION) * 100);
         bar.style.width = `${pct}%`;
@@ -313,7 +362,7 @@ function renderCurrentRoundUI() {
         btn.disabled = true;
         btn.className = 'btn-enter-website disabled';
       }
-      if (btnText) btnText.textContent = isTh ? `กำลังสร้างรหัสผ่าน... (${remainingSeconds}s)` : `Generating pass... (${remainingSeconds}s)`;
+      if (btnText) btnText.textContent = isTh ? `กรุณาเปิดหน้าสปอนเซอร์ค้างไว้... (${remainingSeconds}s)` : `Keep sponsor page open... (${remainingSeconds}s)`;
       if (btnIcon) {
         btnIcon.setAttribute('data-lucide', 'loader-2');
         btnIcon.classList.add('spin');
@@ -321,12 +370,48 @@ function renderCurrentRoundUI() {
       if (btnArrow) btnArrow.style.opacity = '0.3';
       if (hintText) hintText.textContent = isTh ? `รอเวลาให้ครบ ${remainingSeconds} วินาทีเพื่อไปยังขั้นตอนสุดท้าย` : `Wait ${remainingSeconds}s to unlock final step`;
 
+    } else if (roundState === 'PAUSED') {
+      if (timerNum) timerNum.innerHTML = `<span style="color: #F59E0B; display: inline-flex; align-items: center; gap: 4px;">⏸️ ${remainingSeconds}</span>`;
+      if (timerUnit) timerUnit.textContent = isTh ? 'หยุดชั่วคราว' : 'PAUSED';
+      if (statusDot) {
+        statusDot.style.background = '#F59E0B';
+        statusDot.style.boxShadow = '0 0 10px #F59E0B';
+      }
+      if (statusTitle) statusTitle.innerHTML = `<span style="color: #F59E0B;">⏸️ ${isTh ? 'หยุดนับเวลาชั่วคราว!' : 'Timer Paused!'} (${remainingSeconds}s)</span>`;
+      if (statusSub) statusSub.textContent = isTh
+        ? 'ระบบตรวจพบว่าคุณไม่ได้เปิดหน้าสปอนเซอร์ กรุณาสลับกลับไปดูโฆษณาให้ครบเวลา'
+        : 'Please stay on the sponsor page to resume countdown';
+      if (bar) {
+        const pct = Math.round(((ROUND_DURATION - remainingSeconds) / ROUND_DURATION) * 100);
+        bar.style.width = `${pct}%`;
+        bar.style.background = 'linear-gradient(90deg, #F59E0B, #EA580C)';
+      }
+
+      if (btn) {
+        btn.disabled = false;
+        btn.className = 'btn-enter-website paused';
+      }
+      if (btnText) btnText.textContent = isTh ? `⚡ แตะกลับไปดูโฆษณาต่อ (เหลือ ${remainingSeconds}s)` : `⚡ Resume Sponsor Ad (${remainingSeconds}s left)`;
+      if (btnIcon) {
+        btnIcon.setAttribute('data-lucide', 'external-link');
+        btnIcon.classList.remove('spin');
+      }
+      if (btnArrow) btnArrow.style.opacity = '1';
+      if (hintText) hintText.textContent = isTh ? 'แตะปุ่มเพื่อเปิดหน้าสปอนเซอร์ใหม่อีกครั้ง' : 'Click button to open sponsor ad again';
+
     } else if (roundState === 'COMPLETED') {
       if (timerNum) timerNum.innerHTML = '<i data-lucide="check" style="width: 28px; height: 28px; color: #10B981;"></i>';
       if (timerUnit) timerUnit.textContent = isTh ? 'เสร็จสิ้น' : 'Done';
-      if (statusTitle) statusTitle.textContent = isTh ? '🎉 ยืนยันสิทธิ์สำเร็จ พร้อมรับลิงก์แล้ว!' : '🎉 Verification complete! Ready for link.';
+      if (statusDot) {
+        statusDot.style.background = '#10B981';
+        statusDot.style.boxShadow = '0 0 10px #10B981';
+      }
+      if (statusTitle) statusTitle.innerHTML = isTh ? '🎉 ยืนยันสิทธิ์สำเร็จ พร้อมรับลิงก์แล้ว!' : '🎉 Verification complete! Ready for link.';
       if (statusSub) statusSub.textContent = isTh ? 'คลิกปุ่มด้านล่างเพื่อไปยังหน้ารับลิงก์' : 'Click button below to go to Get Link page';
-      if (bar) bar.style.width = '100%';
+      if (bar) {
+        bar.style.width = '100%';
+        bar.style.background = 'linear-gradient(90deg, #10B981, #059669)';
+      }
 
       if (btn) {
         btn.disabled = false;
@@ -351,9 +436,16 @@ function renderCurrentRoundUI() {
 
     if (timerNum) timerNum.innerHTML = '<i data-lucide="sparkles" style="width: 32px; height: 32px; color: #10B981;"></i>';
     if (timerUnit) timerUnit.textContent = isTh ? 'พร้อมเข้าเว็บ' : 'Ready';
-    if (statusTitle) statusTitle.textContent = isTh ? '🎉 ปลดล็อคสิทธิ์ 24 ชม. เรียบร้อยแล้ว!' : '🎉 24h Pass Unlocked Successfully!';
+    if (statusDot) {
+      statusDot.style.background = '#10B981';
+      statusDot.style.boxShadow = '0 0 10px #10B981';
+    }
+    if (statusTitle) statusTitle.innerHTML = isTh ? '🎉 ปลดล็อคสิทธิ์ 24 ชม. เรียบร้อยแล้ว!' : '🎉 24h Pass Unlocked Successfully!';
     if (statusSub) statusSub.textContent = isTh ? 'คลิกปุ่มรับลิงก์ด้านล่างเพื่อเข้าสู่เว็บไซต์ทันที' : 'Click Get Link button below to enter website';
-    if (bar) bar.style.width = '100%';
+    if (bar) {
+      bar.style.width = '100%';
+      bar.style.background = 'linear-gradient(90deg, #10B981, #059669)';
+    }
 
     if (btn) {
       btn.disabled = false;
@@ -371,6 +463,146 @@ function renderCurrentRoundUI() {
   lucide.createIcons();
 }
 
+// Start Round Countdown with Grace Period
+function startRoundCountdown(roundNum, adIndex) {
+  // 1. Open Monetag Ad #1 or #2
+  triggerDirectAd(adIndex);
+
+  // 2. Set state to COUNTING with 10 seconds duration
+  roundState = 'COUNTING';
+  remainingSeconds = ROUND_DURATION;
+  targetEndTime = Date.now() + (ROUND_DURATION * 1000);
+  gracePeriodActive = true;
+
+  // 1.8s grace period to allow browser to open and focus ad tab
+  setTimeout(() => {
+    gracePeriodActive = false;
+    checkAwayDwellStatus();
+  }, 1800);
+
+  renderCurrentRoundUI();
+  runTimerLoop();
+}
+
+// Resume Round Countdown after Pause
+function resumeRoundCountdown(adIndex) {
+  if (adIndex !== undefined) {
+    triggerDirectAd(adIndex);
+  }
+
+  roundState = 'COUNTING';
+  targetEndTime = Date.now() + (remainingSeconds * 1000);
+  gracePeriodActive = true;
+
+  setTimeout(() => {
+    gracePeriodActive = false;
+    checkAwayDwellStatus();
+  }, 1800);
+
+  renderCurrentRoundUI();
+  runTimerLoop();
+}
+
+// Timer Loop with Timestamp Calculation (Resistant to Background Tab Throttling)
+function runTimerLoop() {
+  if (countdownTimer) clearInterval(countdownTimer);
+
+  countdownTimer = setInterval(() => {
+    if (roundState !== 'COUNTING') return;
+
+    const now = Date.now();
+    const remainingMs = targetEndTime - now;
+    remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+
+    // If tab is visible and remaining > 0 and grace period has ended, pause!
+    if (!document.hidden && remainingSeconds > 0 && !gracePeriodActive) {
+      pauseRoundCountdown();
+      return;
+    }
+
+    renderCurrentRoundUI();
+
+    if (remainingSeconds <= 0) {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+      roundState = 'COMPLETED';
+      renderCurrentRoundUI();
+      const isTh = currentLang === 'th';
+      if (currentRound === 1) {
+        showToast(isTh ? '🎉 ขั้นตอนที่ 1 เสร็จแล้ว! แตะปุ่มเพื่อไปขั้นตอนที่ 2' : '🎉 Step 1 complete! Click to advance to Step 2', 'success', 3000);
+      } else if (currentRound === 2) {
+        showToast(isTh ? '✨ ขั้นตอนที่ 2 เสร็จแล้ว! แตะปุ่มเพื่อไปรับลิงก์' : '✨ Step 2 complete! Click to go to Get Link', 'success', 3000);
+      }
+    }
+  }, 400);
+}
+
+// Away Dwell Check: Pause if user returns to gateway tab early
+function checkAwayDwellStatus() {
+  if (roundState !== 'COUNTING' || gracePeriodActive) return;
+  if (!document.hidden && remainingSeconds > 0) {
+    pauseRoundCountdown();
+  }
+}
+
+// Pause Countdown
+function pauseRoundCountdown() {
+  if (roundState !== 'COUNTING') return;
+
+  roundState = 'PAUSED';
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
+  renderCurrentRoundUI();
+
+  const isTh = currentLang === 'th';
+  showToast(
+    isTh 
+      ? `⏸️ หยุดนับเวลา! กรุณากลับไปดูหน้าสปอนเซอร์ให้ครบ ${ROUND_DURATION} วินาที` 
+      : `⏸️ Paused! Please view sponsor page for ${ROUND_DURATION} seconds`,
+    'error',
+    3000
+  );
+}
+
+// Away Dwell Visibility & Window Focus Event Listeners
+function initAwayDwellListeners() {
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // User switched away to the ad tab! Automatically resume if paused
+      if (roundState === 'PAUSED' && remainingSeconds > 0) {
+        roundState = 'COUNTING';
+        targetEndTime = Date.now() + (remainingSeconds * 1000);
+        runTimerLoop();
+        renderCurrentRoundUI();
+      }
+    } else {
+      // User returned to gateway tab!
+      if (roundState === 'COUNTING' && remainingSeconds > 0 && !gracePeriodActive) {
+        pauseRoundCountdown();
+      }
+    }
+  });
+
+  window.addEventListener('blur', () => {
+    // Window lost focus (user moved to ad window)
+    if (roundState === 'PAUSED' && remainingSeconds > 0) {
+      roundState = 'COUNTING';
+      targetEndTime = Date.now() + (remainingSeconds * 1000);
+      runTimerLoop();
+      renderCurrentRoundUI();
+    }
+  });
+
+  window.addEventListener('focus', () => {
+    // Window gained focus
+    if (roundState === 'COUNTING' && remainingSeconds > 0 && !gracePeriodActive) {
+      pauseRoundCountdown();
+    }
+  });
+}
+
 // Handle Interactive Button Click in Each Round
 window.handleShrinkButtonClick = function() {
   const isTh = currentLang === 'th';
@@ -378,30 +610,10 @@ window.handleShrinkButtonClick = function() {
   // --- ROUND 1 CLICK HANDLING ---
   if (currentRound === 1) {
     if (roundState === 'READY') {
-      // 1. User clicked Start Step 1: Open Monetag Ad #1! 💰
-      triggerDirectAd(0);
-
-      // 2. Start 7-second countdown
-      roundState = 'COUNTING';
-      remainingSeconds = ROUND_DURATION;
-      renderCurrentRoundUI();
-
-      if (countdownTimer) clearInterval(countdownTimer);
-      countdownTimer = setInterval(() => {
-        remainingSeconds--;
-        renderCurrentRoundUI();
-
-        if (remainingSeconds <= 0) {
-          clearInterval(countdownTimer);
-          countdownTimer = null;
-          roundState = 'COMPLETED';
-          renderCurrentRoundUI();
-          showToast(isTh ? '🎉 ขั้นตอนที่ 1 เสร็จแล้ว! แตะปุ่มเพื่อไปขั้นตอนที่ 2' : '🎉 Step 1 complete! Click to advance to Step 2', 'success', 3000);
-        }
-      }, 1000);
-
+      startRoundCountdown(1, 0);
+    } else if (roundState === 'PAUSED') {
+      resumeRoundCountdown(0);
     } else if (roundState === 'COMPLETED') {
-      // Advance to Round 2!
       setRound(2);
       showToast(isTh ? '➡️ เข้าสู่ขั้นตอนที่ 2 จาก 3' : '➡️ Welcome to Step 2 of 3', 'info', 2000);
     }
@@ -409,30 +621,10 @@ window.handleShrinkButtonClick = function() {
   // --- ROUND 2 CLICK HANDLING ---
   } else if (currentRound === 2) {
     if (roundState === 'READY') {
-      // 1. User clicked Start Step 2: Open Monetag Ad #2! 💰
-      triggerDirectAd(1);
-
-      // 2. Start 7-second countdown
-      roundState = 'COUNTING';
-      remainingSeconds = ROUND_DURATION;
-      renderCurrentRoundUI();
-
-      if (countdownTimer) clearInterval(countdownTimer);
-      countdownTimer = setInterval(() => {
-        remainingSeconds--;
-        renderCurrentRoundUI();
-
-        if (remainingSeconds <= 0) {
-          clearInterval(countdownTimer);
-          countdownTimer = null;
-          roundState = 'COMPLETED';
-          renderCurrentRoundUI();
-          showToast(isTh ? '✨ ขั้นตอนที่ 2 เสร็จแล้ว! แตะปุ่มเพื่อไปรับลิงก์' : '✨ Step 2 complete! Click to go to Get Link', 'success', 3000);
-        }
-      }, 1000);
-
+      startRoundCountdown(2, 1);
+    } else if (roundState === 'PAUSED') {
+      resumeRoundCountdown(1);
     } else if (roundState === 'COMPLETED') {
-      // Advance to Round 3 (Final Get Link)!
       setRound(3);
       showToast(isTh ? '🎉 ขั้นตอนสุดท้าย: ลิงก์พร้อมแล้ว!' : '🎉 Final Step: Your link is ready!', 'success', 2500);
     }
@@ -455,6 +647,107 @@ window.handleShrinkButtonClick = function() {
     }, 600);
   }
 };
+
+// Trigger Monetag Direct Link (Bulletproof Popup Bypass for Mobile & PC)
+function triggerDirectAd(preferredIndex = 0) {
+  try {
+    let index = parseInt(localStorage.getItem('blackpass_direct_index') || String(preferredIndex), 10);
+    if (isNaN(index) || index >= AD_DIRECT_POOL.length) {
+      index = preferredIndex % AD_DIRECT_POOL.length;
+    }
+
+    const targetAdUrl = AD_DIRECT_POOL[index];
+    
+    // Rotate to next zone for next time
+    localStorage.setItem('blackpass_direct_index', String((index + 1) % AD_DIRECT_POOL.length));
+
+    // 1. Try simulated anchor click (highest success rate on Mobile Chrome & Safari)
+    const link = document.createElement('a');
+    link.href = targetAdUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => link.remove(), 100);
+
+  } catch (e) {
+    try {
+      window.open(AD_DIRECT_POOL[0], '_blank');
+    } catch (err) {
+      console.warn('[BlackPass] Ad popup blocked:', err);
+    }
+  }
+}
+
+// Grant 24-Hour Access
+function grant24HourAccess() {
+  try {
+    const expiry24h = Date.now() + (24 * 60 * 60 * 1000);
+    localStorage.setItem('blacklist_lootlabs_auth_expiry', String(expiry24h));
+    sessionStorage.setItem('blacklist_lootlabs_auth', 'true');
+    localStorage.setItem('blacklist_lootlabs_unlocked_event', String(Date.now()));
+    window.dispatchEvent(new Event('storage'));
+  } catch (e) {}
+}
+
+// VIP Modal Handlers
+window.openVipModal = function() {
+  const modal = document.getElementById('vipModal');
+  if (modal) modal.classList.add('active');
+};
+
+window.closeVipModal = function() {
+  const modal = document.getElementById('vipModal');
+  if (modal) modal.classList.remove('active');
+};
+
+window.submitVipKey = function() {
+  const input = document.getElementById('inputVipKey');
+  const key = (input ? input.value : '').trim().toUpperCase();
+  const isTh = currentLang === 'th';
+
+  if (!key) {
+    showToast(isTh ? 'กรุณากรอกรหัส VIP Key' : 'Please enter VIP Key', 'error');
+    return;
+  }
+
+  // Check valid keys: VIP30 or VIP-PASS-2026 or any custom prefix
+  if (key === 'VIP30' || key === 'VIP-PASS-2026' || key.startsWith('VIP-')) {
+    grant24HourAccess();
+    closeVipModal();
+    showToast(isTh ? '👑 VIP Bypass สำเร็จ! กำลังเข้าสู่เว็บไซต์...' : '👑 VIP Bypass granted! Entering...', 'success', 2000);
+    setTimeout(() => {
+      window.location.href = destinationUrl;
+    }, 600);
+  } else {
+    showToast(isTh ? '❌ รหัส VIP Key ไม่ถูกต้อง หรือหมดอายุแล้ว' : '❌ Invalid or expired VIP Key', 'error');
+  }
+};
+
+// Toast Utility
+function showToast(message, type = 'info', duration = 3000) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `clean-toast toast-${type}`;
+
+  let iconHtml = '<i data-lucide="info" style="width: 15px; height: 15px; flex-shrink: 0;"></i>';
+  if (type === 'success') {
+    iconHtml = '<i data-lucide="check-circle-2" style="width: 15px; height: 15px; flex-shrink: 0; color: #10B981;"></i>';
+  } else if (type === 'error') {
+    iconHtml = '<i data-lucide="alert-triangle" style="width: 15px; height: 15px; flex-shrink: 0; color: #EF4444;"></i>';
+  }
+
+  toast.innerHTML = `${iconHtml}<span>${message}</span>`;
+  container.appendChild(toast);
+  lucide.createIcons();
+
+  setTimeout(() => {
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
 
 // Trigger Monetag Direct Link (Bulletproof Popup Bypass for Mobile & PC)
 function triggerDirectAd(preferredIndex = 0) {
