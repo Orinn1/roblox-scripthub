@@ -6,6 +6,7 @@
    ========================================================================== */
 
 let destinationUrl = '';
+let targetScriptCode = '';
 let task1Done = false;
 let task2Done = false;
 let isVerifyingTask1 = false;
@@ -30,12 +31,15 @@ function initCustomTitleAndDesc() {
   const params = new URLSearchParams(window.location.search);
   const slug = params.get('slug') || '';
   const returnTo = params.get('return_to') || params.get('url') || params.get('redirect') || '';
+  const script = params.get('script') || '';
 
   let defaultTitle = 'แจกไฟล์ดูดหัว';
   let defaultDesc = 'หากสนใจไฟล์ พาแนล โปร เข้าเว็บได้เลย';
 
-  // If accessed from the main website (hub-access or returning to root /)
-  if (slug === 'hub-access' || returnTo === '/' || returnTo.includes('localhost') || returnTo.includes('blacklisthub')) {
+  if (script) {
+    defaultTitle = 'แจกสคริปต์ฟรี (Script Access)';
+    defaultDesc = 'ทำภารกิจด้านล่างเพื่อปลดล็อกและคัดลอกสคริปต์';
+  } else if (slug === 'hub-access' || returnTo === '/' || returnTo.includes('localhost') || returnTo.includes('blacklisthub')) {
     defaultTitle = 'ระบบยืนยันสิทธิ์ Security Access Gate';
     defaultDesc = 'ทำภารกิจด้านล่างเพื่อรับสิทธิ์เข้าใช้งาน Blacklist Hub ฟรี 24 ชั่วโมง';
   }
@@ -50,10 +54,15 @@ function initCustomTitleAndDesc() {
   if (descEl) descEl.textContent = desc;
 }
 
-// 2. Resolve Destination URL (MediaFire / Google Drive)
+// 2. Resolve Destination URL (MediaFire / Google Drive) or Embedded Script
 function initDestinationUrl() {
   const params = new URLSearchParams(window.location.search);
   const returnTo = params.get('return_to') || params.get('url') || params.get('redirect') || '';
+  const script = params.get('script') || '';
+
+  if (script) {
+    targetScriptCode = script;
+  }
 
   if (returnTo) {
     destinationUrl = returnTo;
@@ -220,14 +229,18 @@ function updateProgressState() {
       btnUnlock.className = 'btn-social-unlock ready';
     }
     if (txtUnlock) {
-      const isHub = window.location.search.includes('hub-access') || destinationUrl === '/' || destinationUrl.includes('blacklisthub');
-      txtUnlock.textContent = isHub ? 'เข้าสู่เว็บไซต์ (Enter Website ➔)' : 'Unlock (ดาวน์โหลดไฟล์ ➔)';
+      if (targetScriptCode) {
+        txtUnlock.textContent = 'กดรับสคริปต์ (Get Script ➔)';
+      } else {
+        const isHub = window.location.search.includes('hub-access') || destinationUrl === '/' || destinationUrl.includes('blacklisthub');
+        txtUnlock.textContent = isHub ? 'เข้าสู่เว็บไซต์ (Enter Website ➔)' : 'Unlock (ดาวน์โหลดไฟล์ ➔)';
+      }
     }
     if (iconUnlock) {
       iconUnlock.setAttribute('data-lucide', 'sparkles');
       lucide.createIcons();
     }
-    showToast('🎉 ปลดล็อกเรียบร้อย! แตะปุ่มเพื่อดำเนินการต่อ', 'success', 3500);
+    showToast('🎉 ปลดล็อกเรียบร้อย! แตะปุ่มเพื่อรับสคริปต์', 'success', 3500);
   }
 }
 
@@ -241,6 +254,28 @@ window.handleUnlockClick = function() {
   // 2. Grant 24-Hour Access in localStorage
   grant24HourAccess();
 
+  // 3. If a script code is attached: REVEAL SCRIPT DIRECTLY ON THIS PAGE!
+  if (targetScriptCode) {
+    const tasksGroup = document.querySelector('.social-tasks-group');
+    const progressBlock = document.querySelector('.social-progress-block');
+    const btnUnlock = document.getElementById('btnUnlock');
+    const scriptBox = document.getElementById('scriptResultBox');
+    const scriptText = document.getElementById('scriptCodeText');
+
+    if (tasksGroup) tasksGroup.style.display = 'none';
+    if (progressBlock) progressBlock.style.display = 'none';
+    if (btnUnlock) btnUnlock.style.display = 'none';
+
+    if (scriptText) scriptText.textContent = targetScriptCode;
+    if (scriptBox) scriptBox.style.display = 'block';
+
+    // Auto copy script
+    copyUnlockedScript();
+    showToast('🎉 ปลดล็อกสำเร็จ! คัดลอกสคริปต์ให้เรียบร้อยแล้ว', 'success', 3500);
+    return;
+  }
+
+  // Otherwise, redirect to destinationUrl (e.g. MediaFire or main website)
   const txtUnlock = document.getElementById('txtUnlock');
   if (txtUnlock) txtUnlock.textContent = 'กำลังพาวาร์ปเข้าสู่หน้าดาวน์โหลด...';
 
@@ -249,6 +284,22 @@ window.handleUnlockClick = function() {
   setTimeout(() => {
     window.location.href = destinationUrl;
   }, 600);
+};
+
+// 6. One-Click Copy Unlocked Script
+window.copyUnlockedScript = function() {
+  if (!targetScriptCode) return;
+  navigator.clipboard.writeText(targetScriptCode).then(() => {
+    const btn = document.getElementById('btnCopyScript');
+    const txt = document.getElementById('txtCopyScript');
+    if (txt) txt.textContent = 'คัดลอกเรียบร้อยแล้ว! ✅';
+    showToast('📋 คัดลอกสคริปต์แล้ว! นำไปวางใน Executor ได้เลย', 'success', 3000);
+    setTimeout(() => {
+      if (txt) txt.textContent = 'คัดลอกสคริปต์อีกครั้ง (Copy Again) 📋';
+    }, 2500);
+  }).catch(() => {
+    showToast('กรุณากดค้างที่โค้ดเพื่อคัดลอก', 'info');
+  });
 };
 
 // 6. Trigger Monetag Direct Link (Bulletproof Popup Bypass for Mobile & PC)

@@ -94,8 +94,28 @@
         <span id="txtUnlock">Unlock</span>
       </button>
 
+      <!-- Unlocked Script Result Box (Reveals directly inside card when script is unlocked) -->
+      <div class="social-script-result" id="scriptResultBox" style="display: none;">
+        <div class="script-box-header">
+          <div class="script-badge">
+            <i data-lucide="code" style="width: 13px; height: 13px;"></i>
+            <span>SCRIPT UNLOCKED</span>
+          </div>
+          <span class="script-status">ปลดล็อกสำเร็จแล้ว 🎉</span>
+        </div>
+
+        <div class="script-code-wrap">
+          <pre><code id="scriptCodeText">-- Script loading...</code></pre>
+        </div>
+
+        <button type="button" class="btn-copy-script" id="btnCopyScript" onclick="copyUnlockedScript()">
+          <i data-lucide="copy" id="iconCopyScript" style="width: 16px; height: 16px;"></i>
+          <span id="txtCopyScript">คัดลอกสคริปต์ (Copy Script) 📋</span>
+        </button>
+      </div>
+
       <!-- Footer Link -->
-      <div class="social-card-foot">
+      <div class="social-card-foot" id="cardFooterLinks">
         <a href="https://www.cdnflair.com/unlock/96Qim" target="_blank" rel="noopener noreferrer" class="link-create-own">
           Create Your Own Link
         </a>

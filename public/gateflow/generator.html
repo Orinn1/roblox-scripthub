@@ -266,23 +266,40 @@
         <span>GATEFLOW ACCESS GATE</span>
       </div>
       <h1 class="gen-title">เครื่องมือสร้างลิงก์กั้นโฆษณา</h1>
-      <p class="gen-sub">วางลิงก์ไฟล์ของคุณ (MediaFire / Google Drive) เพื่อสร้างลิงก์ทำเงิน 3 สเต็ปทันที</p>
+      <p class="gen-sub">สร้างลิงก์สำหรับแจกสคริปต์ (คนปลดล็อกกดคัดลอกได้ทันที) หรือลิงก์ดาวน์โหลดไฟล์</p>
+    </div>
+
+    <!-- Mode Selector: Script vs Download Link -->
+    <div style="display: flex; gap: 8px; margin-bottom: 20px; background: rgba(255,255,255,0.04); padding: 4px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+      <button type="button" id="tabModeScript" onclick="switchGenMode('script')" style="flex: 1; height: 38px; border-radius: 9px; border: none; background: #2563EB; color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s ease;">
+        📋 แจกสคริปต์ (Script Code)
+      </button>
+      <button type="button" id="tabModeUrl" onclick="switchGenMode('url')" style="flex: 1; height: 38px; border-radius: 9px; border: none; background: transparent; color: #94A3B8; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s ease;">
+        📥 แจกลิงก์ดาวน์โหลด (MediaFire)
+      </button>
     </div>
 
     <form id="linkGenForm" onsubmit="generateGateLink(event)">
-      <div class="form-group">
-        <label class="form-label" for="targetUrl">ลิงก์ปลายทางที่ต้องการแจก (Destination URL):</label>
-        <input type="url" id="targetUrl" class="form-input" placeholder="https://www.mediafire.com/file/... หรือ Google Drive" required autofocus />
+      <!-- Script Code Box (Active by default) -->
+      <div class="form-group" id="grpScript">
+        <label class="form-label" for="targetScript">โค้ดสคริปต์ที่ต้องการแจก (Script Code):</label>
+        <textarea id="targetScript" class="form-input" style="height: 100px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; resize: vertical;" placeholder='loadstring(game:HttpGet("https://raw.githubusercontent.com/..."))()'></textarea>
+      </div>
+
+      <!-- Destination URL Box (For downloads) -->
+      <div class="form-group" id="grpUrl" style="display: none;">
+        <label class="form-label" for="targetUrl">ลิงก์ดาวน์โหลดที่ต้องการแจก (MediaFire / Drive):</label>
+        <input type="url" id="targetUrl" class="form-input" placeholder="https://www.mediafire.com/file/... หรือ Google Drive" />
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="customTitle">หัวข้อหน้าด่าน (ไม่บังคับ - ค่าเริ่มต้น: แจกไฟล์ดูดหัว):</label>
-        <input type="text" id="customTitle" class="form-input" placeholder="เช่น แจกไฟล์ดูดหัว OB46 หรือ แจกพาแนลฟรี" />
+        <label class="form-label" for="customTitle">ชื่อสคริปต์ / หัวข้อหน้าด่าน:</label>
+        <input type="text" id="customTitle" class="form-input" placeholder="เช่น Blox Fruits Redz Hub หรือ แจกสคริปต์ฟีฟาย" />
       </div>
 
       <div class="form-group">
         <label class="form-label" for="customDesc">คำอธิบายใต้หัวข้อ (ไม่บังคับ):</label>
-        <input type="text" id="customDesc" class="form-input" placeholder="เช่น หากสนใจไฟล์ พาแนล โปร เข้าเว็บได้เลย" />
+        <input type="text" id="customDesc" class="form-input" placeholder="เช่น ทำภารกิจด้านล่างเพื่อปลดล็อกและคัดลอกสคริปต์" />
       </div>
 
       <div class="form-group">
@@ -333,18 +350,40 @@
 
   <script>
     let currentGeneratedUrl = '';
+    let currentMode = 'script'; // 'script' or 'url'
 
     document.addEventListener('DOMContentLoaded', () => {
       loadHistory();
       lucide.createIcons();
     });
 
+    function switchGenMode(mode) {
+      currentMode = mode;
+      const tabScript = document.getElementById('tabModeScript');
+      const tabUrl = document.getElementById('tabModeUrl');
+      const grpScript = document.getElementById('grpScript');
+      const grpUrl = document.getElementById('grpUrl');
+
+      if (mode === 'script') {
+        tabScript.style.background = '#2563EB';
+        tabScript.style.color = '#fff';
+        tabUrl.style.background = 'transparent';
+        tabUrl.style.color = '#94A3B8';
+        grpScript.style.display = 'block';
+        grpUrl.style.display = 'none';
+      } else {
+        tabUrl.style.background = '#2563EB';
+        tabUrl.style.color = '#fff';
+        tabScript.style.background = 'transparent';
+        tabScript.style.color = '#94A3B8';
+        grpScript.style.display = 'none';
+        grpUrl.style.display = 'block';
+      }
+    }
+
     function generateGateLink(e) {
       e.preventDefault();
-      const target = document.getElementById('targetUrl').value.trim();
       const domainChoice = document.getElementById('domainOption').value;
-
-      if (!target) return;
 
       let baseUrl = 'https://th.blacklisthub.workers.dev';
       if (domainChoice === 'local' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
@@ -353,15 +392,34 @@
         }
       }
 
-      // Generate locked link with custom title and desc if provided
       const customTitle = (document.getElementById('customTitle')?.value || '').trim();
       const customDesc = (document.getElementById('customDesc')?.value || '').trim();
 
-      let query = `return_to=${encodeURIComponent(target)}`;
-      if (customTitle) query += `&title=${encodeURIComponent(customTitle)}`;
-      if (customDesc) query += `&desc=${encodeURIComponent(customDesc)}`;
+      let queryParams = [];
 
-      currentGeneratedUrl = `${baseUrl}/gateflow/locker.html?${query}`;
+      if (currentMode === 'script') {
+        const scriptCode = (document.getElementById('targetScript')?.value || '').trim();
+        if (!scriptCode) {
+          alert('กรุณาวางโค้ดสคริปต์ที่ต้องการแจก');
+          return;
+        }
+        queryParams.push(`script=${encodeURIComponent(scriptCode)}`);
+        if (customTitle) queryParams.push(`title=${encodeURIComponent(customTitle)}`);
+        if (customDesc) queryParams.push(`desc=${encodeURIComponent(customDesc)}`);
+        saveToHistory(`Script: ${customTitle || 'Blox Fruits Script'}`, currentGeneratedUrl);
+      } else {
+        const target = (document.getElementById('targetUrl')?.value || '').trim();
+        if (!target) {
+          alert('กรุณาวางลิงก์ดาวน์โหลดปลายทาง');
+          return;
+        }
+        queryParams.push(`return_to=${encodeURIComponent(target)}`);
+        if (customTitle) queryParams.push(`title=${encodeURIComponent(customTitle)}`);
+        if (customDesc) queryParams.push(`desc=${encodeURIComponent(customDesc)}`);
+        saveToHistory(target, currentGeneratedUrl);
+      }
+
+      currentGeneratedUrl = `${baseUrl}/gateflow/locker.html?${queryParams.join('&')}`;
 
       // Show result
       const resultBox = document.getElementById('resultBox');
@@ -371,9 +429,6 @@
       resultText.textContent = currentGeneratedUrl;
       testBtn.href = currentGeneratedUrl;
       resultBox.style.display = 'flex';
-
-      // Save to localStorage history
-      saveToHistory(target, currentGeneratedUrl);
 
       // Auto copy
       copyResultLink();
