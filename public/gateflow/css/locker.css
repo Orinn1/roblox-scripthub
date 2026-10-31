@@ -1437,6 +1437,45 @@
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
+@keyframes pulseGoldGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.25), 0 4px 20px rgba(0, 0, 0, 0.35);
+    border-color: rgba(245, 158, 11, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.55), 0 4px 25px rgba(245, 158, 11, 0.25);
+    border-color: rgba(245, 158, 11, 0.95);
+  }
+}
+
+.vip-fastpass-card.top-spotlight {
+  animation: pulseGoldGlow 2.5s infinite ease-in-out;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.05) 100%);
+  border: 1.5px solid rgba(245, 158, 11, 0.55);
+}
+
+.btn-fastpass-action.pulse-gold {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-fastpass-action.pulse-gold::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(60deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: rotate(30deg);
+  animation: btnShimmer 3s infinite linear;
+}
+
+@keyframes btnShimmer {
+  0% { transform: translateX(-100%) rotate(30deg); }
+  25%, 100% { transform: translateX(100%) rotate(30deg); }
+}
+
 .vip-fastpass-card:hover {
   border-color: rgba(245, 158, 11, 0.6);
   transform: translateY(-2px);
