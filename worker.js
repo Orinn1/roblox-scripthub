@@ -712,6 +712,78 @@ export default {
         }
 
         // =========================================================================
+        // 5.5 AUTO-FETCH LATEST YOUTUBE VIDEO (/api/latest-video)
+        // =========================================================================
+        if (url.pathname === '/api/latest-video') {
+            const rawCh = (url.searchParams.get('ch') || url.searchParams.get('channel') || '@GhostSensix').trim();
+            const cleanCh = rawCh.replace(/^@/, '').toLowerCase();
+            
+            const KNOWN_CHANNELS = {
+                'ghostsensix': 'UC8laKzbaWUNJMJ6XN_pxiBg',
+                'ghostsensi': 'UC8laKzbaWUNJMJ6XN_pxiBg',
+                'blacklistxyx': 'UCOAGxYeICyBbSjxJkul3HXA',
+                'blacklist': 'UCOAGxYeICyBbSjxJkul3HXA'
+            };
+
+            let channelId = KNOWN_CHANNELS[cleanCh] || '';
+
+            if (!channelId && cleanCh) {
+                try {
+                    const ytRes = await fetch(`https://www.youtube.com/@${cleanCh}`, {
+                        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+                    });
+                    const ytHtml = await ytRes.text();
+                    const m = ytHtml.match(/browseId":"(UC[a-zA-Z0-9_-]{22})"/);
+                    if (m && m[1]) channelId = m[1];
+                } catch (e) {}
+            }
+
+            if (!channelId) {
+                return new Response(JSON.stringify({ 
+                    success: true, 
+                    channel: cleanCh,
+                    videoUrl: `https://www.youtube.com/@${cleanCh}/videos` 
+                }), {
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            try {
+                const rssRes = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`, {
+                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+                });
+                const rssXml = await rssRes.text();
+                const vMatch = rssXml.match(/<yt:videoId>([a-zA-Z0-9_-]{11})<\/yt:videoId>/);
+                if (vMatch && vMatch[1]) {
+                    const vid = vMatch[1];
+                    return new Response(JSON.stringify({
+                        success: true,
+                        channel: cleanCh,
+                        channelId,
+                        videoId: vid,
+                        videoUrl: `https://www.youtube.com/watch?v=${vid}`
+                    }), {
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'Cache-Control': 'public, max-age=180',
+                            ...corsHeaders() 
+                        }
+                    });
+                }
+            } catch (err) {}
+
+            return new Response(JSON.stringify({
+                success: true,
+                channel: cleanCh,
+                channelId,
+                videoId: '',
+                videoUrl: `https://www.youtube.com/@${cleanCh}/videos`
+            }), {
+                headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+            });
+        }
+
+        // =========================================================================
         // 6. CLEAN URL REWRITES & STATIC ASSET SERVING
         // =========================================================================
         if (url.pathname === '/sw.js') {

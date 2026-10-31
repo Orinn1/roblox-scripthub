@@ -8,6 +8,7 @@
 const TOTAL_TASKS = 6;
 let destinationUrl = '';
 let targetScriptCode = '';
+let cachedLatestVideoUrl = '';
 const tasksDone = [false, false, false, false, false, false];
 const isVerifying = [false, false, false, false, false, false];
 
@@ -22,6 +23,7 @@ const AD_DIRECT_POOL = [
 document.addEventListener('DOMContentLoaded', () => {
   initCustomTitleAndDesc();
   initDestinationUrl();
+  fetchLatestVideo();
   checkInAppBrowser();
   if (window.lucide) lucide.createIcons();
 });
@@ -96,12 +98,53 @@ function getTargetYoutubeUrl() {
   return 'https://www.youtube.com/@Blacklistxyx?sub_confirmation=1';
 }
 
-// Helper: Get Target YouTube Video URL
+// Auto-fetch latest YouTube video in the background via Worker API
+async function fetchLatestVideo() {
+  const params = new URLSearchParams(window.location.search);
+  const customVideo = params.get('v') || params.get('video');
+  if (customVideo) {
+    cachedLatestVideoUrl = customVideo;
+    return;
+  }
+
+  const customCh = params.get('ch') || params.get('yt') || '';
+  const fullSearch = window.location.search.toLowerCase();
+  const isGhost = customCh.toLowerCase().includes('ghost') || fullSearch.includes('ghost') || fullSearch.includes('freefire');
+  const targetCh = isGhost ? 'GhostSensix' : (customCh ? customCh : 'Blacklistxyx');
+
+  try {
+    const res = await fetch(`/api/latest-video?ch=${encodeURIComponent(targetCh)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.videoUrl) {
+        cachedLatestVideoUrl = data.videoUrl;
+        return;
+      }
+    }
+  } catch (e) {}
+
+  // Fallback if API hasn't loaded or local dev
+  if (isGhost) {
+    cachedLatestVideoUrl = 'https://www.youtube.com/@GhostSensix/videos';
+  } else {
+    cachedLatestVideoUrl = 'https://www.youtube.com/watch?v=ClBmbJDIWzA';
+  }
+}
+
+// Helper: Get Target YouTube Video URL (Auto resolved from YouTube channel)
 function getTargetVideoUrl() {
   const params = new URLSearchParams(window.location.search);
   const customVideo = params.get('v') || params.get('video');
   if (customVideo) return customVideo;
-  return 'https://youtu.be/FdXsvivWhOw';
+
+  if (cachedLatestVideoUrl) {
+    return cachedLatestVideoUrl;
+  }
+
+  const customCh = params.get('ch') || params.get('yt') || '';
+  const fullSearch = window.location.search.toLowerCase();
+  const isGhost = customCh.toLowerCase().includes('ghost') || fullSearch.includes('ghost') || fullSearch.includes('freefire');
+  return isGhost ? 'https://www.youtube.com/@GhostSensix/videos' : 'https://www.youtube.com/watch?v=ClBmbJDIWzA';
 }
 
 // 3. Handle Social Task Clicks (1-6)
