@@ -968,8 +968,8 @@
 
                         <div>
                             <label class="form-label" id="lblAdminGateUrl">ลิงก์สำหรับให้ผู้ใช้กด (BlackPass Content Locker)</label>
-                            <input type="text" id="adminGateUrl" class="form-control" placeholder="https://th.blacklisthub.workers.dev/gateflow/locker.html?slug=hub-access">
-                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;" id="descAdminGateUrl">ลิงก์หน้า BlackPass Locker สำหรับทำภารกิจ 3 ด่าน</span>
+                            <input type="text" id="adminGateUrl" class="form-control" placeholder="https://th.blacklisthub.workers.dev/access">
+                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;" id="descAdminGateUrl">ลิงก์หน้าปลดล็อคเว็บไซต์แบบสั้น (เช่น https://th.blacklisthub.workers.dev/access หรือ /access)</span>
                         </div>
 
                         <div>
@@ -1008,7 +1008,7 @@
                                     <i data-lucide="zap" style="width: 14px; height: 14px; color: #fde047;"></i>
                                     <span>⚡ เปิดเครื่องมือสร้างลิงก์</span>
                                 </a>
-                                <a href="/gateflow/locker.html?slug=hub-access" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+                                <a href="/access" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
                                     <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
                                     <span>🚀 ทดสอบหน้า Locker</span>
                                 </a>
@@ -1021,10 +1021,10 @@
 
                         <div>
                             <div style="font-size: 12px; color: #34d399; font-weight: 600; margin-bottom: 6px;">
-                                🔗 ลิงก์หน้า BlackPass Locker (สำหรับนำไปใส่ในช่องด้านบน):
+                                🔗 ลิงก์หน้า BlackPass Locker แบบสั้น (นำไปใส่ในช่องด้านบนได้ทันที):
                             </div>
                             <div style="display: flex; gap: 8px;">
-                                <input type="text" id="blackpassLockerUrlHelper" class="form-control" value="https://th.blacklisthub.workers.dev/gateflow/locker.html?slug=hub-access" readonly style="background: #090a0d; color: #34d399; font-family: monospace; font-size: 12px;">
+                                <input type="text" id="blackpassLockerUrlHelper" class="form-control" value="https://th.blacklisthub.workers.dev/access" readonly style="background: #090a0d; color: #34d399; font-family: monospace; font-size: 13px; font-weight: 600;">
                                 <button type="button" id="btnCopyBlackpassHelper" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 0 16px; border-radius: 8px; font-size: 12px; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
                                     <i data-lucide="copy" style="width: 14px; height: 14px;"></i> <span>คัดลอก</span>
                                 </button>

@@ -52,7 +52,7 @@ const SITE_CONFIG = {
         provider: "blackpass", // "blackpass" | "shrinkme" | "shrinkearn" | "lootlabs" | "custom"
         token: "blacklist_vip",
         shrinkmeUrl: "https://shrinkme.click/cBGgRn",
-        blackpassLockerUrl: "/gateflow/locker.html?slug=hub-access",
+        blackpassLockerUrl: "/access",
         shrinkearnUrl: "https://srnky.com/aehfqq0",
         shrinkearnApiToken: "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
         tutorialVideoUrl: "https://youtu.be/FdXsvivWhOw",
@@ -139,8 +139,8 @@ window.mergeSiteConfig = function (source) {
         if (!SITE_CONFIG.lootlabsGate.provider) {
             SITE_CONFIG.lootlabsGate.provider = "blackpass";
         }
-        if (!SITE_CONFIG.lootlabsGate.blackpassLockerUrl) {
-            SITE_CONFIG.lootlabsGate.blackpassLockerUrl = "/gateflow/locker.html?slug=hub-access";
+        if (!SITE_CONFIG.lootlabsGate.blackpassLockerUrl || SITE_CONFIG.lootlabsGate.blackpassLockerUrl.includes("gateflow/locker") || SITE_CONFIG.lootlabsGate.blackpassLockerUrl.includes("slug=hub-access")) {
+            SITE_CONFIG.lootlabsGate.blackpassLockerUrl = "/access";
         }
         if (!window.isGlobalDomain()) {
             if (SITE_CONFIG.lootlabsGate.provider === "blackpass") {
@@ -211,8 +211,8 @@ window.getSiteConfigStorageKey = function () {
                 if (!parsed.lootlabsGate.provider || parsed.lootlabsGate.provider === "shrinkme") {
                     parsed.lootlabsGate.provider = "blackpass";
                 }
-                if (!parsed.lootlabsGate.blackpassLockerUrl) {
-                    parsed.lootlabsGate.blackpassLockerUrl = "/gateflow/locker.html?slug=hub-access";
+                if (!parsed.lootlabsGate.blackpassLockerUrl || parsed.lootlabsGate.blackpassLockerUrl.includes("gateflow/locker") || parsed.lootlabsGate.blackpassLockerUrl.includes("slug=hub-access")) {
+                    parsed.lootlabsGate.blackpassLockerUrl = "/access";
                 }
                 if (window.isGlobalDomain()) {
                     parsed.lootlabsGate.bypassMessage = "Please complete the support link to unlock access to the website.";
@@ -230,8 +230,8 @@ window.getSiteConfigStorageKey = function () {
                 if (!SITE_CONFIG.lootlabsGate.provider || SITE_CONFIG.lootlabsGate.provider === "shrinkme") {
                     SITE_CONFIG.lootlabsGate.provider = "blackpass";
                 }
-                if (!SITE_CONFIG.lootlabsGate.blackpassLockerUrl) {
-                    SITE_CONFIG.lootlabsGate.blackpassLockerUrl = "/gateflow/locker.html?slug=hub-access";
+                if (!SITE_CONFIG.lootlabsGate.blackpassLockerUrl || SITE_CONFIG.lootlabsGate.blackpassLockerUrl.includes("gateflow/locker") || SITE_CONFIG.lootlabsGate.blackpassLockerUrl.includes("slug=hub-access")) {
+                    SITE_CONFIG.lootlabsGate.blackpassLockerUrl = "/access";
                 }
                 if (!window.isGlobalDomain()) {
                     if (SITE_CONFIG.lootlabsGate.provider === "blackpass") {

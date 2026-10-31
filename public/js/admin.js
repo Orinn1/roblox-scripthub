@@ -1327,9 +1327,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const origin = window.location.origin || "https://th.blacklisthub.workers.dev";
         const token = (adminGateToken && adminGateToken.value.trim()) ? adminGateToken.value.trim() : "blacklist_vip";
 
-        // ลิงก์สำหรับ BlackPass Content Locker
+        // ลิงก์สำหรับ BlackPass Content Locker (ใช้ URL สั้น /access)
         if (blackpassLockerUrlHelper) {
-            blackpassLockerUrlHelper.value = `${origin}/gateflow/locker.html?slug=hub-access`;
+            blackpassLockerUrlHelper.value = `${origin}/access`;
         }
 
         // ลิงก์ปลายทางสำหรับ ShrinkEarn (มี Token + พารามิเตอร์กันซ้ำ)
@@ -1380,11 +1380,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (shrinkearnGuideBox) shrinkearnGuideBox.style.display = "none";
             if (lootlabsGuideBox) lootlabsGuideBox.style.display = "none";
             if (lblAdminGateUrl) lblAdminGateUrl.textContent = "ลิงก์สำหรับให้ผู้ใช้กด (BlackPass Content Locker)";
-            if (descAdminGateUrl) descAdminGateUrl.textContent = "ลิงก์หน้า BlackPass Locker สำหรับทำภารกิจ 3 ด่าน (เช่น /gateflow/locker.html?slug=hub-access)";
+            if (descAdminGateUrl) descAdminGateUrl.textContent = "ลิงก์หน้าปลดล็อคเว็บไซต์แบบสั้น (เช่น https://th.blacklisthub.workers.dev/access หรือ /access)";
             if (adminGateUrl) {
-                adminGateUrl.placeholder = `${origin}/gateflow/locker.html?slug=hub-access`;
-                const saved = SITE_CONFIG.lootlabsGate?.blackpassLockerUrl || (SITE_CONFIG.lootlabsGate?.provider === "blackpass" ? SITE_CONFIG.lootlabsGate?.shrinkearnUrl : "");
-                adminGateUrl.value = saved || `${origin}/gateflow/locker.html?slug=hub-access`;
+                adminGateUrl.placeholder = `${origin}/access`;
+                let saved = SITE_CONFIG.lootlabsGate?.blackpassLockerUrl || (SITE_CONFIG.lootlabsGate?.provider === "blackpass" ? SITE_CONFIG.lootlabsGate?.shrinkearnUrl : "");
+                if (saved && (saved.includes("gateflow/locker") || saved.includes("slug=hub-access") || saved.includes("return_to="))) {
+                    saved = `${origin}/access`;
+                }
+                adminGateUrl.value = saved || `${origin}/access`;
             }
         } else if (provider === "shrinkearn") {
             if (blackpassGuideBox) blackpassGuideBox.style.display = "none";
@@ -1494,7 +1497,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 enabled: true,
                 provider: "blackpass",
                 token: "blacklist_vip",
-                blackpassLockerUrl: "/gateflow/locker.html?slug=hub-access",
+                blackpassLockerUrl: "/access",
                 shrinkearnUrl: "https://srnky.com/aehfqq0",
                 shrinkearnApiToken: "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
                 lootlabsUrl: "",
@@ -1542,8 +1545,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (gateEnableCheckbox) {
             const provider = adminGateProvider ? adminGateProvider.value : "blackpass";
-            const enteredUrl = adminGateUrl ? adminGateUrl.value.trim() : "";
+            let enteredUrl = adminGateUrl ? adminGateUrl.value.trim() : "";
             const currentGate = SITE_CONFIG.lootlabsGate || {};
+
+            if (provider === "blackpass") {
+                if (!enteredUrl || enteredUrl.includes("gateflow/locker") || enteredUrl.includes("slug=hub-access") || enteredUrl.includes("return_to=")) {
+                    enteredUrl = `${window.location.origin || "https://th.blacklisthub.workers.dev"}/access`;
+                }
+            }
 
             SITE_CONFIG.lootlabsGate = {
                 ...currentGate,
@@ -1551,7 +1560,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 provider: provider,
                 token: (adminGateToken ? adminGateToken.value.trim() : "blacklist_vip") || "blacklist_vip",
                 shrinkmeUrl: provider === "shrinkme" ? enteredUrl : (currentGate.shrinkmeUrl || enteredUrl),
-                blackpassLockerUrl: provider === "blackpass" ? enteredUrl : (currentGate.blackpassLockerUrl || "/gateflow/locker.html?slug=hub-access"),
+                blackpassLockerUrl: provider === "blackpass" ? enteredUrl : (currentGate.blackpassLockerUrl || "/access"),
                 shrinkearnUrl: provider === "shrinkearn" ? enteredUrl : (currentGate.shrinkearnUrl || enteredUrl),
                 shrinkearnApiToken: (adminShrinkearnApiToken ? adminShrinkearnApiToken.value.trim() : "3ce8c70d0c1e31404164f66164ea8f9117b29b69") || "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
                 tutorialVideoUrl: (adminGateTutorialUrl ? adminGateTutorialUrl.value.trim() : "https://youtu.be/FdXsvivWhOw") || "https://youtu.be/FdXsvivWhOw",

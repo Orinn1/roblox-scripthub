@@ -14,8 +14,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/locker.css">
+  <link rel="stylesheet" href="/gateflow/css/main.css">
+  <link rel="stylesheet" href="/gateflow/css/locker.css">
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -285,6 +285,17 @@
     </div>
 
     <!-- Mode Selector: Script vs Download Link -->
+    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+      <div style="font-size: 12px; color: #a7f3d0; display: flex; align-items: center; gap: 6px;">
+        <i data-lucide="zap" style="width: 14px; height: 14px; color: #34d399;"></i>
+        <span>ลิงก์เข้าสู่เว็บหลัก (Security Access Gate แบบสั้น):</span>
+      </div>
+      <button type="button" onclick="copyAccessGateUrl()" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
+        <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
+        <span id="btnCopyAccessGateTxt">/access (คัดลอก)</span>
+      </button>
+    </div>
+
     <div style="display: flex; gap: 8px; margin-bottom: 20px; background: rgba(255,255,255,0.04); padding: 4px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
       <button type="button" id="tabModeScript" onclick="switchGenMode('script')" style="flex: 1; height: 38px; border-radius: 9px; border: none; background: #2563EB; color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s ease;">
         📋 แจกสคริปต์ (Script Code)
@@ -431,15 +442,13 @@
 
       let queryParams = [];
 
-      // เลือกช่อง YouTube ที่ต้องการ
+      // เลือกช่อง YouTube ที่ต้องการ (Blacklistxyx เป็นค่าเริ่มต้น ไม่ต้องต่อ param ให้ลิงก์ยาว)
       const channelChoice = document.getElementById('ytChannelSelect')?.value || 'Blacklistxyx';
       if (channelChoice === 'GhostSensix') {
         queryParams.push('ch=GhostSensix');
       } else if (channelChoice === 'custom') {
         const customCh = (document.getElementById('customYt')?.value || '').trim();
         if (customCh) queryParams.push(`ch=${encodeURIComponent(customCh)}`);
-      } else {
-        queryParams.push('ch=Blacklistxyx');
       }
 
       if (currentMode === 'script') {
@@ -458,13 +467,13 @@
           alert('กรุณาวางลิงก์ดาวน์โหลดปลายทาง');
           return;
         }
-        queryParams.push(`return_to=${encodeURIComponent(target)}`);
+        queryParams.push(`url=${encodeURIComponent(target)}`);
         if (customTitle) queryParams.push(`title=${encodeURIComponent(customTitle)}`);
         if (customDesc) queryParams.push(`desc=${encodeURIComponent(customDesc)}`);
         saveToHistory(target, currentGeneratedUrl);
       }
 
-      currentGeneratedUrl = `${baseUrl}/gateflow/locker.html?${queryParams.join('&')}`;
+      currentGeneratedUrl = `${baseUrl}/go?${queryParams.join('&')}`;
 
       // Show result
       const resultBox = document.getElementById('resultBox');
@@ -490,6 +499,23 @@
           btn.innerHTML = '<i data-lucide="copy" style="width: 15px; height: 15px;"></i><span>คัดลอกลิงก์</span>';
           lucide.createIcons();
         }, 2000);
+      });
+    }
+
+    function copyAccessGateUrl() {
+      const channelChoice = document.getElementById('ytChannelSelect')?.value || 'Blacklistxyx';
+      const baseUrl = window.location.origin || 'https://th.blacklisthub.workers.dev';
+      let url = `${baseUrl}/access`;
+      if (channelChoice === 'GhostSensix') {
+        url += '?ch=GhostSensix';
+      } else if (channelChoice === 'custom') {
+        const customCh = (document.getElementById('customYt')?.value || '').trim();
+        if (customCh) url += `?ch=${encodeURIComponent(customCh)}`;
+      }
+      navigator.clipboard.writeText(url).then(() => {
+        const t = document.getElementById('btnCopyAccessGateTxt');
+        if (t) t.textContent = 'คัดลอกแล้ว! ✅';
+        setTimeout(() => { if (t) t.textContent = '/access (คัดลอก)'; }, 2500);
       });
     }
 

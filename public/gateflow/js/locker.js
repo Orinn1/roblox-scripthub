@@ -34,14 +34,16 @@ function initCustomTitleAndDesc() {
   const slug = params.get('slug') || '';
   const returnTo = params.get('return_to') || params.get('url') || params.get('redirect') || '';
   const script = params.get('script') || '';
+  const path = window.location.pathname.toLowerCase();
+  const isAccessGate = path === '/access' || path === '/hub' || path === '/gate' || slug === 'hub-access' || returnTo === '/' || returnTo.includes('localhost') || returnTo.includes('blacklisthub');
 
-  let defaultTitle = 'ปลดล็อกลิงก์ดาวน์โหลด';
+  let defaultTitle = 'ปลดล็อกลิงก์และไฟล์ฟรี';
   let defaultDesc = 'ทำภารกิจสนับสนุน 6 ขั้นตอนด้านล่างเพื่อรับไฟล์/สคริปต์ฟรี';
 
   if (script) {
     defaultTitle = 'แจกสคริปต์ฟรี (Script Access)';
     defaultDesc = 'ทำภารกิจ 6 ขั้นตอนด้านล่างเพื่อปลดล็อกและรับโค้ดสคริปต์';
-  } else if (slug === 'hub-access' || returnTo === '/' || returnTo.includes('localhost') || returnTo.includes('blacklisthub')) {
+  } else if (isAccessGate) {
     defaultTitle = 'ระบบยืนยันสิทธิ์ Security Access Gate';
     defaultDesc = 'ทำภารกิจ 6 ขั้นตอนด้านล่างเพื่อรับสิทธิ์เข้าใช้งานเว็บฟรี 24 ชั่วโมง';
   }
@@ -74,7 +76,7 @@ function initDestinationUrl() {
   } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     destinationUrl = '/';
   } else {
-    destinationUrl = 'https://th.blacklisthub.workers.dev/';
+    destinationUrl = `${window.location.origin}/`;
   }
 }
 
@@ -253,7 +255,8 @@ function updateProgressState() {
       if (targetScriptCode) {
         txtUnlock.textContent = 'กดรับสคริปต์ (Get Script ➔)';
       } else {
-        const isHub = window.location.search.includes('hub-access') || destinationUrl === '/' || destinationUrl.includes('blacklisthub') || destinationUrl.includes('localhost');
+        const path = window.location.pathname.toLowerCase();
+        const isHub = path === '/access' || path === '/hub' || path === '/gate' || window.location.search.includes('hub-access') || destinationUrl === '/' || destinationUrl.includes('blacklisthub') || destinationUrl.includes('localhost');
         txtUnlock.textContent = isHub ? 'เข้าสู่เว็บไซต์ (Enter Website ➔)' : 'Unlock (ดาวน์โหลดไฟล์ ➔)';
       }
     }
@@ -298,7 +301,8 @@ window.handleUnlockClick = function() {
   }
 
   // Otherwise, redirect to destinationUrl (e.g. MediaFire or main website)
-  const isHub = window.location.search.includes('hub-access') || destinationUrl === '/' || destinationUrl.includes('blacklisthub') || destinationUrl.includes('localhost');
+  const path = window.location.pathname.toLowerCase();
+  const isHub = path === '/access' || path === '/hub' || path === '/gate' || window.location.search.includes('hub-access') || destinationUrl === '/' || destinationUrl.includes('blacklisthub') || destinationUrl.includes('localhost');
   const txtUnlock = document.getElementById('txtUnlock');
   if (txtUnlock) txtUnlock.textContent = isHub ? 'กำลังเข้าสู่เว็บไซต์...' : 'กำลังพาวาร์ปเข้าสู่หน้าดาวน์โหลด...';
 

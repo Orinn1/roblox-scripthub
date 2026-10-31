@@ -2140,14 +2140,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (gateLootlabsBtn) {
                 if (provider === "blackpass") {
-                    let baseLink = (gate.blackpassLockerUrl || "/gateflow/locker.html?slug=hub-access").trim();
-                    // ป้องกันการเด้งข้ามไปโดเมนภายนอกขณะทดสอบ หรือถ้าเป็นลิงก์ locker เดิม ให้ใช้ /gateflow/locker.html สไตล์ SocialWolvez เสมอ
-                    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || baseLink.includes("gateflow/locker")) {
-                        baseLink = "/gateflow/locker.html?slug=hub-access";
+                    let baseLink = (gate.blackpassLockerUrl || "/access").trim();
+                    // ปรับลิงก์เก่าที่ยาวหรือค้าง slug=hub-access ให้เป็น /access แบบสั้นเสมอ
+                    if (baseLink.includes("gateflow/locker") || baseLink.includes("slug=hub-access") || baseLink.includes("return_to=")) {
+                        baseLink = "/access";
                     }
-                    const returnTo = encodeURIComponent(window.location.origin + window.location.pathname);
-                    const separator = baseLink.includes("?") ? "&" : "?";
-                    gateLootlabsBtn.href = `${baseLink}${separator}return_to=${returnTo}`;
+                    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+                        if (baseLink.startsWith("http")) {
+                            try {
+                                const u = new URL(baseLink);
+                                baseLink = `${u.pathname}${u.search}`;
+                            } catch (e) {
+                                baseLink = "/access";
+                            }
+                        }
+                    }
+                    gateLootlabsBtn.href = baseLink;
                     if (lblGateBtn) {
                         lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
                     }

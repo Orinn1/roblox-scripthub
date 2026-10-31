@@ -35,6 +35,17 @@ try {
         $rawPath = $request.Url.LocalPath
         if ($rawPath -eq "/") { $rawPath = "/index.html" }
 
+        # Short & Clean URLs for Locker & Access Gate
+        if ($rawPath -in @("/access", "/hub", "/gate", "/go", "/locker")) {
+            $rawPath = "/gateflow/locker.html"
+        }
+        if ($rawPath -in @("/generator")) {
+            $rawPath = "/gateflow/generator.html"
+        }
+        if ($rawPath -in @("/dashboard")) {
+            $rawPath = "/gateflow/dashboard.html"
+        }
+
         # Normalize relative path
         $relPath = $rawPath.TrimStart("/\").Replace("/", "\")
         $filePath = Join-Path $Root $relPath
