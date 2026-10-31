@@ -1369,18 +1369,11 @@
 }
 
 .round-badge-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 12px;
-  border-radius: 9999px;
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  font-size: 11px;
-  font-weight: 800;
-  color: #38BDF8;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
+  display: none !important;
+}
+
+.action-sub-hint {
+  display: none !important;
 }
 
 .round-main-title {
@@ -1398,176 +1391,125 @@
 }
 
 /* ==========================================================================
-   VIP FastPass Alternative Card (CPALead 3-Day Ad-Free)
+   Sleek Compact VIP FastPass Bar (Zero Clutter, Maximum Breathability)
    ========================================================================== */
-.or-divider {
+.vip-compact-wrap {
+  padding: 0 20px;
+  margin: 6px 0 10px 0;
+}
+
+.vip-compact-bar {
   display: flex;
   align-items: center;
-  margin: 18px 0 14px;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 10px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.05) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 12px;
+  padding: 9px 13px;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  animation: pulseGoldGlow 3s infinite ease-in-out;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.or-line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.2), transparent);
-}
-
-.or-badge {
-  font-size: 11px;
-  font-weight: 700;
-  color: #F59E0B;
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  border-radius: 9999px;
-  padding: 3px 12px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.vip-fastpass-card {
-  position: relative;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.03) 100%);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  border-radius: 14px;
-  padding: 16px 18px;
-  text-align: left;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s ease, border-color 0.2s ease;
+.vip-compact-bar:hover {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.08) 100%);
+  border-color: rgba(245, 158, 11, 0.85);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
 }
 
 @keyframes pulseGoldGlow {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(245, 158, 11, 0.25), 0 4px 20px rgba(0, 0, 0, 0.35);
-    border-color: rgba(245, 158, 11, 0.45);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.2), 0 4px 16px rgba(0, 0, 0, 0.3);
+    border-color: rgba(245, 158, 11, 0.4);
   }
   50% {
-    box-shadow: 0 0 30px rgba(245, 158, 11, 0.55), 0 4px 25px rgba(245, 158, 11, 0.25);
-    border-color: rgba(245, 158, 11, 0.95);
+    box-shadow: 0 0 22px rgba(245, 158, 11, 0.5), 0 4px 20px rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.9);
   }
 }
 
-.vip-fastpass-card.top-spotlight {
-  animation: pulseGoldGlow 2.5s infinite ease-in-out;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.05) 100%);
-  border: 1.5px solid rgba(245, 158, 11, 0.55);
-}
-
-.btn-fastpass-action.pulse-gold {
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-fastpass-action.pulse-gold::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(60deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-  transform: rotate(30deg);
-  animation: btnShimmer 3s infinite linear;
-}
-
-@keyframes btnShimmer {
-  0% { transform: translateX(-100%) rotate(30deg); }
-  25%, 100% { transform: translateX(100%) rotate(30deg); }
-}
-
-.vip-fastpass-card:hover {
-  border-color: rgba(245, 158, 11, 0.6);
-  transform: translateY(-2px);
-}
-
-.fastpass-glow-orb {
-  position: absolute;
-  top: -20px;
-  right: -20px;
-  width: 90px;
-  height: 90px;
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.fastpass-header {
+.vip-bar-left {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
+  gap: 10px;
+  min-width: 0;
 }
 
-.fastpass-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+.vip-bar-icon-orb {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
   background: linear-gradient(135deg, #F59E0B, #D97706);
   color: #06080E;
-  font-size: 11px;
-  font-weight: 800;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
 }
 
-.fastpass-duration {
-  font-size: 11px;
-  font-weight: 700;
-  color: #FBBF24;
-  font-family: 'JetBrains Mono', monospace;
-  background: rgba(251, 191, 36, 0.1);
-  padding: 2px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(251, 191, 36, 0.25);
+.vip-bar-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  min-width: 0;
 }
 
-.fastpass-title {
-  font-size: 14.5px;
-  font-weight: 700;
-  color: #F8FAFC;
-  margin: 0 0 6px 0;
-  line-height: 1.4;
-}
-
-.fastpass-desc {
-  font-size: 12px;
-  color: #CBD5E1;
-  margin: 0 0 14px 0;
-  line-height: 1.5;
-}
-
-.fastpass-desc strong {
-  color: #FDE68A;
-}
-
-.btn-fastpass-action {
+.vip-bar-headline {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 11px 16px;
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-  color: #050811 !important;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.vip-bar-tag {
+  font-size: 11.5px;
   font-weight: 800;
-  font-size: 13.5px;
-  border-radius: 10px;
-  text-decoration: none;
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  cursor: pointer;
+  color: #F8FAFC;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
-.btn-fastpass-action:hover {
-  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+.vip-bar-pass-type {
+  font-size: 10px;
+  font-weight: 800;
+  color: #06080E;
+  background: linear-gradient(135deg, #FBBF24, #F59E0B);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
 }
 
-.btn-fastpass-content {
+.vip-bar-sub {
+  font-size: 11px;
+  color: #94A3B8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vip-bar-action {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: #06080E;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.vip-compact-bar:hover .vip-bar-action {
+  background: linear-gradient(135deg, #FBBF24, #F59E0B);
+  transform: scale(1.03);
 }
