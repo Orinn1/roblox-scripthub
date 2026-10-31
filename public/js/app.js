@@ -2140,7 +2140,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (gateLootlabsBtn) {
                 if (provider === "blackpass") {
-                    const baseLink = (gate.blackpassLockerUrl || "/gateflow/locker.html?slug=hub-access").trim();
+                    let baseLink = (gate.blackpassLockerUrl || "/gateflow/locker.html?slug=hub-access").trim();
+                    // ป้องกันการเด้งข้ามไปโดเมนภายนอกขณะทดสอบ หรือถ้าเป็นลิงก์ locker เดิม ให้ใช้ /gateflow/locker.html สไตล์ SocialWolvez เสมอ
+                    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || baseLink.includes("gateflow/locker")) {
+                        baseLink = "/gateflow/locker.html?slug=hub-access";
+                    }
                     const returnTo = encodeURIComponent(window.location.origin + window.location.pathname);
                     const separator = baseLink.includes("?") ? "&" : "?";
                     gateLootlabsBtn.href = `${baseLink}${separator}return_to=${returnTo}`;

@@ -180,35 +180,6 @@ window.handleTaskClick = function(taskNum) {
 
   lucide.createIcons();
 };
-    let secLeft = 4;
-    const btn = document.getElementById('btnTask2');
-    const txt = document.getElementById('txtTask2');
-
-    btn.className = 'btn-social-yt verifying';
-    txt.textContent = `กำลังตรวจสอบ... (${secLeft}s)`;
-
-    const timer = setInterval(() => {
-      secLeft--;
-      if (secLeft > 0) {
-        txt.textContent = `กำลังตรวจสอบ... (${secLeft}s)`;
-      } else {
-        clearInterval(timer);
-        task2Done = true;
-        isVerifyingTask2 = false;
-
-        btn.className = 'btn-social-yt completed';
-        txt.textContent = 'Liked & Commented';
-        const checkIcon = document.getElementById('checkTask2');
-        if (checkIcon) checkIcon.style.display = 'block';
-
-        showToast('✅ ทำภารกิจที่ 2 สำเร็จแล้ว!', 'success', 2500);
-        updateProgressState();
-      }
-    }, 1000);
-  }
-
-  lucide.createIcons();
-};
 
 // 4. Update Progress Bar & Unlock State
 function updateProgressState() {
@@ -276,13 +247,15 @@ window.handleUnlockClick = function() {
   }
 
   // Otherwise, redirect to destinationUrl (e.g. MediaFire or main website)
+  const isHub = window.location.search.includes('hub-access') || destinationUrl === '/' || destinationUrl.includes('blacklisthub') || destinationUrl.includes('localhost');
   const txtUnlock = document.getElementById('txtUnlock');
-  if (txtUnlock) txtUnlock.textContent = 'กำลังพาวาร์ปเข้าสู่หน้าดาวน์โหลด...';
+  if (txtUnlock) txtUnlock.textContent = isHub ? 'กำลังเข้าสู่เว็บไซต์...' : 'กำลังพาวาร์ปเข้าสู่หน้าดาวน์โหลด...';
 
-  showToast('🚀 ยืนยันสิทธิ์สำเร็จ! กำลังไปที่หน้าดาวน์โหลด...', 'success', 2000);
+  showToast(isHub ? '🚀 ยืนยันสิทธิ์ 24 ชม. สำเร็จ! กำลังเข้าสู่เว็บไซต์...' : '🚀 ยืนยันสิทธิ์สำเร็จ! กำลังไปที่หน้าดาวน์โหลด...', 'success', 2000);
 
   setTimeout(() => {
-    window.location.href = destinationUrl;
+    const separator = destinationUrl.includes('?') ? '&' : '?';
+    window.location.href = isHub ? `${destinationUrl}${separator}pass_token=gateflow_24h` : destinationUrl;
   }, 600);
 };
 
