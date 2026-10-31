@@ -79,13 +79,18 @@ function initDestinationUrl() {
 // Helper: Get Target YouTube Channel URL (with auto-subscribe popup)
 function getTargetYoutubeUrl() {
   const params = new URLSearchParams(window.location.search);
-  const customYt = params.get('yt');
+  const customYt = params.get('yt') || params.get('ch');
   if (customYt) {
-    return customYt.includes('sub_confirmation') ? customYt : `${customYt}${customYt.includes('?') ? '&' : '?'}sub_confirmation=1`;
+    let url = customYt.trim();
+    if (!url.startsWith('http')) {
+      url = `https://www.youtube.com/${url.startsWith('@') ? url : '@' + url}`;
+    }
+    return url.includes('sub_confirmation') ? url : `${url}${url.includes('?') ? '&' : '?'}sub_confirmation=1`;
   }
 
-  if (window.location.search.toLowerCase().includes('ghost') || window.location.search.toLowerCase().includes('freefire')) {
-    return 'https://www.youtube.com/@GhostSensi?sub_confirmation=1';
+  const fullSearch = window.location.search.toLowerCase();
+  if (fullSearch.includes('ghost') || fullSearch.includes('freefire')) {
+    return 'https://www.youtube.com/@GhostSensix?sub_confirmation=1';
   }
 
   return 'https://www.youtube.com/@Blacklistxyx?sub_confirmation=1';

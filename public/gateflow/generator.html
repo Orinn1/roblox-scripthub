@@ -307,6 +307,20 @@
       </div>
 
       <div class="form-group">
+        <label class="form-label" for="ytChannelSelect">ช่อง YouTube ที่ต้องการให้ผู้ใช้กดติดตาม:</label>
+        <select id="ytChannelSelect" class="form-input" style="appearance: auto; padding-right: 30px;" onchange="toggleCustomYtInput(this.value)">
+          <option value="Blacklistxyx">🔴 @Blacklistxyx (ช่องหลัก - Roblox)</option>
+          <option value="GhostSensix">🟣 @GhostSensix (ช่อง Free Fire / แจกพาแนล)</option>
+          <option value="custom">✏️ กำหนดชื่อช่องเอง (@username)...</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="grpCustomYt" style="display: none;">
+        <label class="form-label" for="customYt">ลิงก์หรือชื่อช่อง YouTube กำหนดเอง:</label>
+        <input type="text" id="customYt" class="form-input" placeholder="เช่น @MyChannel หรือ https://www.youtube.com/@MyChannel" />
+      </div>
+
+      <div class="form-group">
         <label class="form-label" for="domainOption">โดเมนที่ต้องการใช้กั้น:</label>
         <select id="domainOption" class="form-input" style="appearance: auto; padding-right: 30px;">
           <option value="cloudflare">https://th.blacklisthub.workers.dev (Cloudflare ใช้งานจริง)</option>
@@ -385,6 +399,11 @@
       }
     }
 
+    function toggleCustomYtInput(val) {
+      const grp = document.getElementById('grpCustomYt');
+      if (grp) grp.style.display = val === 'custom' ? 'block' : 'none';
+    }
+
     function generateGateLink(e) {
       e.preventDefault();
       const domainChoice = document.getElementById('domainOption').value;
@@ -400,6 +419,17 @@
       const customDesc = (document.getElementById('customDesc')?.value || '').trim();
 
       let queryParams = [];
+
+      // เลือกช่อง YouTube ที่ต้องการ
+      const channelChoice = document.getElementById('ytChannelSelect')?.value || 'Blacklistxyx';
+      if (channelChoice === 'GhostSensix') {
+        queryParams.push('ch=GhostSensix');
+      } else if (channelChoice === 'custom') {
+        const customCh = (document.getElementById('customYt')?.value || '').trim();
+        if (customCh) queryParams.push(`ch=${encodeURIComponent(customCh)}`);
+      } else {
+        queryParams.push('ch=Blacklistxyx');
+      }
 
       if (currentMode === 'script') {
         const scriptCode = (document.getElementById('targetScript')?.value || '').trim();
