@@ -48,31 +48,64 @@
       <h1 class="social-modal-title" id="lockerTitle">แจกไฟล์ดูดหัว</h1>
       <p class="social-modal-sub" id="lockerDesc">หากสนใจไฟล์ พาแนล โปร เข้าเว็บได้เลย</p>
 
-      <!-- Task Action Buttons (YouTube Style) -->
+      <!-- Task Action Buttons (6 Tasks: 3 YouTube + 3 Ads) -->
       <div class="social-tasks-group">
 
         <!-- Task 1: Subscribe on YouTube -->
         <button type="button" class="btn-social-yt" id="btnTask1" onclick="handleTaskClick(1)">
           <div class="yt-inner">
-            <svg class="yt-svg-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <svg class="yt-svg-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
               <path fill="#ffffff" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
             </svg>
-            <span id="txtTask1">Subscribe on YouTube</span>
+            <span id="txtTask1">Subscribe on YouTube (กดติดตาม)</span>
           </div>
-          <i data-lucide="check" class="task-check-icon" id="checkTask1" style="display: none; width: 17px; height: 17px;"></i>
+          <i data-lucide="check" class="task-check-icon" id="checkTask1" style="display: none; width: 16px; height: 16px;"></i>
         </button>
 
-        <!-- Task 2: Like & Comment video -->
+        <!-- Task 2: Like Video -->
         <button type="button" class="btn-social-yt" id="btnTask2" onclick="handleTaskClick(2)">
           <div class="yt-inner">
-            <svg class="yt-svg-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
-              <path fill="#ffffff" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-            </svg>
-            <span id="txtTask2">Like & Comment video</span>
+            <i data-lucide="thumbs-up" style="width: 17px; height: 17px;"></i>
+            <span id="txtTask2">Like Video (กดไลค์คลิป)</span>
           </div>
-          <i data-lucide="check" class="task-check-icon" id="checkTask2" style="display: none; width: 17px; height: 17px;"></i>
+          <i data-lucide="check" class="task-check-icon" id="checkTask2" style="display: none; width: 16px; height: 16px;"></i>
+        </button>
+
+        <!-- Task 3: Comment on Video -->
+        <button type="button" class="btn-social-yt" id="btnTask3" onclick="handleTaskClick(3)">
+          <div class="yt-inner">
+            <i data-lucide="message-square" style="width: 17px; height: 17px;"></i>
+            <span id="txtTask3">Comment Video (คอมเมนต์คลิป)</span>
+          </div>
+          <i data-lucide="check" class="task-check-icon" id="checkTask3" style="display: none; width: 16px; height: 16px;"></i>
+        </button>
+
+        <!-- Task 4: Ad Link 1 -->
+        <button type="button" class="btn-social-ad" id="btnTask4" onclick="handleTaskClick(4)">
+          <div class="yt-inner">
+            <i data-lucide="sparkles" style="width: 17px; height: 17px; color: #60a5fa;"></i>
+            <span id="txtTask4">Visit Sponsor #1 (ลิงก์โฆษณา 1)</span>
+          </div>
+          <i data-lucide="check" class="task-check-icon" id="checkTask4" style="display: none; width: 16px; height: 16px;"></i>
+        </button>
+
+        <!-- Task 5: Ad Link 2 -->
+        <button type="button" class="btn-social-ad" id="btnTask5" onclick="handleTaskClick(5)">
+          <div class="yt-inner">
+            <i data-lucide="zap" style="width: 17px; height: 17px; color: #fbbf24;"></i>
+            <span id="txtTask5">Visit Sponsor #2 (ลิงก์โฆษณา 2)</span>
+          </div>
+          <i data-lucide="check" class="task-check-icon" id="checkTask5" style="display: none; width: 16px; height: 16px;"></i>
+        </button>
+
+        <!-- Task 6: Ad Link 3 -->
+        <button type="button" class="btn-social-ad" id="btnTask6" onclick="handleTaskClick(6)">
+          <div class="yt-inner">
+            <i data-lucide="flame" style="width: 17px; height: 17px; color: #f87171;"></i>
+            <span id="txtTask6">Visit Sponsor #3 (ลิงก์โฆษณา 3)</span>
+          </div>
+          <i data-lucide="check" class="task-check-icon" id="checkTask6" style="display: none; width: 16px; height: 16px;"></i>
         </button>
 
       </div>
@@ -81,7 +114,7 @@
       <div class="social-progress-block">
         <div class="social-progress-head">
           <span class="lbl-unlock-progress">Unlock progress</span>
-          <span class="val-unlock-progress" id="txtProgressVal">0/2</span>
+          <span class="val-unlock-progress" id="txtProgressVal">0/6</span>
         </div>
         <div class="social-progress-track">
           <div class="social-progress-bar" id="barProgressFill" style="width: 0%;"></div>

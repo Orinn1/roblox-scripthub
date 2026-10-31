@@ -1,18 +1,17 @@
 /* ==========================================================================
    SocialWolvez / Sub2Unlock Style Gateway Logic
-   - Clean 2-Task Unlock (Subscribe + Like & Comment)
+   - 6 Tasks Unlock: 3 YouTube (Subscribe + Like + Comment) + 3 Ad Links
    - Monetag Direct Links + 100% Monetization Yield
    - CPALead VIP FastPass Compatible
    ========================================================================== */
 
+const TOTAL_TASKS = 6;
 let destinationUrl = '';
 let targetScriptCode = '';
-let task1Done = false;
-let task2Done = false;
-let isVerifyingTask1 = false;
-let isVerifyingTask2 = false;
+const tasksDone = [false, false, false, false, false, false];
+const isVerifying = [false, false, false, false, false, false];
 
-// Multi-Network Direct Link Pool (Fresh User Zones - Rotates evenly across all 4 zones)
+// Multi-Network Direct Link Pool (Fresh User Zones)
 const AD_DIRECT_POOL = [
   'https://uplcm.com/4/12157091',
   'https://uplcm.com/4/12157092',
@@ -24,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCustomTitleAndDesc();
   initDestinationUrl();
   checkInAppBrowser();
+  if (window.lucide) lucide.createIcons();
 });
 
 // 1. Initialize Custom or Default Title & Description
@@ -34,14 +34,14 @@ function initCustomTitleAndDesc() {
   const script = params.get('script') || '';
 
   let defaultTitle = 'แจกไฟล์ดูดหัว';
-  let defaultDesc = 'หากสนใจไฟล์ พาแนล โปร เข้าเว็บได้เลย';
+  let defaultDesc = 'ทำภารกิจสนับสนุน 6 ขั้นตอนด้านล่างเพื่อปลดล็อก';
 
   if (script) {
     defaultTitle = 'แจกสคริปต์ฟรี (Script Access)';
-    defaultDesc = 'ทำภารกิจด้านล่างเพื่อปลดล็อกและคัดลอกสคริปต์';
+    defaultDesc = 'ทำภารกิจ 6 ขั้นตอนด้านล่างเพื่อปลดล็อกและรับโค้ดสคริปต์';
   } else if (slug === 'hub-access' || returnTo === '/' || returnTo.includes('localhost') || returnTo.includes('blacklisthub')) {
     defaultTitle = 'ระบบยืนยันสิทธิ์ Security Access Gate';
-    defaultDesc = 'ทำภารกิจด้านล่างเพื่อรับสิทธิ์เข้าใช้งาน Blacklist Hub ฟรี 24 ชั่วโมง';
+    defaultDesc = 'ทำภารกิจ 6 ขั้นตอนด้านล่างเพื่อรับสิทธิ์เข้าใช้งานเว็บฟรี 24 ชั่วโมง';
   }
 
   const title = params.get('title') || defaultTitle;
@@ -81,120 +81,119 @@ function getTargetYoutubeUrl() {
     return customYt.includes('sub_confirmation') ? customYt : `${customYt}${customYt.includes('?') ? '&' : '?'}sub_confirmation=1`;
   }
 
-  // If GhostSensi / Free Fire context
   if (window.location.search.toLowerCase().includes('ghost') || window.location.search.toLowerCase().includes('freefire')) {
     return 'https://www.youtube.com/@GhostSensi?sub_confirmation=1';
   }
 
-  // Default channel for Blacklist Hub scripts
   return 'https://www.youtube.com/@Blacklistxyx?sub_confirmation=1';
 }
 
-// 3. Handle Social Task Clicks (1 = Subscribe, 2 = Like & Comment)
+// Helper: Get Target YouTube Video URL
+function getTargetVideoUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const customVideo = params.get('v') || params.get('video');
+  if (customVideo) return customVideo;
+  return 'https://youtu.be/FdXsvivWhOw';
+}
+
+// 3. Handle Social Task Clicks (1-6)
 window.handleTaskClick = function(taskNum) {
+  const idx = taskNum - 1;
+  if (idx < 0 || idx >= TOTAL_TASKS) return;
+  if (tasksDone[idx] || isVerifying[idx]) return;
+
+  const btn = document.getElementById(`btnTask${taskNum}`);
+  const txt = document.getElementById(`txtTask${taskNum}`);
+  const checkIcon = document.getElementById(`checkTask${taskNum}`);
+
+  // 1. Resolve Target URL
+  let targetUrl = '';
   if (taskNum === 1) {
-    if (task1Done || isVerifyingTask1) return;
-
-    // 1. Open YouTube channel with auto-subscribe confirmation prompt
-    try {
-      const ytUrl = getTargetYoutubeUrl();
-      const win = window.open(ytUrl, '_blank');
-      if (!win) {
-        const link = document.createElement('a');
-        link.href = ytUrl;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        document.body.appendChild(link);
-        link.click();
-        setTimeout(() => link.remove(), 100);
-      }
-    } catch (e) {}
-
-    // 2. Also trigger Monetag Ad in background for monetization
-    setTimeout(() => {
-      triggerDirectAd(0);
-    }, 400);
-
-    // 3. Start Verification Timer (4 seconds)
-    isVerifyingTask1 = true;
-    let secLeft = 4;
-    const btn = document.getElementById('btnTask1');
-    const txt = document.getElementById('txtTask1');
-
-    btn.className = 'btn-social-yt verifying';
-    txt.textContent = `กำลังตรวจสอบ... (${secLeft}s)`;
-
-    const timer = setInterval(() => {
-      secLeft--;
-      if (secLeft > 0) {
-        txt.textContent = `กำลังตรวจสอบ... (${secLeft}s)`;
-      } else {
-        clearInterval(timer);
-        task1Done = true;
-        isVerifyingTask1 = false;
-
-        btn.className = 'btn-social-yt completed';
-        txt.textContent = 'Subscribed on YouTube';
-        const checkIcon = document.getElementById('checkTask1');
-        if (checkIcon) checkIcon.style.display = 'block';
-
-        showToast('✅ กดติดตามสำเร็จ! เหลืออีก 1 ภารกิจ', 'success', 2500);
-        updateProgressState();
-      }
-    }, 1000);
-
+    targetUrl = getTargetYoutubeUrl();
   } else if (taskNum === 2) {
-    if (task2Done || isVerifyingTask2) return;
-
-    // 1. Open Monetag Ad #2
-    triggerDirectAd(1);
-
-    // 2. Start Verification Timer (4 seconds)
-    isVerifyingTask2 = true;
-    let secLeft = 4;
-    const btn = document.getElementById('btnTask2');
-    const txt = document.getElementById('txtTask2');
-
-    btn.className = 'btn-social-yt verifying';
-    txt.textContent = `กำลังตรวจสอบ... (${secLeft}s)`;
-
-    const timer = setInterval(() => {
-      secLeft--;
-      if (secLeft > 0) {
-        txt.textContent = `กำลังตรวจสอบ... (${secLeft}s)`;
-      } else {
-        clearInterval(timer);
-        task2Done = true;
-        isVerifyingTask2 = false;
-
-        btn.className = 'btn-social-yt completed';
-        txt.textContent = 'Liked & Commented';
-        const checkIcon = document.getElementById('checkTask2');
-        if (checkIcon) checkIcon.style.display = 'block';
-
-        showToast('✅ ทำภารกิจที่ 2 สำเร็จแล้ว!', 'success', 2500);
-        updateProgressState();
-      }
-    }, 1000);
+    targetUrl = getTargetVideoUrl();
+  } else if (taskNum === 3) {
+    targetUrl = getTargetVideoUrl();
+  } else if (taskNum === 4) {
+    targetUrl = AD_DIRECT_POOL[0];
+  } else if (taskNum === 5) {
+    targetUrl = AD_DIRECT_POOL[1];
+  } else if (taskNum === 6) {
+    targetUrl = AD_DIRECT_POOL[2];
   }
 
-  lucide.createIcons();
+  // 2. Open Target URL in a new window/tab
+  try {
+    const win = window.open(targetUrl, '_blank');
+    if (!win) {
+      const link = document.createElement('a');
+      link.href = targetUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => link.remove(), 100);
+    }
+  } catch (e) {}
+
+  // 3. Start Verification Timer (3 seconds)
+  isVerifying[idx] = true;
+  let secLeft = 3;
+
+  btn.classList.add('verifying');
+  txt.textContent = `กำลังตรวจสอบ... (${secLeft}s)`;
+
+  const timer = setInterval(() => {
+    secLeft--;
+    if (secLeft > 0) {
+      txt.textContent = `กำลังตรวจสอบ... (${secLeft}s)`;
+    } else {
+      clearInterval(timer);
+      tasksDone[idx] = true;
+      isVerifying[idx] = false;
+
+      btn.classList.remove('verifying');
+      btn.classList.add('completed');
+
+      const labels = [
+        'Subscribed on YouTube ✅',
+        'Liked Video ✅',
+        'Commented on Video ✅',
+        'Sponsor Link #1 Verified ✅',
+        'Sponsor Link #2 Verified ✅',
+        'Sponsor Link #3 Verified ✅'
+      ];
+      txt.textContent = labels[idx];
+      if (checkIcon) checkIcon.style.display = 'block';
+
+      const completedCount = tasksDone.filter(Boolean).length;
+      if (completedCount < TOTAL_TASKS) {
+        showToast(`✅ สำเร็จ! (${completedCount}/${TOTAL_TASKS}) เหลืออีก ${TOTAL_TASKS - completedCount} ภารกิจ`, 'success', 2200);
+      } else {
+        showToast('🎉 ครบ 6 ภารกิจแล้ว! ปลดล็อกเรียบร้อย', 'success', 3500);
+      }
+
+      updateProgressState();
+    }
+  }, 1000);
+
+  if (window.lucide) lucide.createIcons();
 };
 
 // 4. Update Progress Bar & Unlock State
 function updateProgressState() {
-  const completedCount = (task1Done ? 1 : 0) + (task2Done ? 1 : 0);
+  const completedCount = tasksDone.filter(Boolean).length;
   const progressText = document.getElementById('txtProgressVal');
   const progressBar = document.getElementById('barProgressFill');
   const btnUnlock = document.getElementById('btnUnlock');
   const txtUnlock = document.getElementById('txtUnlock');
   const iconUnlock = document.getElementById('iconUnlock');
 
-  if (progressText) progressText.textContent = `${completedCount}/2`;
-  if (progressBar) progressBar.style.width = `${completedCount * 50}%`;
+  if (progressText) progressText.textContent = `${completedCount}/${TOTAL_TASKS}`;
+  if (progressBar) progressBar.style.width = `${(completedCount / TOTAL_TASKS) * 100}%`;
 
-  // When both tasks are completed
-  if (completedCount === 2) {
+  // When all 6 tasks are completed
+  if (completedCount === TOTAL_TASKS) {
     if (btnUnlock) {
       btnUnlock.disabled = false;
       btnUnlock.className = 'btn-social-unlock ready';
@@ -203,24 +202,25 @@ function updateProgressState() {
       if (targetScriptCode) {
         txtUnlock.textContent = 'กดรับสคริปต์ (Get Script ➔)';
       } else {
-        const isHub = window.location.search.includes('hub-access') || destinationUrl === '/' || destinationUrl.includes('blacklisthub');
+        const isHub = window.location.search.includes('hub-access') || destinationUrl === '/' || destinationUrl.includes('blacklisthub') || destinationUrl.includes('localhost');
         txtUnlock.textContent = isHub ? 'เข้าสู่เว็บไซต์ (Enter Website ➔)' : 'Unlock (ดาวน์โหลดไฟล์ ➔)';
       }
     }
     if (iconUnlock) {
       iconUnlock.setAttribute('data-lucide', 'sparkles');
-      lucide.createIcons();
+      if (window.lucide) lucide.createIcons();
     }
-    showToast('🎉 ปลดล็อกเรียบร้อย! แตะปุ่มเพื่อรับสคริปต์', 'success', 3500);
+    showToast('🎉 ปลดล็อกเรียบร้อย! แตะปุ่มด้านล่างได้เลย', 'success', 3500);
   }
 }
 
 // 5. Handle Final Unlock Button Click
 window.handleUnlockClick = function() {
-  if (!task1Done || !task2Done) return;
+  const completedCount = tasksDone.filter(Boolean).length;
+  if (completedCount < TOTAL_TASKS) return;
 
-  // 1. Open Monetag Ad #3
-  triggerDirectAd(2);
+  // 1. Open Monetag Bonus Ad
+  triggerDirectAd(3);
 
   // 2. Grant 24-Hour Access in localStorage
   grant24HourAccess();
@@ -275,7 +275,7 @@ window.copyUnlockedScript = function() {
   });
 };
 
-// 6. Trigger Monetag Direct Link (Bulletproof Popup Bypass for Mobile & PC)
+// 7. Trigger Monetag Direct Link
 function triggerDirectAd(preferredIndex = 0) {
   try {
     let index = parseInt(localStorage.getItem('blackpass_direct_index') || String(preferredIndex), 10);
@@ -286,7 +286,6 @@ function triggerDirectAd(preferredIndex = 0) {
     const targetAdUrl = AD_DIRECT_POOL[index];
     localStorage.setItem('blackpass_direct_index', String((index + 1) % AD_DIRECT_POOL.length));
 
-    // Simulated anchor click (high success rate on Mobile Chrome & Safari)
     const link = document.createElement('a');
     link.href = targetAdUrl;
     link.target = '_blank';
@@ -304,7 +303,7 @@ function triggerDirectAd(preferredIndex = 0) {
   }
 }
 
-// 7. Grant 24-Hour Access
+// 8. Grant 24-Hour Access
 function grant24HourAccess() {
   try {
     const expiry24h = Date.now() + (24 * 60 * 60 * 1000);
@@ -315,7 +314,7 @@ function grant24HourAccess() {
   } catch (e) {}
 }
 
-// 8. In-App Browser Notice
+// 9. In-App Browser Notice
 function checkInAppBrowser() {
   const ua = navigator.userAgent || navigator.vendor || window.opera || '';
   const isDiscord = ua.includes('Discord');
@@ -327,7 +326,7 @@ function checkInAppBrowser() {
   }
 }
 
-// 9. Toast Utility
+// 10. Toast Utility
 function showToast(message, type = 'info', duration = 3000) {
   const container = document.getElementById('toastContainer');
   if (!container) return;
@@ -344,7 +343,7 @@ function showToast(message, type = 'info', duration = 3000) {
 
   toast.innerHTML = `${iconHtml}<span>${message}</span>`;
   container.appendChild(toast);
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
 
   setTimeout(() => {
     toast.classList.add('hide');

@@ -153,13 +153,13 @@
 
 .social-modal-card {
   width: 100%;
-  max-width: 390px;
+  max-width: 410px;
   background: rgba(14, 17, 24, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
-  padding: 30px 24px 22px;
+  padding: 24px 20px 20px;
   box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 35px rgba(37, 99, 235, 0.15);
   text-align: center;
   animation: modalPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -177,7 +177,7 @@
 }
 
 .social-modal-title {
-  font-size: 24px;
+  font-size: 23px;
   font-weight: 800;
   color: #FFFFFF;
   margin-bottom: 5px;
@@ -187,26 +187,24 @@
 .social-modal-sub {
   font-size: 13px;
   color: #94A3B8;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   line-height: 1.4;
 }
 
-/* 4. Task Action Buttons (YouTube Style) */
+/* 4. Task Action Buttons (YouTube + Ads 6 Tasks) */
 .social-tasks-group {
   display: flex;
   flex-direction: column;
-  gap: 11px;
-  margin-bottom: 22px;
+  gap: 8px;
+  margin-bottom: 18px;
 }
 
-.btn-social-yt {
+.btn-social-yt,
+.btn-social-ad {
   width: 100%;
-  height: 48px;
+  height: 44px;
   border-radius: 10px;
-  border: none;
-  background: #E50914;
-  color: #FFFFFF;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   font-family: inherit;
   display: flex;
@@ -214,9 +212,15 @@
   justify-content: center;
   gap: 10px;
   cursor: pointer;
-  box-shadow: 0 3px 12px rgba(229, 9, 20, 0.35);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   padding: 0 16px;
+}
+
+.btn-social-yt {
+  border: none;
+  background: #E50914;
+  color: #FFFFFF;
+  box-shadow: 0 3px 12px rgba(229, 9, 20, 0.35);
 }
 
 .btn-social-yt:hover {
@@ -226,6 +230,24 @@
 }
 
 .btn-social-yt:active {
+  transform: translateY(0);
+}
+
+.btn-social-ad {
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.88) 0%, rgba(29, 78, 216, 0.95) 100%);
+  color: #FFFFFF;
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-social-ad:hover {
+  background: linear-gradient(135deg, #1E40AF 0%, #2563EB 100%);
+  border-color: rgba(96, 165, 250, 0.7);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(37, 99, 235, 0.5);
+}
+
+.btn-social-ad:active {
   transform: translateY(0);
 }
 
@@ -239,23 +261,26 @@
   flex-shrink: 0;
 }
 
-.btn-social-yt.verifying {
-  background: rgba(245, 158, 11, 0.2);
-  border: 1px solid rgba(245, 158, 11, 0.5);
-  color: #FBBF24;
+.btn-social-yt.verifying,
+.btn-social-ad.verifying {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border: 1px solid rgba(245, 158, 11, 0.5) !important;
+  color: #FBBF24 !important;
   cursor: wait;
-  box-shadow: none;
+  box-shadow: none !important;
 }
 
-.btn-social-yt.completed {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.45);
-  color: #34D399;
+.btn-social-yt.completed,
+.btn-social-ad.completed {
+  background: rgba(16, 185, 129, 0.12) !important;
+  border: 1px solid rgba(16, 185, 129, 0.45) !important;
+  color: #34D399 !important;
   cursor: default;
-  box-shadow: none;
+  box-shadow: none !important;
 }
 
-.btn-social-yt.completed:hover {
+.btn-social-yt.completed:hover,
+.btn-social-ad.completed:hover {
   transform: none;
 }
 
