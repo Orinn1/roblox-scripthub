@@ -281,6 +281,13 @@
                 <option value="Blacklistxyx">🔴 @Blacklistxyx (Roblox)</option>
                 <option value="GhostSensix">🟣 @GhostSensix (Free Fire)</option>
               </select>
+              <select id="quickAds" style="background: #0b1120; border: 1px solid var(--border-subtle); color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 13px;">
+                <option value="1">⚡ 1 โฆษณา (เร็วสุด)</option>
+                <option value="2">⚖️ 2 โฆษณา (สมดุล)</option>
+                <option value="3" selected>🔥 3 โฆษณา (ปกติ)</option>
+                <option value="4">💰 4 โฆษณา (สูงสุด)</option>
+                <option value="0">🎁 0 โฆษณา (ฟรี)</option>
+              </select>
               <button type="submit" class="btn btn-primary" id="btnQuickShorten">
                 <i data-lucide="scissors" style="width: 16px; height: 16px;"></i>
                 <span>สร้างลิงก์</span>
@@ -476,24 +483,31 @@
       <!-- View 4: System Settings -->
       <section class="dashboard-view" id="viewSettings">
         <div class="settings-card">
-          <h3 class="settings-card-title">เครือข่ายโฆษณา Monetag Direct Link Pool</h3>
-          <p class="settings-card-desc">รายการลิงก์โฆษณาตรง Direct Link ที่ระบบ GateFlow หมุนเวียนแสดงผลในขั้นตอน Visit Sponsor 3 ข้อ</p>
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
-              <span style="font-family: monospace; font-size: 13px; color: #38bdf8;">Zone #1: https://uplcm.com/4/12157091</span>
-              <span class="rate-badge rate-high">Active</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h3 class="settings-card-title" style="margin-bottom: 0;">ตั้งค่าลิงก์โฆษณา Monetag Direct Links</h3>
+            <button type="button" class="btn btn-primary btn-sm" onclick="saveMonetagSettings()">
+              <i data-lucide="save" style="width: 14px; height: 14px;"></i>
+              <span>บันทึกลิงก์โฆษณา</span>
+            </button>
+          </div>
+          <p class="settings-card-desc">คุณสามารถแก้ไขหรือนำลิงก์ Direct Link ใหม่จาก Monetag Dashboard มาใส่เพิ่มได้เลย ระบบจะนำไปหมุนเวียนแสดงตามรอบที่กำหนด</p>
+          
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 14px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" style="font-size: 12px; color: #38bdf8;">Zone #1 (โฆษณารอบที่ 1):</label>
+              <input type="url" class="form-input" id="setAdLink1" value="https://uplcm.com/4/12157091" placeholder="https://uplcm.com/4/..." />
             </div>
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
-              <span style="font-family: monospace; font-size: 13px; color: #38bdf8;">Zone #2: https://uplcm.com/4/12157092</span>
-              <span class="rate-badge rate-high">Active</span>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" style="font-size: 12px; color: #38bdf8;">Zone #2 (โฆษณารอบที่ 2):</label>
+              <input type="url" class="form-input" id="setAdLink2" value="https://uplcm.com/4/12157092" placeholder="https://uplcm.com/4/..." />
             </div>
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
-              <span style="font-family: monospace; font-size: 13px; color: #38bdf8;">Zone #3: https://uplcm.com/4/12157093</span>
-              <span class="rate-badge rate-high">Active</span>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" style="font-size: 12px; color: #38bdf8;">Zone #3 (โฆษณารอบที่ 3):</label>
+              <input type="url" class="form-input" id="setAdLink3" value="https://uplcm.com/4/12157093" placeholder="https://uplcm.com/4/..." />
             </div>
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
-              <span style="font-family: monospace; font-size: 13px; color: #38bdf8;">Bonus Zone: https://uplcm.com/4/12157094</span>
-              <span class="rate-badge rate-high">Active</span>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" style="font-size: 12px; color: #38bdf8;">Zone #4 (โฆษณารอบที่ 4 / โบนัสตอน Unlock):</label>
+              <input type="url" class="form-input" id="setAdLink4" value="https://uplcm.com/4/12157094" placeholder="https://uplcm.com/4/..." />
             </div>
           </div>
         </div>
@@ -572,6 +586,17 @@
               <option value="GhostSensix">🟣 @GhostSensix (ช่อง Free Fire / พาแนล)</option>
             </select>
           </div>
+
+          <div class="form-group">
+            <label class="form-label">จำนวนรอบโฆษณา Monetag (ความยากง่ายของด่าน):</label>
+            <select id="editAds" class="form-input" style="background: #090e17; color: #ffffff;">
+              <option value="1">⚡ 1 รอบ (เร็วสุด - 4 ภารกิจรวม: 3 YouTube + 1 โฆษณา)</option>
+              <option value="2">⚖️ 2 รอบ (สมดุล - 5 ภารกิจรวม: 3 YouTube + 2 โฆษณา)</option>
+              <option value="3">🔥 3 รอบ (มาตรฐานเดิม - 6 ภารกิจรวม: 3 YouTube + 3 โฆษณา)</option>
+              <option value="4">💰 4 รอบ (ฟาร์มรายได้จัดเต็ม - 7 ภารกิจรวม: 3 YouTube + 4 โฆษณา)</option>
+              <option value="0">🎁 0 รอบ (ฟรี 100% ไม่มีโฆษณา - 3 ภารกิจ YouTube เท่านั้น)</option>
+            </select>
+          </div>
         </div>
 
         <div class="modal-footer">
@@ -619,6 +644,17 @@
             <select id="inputLockerChannel" class="form-input" style="background: #090e17; color: #ffffff;">
               <option value="Blacklistxyx">🔴 @Blacklistxyx (Roblox)</option>
               <option value="GhostSensix">🟣 @GhostSensix (Free Fire)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">จำนวนรอบโฆษณา Monetag:</label>
+            <select id="inputLockerAds" class="form-input" style="background: #090e17; color: #ffffff;">
+              <option value="1">⚡ 1 รอบ (เร็วสุด - 4 ภารกิจรวม: 3 YouTube + 1 โฆษณา)</option>
+              <option value="2">⚖️ 2 รอบ (สมดุล - 5 ภารกิจรวม: 3 YouTube + 2 โฆษณา)</option>
+              <option value="3" selected>🔥 3 รอบ (มาตรฐานเดิม - 6 ภารกิจรวม: 3 YouTube + 3 โฆษณา)</option>
+              <option value="4">💰 4 รอบ (ฟาร์มรายได้จัดเต็ม - 7 ภารกิจรวม: 3 YouTube + 4 โฆษณา)</option>
+              <option value="0">🎁 0 รอบ (ฟรี 100% ไม่มีโฆษณา - 3 ภารกิจ YouTube เท่านั้น)</option>
             </select>
           </div>
         </div>

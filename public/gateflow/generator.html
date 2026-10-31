@@ -360,6 +360,17 @@
       </div>
 
       <div class="form-group">
+        <label class="form-label" for="adRoundsSelect">จำนวนรอบโฆษณา Monetag (ความยากง่ายของด่าน):</label>
+        <select id="adRoundsSelect" class="form-input" style="appearance: auto; padding-right: 30px; background: #090e17; color: #ffffff;">
+          <option value="1">⚡ 1 รอบ (เร็วสุด - ผ่านง่าย 4 ภารกิจรวม: 3 YouTube + 1 โฆษณา)</option>
+          <option value="2">⚖️ 2 รอบ (สมดุล - 5 ภารกิจรวม: 3 YouTube + 2 โฆษณา)</option>
+          <option value="3" selected>🔥 3 รอบ (มาตรฐานเดิม - 6 ภารกิจรวม: 3 YouTube + 3 โฆษณา)</option>
+          <option value="4">💰 4 รอบ (ฟาร์มรายได้จัดเต็ม - 7 ภารกิจรวม: 3 YouTube + 4 โฆษณา)</option>
+          <option value="0">🎁 0 รอบ (ฟรี 100% ไม่มีโฆษณา - 3 ภารกิจ YouTube เท่านั้น)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
         <label class="form-label" for="domainOption">โดเมนที่ต้องการใช้กั้น:</label>
         <select id="domainOption" class="form-input" style="appearance: auto; padding-right: 30px; background: #090e17; color: #ffffff;">
           <option value="cloudflare" style="background: #090e17; color: #ffffff;">https://th.blacklisthub.workers.dev (Cloudflare ใช้งานจริง)</option>
@@ -464,6 +475,7 @@
         const customCh = (document.getElementById('customYt')?.value || '').trim();
         if (customCh) selectedChannel = customCh;
       }
+      const adRounds = parseInt(document.getElementById('adRoundsSelect')?.value || '3', 10);
 
       let scriptCode = '';
       let targetUrl = '';
@@ -498,7 +510,8 @@
           script: scriptCode,
           title: customTitle,
           desc: customDesc,
-          ch: selectedChannel
+          ch: selectedChannel,
+          ads: adRounds
         };
 
         const res = await fetch('/api/locker/create', {

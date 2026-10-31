@@ -11,6 +11,7 @@ let currentChartMetric = 'clicks'; // 'clicks' | 'unlocks' | 'revenue'
 
 document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
+  initMonetagSettings();
   loadRealLockers();
 });
 
@@ -192,6 +193,9 @@ function renderLockersTable(filterQuery = '') {
       ? `<span class="cell-channel-badge badge-ff"><i data-lucide="crosshair" style="width: 12px; height: 12px;"></i> @GhostSensix</span>`
       : `<span class="cell-channel-badge badge-roblox"><i data-lucide="youtube" style="width: 12px; height: 12px;"></i> @Blacklistxyx</span>`;
 
+    const adCount = l.ads !== undefined ? l.ads : 3;
+    const adBadge = `<span style="font-size: 11px; color: #fbbf24; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); padding: 1px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px;"><i data-lucide="sparkles" style="width: 10px; height: 10px;"></i> ${adCount} โฆษณา</span>`;
+
     let destPreview = '';
     if (l.script) {
       destPreview = `<span style="display: inline-flex; align-items: center; gap: 4px; color: #38bdf8; font-size: 11.5px; font-family: monospace; background: rgba(56, 189, 248, 0.1); padding: 2px 6px; border-radius: 4px;"><i data-lucide="code" style="width: 12px; height: 12px;"></i> โค้ดสคริปต์ (${l.script.length} chars)</span>`;
@@ -206,8 +210,9 @@ function renderLockersTable(filterQuery = '') {
         <td>
           <div style="display: flex; flex-direction: column; gap: 3px;">
             <span style="font-weight: 700; color: #FFFFFF; font-size: 13.5px;">${escapeHtml(l.title || slug)}</span>
-            <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
               <code style="color: #38BDF8; font-size: 12px; font-weight: 600; background: rgba(56, 189, 248, 0.08); padding: 1px 6px; border-radius: 4px;">/l/${escapeHtml(slug)}</code>
+              ${adBadge}
               <button type="button" class="btn-action-icon" style="width: 22px; height: 22px;" title="คัดลอกลิงก์สั้น" onclick="copyShortUrl('${escapeHtml(slug)}')">
                 <i data-lucide="copy" style="width: 12px; height: 12px;"></i>
               </button>
@@ -279,6 +284,7 @@ window.handleQuickShorten = async function(e) {
   const inputTitle = document.getElementById('quickTitle').value.trim();
   const inputAlias = document.getElementById('quickAlias').value.trim();
   const inputCh = document.getElementById('quickChannel').value;
+  const inputAds = parseInt(document.getElementById('quickAds')?.value || '3', 10);
 
   if (!inputTarget) return;
 
@@ -292,9 +298,10 @@ window.handleQuickShorten = async function(e) {
     url: isScript ? '' : inputTarget,
     script: isScript ? inputTarget : '',
     title: inputTitle || (isScript ? 'สคริปต์แจกฟรี' : 'ไฟล์ดาวน์โหลดฟรี'),
-    desc: 'ทำภารกิจ 6 ขั้นตอนด้านล่างเพื่อปลดล็อก',
+    desc: 'ทำภารกิจด้านล่างเพื่อปลดล็อก',
     slug: inputAlias,
-    ch: inputCh
+    ch: inputCh,
+    ads: inputAds
   };
 
   try {
@@ -351,6 +358,11 @@ window.openEditModal = function(slug) {
     chSelect.value = isGhost ? 'GhostSensix' : 'Blacklistxyx';
   }
 
+  const adsSelect = document.getElementById('editAds');
+  if (adsSelect) {
+    adsSelect.value = locker.ads !== undefined ? locker.ads : '3';
+  }
+
   if (locker.script && !locker.url) {
     switchEditMode('script');
   } else {
@@ -397,6 +409,7 @@ window.handleSaveEditLocker = async function(e) {
   const title = document.getElementById('editTitle').value.trim();
   const desc = document.getElementById('editDesc').value.trim();
   const ch = document.getElementById('editChannel').value;
+  const ads = parseInt(document.getElementById('editAds').value, 10);
   const urlVal = currentEditMode === 'url' ? document.getElementById('editUrl').value.trim() : '';
   const scriptVal = currentEditMode === 'script' ? document.getElementById('editScript').value.trim() : '';
 
@@ -411,7 +424,8 @@ window.handleSaveEditLocker = async function(e) {
     desc: desc,
     url: urlVal,
     script: scriptVal,
-    ch: ch
+    ch: ch,
+    ads: ads
   };
 
   try {
@@ -499,6 +513,7 @@ window.handleCreateModalSubmit = async function(e) {
   const name = document.getElementById('inputLockerName').value.trim();
   const slug = document.getElementById('inputLockerSlug').value.trim();
   const ch = document.getElementById('inputLockerChannel').value;
+  const ads = parseInt(document.getElementById('inputLockerAds')?.value || '3', 10);
 
   if (!dest) return;
 
@@ -512,9 +527,10 @@ window.handleCreateModalSubmit = async function(e) {
     url: isScript ? '' : dest,
     script: isScript ? dest : '',
     title: name || (isScript ? 'แจกสคริปต์ฟรี' : 'ไฟล์ดาวน์โหลด'),
-    desc: 'ทำภารกิจ 6 ขั้นตอนด้านล่างเพื่อปลดล็อก',
+    desc: 'ทำภารกิจด้านล่างเพื่อปลดล็อก',
     slug: slug,
-    ch: ch
+    ch: ch,
+    ads: ads
   };
 
   try {
@@ -642,6 +658,36 @@ function showToast(message, type = 'info', duration = 3000) {
     setTimeout(() => toast.remove(), 300);
   }, duration);
 }
+
+// 12. Monetag Settings Management
+function initMonetagSettings() {
+  try {
+    const custom = localStorage.getItem('monetag_custom_pool');
+    if (custom) {
+      const pool = JSON.parse(custom);
+      if (pool[0] && document.getElementById('setAdLink1')) document.getElementById('setAdLink1').value = pool[0];
+      if (pool[1] && document.getElementById('setAdLink2')) document.getElementById('setAdLink2').value = pool[1];
+      if (pool[2] && document.getElementById('setAdLink3')) document.getElementById('setAdLink3').value = pool[2];
+      if (pool[3] && document.getElementById('setAdLink4')) document.getElementById('setAdLink4').value = pool[3];
+    }
+  } catch (e) {}
+}
+
+window.saveMonetagSettings = function() {
+  const l1 = (document.getElementById('setAdLink1')?.value || '').trim();
+  const l2 = (document.getElementById('setAdLink2')?.value || '').trim();
+  const l3 = (document.getElementById('setAdLink3')?.value || '').trim();
+  const l4 = (document.getElementById('setAdLink4')?.value || '').trim();
+  const pool = [l1, l2, l3, l4].filter(Boolean);
+
+  if (pool.length === 0) {
+    showToast('กรุณาระบุลิงก์ Monetag อย่างน้อย 1 ลิงก์', 'error');
+    return;
+  }
+
+  localStorage.setItem('monetag_custom_pool', JSON.stringify(pool));
+  showToast('✅ บันทึกการตั้งค่าลิงก์ Monetag เรียบร้อยแล้ว!', 'success');
+};
 
 function escapeHtml(str) {
   if (!str) return '';

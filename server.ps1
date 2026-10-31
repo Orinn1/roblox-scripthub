@@ -179,6 +179,7 @@ try {
                             title = if ($f.title.stringValue) { $f.title.stringValue } else { $docSlug }
                             desc = if ($f.desc.stringValue) { $f.desc.stringValue } else { "" }
                             ch = if ($f.ch.stringValue) { $f.ch.stringValue } else { "Blacklistxyx" }
+                            ads = if ($f.ads.integerValue) { [int]$f.ads.integerValue } else { 3 }
                             clicks = if ($f.clicks.integerValue) { [int]$f.clicks.integerValue } else { 0 }
                             unlocks = if ($f.unlocks.integerValue) { [int]$f.unlocks.integerValue } else { 0 }
                             createdAt = if ($f.createdAt.stringValue) { $f.createdAt.stringValue } else { $d.createTime }
@@ -262,8 +263,9 @@ try {
                 $title = "$($body.title)"
                 $desc = "$($body.desc)"
                 $channel = if ($body.ch) { "$($body.ch)" } else { "Blacklistxyx" }
+                $ads = if ($body.ads -ne $null) { [int]$body.ads } else { 3 }
 
-                $patchUri = "https://firestore.googleapis.com/v1/projects/$proj/databases/(default)/documents/lockers/$slug`?updateMask.fieldPaths=url&updateMask.fieldPaths=script&updateMask.fieldPaths=title&updateMask.fieldPaths=desc&updateMask.fieldPaths=ch&key=$key"
+                $patchUri = "https://firestore.googleapis.com/v1/projects/$proj/databases/(default)/documents/lockers/$slug`?updateMask.fieldPaths=url&updateMask.fieldPaths=script&updateMask.fieldPaths=title&updateMask.fieldPaths=desc&updateMask.fieldPaths=ch&updateMask.fieldPaths=ads&key=$key"
                 $patchBody = @{
                     fields = @{
                         url = @{ stringValue = $targetUrl }
@@ -271,6 +273,7 @@ try {
                         title = @{ stringValue = $title }
                         desc = @{ stringValue = $desc }
                         ch = @{ stringValue = $channel }
+                        ads = @{ integerValue = $ads }
                     }
                 } | ConvertTo-Json -Depth 5
 
@@ -279,7 +282,7 @@ try {
                     $jsonOut = @{
                         success = $true
                         slug = $slug
-                        locker = @{ slug = $slug; url = $targetUrl; script = $scriptCode; title = $title; desc = $desc; ch = $channel }
+                        locker = @{ slug = $slug; url = $targetUrl; script = $scriptCode; title = $title; desc = $desc; ch = $channel; ads = $ads }
                     } | ConvertTo-Json
                     $outBytes = [System.Text.Encoding]::UTF8.GetBytes($jsonOut)
                     $response.ContentType = "application/json; charset=utf-8"
@@ -310,6 +313,7 @@ try {
                 $title = "$($body.title)"
                 $desc = "$($body.desc)"
                 $channel = if ($body.ch) { "$($body.ch)" } else { "Blacklistxyx" }
+                $ads = if ($body.ads -ne $null) { [int]$body.ads } else { 3 }
                 
                 $fbUri = "https://firestore.googleapis.com/v1/projects/$proj/databases/(default)/documents/lockers/$slug`?key=$key"
                 $fbBody = @{
@@ -320,6 +324,7 @@ try {
                         title = @{ stringValue = $title }
                         desc = @{ stringValue = $desc }
                         ch = @{ stringValue = $channel }
+                        ads = @{ integerValue = $ads }
                         clicks = @{ integerValue = 0 }
                         unlocks = @{ integerValue = 0 }
                         createdAt = @{ stringValue = (Get-Date).ToUniversalTime().ToString("o") }
@@ -364,6 +369,7 @@ try {
                                 title = if ($f.title.stringValue) { $f.title.stringValue } else { "" }
                                 desc = if ($f.desc.stringValue) { $f.desc.stringValue } else { "" }
                                 ch = if ($f.ch.stringValue) { $f.ch.stringValue } else { "Blacklistxyx" }
+                                ads = if ($f.ads.integerValue) { [int]$f.ads.integerValue } else { 3 }
                                 clicks = if ($f.clicks.integerValue) { [int]$f.clicks.integerValue } else { 0 }
                                 unlocks = if ($f.unlocks.integerValue) { [int]$f.unlocks.integerValue } else { 0 }
                             }

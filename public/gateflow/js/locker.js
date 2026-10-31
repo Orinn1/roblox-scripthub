@@ -5,13 +5,13 @@
    - CPALead VIP FastPass Compatible
    ========================================================================== */
 
-const TOTAL_TASKS = 6;
+let TOTAL_TASKS = 6;
 let destinationUrl = '';
 let targetScriptCode = '';
 let cachedLatestVideoUrl = '';
 let currentLockerChannel = '';
-const tasksDone = [false, false, false, false, false, false];
-const isVerifying = [false, false, false, false, false, false];
+const tasksDone = [false, false, false, false, false, false, false];
+const isVerifying = [false, false, false, false, false, false, false];
 
 // Multi-Network Direct Link Pool (Fresh User Zones)
 const AD_DIRECT_POOL = [
@@ -20,6 +20,38 @@ const AD_DIRECT_POOL = [
   'https://uplcm.com/4/12157093',
   'https://uplcm.com/4/12157094'
 ];
+
+function getAdPool() {
+  try {
+    const custom = localStorage.getItem('monetag_custom_pool');
+    if (custom) {
+      const parsed = JSON.parse(custom);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return AD_DIRECT_POOL;
+}
+
+// Dynamically configure number of ad rounds (0, 1, 2, 3, or 4 ads)
+function applyAdRounds(adCount) {
+  const count = (adCount !== undefined && !isNaN(adCount)) ? parseInt(adCount, 10) : 3;
+  const btn4 = document.getElementById('btnTask4');
+  const btn5 = document.getElementById('btnTask5');
+  const btn6 = document.getElementById('btnTask6');
+  const btn7 = document.getElementById('btnTask7');
+
+  if (btn4) btn4.style.display = count >= 1 ? 'flex' : 'none';
+  if (btn5) btn5.style.display = count >= 2 ? 'flex' : 'none';
+  if (btn6) btn6.style.display = count >= 3 ? 'flex' : 'none';
+  if (btn7) btn7.style.display = count >= 4 ? 'flex' : 'none';
+
+  TOTAL_TASKS = 3 + Math.max(0, Math.min(4, count));
+  const progressText = document.getElementById('txtProgressVal');
+  if (progressText) {
+    const completedCount = tasksDone.slice(0, TOTAL_TASKS).filter(Boolean).length;
+    progressText.textContent = `${completedCount}/${TOTAL_TASKS}`;
+  }
+}
 
 // Track GateFlow Click / Unlock Events into Firestore
 function trackGateEvent(slug, eventType) {
@@ -43,6 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
   const path = window.location.pathname.toLowerCase();
   const slug = path.startsWith('/l/') ? path.slice(3).trim() : (params.get('slug') || (path === '/access' || path === '/hub' || path === '/gate' ? 'hub-access' : ''));
+
+  if (params.get('ads') !== null) {
+    applyAdRounds(params.get('ads'));
+  }
 
   if (slug) {
     trackGateEvent(slug, 'click');
@@ -81,6 +117,9 @@ async function loadLockerBySlug(slug) {
 
       if (l.ch) {
         currentLockerChannel = l.ch;
+      }
+      if (l.ads !== undefined) {
+        applyAdRounds(l.ads);
       }
       fetchLatestVideo();
 
@@ -247,6 +286,7 @@ window.handleTaskClick = function(taskNum) {
 
   // 1. Resolve Target URL
   let targetUrl = '';
+  const pool = getAdPool();
   if (taskNum === 1) {
     targetUrl = getTargetYoutubeUrl();
   } else if (taskNum === 2) {
@@ -254,11 +294,13 @@ window.handleTaskClick = function(taskNum) {
   } else if (taskNum === 3) {
     targetUrl = getTargetVideoUrl();
   } else if (taskNum === 4) {
-    targetUrl = AD_DIRECT_POOL[0];
+    targetUrl = pool[0] || AD_DIRECT_POOL[0];
   } else if (taskNum === 5) {
-    targetUrl = AD_DIRECT_POOL[1];
+    targetUrl = pool[1] || AD_DIRECT_POOL[1];
   } else if (taskNum === 6) {
-    targetUrl = AD_DIRECT_POOL[2];
+    targetUrl = pool[2] || AD_DIRECT_POOL[2];
+  } else if (taskNum === 7) {
+    targetUrl = pool[3] || AD_DIRECT_POOL[3] || pool[0];
   }
 
   // 2. Open Target URL in a new window/tab
@@ -300,16 +342,17 @@ window.handleTaskClick = function(taskNum) {
         'Commented on Video ✅',
         'Sponsor Link #1 Verified ✅',
         'Sponsor Link #2 Verified ✅',
-        'Sponsor Link #3 Verified ✅'
+        'Sponsor Link #3 Verified ✅',
+        'Sponsor Link #4 Verified ✅'
       ];
       txt.textContent = labels[idx];
       if (checkIcon) checkIcon.style.display = 'block';
 
-      const completedCount = tasksDone.filter(Boolean).length;
+      const completedCount = tasksDone.slice(0, TOTAL_TASKS).filter(Boolean).length;
       if (completedCount < TOTAL_TASKS) {
         showToast(`✅ สำเร็จ! (${completedCount}/${TOTAL_TASKS}) เหลืออีก ${TOTAL_TASKS - completedCount} ภารกิจ`, 'success', 2200);
       } else {
-        showToast('🎉 ครบ 6 ภารกิจแล้ว! ปลดล็อกเรียบร้อย', 'success', 3500);
+        showToast(`🎉 ครบ ${TOTAL_TASKS} ภารกิจแล้ว! ปลดล็อกเรียบร้อย`, 'success', 3500);
       }
 
       updateProgressState();
@@ -321,7 +364,7 @@ window.handleTaskClick = function(taskNum) {
 
 // 4. Update Progress Bar & Unlock State
 function updateProgressState() {
-  const completedCount = tasksDone.filter(Boolean).length;
+  const completedCount = tasksDone.slice(0, TOTAL_TASKS).filter(Boolean).length;
   const progressText = document.getElementById('txtProgressVal');
   const progressBar = document.getElementById('barProgressFill');
   const btnUnlock = document.getElementById('btnUnlock');
@@ -331,8 +374,8 @@ function updateProgressState() {
   if (progressText) progressText.textContent = `${completedCount}/${TOTAL_TASKS}`;
   if (progressBar) progressBar.style.width = `${(completedCount / TOTAL_TASKS) * 100}%`;
 
-  // When all 6 tasks are completed
-  if (completedCount === TOTAL_TASKS) {
+  // When all required tasks are completed
+  if (completedCount >= TOTAL_TASKS) {
     if (btnUnlock) {
       btnUnlock.disabled = false;
       btnUnlock.className = 'btn-social-unlock ready';
@@ -356,7 +399,7 @@ function updateProgressState() {
 
 // 5. Handle Final Unlock Button Click
 window.handleUnlockClick = function() {
-  const completedCount = tasksDone.filter(Boolean).length;
+  const completedCount = tasksDone.slice(0, TOTAL_TASKS).filter(Boolean).length;
   if (completedCount < TOTAL_TASKS) return;
 
   // Track Unlock in Firestore
@@ -427,13 +470,14 @@ window.copyUnlockedScript = function() {
 // 7. Trigger Monetag Direct Link
 function triggerDirectAd(preferredIndex = 0) {
   try {
+    const pool = getAdPool();
     let index = parseInt(localStorage.getItem('blackpass_direct_index') || String(preferredIndex), 10);
-    if (isNaN(index) || index >= AD_DIRECT_POOL.length) {
-      index = preferredIndex % AD_DIRECT_POOL.length;
+    if (isNaN(index) || index >= pool.length) {
+      index = preferredIndex % pool.length;
     }
 
-    const targetAdUrl = AD_DIRECT_POOL[index];
-    localStorage.setItem('blackpass_direct_index', String((index + 1) % AD_DIRECT_POOL.length));
+    const targetAdUrl = pool[index] || AD_DIRECT_POOL[0];
+    localStorage.setItem('blackpass_direct_index', String((index + 1) % pool.length));
 
     const link = document.createElement('a');
     link.href = targetAdUrl;
@@ -445,7 +489,8 @@ function triggerDirectAd(preferredIndex = 0) {
 
   } catch (e) {
     try {
-      window.open(AD_DIRECT_POOL[0], '_blank');
+      const pool = getAdPool();
+      window.open(pool[0] || AD_DIRECT_POOL[0], '_blank');
     } catch (err) {
       console.warn('[SocialWolvez] Ad popup blocked:', err);
     }

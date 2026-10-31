@@ -763,6 +763,7 @@ export default {
                     const slug = f.slug?.stringValue || docId;
                     const clicks = parseInt(f.clicks?.integerValue || '0', 10);
                     const unlocks = parseInt(f.unlocks?.integerValue || '0', 10);
+                    const ads = parseInt(f.ads?.integerValue || '3', 10);
                     return {
                         slug: slug,
                         url: f.url?.stringValue || '',
@@ -770,6 +771,7 @@ export default {
                         title: f.title?.stringValue || slug,
                         desc: f.desc?.stringValue || '',
                         ch: f.ch?.stringValue || 'Blacklistxyx',
+                        ads: ads,
                         clicks: clicks,
                         unlocks: unlocks,
                         createdAt: f.createdAt?.stringValue || doc.createTime || ''
@@ -808,6 +810,7 @@ export default {
                     const title = (body.title || '').trim();
                     const desc = (body.desc || '').trim();
                     const channel = (body.ch || body.channel || 'Blacklistxyx').trim();
+                    const ads = parseInt(body.ads !== undefined ? body.ads : '3', 10);
 
                     const docUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lockers/${encodeURIComponent(slug)}?key=${FIREBASE_API_KEY}`;
                     
@@ -819,6 +822,7 @@ export default {
                             title: { stringValue: title },
                             desc: { stringValue: desc },
                             ch: { stringValue: channel },
+                            ads: { integerValue: ads },
                             clicks: { integerValue: 0 },
                             unlocks: { integerValue: 0 },
                             createdAt: { stringValue: new Date().toISOString() }
@@ -871,8 +875,9 @@ export default {
                     const title = (body.title || '').trim();
                     const desc = (body.desc || '').trim();
                     const channel = (body.ch || body.channel || 'Blacklistxyx').trim();
+                    const ads = parseInt(body.ads !== undefined ? body.ads : '3', 10);
 
-                    const patchDocUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lockers/${encodeURIComponent(slug)}?updateMask.fieldPaths=url&updateMask.fieldPaths=script&updateMask.fieldPaths=title&updateMask.fieldPaths=desc&updateMask.fieldPaths=ch&key=${FIREBASE_API_KEY}`;
+                    const patchDocUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lockers/${encodeURIComponent(slug)}?updateMask.fieldPaths=url&updateMask.fieldPaths=script&updateMask.fieldPaths=title&updateMask.fieldPaths=desc&updateMask.fieldPaths=ch&updateMask.fieldPaths=ads&key=${FIREBASE_API_KEY}`;
                     
                     const fbRes = await fetch(patchDocUrl, {
                         method: 'PATCH',
@@ -883,7 +888,8 @@ export default {
                                 script: { stringValue: scriptCode },
                                 title: { stringValue: title },
                                 desc: { stringValue: desc },
-                                ch: { stringValue: channel }
+                                ch: { stringValue: channel },
+                                ads: { integerValue: ads }
                             }
                         })
                     });
@@ -899,7 +905,7 @@ export default {
                     return new Response(JSON.stringify({
                         success: true,
                         slug: slug,
-                        locker: { slug, url: targetUrl, script: scriptCode, title, desc, ch: channel }
+                        locker: { slug, url: targetUrl, script: scriptCode, title, desc, ch: channel, ads: ads }
                     }), {
                         status: 200,
                         headers: { 'Content-Type': 'application/json', ...corsHeaders() }
@@ -966,6 +972,7 @@ export default {
                                 title: fields.title?.stringValue || '',
                                 desc: fields.desc?.stringValue || '',
                                 ch: fields.ch?.stringValue || 'Blacklistxyx',
+                                ads: parseInt(fields.ads?.integerValue || '3', 10),
                                 clicks: parseInt(fields.clicks?.integerValue || '0', 10),
                                 unlocks: parseInt(fields.unlocks?.integerValue || '0', 10)
                             }
