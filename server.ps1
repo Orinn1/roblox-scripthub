@@ -47,6 +47,43 @@ try {
         }
 
         # Handle Short Locker API (/api/locker and /api/locker/create)
+        if ($rawPath -eq "/api/latest-video") {
+            $rawCh = $request.QueryString["ch"]
+            if (-not $rawCh) { $rawCh = "Blacklistxyx" }
+            $cleanCh = $rawCh.TrimStart("@").ToLower()
+            
+            $channelId = "UCOAGxYeICyBbSjxJkul3HXA"
+            if ($cleanCh -like "*ghost*") {
+                $channelId = "UC8laKzbaWUNJMJ6XN_pxiBg"
+            }
+            
+            $vid = ""
+            try {
+                $rss = Invoke-WebRequest -Uri "https://www.youtube.com/feeds/videos.xml?channel_id=$channelId" -UserAgent "Mozilla/5.0" -UseBasicParsing
+                $m = [regex]::Match($rss.Content, '<yt:videoId>(.*?)</yt:videoId>')
+                if ($m.Success) {
+                    $vid = $m.Groups[1].Value
+                }
+            } catch {}
+            
+            $videoUrl = if ($vid) { "https://www.youtube.com/watch?v=$vid" } else { "https://www.youtube.com/@$cleanCh/videos" }
+            $outJson = @{
+                success = $true
+                channel = $cleanCh
+                channelId = $channelId
+                videoId = $vid
+                videoUrl = $videoUrl
+            } | ConvertTo-Json
+            
+            $outBytes = [System.Text.Encoding]::UTF8.GetBytes($outJson)
+            $response.ContentType = "application/json; charset=utf-8"
+            $response.Headers.Add("Access-Control-Allow-Origin", "*")
+            $response.StatusCode = 200
+            $response.OutputStream.Write($outBytes, 0, $outBytes.Length)
+            $response.Close()
+            continue
+        }
+
         if ($rawPath -eq "/api/locker" -or $rawPath -eq "/api/locker/create") {
             $key = "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI"
             $proj = "blacklistscripts"

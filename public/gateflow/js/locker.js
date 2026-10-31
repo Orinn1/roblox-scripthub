@@ -134,21 +134,28 @@ function initDestinationUrl() {
   }
 }
 
+// Helper: Check if GhostSensix channel is active for this locker
+function isGhostSensixActive() {
+  const params = new URLSearchParams(window.location.search);
+  const ch = (params.get('ch') || params.get('yt') || currentLockerChannel || '').toLowerCase();
+  const search = window.location.search.toLowerCase();
+  return ch.includes('ghost') || ch.includes('freefire') || search.includes('ghost') || search.includes('freefire');
+}
+
 // Helper: Get Target YouTube Channel URL (with auto-subscribe popup)
 function getTargetYoutubeUrl() {
+  if (isGhostSensixActive()) {
+    return 'https://www.youtube.com/@GhostSensix?sub_confirmation=1';
+  }
+
   const params = new URLSearchParams(window.location.search);
   const customYt = params.get('yt') || params.get('ch') || currentLockerChannel;
-  if (customYt) {
+  if (customYt && customYt !== 'Blacklistxyx') {
     let url = customYt.trim();
     if (!url.startsWith('http')) {
       url = `https://www.youtube.com/${url.startsWith('@') ? url : '@' + url}`;
     }
     return url.includes('sub_confirmation') ? url : `${url}${url.includes('?') ? '&' : '?'}sub_confirmation=1`;
-  }
-
-  const fullSearch = window.location.search.toLowerCase();
-  if (fullSearch.includes('ghost') || fullSearch.includes('freefire') || (currentLockerChannel && currentLockerChannel.toLowerCase().includes('ghost'))) {
-    return 'https://www.youtube.com/@GhostSensix?sub_confirmation=1';
   }
 
   return 'https://www.youtube.com/@Blacklistxyx?sub_confirmation=1';
@@ -163,9 +170,8 @@ async function fetchLatestVideo() {
     return;
   }
 
+  const isGhost = isGhostSensixActive();
   const customCh = params.get('ch') || params.get('yt') || currentLockerChannel || '';
-  const fullSearch = window.location.search.toLowerCase();
-  const isGhost = customCh.toLowerCase().includes('ghost') || fullSearch.includes('ghost') || fullSearch.includes('freefire');
   const targetCh = isGhost ? 'GhostSensix' : (customCh ? customCh : 'Blacklistxyx');
 
   try {
@@ -193,14 +199,21 @@ function getTargetVideoUrl() {
   const customVideo = params.get('v') || params.get('video');
   if (customVideo) return customVideo;
 
+  if (isGhostSensixActive()) {
+    // For GhostSensix: strictly prevent any fallback to Blacklistxyx
+    if (cachedLatestVideoUrl && (cachedLatestVideoUrl.includes('GhostSensix') || cachedLatestVideoUrl.includes('watch?v='))) {
+      if (!cachedLatestVideoUrl.includes('ClBmbJDIWzA')) {
+        return cachedLatestVideoUrl;
+      }
+    }
+    return 'https://www.youtube.com/@GhostSensix/videos';
+  }
+
   if (cachedLatestVideoUrl) {
     return cachedLatestVideoUrl;
   }
 
-  const customCh = params.get('ch') || params.get('yt') || '';
-  const fullSearch = window.location.search.toLowerCase();
-  const isGhost = customCh.toLowerCase().includes('ghost') || fullSearch.includes('ghost') || fullSearch.includes('freefire');
-  return isGhost ? 'https://www.youtube.com/@GhostSensix/videos' : 'https://www.youtube.com/watch?v=ClBmbJDIWzA';
+  return 'https://www.youtube.com/watch?v=ClBmbJDIWzA';
 }
 
 // 3. Handle Social Task Clicks (1-6)
