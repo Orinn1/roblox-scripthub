@@ -391,6 +391,8 @@ try {
         if (-not (Test-Path $filePath -PathType Leaf)) {
             if (Test-Path ($filePath + ".html") -PathType Leaf) {
                 $filePath = $filePath + ".html"
+            } elseif (Test-Path (Join-Path $Root (Join-Path "gateflow" $relPath)) -PathType Leaf) {
+                $filePath = Join-Path $Root (Join-Path "gateflow" $relPath)
             }
         }
 
