@@ -2118,7 +2118,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // 4. Otherwise show GateFlow SocialWolvez overlay
+        // 4. Otherwise show gate overlay and setup dynamic link
         if (lootlabsGateOverlay) {
             isInternalGateChange = true;
             lootlabsGateOverlay.classList.remove("gate-fade-out");
@@ -2127,173 +2127,114 @@ document.addEventListener("DOMContentLoaded", () => {
             lootlabsGateOverlay.style.visibility = "visible";
             lootlabsGateOverlay.style.removeProperty("opacity");
             lootlabsGateOverlay.style.pointerEvents = "auto";
+            initGateParticles();
             setTimeout(() => {
                 isInternalGateChange = false;
                 if (!isGateAuthorized() && !isCurrentlyBanned) {
                     isGateActivelyEnforced = true;
                 }
             }, 600);
+
+            const provider = gate.provider || "blackpass";
+            const puid = getOrCreateLootlabsPuid();
+
+            if (gateLootlabsBtn) {
+                if (provider === "blackpass") {
+                    const baseLink = (gate.blackpassLockerUrl || "/gateflow/locker.html?slug=hub-access").trim();
+                    const returnTo = encodeURIComponent(window.location.origin + window.location.pathname);
+                    const separator = baseLink.includes("?") ? "&" : "?";
+                    gateLootlabsBtn.href = `${baseLink}${separator}return_to=${returnTo}`;
+                    if (lblGateBtn) {
+                        lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
+                    }
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
+                    if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
+                } else if (provider === "shrinkme") {
+                    const shrinkLink = (gate.shrinkmeUrl || gate.shrinkearnUrl || gate.lootlabsUrl || "https://shrinkme.click/cBGgRn").trim();
+                    gateLootlabsBtn.href = shrinkLink;
+                    if (lblGateBtn) {
+                        lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
+                    }
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
+                    if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
+                } else if (provider === "shrinkearn") {
+                    const shrinkLink = (gate.shrinkearnUrl || gate.shrinkmeUrl || gate.lootlabsUrl || SITE_CONFIG.lootlabsGate?.shrinkearnUrl || "https://srnky.com/aehfqq0").trim();
+                    gateLootlabsBtn.href = shrinkLink;
+                    if (lblGateBtn) {
+                        lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
+                    }
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
+                    if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
+                } else if (provider === "lootlabs") {
+                    let baseLink = (gate.lootlabsUrl || "https://loot-link.com/s?example").trim();
+                    baseLink = baseLink.replace(/[?&]puid=[^&]+/, '');
+                    const separator = baseLink.includes("?") ? "&" : "?";
+                    gateLootlabsBtn.href = `${baseLink}${separator}puid=${encodeURIComponent(puid)}`;
+                    if (lblGateBtn) {
+                        lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
+                    }
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "inline-flex";
+                    // เริ่มระบบตรวจจับอัตโนมัติเบื้องหลัง
+                    startGatePolling(false);
+                    verifyLootlabsSession(true);
+                } else {
+                    const customLink = (gate.shrinkmeUrl || gate.shrinkearnUrl || gate.lootlabsUrl || "").trim();
+                    gateLootlabsBtn.href = customLink || "#";
+                    if (lblGateBtn) {
+                        lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
+                    }
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
+                }
+            }
+
+            if (gateMessageText) {
+                if (currentLang === "en") {
+                    gateMessageText.textContent = "BlacklistScriptx Gateway • Please complete verification to unlock website access for 24 hours";
+                } else {
+                    gateMessageText.textContent = gate.bypassMessage || "BlacklistScriptx Gateway • กรุณายืนยันเซสชันเพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
+                }
+            }
+
+            const lblGateTitleEl = document.getElementById("lblGateTitle");
+            if (lblGateTitleEl) {
+                lblGateTitleEl.textContent = "Security Access Gate";
+            }
+            if (lblGateTutorial) {
+                lblGateTutorial.textContent = currentLang === "th" ? "ดูคลิปสอนวิธีผ่านลิงก์ (คลิกที่นี่)" : "Watch Tutorial Guide";
+            }
+            if (gateTutorialYtDirectLink && gate.tutorialVideoUrl) {
+                gateTutorialYtDirectLink.href = gate.tutorialVideoUrl;
+            }
             refreshIcons();
         }
     }
 
-    // =========================================================================
-    // GateFlow SocialWolvez Entry Gate Handlers (Subscribe & Like)
-    // =========================================================================
-    let gateTask1Done = false;
-    let gateTask2Done = false;
+    // เมื่อคลิกปุ่มเปิดลิงก์สร้างรายได้ บันทึก Handshake + Timestamp ป้องกัน Bypass
+    if (gateLootlabsBtn) {
+        gateLootlabsBtn.addEventListener("click", () => {
+            const gate = SITE_CONFIG.lootlabsGate || {};
+            const provider = gate.provider || "shrinkearn";
 
-    window.handleGateTaskClick = function(taskNum) {
-        const channelUrl = SITE_CONFIG.unlockTasks?.youtubeChannelUrl || "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1";
-        const videoUrl = SITE_CONFIG.unlockTasks?.latestVideoUrl || "https://www.youtube.com/@Blacklistxyx";
-        const directAds = [
-            "https://omg10.com/4/11911452",
-            "https://omg10.com/4/11919655",
-            "https://omg10.com/4/11919658"
-        ];
+            // 1. บันทึก Session & LocalStorage Handshake และเวลาที่คลิก สำหรับป้องกัน Bypass
+            localStorage.setItem("blacklist_gate_clicked", "true");
+            localStorage.setItem("blacklist_gate_click_time", String(Date.now()));
+            localStorage.setItem("blacklist_gate_provider", provider);
+            sessionStorage.setItem("blacklist_gate_clicked", "true");
+            sessionStorage.setItem("blacklist_gate_click_time", String(Date.now()));
+            sessionStorage.setItem("blacklist_gate_provider", provider);
 
-        if (taskNum === 1 && !gateTask1Done) {
-            const btn = document.getElementById("btnGateTask1");
-            const txt = document.getElementById("txtGateTask1");
-            const check = document.getElementById("checkGateTask1");
-
-            if (btn) btn.classList.add("verifying");
-            let countdown = 5;
-            if (txt) txt.textContent = `กำลังยืนยัน... (${countdown}s)`;
-
-            // Open YouTube Channel in new tab
-            window.open(channelUrl, "_blank", "noopener,noreferrer");
-
-            // Trigger Monetag direct ad
-            try {
-                const a = document.createElement("a");
-                a.href = directAds[0];
-                a.target = "_blank";
-                a.rel = "noopener noreferrer";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            } catch (e) {}
-
-            const timer = setInterval(() => {
-                countdown--;
-                if (countdown > 0) {
-                    if (txt) txt.textContent = `กำลังยืนยัน... (${countdown}s)`;
-                } else {
-                    clearInterval(timer);
-                    gateTask1Done = true;
-                    if (btn) {
-                        btn.classList.remove("verifying");
-                        btn.classList.add("completed");
+            if (provider === "lootlabs") {
+                if (gateAutoDetectBox) {
+                    gateAutoDetectBox.style.display = "flex";
+                    if (gateAutoDetectText) {
+                        const t = I18N[currentLang] || I18N.en;
+                        gateAutoDetectText.textContent = t.gateDetect || "Waiting for completion... (Unlocks automatically when finished)";
                     }
-                    if (txt) txt.textContent = "Subscribe เรียบร้อยแล้ว";
-                    if (check) check.style.display = "inline-block";
-                    updateGateProgress();
-                    refreshIcons();
                 }
-            }, 1000);
-        }
-
-        if (taskNum === 2 && !gateTask2Done) {
-            const btn = document.getElementById("btnGateTask2");
-            const txt = document.getElementById("txtGateTask2");
-            const check = document.getElementById("checkGateTask2");
-
-            if (btn) btn.classList.add("verifying");
-            let countdown = 3;
-            if (txt) txt.textContent = `กำลังยืนยัน... (${countdown}s)`;
-
-            // Open YouTube Video in new tab
-            window.open(videoUrl, "_blank", "noopener,noreferrer");
-
-            // Trigger Monetag direct ad
-            try {
-                const a = document.createElement("a");
-                a.href = directAds[1];
-                a.target = "_blank";
-                a.rel = "noopener noreferrer";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            } catch (e) {}
-
-            const timer = setInterval(() => {
-                countdown--;
-                if (countdown > 0) {
-                    if (txt) txt.textContent = `กำลังยืนยัน... (${countdown}s)`;
-                } else {
-                    clearInterval(timer);
-                    gateTask2Done = true;
-                    if (btn) {
-                        btn.classList.remove("verifying");
-                        btn.classList.add("completed");
-                    }
-                    if (txt) txt.textContent = "Like & Comment เรียบร้อยแล้ว";
-                    if (check) check.style.display = "inline-block";
-                    updateGateProgress();
-                    refreshIcons();
-                }
-            }, 1000);
-        }
-    };
-
-    function updateGateProgress() {
-        const count = (gateTask1Done ? 1 : 0) + (gateTask2Done ? 1 : 0);
-        const txtProgress = document.getElementById("txtGateProgressVal");
-        const barProgress = document.getElementById("barGateProgressFill");
-        const btnUnlock = document.getElementById("gateBtnUnlock");
-        const txtUnlock = document.getElementById("txtGateUnlock");
-        const iconUnlock = document.getElementById("iconGateUnlock");
-
-        if (txtProgress) txtProgress.textContent = `${count}/2`;
-        if (barProgress) barProgress.style.width = `${count * 50}%`;
-
-        if (count === 2) {
-            if (btnUnlock) {
-                btnUnlock.disabled = false;
-                btnUnlock.className = "btn-social-unlock ready";
+                startGatePolling(true);
             }
-            if (txtUnlock) txtUnlock.textContent = "เข้าสู่เว็บไซต์ (Enter Website ➔)";
-            if (iconUnlock) {
-                iconUnlock.setAttribute("data-lucide", "sparkles");
-                refreshIcons();
-            }
-            showToast("🎉 ปลดล็อกเรียบร้อย! กดปุ่มเพื่อเข้าสู่เว็บไซต์");
-        }
+        });
     }
-
-    window.handleGateUnlockClick = function() {
-        if (!gateTask1Done || !gateTask2Done) return;
-
-        // 1. Grant 24-Hour Access
-        const expiry24h = Date.now() + (24 * 60 * 60 * 1000);
-        localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiry24h));
-        sessionStorage.setItem("blacklist_lootlabs_auth", "true");
-        localStorage.setItem("blacklist_lootlabs_unlocked_event", String(Date.now()));
-
-        // 2. Trigger Monetag direct ad #3
-        try {
-            const a = document.createElement("a");
-            a.href = "https://omg10.com/4/11919658";
-            a.target = "_blank";
-            a.rel = "noopener noreferrer";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        } catch (e) {}
-
-        // 3. Fade out overlay
-        if (lootlabsGateOverlay) {
-            lootlabsGateOverlay.classList.remove("gate-fade-in");
-            lootlabsGateOverlay.classList.add("gate-fade-out");
-            setTimeout(() => {
-                lootlabsGateOverlay.style.display = "none";
-                lootlabsGateOverlay.style.visibility = "hidden";
-            }, 450);
-        }
-        document.documentElement.classList.remove("gate-active-init");
-        showToast("ยินดีต้อนรับ! ปลดล็อคเข้าใช้งานเว็บไซต์ 24 ชั่วโมงเรียบร้อยแล้ว 🎉");
-    };
 
     // ซิงก์สถานะปลดล็อคข้ามแท็บอัตโนมัติ (หากผู้ใช้เปิดหลายแท็บ เมื่อแท็บหนึ่งปลดล็อคแล้ว แท็บอื่นจะหายทันที)
     window.addEventListener("storage", (e) => {
@@ -3710,31 +3651,38 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     window.openLocker = function(id) {
-        if (!isGateAuthorized()) {
-            checkLootlabsGate();
-            return;
-        }
+        cleanupActiveTask();
         selectedScript = scripts.find(s => String(s.id) === String(id));
         if (!selectedScript) return;
 
-        if (scriptCodeBox) {
-            scriptCodeBox.value = selectedScript.loadstring || "";
-        }
-        const titleEl = document.getElementById("lblLockerTitle");
-        const descEl = document.getElementById("lblLockerDesc");
-        if (titleEl) titleEl.textContent = selectedScript.title || "Roblox Script";
-        if (descEl) descEl.textContent = selectedScript.game ? `สคริปต์สำหรับเกม: ${selectedScript.game}` : "คัดลอกโค้ดสคริปต์ด้านล่างไปวางในตัวรันเกมได้ทันที";
+        tasks = { t1: true, t2: true, t3: true };
+        scriptCodeBox.value = selectedScript.loadstring || "";
 
-        if (lockerModal) {
-            lockerModal.classList.add("active");
-        }
+        // ซ่อนภารกิจทั้ง 3 ขั้นตอน ตัวนับสเต็ป และข้อความเตือนล็อค เพื่อให้รับสคริปต์ได้ทันที
+        if (tasksStack) tasksStack.style.display = "none";
+        if (lockedLabel) lockedLabel.style.display = "none";
+        const stepsTracker = document.querySelector(".locker-steps-tracker");
+        if (stepsTracker) stepsTracker.style.display = "none";
+
+        const lblTitle = document.getElementById("lblLockerTitle");
+        const lblDesc = document.getElementById("lblLockerDesc");
+        if (lblTitle) lblTitle.textContent = selectedScript.title || (currentLang === "th" ? "โค้ดสคริปต์พร้อมใช้งาน" : "Script Code Ready");
+        if (lblDesc) lblDesc.textContent = (currentLang === "th" ? "คัดลอกโค้ดสคริปต์ด้านล่างไปรันในเกมได้ทันที" : "Copy the script code below and run it in your game");
+
+        const heroIcon = document.querySelector(".locker-hero-icon");
+        if (heroIcon) heroIcon.innerHTML = `<i data-lucide="check-circle" style="color: #22c55e;"></i>`;
+
+        unlockedView.classList.add("show");
+        lockerModal.classList.add("active");
         refreshIcons();
 
-        // Direct 1-Click Copy on Open
-        if (selectedScript.loadstring && navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(selectedScript.loadstring).then(() => {
-                showToast("📋 คัดลอกสคริปต์ลงคลิปบอร์ดแล้ว! นำไปวางใน Executor ได้เลย");
-            }).catch(() => {});
+        // คัดลอกโค้ดสคริปต์ลงคลิปบอร์ดให้อัตโนมัติทันที
+        if (selectedScript.loadstring) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(selectedScript.loadstring).then(() => {
+                    showToast(currentLang === "th" ? "ปลดล็อคสำเร็จ! คัดลอกโค้ดสคริปต์แล้ว" : "Script unlocked and copied!");
+                }).catch(() => {});
+            }
         }
     };
 
@@ -3968,39 +3916,114 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    if (btnCopyScript) {
-        btnCopyScript.addEventListener("click", () => {
-            if (!scriptCodeBox) return;
-            scriptCodeBox.select();
-            const copySuccess = () => {
-                btnCopyScript.classList.add("copied");
-                btnCopyScript.innerHTML = `<i data-lucide="check"></i> <span>คัดลอกเรียบร้อยแล้ว! ✅</span>`;
-                refreshIcons();
-                showToast("📋 คัดลอกสคริปต์แล้ว! นำไปวางใน Executor ได้เลย");
-                setTimeout(() => {
-                    btnCopyScript.classList.remove("copied");
-                    btnCopyScript.innerHTML = `<i data-lucide="copy"></i> <span>คัดลอกสคริปต์ (Copy Script) 📋</span>`;
-                    refreshIcons();
-                }, 2500);
-            };
+    task1Btn.addEventListener("click", () => {
+        const t = I18N[currentLang] || I18N.en;
+        let ytUrl = (SITE_CONFIG.unlockTasks && SITE_CONFIG.unlockTasks.youtubeChannelUrl) || "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1";
+        if (ytUrl.includes("YOUR_CHANNEL")) ytUrl = "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1";
+        const t2 = getTask2Info();
+        handleTaskClick(
+            task1Btn, 
+            ytUrl, 
+            5, 
+            "t1", 
+            "01", 
+            t.task1Name, 
+            task2Btn, 
+            "02", 
+            t2.icon,
+            t2.title, 
+            t2.hint,
+            false
+        );
+    });
 
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(scriptCodeBox.value).then(copySuccess).catch(() => {
-                    document.execCommand("copy");
-                    copySuccess();
-                });
-            } else {
+    task2Btn.addEventListener("click", () => {
+        const t = I18N[currentLang] || I18N.en;
+        if (!tasks.t1) {
+            showToast(t.taskWaitPrev1);
+            return;
+        }
+        const t2 = getTask2Info();
+        handleTaskClick(
+            task2Btn, 
+            t2.targetUrl, 
+            15, 
+            "t2", 
+            "02", 
+            t2.title, 
+            task3Btn, 
+            "03", 
+            "thumbs-up",
+            t.task3Name, 
+            t.task3Hint,
+            true
+        );
+    });
+
+    task3Btn.addEventListener("click", () => {
+        const t = I18N[currentLang] || I18N.en;
+        if (!tasks.t2) {
+            showToast(t.taskWaitPrev2);
+            return;
+        }
+        handleTaskClick(
+            task3Btn, 
+            SITE_CONFIG.unlockTasks.latestVideoUrl, 
+            3, 
+            "t3", 
+            "03", 
+            t.task3Name, 
+            null, 
+            null, 
+            null,
+            null, 
+            null
+        );
+    });
+
+    function checkAllCompleted() {
+        const t = I18N[currentLang] || I18N.en;
+        if (tasks.t1 && tasks.t2 && tasks.t3) {
+            showToast(t.unlockedToast);
+            setTimeout(() => {
+                tasksStack.style.display = "none";
+                lockedLabel.style.display = "none";
+                unlockedView.classList.add("show");
+                refreshIcons();
+            }, 500);
+        }
+    }
+
+    btnCopyScript.addEventListener("click", () => {
+        scriptCodeBox.select();
+        const t = I18N[currentLang] || I18N.en;
+        const copySuccess = () => {
+            btnCopyScript.className = "btn-copy-script copied";
+            btnCopyScript.innerHTML = `<i data-lucide="check"></i> <span>${t.copiedBtn}</span>`;
+            refreshIcons();
+            showToast(t.toastCopied);
+            setTimeout(() => {
+                btnCopyScript.className = "btn-copy-script";
+                btnCopyScript.innerHTML = `<i data-lucide="copy"></i> <span>${t.btnCopyCode}</span>`;
+                refreshIcons();
+            }, 2500);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(scriptCodeBox.value).then(copySuccess).catch(() => {
                 document.execCommand("copy");
                 copySuccess();
-            }
-        });
-    }
+            });
+        } else {
+            document.execCommand("copy");
+            copySuccess();
+        }
+    });
 
-    if (closeLockerBtn) {
-        closeLockerBtn.addEventListener("click", () => {
-            if (lockerModal) lockerModal.classList.remove("active");
-        });
-    }
+    closeLockerBtn.addEventListener("click", () => {
+        cleanupActiveTask();
+        lockerModal.classList.remove("active");
+    });
     lockerModal.addEventListener("click", (e) => {
         if (e.target === lockerModal) {
             cleanupActiveTask();
