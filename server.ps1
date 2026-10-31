@@ -84,15 +84,213 @@ try {
             continue
         }
 
-        if ($rawPath -eq "/api/locker" -or $rawPath -eq "/api/locker/create") {
+        # Gate Event Tracking (/api/gate/track)
+        if ($rawPath -eq "/api/gate/track") {
             $key = "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI"
             $proj = "blacklistscripts"
             $response.Headers.Add("Access-Control-Allow-Origin", "*")
-            $response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            $response.Headers.Add("Access-Control-Allow-Methods", "POST, OPTIONS")
             $response.Headers.Add("Access-Control-Allow-Headers", "Content-Type")
 
             if ($request.HttpMethod -eq "OPTIONS") {
                 $response.StatusCode = 204
+                $response.Close()
+                continue
+            }
+
+            if ($request.HttpMethod -eq "POST") {
+                $reader = New-Object System.IO.StreamReader($request.InputStream, [System.Text.Encoding]::UTF8)
+                $bodyText = $reader.ReadToEnd()
+                $body = ConvertFrom-Json $bodyText
+
+                $slug = "$($body.slug)".Trim().ToLower()
+                $event = "$($body.event)".Trim().ToLower()
+
+                $fbGetUri = "https://firestore.googleapis.com/v1/projects/$proj/databases/(default)/documents/lockers/$slug`?key=$key"
+                try {
+                    $doc = Invoke-RestMethod -Uri $fbGetUri -Method Get
+                    $f = $doc.fields
+                    $clicks = 0
+                    $unlocks = 0
+                    if ($f.clicks.integerValue) { $clicks = [int]$f.clicks.integerValue }
+                    if ($f.unlocks.integerValue) { $unlocks = [int]$f.unlocks.integerValue }
+
+                    if ($event -eq "click") { $clicks += 1 }
+                    if ($event -eq "unlock") { $unlocks += 1 }
+
+                    $fbPatchUri = "https://firestore.googleapis.com/v1/projects/$proj/databases/(default)/documents/lockers/$slug`?updateMask.fieldPaths=clicks&updateMask.fieldPaths=unlocks&key=$key"
+                    $patchBody = @{
+                        fields = @{
+                            clicks = @{ integerValue = $clicks }
+                            unlocks = @{ integerValue = $unlocks }
+                        }
+                    } | ConvertTo-Json
+
+                    Invoke-RestMethod -Uri $fbPatchUri -Method Patch -Body $patchBody -ContentType "application/json" | Out-Null
+
+                    $jsonOut = @{
+                        success = $true
+                        slug = $slug
+                        clicks = $clicks
+                        unlocks = $unlocks
+                    } | ConvertTo-Json
+
+                    $outBytes = [System.Text.Encoding]::UTF8.GetBytes($jsonOut)
+                    $response.ContentType = "application/json; charset=utf-8"
+                    $response.StatusCode = 200
+                    $response.OutputStream.Write($outBytes, 0, $outBytes.Length)
+                } catch {
+                    $errBytes = [System.Text.Encoding]::UTF8.GetBytes("{""error"":""$($_)""}")
+                    $response.ContentType = "application/json; charset=utf-8"
+                    $response.StatusCode = 500
+                    $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
+                }
+                $response.Close()
+                continue
+            }
+        }
+
+        # List all lockers (/api/locker/list)
+        if ($rawPath -eq "/api/locker/list") {
+            $key = "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI"
+            $proj = "blacklistscripts"
+            $response.Headers.Add("Access-Control-Allow-Origin", "*")
+            $response.Headers.Add("Access-Control-Allow-Methods", "GET, OPTIONS")
+            $response.Headers.Add("Access-Control-Allow-Headers", "Content-Type")
+
+            if ($request.HttpMethod -eq "OPTIONS") {
+                $response.StatusCode = 204
+                $response.Close()
+                continue
+            }
+
+            $listUri = "https://firestore.googleapis.com/v1/projects/$proj/databases/(default)/documents/lockers?pageSize=100&key=$key"
+            try {
+                $raw = Invoke-RestMethod -Uri $listUri -Method Get
+                $lockersList = @()
+                if ($raw.documents) {
+                    foreach ($d in $raw.documents) {
+                        $f = $d.fields
+                        $docSlug = if ($f.slug.stringValue) { $f.slug.stringValue } else { ($d.name -split '/')[-1] }
+                        $lockersList += @{
+                            slug = $docSlug
+                            url = if ($f.url.stringValue) { $f.url.stringValue } else { "" }
+                            script = if ($f.script.stringValue) { $f.script.stringValue } else { "" }
+                            title = if ($f.title.stringValue) { $f.title.stringValue } else { $docSlug }
+                            desc = if ($f.desc.stringValue) { $f.desc.stringValue } else { "" }
+                            ch = if ($f.ch.stringValue) { $f.ch.stringValue } else { "Blacklistxyx" }
+                            clicks = if ($f.clicks.integerValue) { [int]$f.clicks.integerValue } else { 0 }
+                            unlocks = if ($f.unlocks.integerValue) { [int]$f.unlocks.integerValue } else { 0 }
+                            createdAt = if ($f.createdAt.stringValue) { $f.createdAt.stringValue } else { $d.createTime }
+                        }
+                    }
+                }
+
+                $jsonOut = @{
+                    success = $true
+                    lockers = $lockersList
+                } | ConvertTo-Json -Depth 5
+
+                $outBytes = [System.Text.Encoding]::UTF8.GetBytes($jsonOut)
+                $response.ContentType = "application/json; charset=utf-8"
+                $response.StatusCode = 200
+                $response.OutputStream.Write($outBytes, 0, $outBytes.Length)
+            } catch {
+                $errBytes = [System.Text.Encoding]::UTF8.GetBytes("{""error"":""$($_)""}")
+                $response.ContentType = "application/json; charset=utf-8"
+                $response.StatusCode = 500
+                $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
+            }
+            $response.Close()
+            continue
+        }
+
+        if ($rawPath -eq "/api/locker" -or $rawPath -eq "/api/locker/create") {
+            $key = "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI"
+            $proj = "blacklistscripts"
+            $response.Headers.Add("Access-Control-Allow-Origin", "*")
+            $response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+            $response.Headers.Add("Access-Control-Allow-Headers", "Content-Type")
+
+            if ($request.HttpMethod -eq "OPTIONS") {
+                $response.StatusCode = 204
+                $response.Close()
+                continue
+            }
+
+            if ($request.HttpMethod -eq "DELETE") {
+                $slug = $request.QueryString["slug"]
+                if (-not $slug) {
+                    $reader = New-Object System.IO.StreamReader($request.InputStream, [System.Text.Encoding]::UTF8)
+                    $bodyText = $reader.ReadToEnd()
+                    if ($bodyText) {
+                        try {
+                            $body = ConvertFrom-Json $bodyText
+                            $slug = "$($body.slug)"
+                        } catch {}
+                    }
+                }
+                $slug = $slug.Trim().ToLower()
+                if ($slug) {
+                    $delUri = "https://firestore.googleapis.com/v1/projects/$proj/databases/(default)/documents/lockers/$slug`?key=$key"
+                    try {
+                        Invoke-RestMethod -Uri $delUri -Method Delete | Out-Null
+                        $jsonOut = @{ success = $true; slug = $slug } | ConvertTo-Json
+                        $outBytes = [System.Text.Encoding]::UTF8.GetBytes($jsonOut)
+                        $response.ContentType = "application/json; charset=utf-8"
+                        $response.StatusCode = 200
+                        $response.OutputStream.Write($outBytes, 0, $outBytes.Length)
+                    } catch {
+                        $errBytes = [System.Text.Encoding]::UTF8.GetBytes("{""error"":""$($_)""}")
+                        $response.ContentType = "application/json; charset=utf-8"
+                        $response.StatusCode = 500
+                        $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
+                    }
+                }
+                $response.Close()
+                continue
+            }
+
+            if ($request.HttpMethod -eq "PATCH") {
+                $reader = New-Object System.IO.StreamReader($request.InputStream, [System.Text.Encoding]::UTF8)
+                $bodyText = $reader.ReadToEnd()
+                $body = ConvertFrom-Json $bodyText
+                
+                $slug = "$($body.slug)".Trim().ToLower()
+                $targetUrl = "$($body.url)"
+                $scriptCode = "$($body.script)"
+                $title = "$($body.title)"
+                $desc = "$($body.desc)"
+                $channel = if ($body.ch) { "$($body.ch)" } else { "Blacklistxyx" }
+
+                $patchUri = "https://firestore.googleapis.com/v1/projects/$proj/databases/(default)/documents/lockers/$slug`?updateMask.fieldPaths=url&updateMask.fieldPaths=script&updateMask.fieldPaths=title&updateMask.fieldPaths=desc&updateMask.fieldPaths=ch&key=$key"
+                $patchBody = @{
+                    fields = @{
+                        url = @{ stringValue = $targetUrl }
+                        script = @{ stringValue = $scriptCode }
+                        title = @{ stringValue = $title }
+                        desc = @{ stringValue = $desc }
+                        ch = @{ stringValue = $channel }
+                    }
+                } | ConvertTo-Json -Depth 5
+
+                try {
+                    Invoke-RestMethod -Uri $patchUri -Method Patch -Body $patchBody -ContentType "application/json; charset=utf-8" | Out-Null
+                    $jsonOut = @{
+                        success = $true
+                        slug = $slug
+                        locker = @{ slug = $slug; url = $targetUrl; script = $scriptCode; title = $title; desc = $desc; ch = $channel }
+                    } | ConvertTo-Json
+                    $outBytes = [System.Text.Encoding]::UTF8.GetBytes($jsonOut)
+                    $response.ContentType = "application/json; charset=utf-8"
+                    $response.StatusCode = 200
+                    $response.OutputStream.Write($outBytes, 0, $outBytes.Length)
+                } catch {
+                    $errBytes = [System.Text.Encoding]::UTF8.GetBytes("{""error"":""$($_)""}")
+                    $response.ContentType = "application/json; charset=utf-8"
+                    $response.StatusCode = 500
+                    $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
+                }
                 $response.Close()
                 continue
             }
@@ -122,6 +320,8 @@ try {
                         title = @{ stringValue = $title }
                         desc = @{ stringValue = $desc }
                         ch = @{ stringValue = $channel }
+                        clicks = @{ integerValue = 0 }
+                        unlocks = @{ integerValue = 0 }
                         createdAt = @{ stringValue = (Get-Date).ToUniversalTime().ToString("o") }
                     }
                 } | ConvertTo-Json -Depth 5
@@ -164,6 +364,8 @@ try {
                                 title = if ($f.title.stringValue) { $f.title.stringValue } else { "" }
                                 desc = if ($f.desc.stringValue) { $f.desc.stringValue } else { "" }
                                 ch = if ($f.ch.stringValue) { $f.ch.stringValue } else { "Blacklistxyx" }
+                                clicks = if ($f.clicks.integerValue) { [int]$f.clicks.integerValue } else { 0 }
+                                unlocks = if ($f.unlocks.integerValue) { [int]$f.unlocks.integerValue } else { 0 }
                             }
                         } | ConvertTo-Json
                         $outBytes = [System.Text.Encoding]::UTF8.GetBytes($jsonOut)

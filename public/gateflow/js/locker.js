@@ -21,13 +21,32 @@ const AD_DIRECT_POOL = [
   'https://uplcm.com/4/12157094'
 ];
 
+// Track GateFlow Click / Unlock Events into Firestore
+function trackGateEvent(slug, eventType) {
+  if (!slug) return;
+  const cleanSlug = slug.toLowerCase().trim();
+  const sessionKey = 'gf_tracked_' + eventType + '_' + cleanSlug;
+  if (sessionStorage.getItem(sessionKey)) return;
+  sessionStorage.setItem(sessionKey, '1');
+
+  fetch('/api/gate/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ slug: cleanSlug, event: eventType })
+  }).catch(() => {});
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initCustomTitleAndDesc();
   initDestinationUrl();
 
   const params = new URLSearchParams(window.location.search);
   const path = window.location.pathname.toLowerCase();
-  const slug = path.startsWith('/l/') ? path.slice(3).trim() : (params.get('slug') || '');
+  const slug = path.startsWith('/l/') ? path.slice(3).trim() : (params.get('slug') || (path === '/access' || path === '/hub' || path === '/gate' ? 'hub-access' : ''));
+
+  if (slug) {
+    trackGateEvent(slug, 'click');
+  }
 
   if (slug && slug !== 'hub-access') {
     loadLockerBySlug(slug);
@@ -339,6 +358,14 @@ function updateProgressState() {
 window.handleUnlockClick = function() {
   const completedCount = tasksDone.filter(Boolean).length;
   if (completedCount < TOTAL_TASKS) return;
+
+  // Track Unlock in Firestore
+  const p = new URLSearchParams(window.location.search);
+  const curPath = window.location.pathname.toLowerCase();
+  const activeSlug = curPath.startsWith('/l/') ? curPath.slice(3).trim() : (p.get('slug') || (curPath === '/access' || curPath === '/hub' || curPath === '/gate' ? 'hub-access' : ''));
+  if (activeSlug) {
+    trackGateEvent(activeSlug, 'unlock');
+  }
 
   // 1. Open Monetag Bonus Ad
   triggerDirectAd(3);

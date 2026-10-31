@@ -285,15 +285,21 @@
     </div>
 
     <!-- Mode Selector: Script vs Download Link -->
-    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
       <div style="font-size: 12px; color: #a7f3d0; display: flex; align-items: center; gap: 6px;">
         <i data-lucide="zap" style="width: 14px; height: 14px; color: #34d399;"></i>
-        <span>ลิงก์เข้าสู่เว็บหลัก (Security Access Gate แบบสั้น):</span>
+        <span>ลิงก์เข้าสู่เว็บหลัก (Access Gate):</span>
       </div>
-      <button type="button" onclick="copyAccessGateUrl()" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
-        <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
-        <span id="btnCopyAccessGateTxt">/access (คัดลอก)</span>
-      </button>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <a href="/dashboard" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
+          <i data-lucide="bar-chart-2" style="width: 13px; height: 13px;"></i>
+          <span>📊 แดชบอร์ดสถิติ</span>
+        </a>
+        <button type="button" onclick="copyAccessGateUrl()" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
+          <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
+          <span id="btnCopyAccessGateTxt">/access (คัดลอก)</span>
+        </button>
+      </div>
     </div>
 
     <div style="display: flex; gap: 8px; margin-bottom: 20px; background: rgba(255,255,255,0.04); padding: 4px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
