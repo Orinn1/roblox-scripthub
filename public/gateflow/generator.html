@@ -276,6 +276,16 @@
       </div>
 
       <div class="form-group">
+        <label class="form-label" for="customTitle">หัวข้อหน้าด่าน (ไม่บังคับ - ค่าเริ่มต้น: แจกไฟล์ดูดหัว):</label>
+        <input type="text" id="customTitle" class="form-input" placeholder="เช่น แจกไฟล์ดูดหัว OB46 หรือ แจกพาแนลฟรี" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="customDesc">คำอธิบายใต้หัวข้อ (ไม่บังคับ):</label>
+        <input type="text" id="customDesc" class="form-input" placeholder="เช่น หากสนใจไฟล์ พาแนล โปร เข้าเว็บได้เลย" />
+      </div>
+
+      <div class="form-group">
         <label class="form-label" for="domainOption">โดเมนที่ต้องการใช้กั้น:</label>
         <select id="domainOption" class="form-input" style="appearance: auto; padding-right: 30px;">
           <option value="cloudflare">https://th.blacklisthub.workers.dev (Cloudflare ใช้งานจริง)</option>
@@ -343,8 +353,15 @@
         }
       }
 
-      // Generate locked link
-      currentGeneratedUrl = `${baseUrl}/gateflow/locker.html?return_to=${encodeURIComponent(target)}`;
+      // Generate locked link with custom title and desc if provided
+      const customTitle = (document.getElementById('customTitle')?.value || '').trim();
+      const customDesc = (document.getElementById('customDesc')?.value || '').trim();
+
+      let query = `return_to=${encodeURIComponent(target)}`;
+      if (customTitle) query += `&title=${encodeURIComponent(customTitle)}`;
+      if (customDesc) query += `&desc=${encodeURIComponent(customDesc)}`;
+
+      currentGeneratedUrl = `${baseUrl}/gateflow/locker.html?${query}`;
 
       // Show result
       const resultBox = document.getElementById('resultBox');
@@ -419,3 +436,4 @@
   </script>
 </body>
 </html>
+

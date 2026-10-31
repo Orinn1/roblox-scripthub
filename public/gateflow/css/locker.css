@@ -1,6 +1,366 @@
 /* ==========================================================================
    GateFlow Content Locker Styles
-   High-Conversion Airy & Clean Access Gate (Modern Glassmorphism)
+   SocialWolvez / Sub2Unlock Clean Layout
+   ========================================================================== */
+
+/* 1. Viewport & Background */
+.social-viewport {
+  min-height: 100vh;
+  background-color: #05070d;
+  background-image: 
+    radial-gradient(circle at 50% 40%, rgba(13, 27, 62, 0.5) 0%, transparent 60%),
+    radial-gradient(circle at 10% 20%, rgba(30, 58, 138, 0.25) 0%, transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(29, 78, 216, 0.25) 0%, transparent 45%);
+  background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+  font-family: 'Kanit', sans-serif;
+  color: #F8FAFC;
+}
+
+/* Ambient Blurred Blue Bokeh Spheres */
+.bokeh-sphere {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  filter: blur(80px);
+  opacity: 0.65;
+}
+
+.sphere-top-left {
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.35) 0%, transparent 70%);
+  top: -120px;
+  left: 5%;
+}
+
+.sphere-top-right {
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(30, 64, 175, 0.3) 0%, transparent 70%);
+  top: 10%;
+  right: -80px;
+}
+
+.sphere-bottom-left {
+  width: 460px;
+  height: 460px;
+  background: radial-gradient(circle, rgba(29, 78, 216, 0.35) 0%, transparent 70%);
+  bottom: -100px;
+  left: 8%;
+}
+
+.sphere-bottom-right {
+  width: 440px;
+  height: 440px;
+  background: radial-gradient(circle, rgba(30, 58, 138, 0.4) 0%, transparent 70%);
+  bottom: 5%;
+  right: 12%;
+}
+
+/* 2. Topbar Navigation */
+.social-topbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 50;
+}
+
+.social-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.social-brand-icon {
+  width: 24px;
+  height: 24px;
+  background: #2563EB;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.6);
+}
+
+.social-brand-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -0.2px;
+}
+
+.social-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.social-vip-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 9999px;
+  color: #FBBF24;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.social-vip-pill:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.7);
+  transform: translateY(-1px);
+}
+
+.social-signin-btn {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94A3B8;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.social-signin-btn:hover {
+  color: #FFFFFF;
+}
+
+/* 3. Central Card */
+.social-card-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 16px 30px;
+  position: relative;
+  z-index: 10;
+  width: 100%;
+}
+
+.social-modal-card {
+  width: 100%;
+  max-width: 390px;
+  background: rgba(14, 17, 24, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 30px 24px 22px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 35px rgba(37, 99, 235, 0.15);
+  text-align: center;
+  animation: modalPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.social-modal-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-bottom: 5px;
+  letter-spacing: -0.3px;
+}
+
+.social-modal-sub {
+  font-size: 13px;
+  color: #94A3B8;
+  margin-bottom: 22px;
+  line-height: 1.4;
+}
+
+/* 4. Task Action Buttons (YouTube Style) */
+.social-tasks-group {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  margin-bottom: 22px;
+}
+
+.btn-social-yt {
+  width: 100%;
+  height: 48px;
+  border-radius: 10px;
+  border: none;
+  background: #E50914;
+  color: #FFFFFF;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(229, 9, 20, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0 16px;
+}
+
+.btn-social-yt:hover {
+  background: #EF4444;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(239, 68, 68, 0.5);
+}
+
+.btn-social-yt:active {
+  transform: translateY(0);
+}
+
+.yt-inner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.yt-svg-icon {
+  flex-shrink: 0;
+}
+
+.btn-social-yt.verifying {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #FBBF24;
+  cursor: wait;
+  box-shadow: none;
+}
+
+.btn-social-yt.completed {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #34D399;
+  cursor: default;
+  box-shadow: none;
+}
+
+.btn-social-yt.completed:hover {
+  transform: none;
+}
+
+/* 5. Progress Block */
+.social-progress-block {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.social-progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  margin-bottom: 7px;
+}
+
+.val-unlock-progress {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: #94A3B8;
+}
+
+.social-progress-track {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.social-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #2563EB, #10B981);
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+/* 6. Unlock Button */
+.btn-social-unlock {
+  width: 100%;
+  height: 48px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.25s ease;
+  box-sizing: border-box;
+}
+
+.btn-social-unlock.locked {
+  background: #171A23;
+  color: #4B5563;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  cursor: not-allowed;
+}
+
+.btn-social-unlock.ready {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.5);
+  animation: pulseUnlockBtn 2s infinite ease-in-out;
+  cursor: pointer;
+}
+
+.btn-social-unlock.ready:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(16, 185, 129, 0.7);
+}
+
+@keyframes pulseUnlockBtn {
+  0%, 100% {
+    box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 28px rgba(16, 185, 129, 0.8), 0 0 0 4px rgba(16, 185, 129, 0.2);
+  }
+}
+
+/* 7. Footer Link */
+.social-card-foot {
+  margin-top: 18px;
+}
+
+.link-create-own {
+  font-size: 12px;
+  color: #64748B;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.link-create-own:hover {
+  color: #94A3B8;
+}
+
+/* ==========================================================================
+   Original GateFlow Content Locker Styles (Kept for compatibility)
    ========================================================================== */
 
 .locker-viewport {
