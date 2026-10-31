@@ -33,8 +33,8 @@ function initCustomTitleAndDesc() {
   const returnTo = params.get('return_to') || params.get('url') || params.get('redirect') || '';
   const script = params.get('script') || '';
 
-  let defaultTitle = 'แจกไฟล์ดูดหัว';
-  let defaultDesc = 'ทำภารกิจสนับสนุน 6 ขั้นตอนด้านล่างเพื่อปลดล็อก';
+  let defaultTitle = 'ปลดล็อกลิงก์ดาวน์โหลด';
+  let defaultDesc = 'ทำภารกิจสนับสนุน 6 ขั้นตอนด้านล่างเพื่อรับไฟล์/สคริปต์ฟรี';
 
   if (script) {
     defaultTitle = 'แจกสคริปต์ฟรี (Script Access)';
@@ -52,6 +52,9 @@ function initCustomTitleAndDesc() {
 
   if (titleEl) titleEl.textContent = title;
   if (descEl) descEl.textContent = desc;
+
+  // Update browser tab title dynamically
+  document.title = `${title} — Social Unlock Gateway`;
 }
 
 // 2. Resolve Destination URL (MediaFire / Google Drive) or Embedded Script
