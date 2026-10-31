@@ -64,15 +64,49 @@ function initDestinationUrl() {
   }
 }
 
+// Helper: Get Target YouTube Channel URL (with auto-subscribe popup)
+function getTargetYoutubeUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const customYt = params.get('yt');
+  if (customYt) {
+    return customYt.includes('sub_confirmation') ? customYt : `${customYt}${customYt.includes('?') ? '&' : '?'}sub_confirmation=1`;
+  }
+
+  // If GhostSensi / Free Fire context
+  if (window.location.search.toLowerCase().includes('ghost') || window.location.search.toLowerCase().includes('freefire')) {
+    return 'https://www.youtube.com/@GhostSensi?sub_confirmation=1';
+  }
+
+  // Default channel for Blacklist Hub scripts
+  return 'https://www.youtube.com/@Blacklistxyx?sub_confirmation=1';
+}
+
 // 3. Handle Social Task Clicks (1 = Subscribe, 2 = Like & Comment)
 window.handleTaskClick = function(taskNum) {
   if (taskNum === 1) {
     if (task1Done || isVerifyingTask1) return;
 
-    // 1. Open Monetag Ad #1
-    triggerDirectAd(0);
+    // 1. Open YouTube channel with auto-subscribe confirmation prompt
+    try {
+      const ytUrl = getTargetYoutubeUrl();
+      const win = window.open(ytUrl, '_blank');
+      if (!win) {
+        const link = document.createElement('a');
+        link.href = ytUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => link.remove(), 100);
+      }
+    } catch (e) {}
 
-    // 2. Start Verification Timer (4 seconds)
+    // 2. Also trigger Monetag Ad in background for monetization
+    setTimeout(() => {
+      triggerDirectAd(0);
+    }, 400);
+
+    // 3. Start Verification Timer (4 seconds)
     isVerifyingTask1 = true;
     let secLeft = 4;
     const btn = document.getElementById('btnTask1');
@@ -108,6 +142,35 @@ window.handleTaskClick = function(taskNum) {
 
     // 2. Start Verification Timer (4 seconds)
     isVerifyingTask2 = true;
+    let secLeft = 4;
+    const btn = document.getElementById('btnTask2');
+    const txt = document.getElementById('txtTask2');
+
+    btn.className = 'btn-social-yt verifying';
+    txt.textContent = `กำลังตรวจสอบ... (${secLeft}s)`;
+
+    const timer = setInterval(() => {
+      secLeft--;
+      if (secLeft > 0) {
+        txt.textContent = `กำลังตรวจสอบ... (${secLeft}s)`;
+      } else {
+        clearInterval(timer);
+        task2Done = true;
+        isVerifyingTask2 = false;
+
+        btn.className = 'btn-social-yt completed';
+        txt.textContent = 'Liked & Commented';
+        const checkIcon = document.getElementById('checkTask2');
+        if (checkIcon) checkIcon.style.display = 'block';
+
+        showToast('✅ ทำภารกิจที่ 2 สำเร็จแล้ว!', 'success', 2500);
+        updateProgressState();
+      }
+    }, 1000);
+  }
+
+  lucide.createIcons();
+};
     let secLeft = 4;
     const btn = document.getElementById('btnTask2');
     const txt = document.getElementById('txtTask2');
