@@ -28,8 +28,20 @@ document.addEventListener('DOMContentLoaded', () => {
 // 1. Initialize Custom or Default Title & Description
 function initCustomTitleAndDesc() {
   const params = new URLSearchParams(window.location.search);
-  const title = params.get('title') || 'แจกไฟล์ดูดหัว';
-  const desc = params.get('desc') || 'หากสนใจไฟล์ พาแนล โปร เข้าเว็บได้เลย';
+  const slug = params.get('slug') || '';
+  const returnTo = params.get('return_to') || params.get('url') || params.get('redirect') || '';
+
+  let defaultTitle = 'แจกไฟล์ดูดหัว';
+  let defaultDesc = 'หากสนใจไฟล์ พาแนล โปร เข้าเว็บได้เลย';
+
+  // If accessed from the main website (hub-access or returning to root /)
+  if (slug === 'hub-access' || returnTo === '/' || returnTo.includes('localhost') || returnTo.includes('blacklisthub')) {
+    defaultTitle = 'ระบบยืนยันสิทธิ์ Security Access Gate';
+    defaultDesc = 'ทำภารกิจด้านล่างเพื่อรับสิทธิ์เข้าใช้งาน Blacklist Hub ฟรี 24 ชั่วโมง';
+  }
+
+  const title = params.get('title') || defaultTitle;
+  const desc = params.get('desc') || defaultDesc;
 
   const titleEl = document.getElementById('lockerTitle');
   const descEl = document.getElementById('lockerDesc');
@@ -145,13 +157,14 @@ function updateProgressState() {
       btnUnlock.className = 'btn-social-unlock ready';
     }
     if (txtUnlock) {
-      txtUnlock.textContent = 'Unlock (ดาวน์โหลดไฟล์ ➔)';
+      const isHub = window.location.search.includes('hub-access') || destinationUrl === '/' || destinationUrl.includes('blacklisthub');
+      txtUnlock.textContent = isHub ? 'เข้าสู่เว็บไซต์ (Enter Website ➔)' : 'Unlock (ดาวน์โหลดไฟล์ ➔)';
     }
     if (iconUnlock) {
       iconUnlock.setAttribute('data-lucide', 'sparkles');
       lucide.createIcons();
     }
-    showToast('🎉 ปลดล็อกเรียบร้อย! แตะปุ่ม Unlock เพื่อรับไฟล์', 'success', 3500);
+    showToast('🎉 ปลดล็อกเรียบร้อย! แตะปุ่มเพื่อดำเนินการต่อ', 'success', 3500);
   }
 }
 
