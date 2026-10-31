@@ -74,8 +74,25 @@
                     localStorage.setItem('blacklist_lootlabs_auth_expiry', canBypass ? '9999999999999' : String(Date.now() + 86400000));
                     sessionStorage.setItem('blacklist_lootlabs_auth', 'true');
                 } else if (isAuthSuccess) {
-                    localStorage.setItem('blacklist_lootlabs_auth_expiry', '9999999999999');
+                    var threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+                    var vipExpiresAt = Date.now() + threeDaysMs;
+                    localStorage.setItem('blacklist_lootlabs_auth_expiry', String(vipExpiresAt));
                     sessionStorage.setItem('blacklist_lootlabs_auth', 'true');
+                    var vipSession = {
+                        token: 'cpalead_fastpass_3days',
+                        user: {
+                            userId: 'fastpass',
+                            id: 'fastpass',
+                            username: 'VIP FastPass',
+                            avatar: ''
+                        },
+                        roles: ['VIP FastPass'],
+                        primaryRole: { id: 'fastpass', name: 'VIP FastPass', tag: 'VIP 72H', color: '#f59e0b', canBypass: true },
+                        canBypass: true,
+                        expiresAt: vipExpiresAt
+                    };
+                    localStorage.setItem('blacklist_vip_pass', JSON.stringify(vipSession));
+                    window.__AD_CAPPED__ = true;
                 }
             } catch (e) { }
 

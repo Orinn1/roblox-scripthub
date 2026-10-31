@@ -1396,3 +1396,139 @@
   margin: 0;
   line-height: 1.45;
 }
+
+/* ==========================================================================
+   VIP FastPass Alternative Card (CPALead 3-Day Ad-Free)
+   ========================================================================== */
+.or-divider {
+  display: flex;
+  align-items: center;
+  margin: 18px 0 14px;
+  gap: 12px;
+}
+
+.or-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.2), transparent);
+}
+
+.or-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #F59E0B;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 9999px;
+  padding: 3px 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.vip-fastpass-card {
+  position: relative;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.03) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 14px;
+  padding: 16px 18px;
+  text-align: left;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.vip-fastpass-card:hover {
+  border-color: rgba(245, 158, 11, 0.6);
+  transform: translateY(-2px);
+}
+
+.fastpass-glow-orb {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 90px;
+  height: 90px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.fastpass-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.fastpass-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: #06080E;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+
+.fastpass-duration {
+  font-size: 11px;
+  font-weight: 700;
+  color: #FBBF24;
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(251, 191, 36, 0.1);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+}
+
+.fastpass-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #F8FAFC;
+  margin: 0 0 6px 0;
+  line-height: 1.4;
+}
+
+.fastpass-desc {
+  font-size: 12px;
+  color: #CBD5E1;
+  margin: 0 0 14px 0;
+  line-height: 1.5;
+}
+
+.fastpass-desc strong {
+  color: #FDE68A;
+}
+
+.btn-fastpass-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 11px 16px;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: #050811 !important;
+  font-weight: 800;
+  font-size: 13.5px;
+  border-radius: 10px;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.btn-fastpass-action:hover {
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+}
+
+.btn-fastpass-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

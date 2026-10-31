@@ -98,6 +98,19 @@ function updateStaticTexts() {
   if (dot1) dot1.textContent = isTh ? 'เตรียมลิงก์' : 'Preparing';
   if (dot2) dot2.textContent = isTh ? 'ยืนยันสิทธิ์' : 'Verifying';
   if (dot3) dot3.textContent = isTh ? 'รับลิงก์' : 'Get Link';
+
+  // FastPass VIP Translation
+  const orBadge = document.getElementById('lblOrBadge');
+  const fpTitle = document.getElementById('lblFastpassTitle');
+  const fpDesc = document.getElementById('lblFastpassDesc');
+  const fpBtn = document.getElementById('lblFastpassBtn');
+
+  if (orBadge) orBadge.textContent = isTh ? '⚡ หรือเลือกทางลัด (FASTPASS)' : '⚡ OR FASTPASS SHORTCUT';
+  if (fpTitle) fpTitle.textContent = isTh ? 'ไม่อยากดูโฆษณา 3 รอบ? รับสิทธิ์ไร้โฆษณา 3 วันเต็ม!' : 'Skip ads? Get 3-Day Ad-Free VIP Pass!';
+  if (fpDesc) fpDesc.innerHTML = isTh
+    ? 'ติดตั้ง 1 แอพหรือเกมฟรีผ่านระบบสปอนเซอร์ รับพาส VIP เข้าใช้งานเว็บไซต์ <strong>ไร้โฆษณารบกวน 72 ชั่วโมงเต็ม</strong> (ข้ามด่านทันที)'
+    : 'Install 1 free sponsor app/game to unlock instant website access with <strong>zero ads for 72 hours</strong>.';
+  if (fpBtn) fpBtn.textContent = isTh ? 'กดรับสิทธิ์ VIP ไร้โฆษณา 3 วัน (ติดตั้ง 1 แอพ)' : 'Claim 3-Day VIP Pass (Install 1 App)';
 }
 
 // Set & Transition to a specific Round (1, 2, or 3)
