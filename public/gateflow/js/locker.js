@@ -1,685 +1,549 @@
 /* ==========================================================================
-   BlackPass Content Locker Engine
-   3 Buttons Model — 30 Seconds Dwell Time Each (Anti-Cheat & Strict Away-Detection)
-   RULE: Countdown ONLY runs while the user is actually viewing the sponsor ad!
-   If the user stays on the locker page, countdown is 100% PAUSED / FROZEN.
+   ShrinkMe-Style Multi-Round Gateway (3 Rounds / Steps)
+   Round 1 (Ad 1 -> 7s) -> Round 2 (Ad 2 -> 7s) -> Round 3 (Ad 3 -> GET LINK)
+   100% Monetag Direct Links + In-Page Push Banner (Zone 12157090)
    ========================================================================== */
 
-let currentLocker = null;
-const totalSteps = 3;
-const requiredDwellSeconds = 10; // 10 seconds dwell time per button
-let completedSteps = { 1: false, 2: false, 3: false };
-let secondsOnAd = { 1: 0, 2: 0, 3: 0 }; // Accumulated seconds actually spent away on ad tab
-let dwellSessionStart = { 1: null, 2: null, 3: null };
-let activeDwellingStep = null;
-let backgroundTicker = null;
-let lastToastTime = 0;
-let serverSessionTicket = null;
-let isVipBypassed = false;
+let currentLang = 'th';
+let destinationUrl = '';
 
-// Reliable Thai language detector (Defaults to Thai unless explicitly switched to English)
-function isThaiLang() {
-  const lang = (typeof window !== 'undefined' && window.currentAppLanguage) || (typeof localStorage !== 'undefined' && localStorage.getItem('blackpass_lang')) || 'th';
-  return lang !== 'en';
-}
+// Multi-Network Direct Link Pool (Fresh User Zones - Rotates evenly across all 4 zones)
+const AD_DIRECT_POOL = [
+  'https://uplcm.com/4/12157091',
+  'https://uplcm.com/4/12157092',
+  'https://uplcm.com/4/12157093',
+  'https://uplcm.com/4/12157094'
+];
+
+const TOTAL_ROUNDS = 3;
+const ROUND_DURATION = 7; // 7 seconds per round (Fast, highly satisfying)
+
+let currentRound = 1;
+let roundState = 'READY'; // 'READY' | 'COUNTING' | 'COMPLETED'
+let remainingSeconds = ROUND_DURATION;
+let countdownTimer = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-  loadLockerData();
-  initVipModal();
+  initLockerLang();
+  initDestinationUrl();
   checkInAppBrowser();
-
-  // Listen to language change
-  window.onLanguageChanged = (lang) => {
-    updateLockerLanguage();
-  };
-
-  // Watch tab visibility and focus: Pause when on locker tab, run when away on ad tab
-  document.addEventListener('visibilitychange', handleTabStateChange);
-  window.addEventListener('blur', handleTabStateChange);
-  window.addEventListener('focus', handleTabStateChange);
-
-  // Start background ticker
-  startBackgroundTicker();
+  setRound(1);
 });
 
-// Load Locker based on URL params
-async function loadLockerData() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const slug = urlParams.get('slug') || urlParams.get('id') || 'hub-access';
-  const customUrl = urlParams.get('url') || urlParams.get('redirect') || urlParams.get('return_to');
-
-  currentLocker = await GateStore.getLocker(slug);
-
-  if (!currentLocker) {
-    // Fallback default for Blacklist Script Hub or Quick Dynamic Link
-    currentLocker = {
-      id: 'gf_' + slug,
-      name: customUrl ? (urlParams.get('title') || urlParams.get('name') || 'ปลดล็อคเนื้อหา / เข้าสู่ลิงก์ปลายทาง') : 'Blacklist Script Hub Access',
-      slug: slug,
-      destinationUrl: customUrl || 'https://th.blacklisthub.workers.dev/',
-      steps: 3,
-      timer: 10,
-      ads: { popunder: false, banner: true, smartlink: true }
-    };
-  } else if (customUrl) {
-    currentLocker.destinationUrl = customUrl;
-  }
-
-  // Request Server-Side Anti-Bypass Ticket from Worker / Local Server
-  try {
-    const ticketRes = await fetch(`/api/gate/start?slug=${encodeURIComponent(currentLocker.slug || 'hub-access')}`);
-    if (ticketRes.ok) {
-      const ticketData = await ticketRes.json();
-      if (ticketData.success && ticketData.ticket) {
-        serverSessionTicket = ticketData.ticket;
-      }
-    }
-  } catch (e) {
-    console.warn('[BlackPass] Failed to fetch server gate ticket:', e);
-  }
-
-  // Record click impression
-  GateStore.recordClick(currentLocker.slug);
-
-  document.getElementById('lockerTitle').textContent = currentLocker.name;
-  document.title = `${currentLocker.name} \u2014 BlackPass 10s Verification`;
-
-  // Update instruction rule banner
-  const instructionEl = document.getElementById('lockerInstructionText');
-  if (instructionEl) {
-    instructionEl.textContent = isThaiLang()
-      ? '⚠️ กติกา: กดทำภารกิจให้ครบทั้ง 3 ปุ่ม โดยต้องค้างอยู่ที่หน้าโฆษณาปุ่มละ 10 วินาที จึงจะปลดล็อคเว็บไซต์'
-      : '⚠️ Rule: Complete all 3 buttons by staying on each sponsor ad for 10 seconds to unlock the website.';
-  }
-
-  renderTaskButtons();
-  initAdInjectors();
-  updateProgressUI();
-  updateBottomButtonUI();
+// Detect & Init Language
+function initLockerLang() {
+  currentLang = localStorage.getItem('blackpass_lang') || 'th';
+  updateLangButtons();
 }
 
-// Render 3 Interactive Task Buttons
-function renderTaskButtons() {
-  const container = document.getElementById('tasksList');
-  if (!container) return;
-
-  const t1Title = typeof getI18nText === 'function' ? getI18nText('locker_task_1_title', 'ด่านที่ 1: ตรวจสอบความปลอดภัย') : 'ด่านที่ 1: ตรวจสอบความปลอดภัย';
-  const t1Desc = typeof getI18nText === 'function' ? getI18nText('locker_task_1_desc', 'แตะเปิดโฆษณา (ค้างไว้ 10 วิ)') : 'แตะเปิดโฆษณา (ค้างไว้ 10 วิ)';
-  const t2Title = typeof getI18nText === 'function' ? getI18nText('locker_task_2_title', 'ด่านที่ 2: สปอนเซอร์หลัก') : 'ด่านที่ 2: สปอนเซอร์หลัก';
-  const t2Desc = typeof getI18nText === 'function' ? getI18nText('locker_task_2_desc', 'แตะเปิดโฆษณา (ค้างไว้ 10 วิ)') : 'แตะเปิดโฆษณา (ค้างไว้ 10 วิ)';
-  const t3Title = typeof getI18nText === 'function' ? getI18nText('locker_task_3_title', 'ด่านที่ 3: รับสิทธิ์เข้าเว็บฮับ 24 ชม.') : 'ด่านที่ 3: รับสิทธิ์เข้าเว็บฮับ 24 ชม.';
-  const t3Desc = typeof getI18nText === 'function' ? getI18nText('locker_task_3_desc', 'แตะเปิดโฆษณา (ค้างไว้ 10 วิ)') : 'แตะเปิดโฆษณา (ค้างไว้ 10 วิ)';
-
-  const taskDefinitions = [
-    { title: t1Title, desc: t1Desc },
-    { title: t2Title, desc: t2Desc },
-    { title: t3Title, desc: t3Desc }
-  ];
-
-  let html = '';
-  for (let i = 1; i <= totalSteps; i++) {
-    const def = taskDefinitions[i - 1];
-    html += `
-      <div class="task-item" id="taskItem_${i}" onclick="handleTaskButtonClick(${i})">
-        <div class="task-top-row">
-          <div class="task-left">
-            <div class="task-num-badge" id="taskNumBadge_${i}">
-              <span class="num-text">${i}</span>
-            </div>
-            <div class="task-info">
-              <span class="task-title">${def.title}</span>
-              <span class="task-desc" id="taskDesc_${i}">${def.desc}</span>
-            </div>
-          </div>
-          <div class="task-status-indicator" id="taskPill_${i}">
-            <!-- Action pill injected dynamically -->
-          </div>
-        </div>
-        <!-- Sleek Mini Progress Track -->
-        <div class="task-mini-progress-track" id="taskMiniProgress_${i}">
-          <div class="task-mini-progress-fill" id="taskMiniFill_${i}" style="width: 0%;"></div>
-        </div>
-      </div>
-    `;
-  }
-
-  container.innerHTML = html;
-  updateButtonsVisualState();
-  lucide.createIcons();
-}
-
-// Update the visual state of the 3 buttons
-function updateButtonsVisualState() {
-  const readyText = typeof getI18nText === 'function' ? getI18nText('locker_action_ready', 'แตะเริ่ม (10 วิ)') : 'แตะเริ่ม (10 วิ)';
-  const doneText = typeof getI18nText === 'function' ? getI18nText('locker_action_done', 'ผ่านแล้ว') : 'ผ่านแล้ว';
-  const lockedText = typeof getI18nText === 'function' ? getI18nText('locker_action_locked', 'รอด่านก่อน') : 'รอด่านก่อน';
-  const pausedTpl = typeof getI18nText === 'function' ? getI18nText('locker_action_paused', 'แตะนับต่อ ({sec}s)') : 'แตะนับต่อ ({sec}s)';
-
-  const isUserAway = document.hidden || !document.hasFocus();
-
-  for (let i = 1; i <= totalSteps; i++) {
-    const item = document.getElementById(`taskItem_${i}`);
-    const pill = document.getElementById(`taskPill_${i}`);
-    const badge = document.getElementById(`taskNumBadge_${i}`);
-    const desc = document.getElementById(`taskDesc_${i}`);
-    const miniFill = document.getElementById(`taskMiniFill_${i}`);
-    if (!item || !pill) continue;
-
-    if (completedSteps[i]) {
-      // 1. Completed State
-      item.className = 'task-item completed';
-      pill.innerHTML = `<div class="btn-task-action completed"><i data-lucide="check" style="width: 14px; height: 14px;"></i> <span>${doneText}</span></div>`;
-      if (badge) badge.innerHTML = `<i data-lucide="check" style="width: 14px; height: 14px;"></i>`;
-      if (desc) {
-        desc.textContent = isThaiLang() ? '✅ ดูครบ 10 วินาทีเรียบร้อยแล้ว' : '✅ 10s completed';
-        desc.style.color = '#34D399';
-      }
-      if (miniFill) miniFill.style.width = '100%';
-    } else if (activeDwellingStep === i) {
-      const currentSpent = secondsOnAd[i] + (isUserAway && dwellSessionStart[i] ? Math.floor((Date.now() - dwellSessionStart[i]) / 1000) : 0);
-      const remaining = Math.max(0, requiredDwellSeconds - currentSpent);
-      const pct = Math.min(100, Math.round((currentSpent / requiredDwellSeconds) * 100));
-      if (miniFill) miniFill.style.width = `${pct}%`;
-
-      if (isUserAway) {
-        // 2. Currently Away on Ad Tab (Active Counting)
-        item.className = 'task-item dwelling';
-        pill.innerHTML = `<div class="btn-task-action dwelling"><i data-lucide="loader-2" class="spin" style="width: 13px; height: 13px;"></i> <span>⏳ ${remaining}s</span></div>`;
-        if (badge) badge.innerHTML = `<span class="num-text">${i}</span>`;
-        if (desc) {
-          desc.textContent = isThaiLang()
-            ? `⏳ กำลังนับเวลา... ค้างไว้ในหน้าโฆษณาอีก ${remaining} วิ`
-            : `⏳ Counting... Stay on ad for ${remaining}s more`;
-          desc.style.color = '#F59E0B';
-        }
-      } else {
-        // 3. User is on Locker Tab -> PAUSED!
-        item.className = 'task-item paused';
-        pill.innerHTML = `<div class="btn-task-action paused"><i data-lucide="play" style="width: 12px; height: 12px; fill: currentColor;"></i> <span>${pausedTpl.replace('{sec}', remaining)}</span></div>`;
-        if (badge) badge.innerHTML = `<span class="num-text">${i}</span>`;
-        if (desc) {
-          desc.textContent = isThaiLang()
-            ? `⚠️ เวลาหยุดนับ! แตะกลับไปค้างหน้าโฆษณาอีก ${remaining} วิ`
-            : `⚠️ Timer paused! Tap to return to ad for ${remaining}s`;
-          desc.style.color = '#F87171';
-        }
-      }
-    } else if (i === 1 || completedSteps[i - 1]) {
-      // 4. Ready to Click
-      item.className = 'task-item ready-to-click';
-      pill.innerHTML = `<div class="btn-task-action ready"><span>${readyText}</span> <i data-lucide="chevron-right" style="width: 13px; height: 13px;"></i></div>`;
-      if (badge) badge.innerHTML = `<span class="num-text">${i}</span>`;
-      if (desc) {
-        desc.textContent = isThaiLang()
-          ? `แตะเพื่อเปิดโฆษณาและค้างไว้ 10 วินาที`
-          : `Tap to open ad and stay for 10s`;
-        desc.style.color = 'var(--text-muted)';
-      }
-      if (miniFill) miniFill.style.width = '0%';
-    } else {
-      // 5. Locked State
-      item.className = 'task-item locked';
-      pill.innerHTML = `<div class="btn-task-action locked"><i data-lucide="lock" style="width: 11px; height: 11px;"></i> <span>${lockedText}</span></div>`;
-      if (badge) badge.innerHTML = `<i data-lucide="lock" style="width: 13px; height: 13px; opacity: 0.6;"></i>`;
-      if (desc) {
-        desc.textContent = isThaiLang()
-          ? `รอด่านที่ ${i - 1} ผ่านก่อน`
-          : `Complete step ${i - 1} first`;
-        desc.style.color = 'rgba(255, 255, 255, 0.3)';
-      }
-      if (miniFill) miniFill.style.width = '0%';
-    }
-  }
-
-  lucide.createIcons();
-}
-
-// User clicking directly on one of the 3 Task Buttons
-window.handleTaskButtonClick = function(btnIndex) {
-  // Check if previous buttons completed
-  if (btnIndex > 1 && !completedSteps[btnIndex - 1]) {
-    const prevWarn = isThaiLang()
-      ? `⚠️ กรุณากดทำปุ่มที่ ${btnIndex - 1} ให้ผ่านก่อน!`
-      : `⚠️ Please complete Button ${btnIndex - 1} first!`;
-    showToast(prevWarn, 'warning', 3500);
-    return;
-  }
-
-  // Already completed this button
-  if (completedSteps[btnIndex]) {
-    const doneNotice = isThaiLang()
-      ? `✅ ปุ่มที่ ${btnIndex} ผ่านการยืนยัน 10 วินาทีเรียบร้อยแล้ว!`
-      : `✅ Button ${btnIndex} has already completed the 10s dwell!`;
-    showToast(doneNotice, 'success', 2500);
-    return;
-  }
-
-  // Set active step
-  activeDwellingStep = btnIndex;
-
-  // If already partially dwelt, re-open ad to continue
-  const remaining = requiredDwellSeconds - (secondsOnAd[btnIndex] || 0);
-
-  // Open the ad in a new tab
-  triggerSmartlinkAd(btnIndex);
-
-  // Set session start time when leaving
-  dwellSessionStart[btnIndex] = Date.now();
-
-  const startMsg = isThaiLang()
-    ? `🚀 เปิดหน้าโฆษณาแล้ว! กรุณาสลับไปค้างอยู่ที่หน้าโฆษณาอีก ${remaining} วิ (เวลานับเฉพาะตอนเปิดแท็บนั้น)`
-    : `🚀 Ad opened! Please switch to and stay on the ad tab for ${remaining}s (Timer only runs while viewing ad).`;
-  showToast(startMsg, 'info', 4500);
-
-  updateButtonsVisualState();
-  updateProgressUI();
+window.setLockerLang = function(lang) {
+  currentLang = lang;
+  localStorage.setItem('blackpass_lang', lang);
+  updateLangButtons();
+  updateStaticTexts();
+  renderCurrentRoundUI();
 };
 
-// Handle Tab Switching (Visibility & Focus)
-function handleTabStateChange() {
-  if (!activeDwellingStep || completedSteps[activeDwellingStep]) return;
-  const step = activeDwellingStep;
-  const isUserAway = document.hidden || !document.hasFocus();
+function updateLangButtons() {
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === currentLang);
+  });
+}
 
-  if (isUserAway) {
-    // User is on the ad tab! Start or continue measuring time away
-    if (!dwellSessionStart[step]) {
-      dwellSessionStart[step] = Date.now();
-    }
+// Resolve Destination URL
+function initDestinationUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const returnTo = params.get('return_to') || params.get('url') || params.get('redirect') || '';
+  
+  if (returnTo) {
+    destinationUrl = returnTo;
+  } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    destinationUrl = '/';
   } else {
-    // User returned to locker tab!
-    // Commit the time spent on the ad tab
-    if (dwellSessionStart[step]) {
-      const awaySeconds = Math.floor((Date.now() - dwellSessionStart[step]) / 1000);
-      secondsOnAd[step] += awaySeconds;
-      dwellSessionStart[step] = null;
-    }
+    destinationUrl = 'https://th.blacklisthub.workers.dev/';
+  }
+}
 
-    // Check if 30 seconds threshold met
-    if (secondsOnAd[step] >= requiredDwellSeconds) {
-      onButtonDwellVerified(step);
-    } else {
-      // Returned early -> PAUSE TIMER! IT DOES NOT COUNT HERE!
-      const remaining = requiredDwellSeconds - secondsOnAd[step];
-      document.title = `⏸️ (${remaining}s) หยุดนับเวลา! สลับไปหน้าโฆษณาเพื่อให้นับต่อ`;
+// Check In-App Browser (Discord, LINE, Facebook)
+function checkInAppBrowser() {
+  const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+  const isDiscord = ua.includes('Discord');
+  const isLine = ua.includes('Line');
+  const isFB = ua.includes('FBAN') || ua.includes('FBAV');
 
-      if (Date.now() - lastToastTime > 3000) {
-        lastToastTime = Date.now();
-        const toastMsg = isThaiLang()
-          ? `⏸️ หยุดนับเวลา! คุณค้างหน้าโฆษณาไปแล้ว ${secondsOnAd[step]}/10 วิ (เหลืออีก ${remaining} วิ) เวลานับต่อเฉพาะตอนเปิดแท็บโฆษณาเท่านั้น`
-          : `⏸️ Timer paused! You spent ${secondsOnAd[step]}/10s. Timer only runs while you are on the ad page.`;
-        showToast(toastMsg, 'warning', 4500);
+  const notice = document.getElementById('inAppBrowserNotice');
+  if (notice && (isDiscord || isLine || isFB)) {
+    notice.style.display = 'flex';
+  }
+}
+
+// Update Static Texts
+function updateStaticTexts() {
+  const isTh = currentLang === 'th';
+
+  const titleEl = document.getElementById('lockerTitle');
+  const descEl = document.getElementById('lockerDesc');
+  const lblProg = document.getElementById('lblProgressTitle');
+  const vipSkip = document.getElementById('lblVipSkip');
+  const dot1 = document.getElementById('dotLbl1');
+  const dot2 = document.getElementById('dotLbl2');
+  const dot3 = document.getElementById('dotLbl3');
+
+  if (titleEl) titleEl.textContent = isTh ? 'ระบบยืนยันสิทธิ์ Security Access Gate' : 'Security Access Gate';
+  if (descEl) descEl.textContent = isTh
+    ? 'ทำตาม 3 ขั้นตอนด้านล่างเพื่อรับสิทธิ์เข้าใช้งานเว็บไซต์ฟรี 24 ชั่วโมง'
+    : 'Complete the 3 quick steps below to unlock 24-hour website access for free.';
+  if (lblProg) lblProg.textContent = isTh ? 'สถานะขั้นตอน' : 'Step Status';
+  if (vipSkip) vipSkip.textContent = isTh ? 'มียศ VIP ใน Discord? ข้ามด่านทันที' : 'VIP Discord Member? Skip immediately';
+  if (dot1) dot1.textContent = isTh ? 'เตรียมลิงก์' : 'Preparing';
+  if (dot2) dot2.textContent = isTh ? 'ยืนยันสิทธิ์' : 'Verifying';
+  if (dot3) dot3.textContent = isTh ? 'รับลิงก์' : 'Get Link';
+}
+
+// Set & Transition to a specific Round (1, 2, or 3)
+function setRound(roundNum) {
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
+
+  currentRound = roundNum;
+  roundState = (currentRound === 3) ? 'COMPLETED' : 'READY';
+  remainingSeconds = ROUND_DURATION;
+
+  // Re-trigger card fade-in animation
+  const card = document.getElementById('shrinkRoundCard');
+  if (card) {
+    card.style.animation = 'none';
+    card.offsetHeight; // trigger reflow
+    card.style.animation = null;
+  }
+
+  updateStepperHeader();
+  renderCurrentRoundUI();
+}
+
+// Update Top Stepper Row & Progress Bar
+function updateStepperHeader() {
+  const isTh = currentLang === 'th';
+
+  const dot1 = document.getElementById('stepDot1');
+  const dot2 = document.getElementById('stepDot2');
+  const dot3 = document.getElementById('stepDot3');
+  const circle1 = document.getElementById('dotCircle1');
+  const circle2 = document.getElementById('dotCircle2');
+  const circle3 = document.getElementById('dotCircle3');
+  const line1 = document.getElementById('stepLine1');
+  const line2 = document.getElementById('stepLine2');
+  const progText = document.getElementById('shrinkProgressText');
+  const progBar = document.getElementById('shrinkProgressBar');
+
+  // Reset classes
+  [dot1, dot2, dot3].forEach(d => { if (d) d.className = 'stepper-dot'; });
+  [line1, line2].forEach(l => { if (l) l.className = 'stepper-line'; });
+
+  if (currentRound === 1) {
+    if (dot1) dot1.classList.add('active');
+    if (circle1) circle1.innerHTML = '1';
+    if (circle2) circle2.innerHTML = '2';
+    if (circle3) circle3.innerHTML = '3';
+    if (progText) progText.textContent = isTh ? 'ขั้นตอนที่ 1 จาก 3 (33%)' : 'Step 1 of 3 (33%)';
+    if (progBar) progBar.style.width = '33%';
+
+  } else if (currentRound === 2) {
+    if (dot1) dot1.classList.add('completed');
+    if (circle1) circle1.innerHTML = '<i data-lucide="check" style="width: 15px; height: 15px;"></i>';
+    if (line1) line1.classList.add('completed');
+    if (dot2) dot2.classList.add('active');
+    if (circle2) circle2.innerHTML = '2';
+    if (circle3) circle3.innerHTML = '3';
+    if (progText) progText.textContent = isTh ? 'ขั้นตอนที่ 2 จาก 3 (66%)' : 'Step 2 of 3 (66%)';
+    if (progBar) progBar.style.width = '66%';
+
+  } else if (currentRound === 3) {
+    if (dot1) dot1.classList.add('completed');
+    if (circle1) circle1.innerHTML = '<i data-lucide="check" style="width: 15px; height: 15px;"></i>';
+    if (line1) line1.classList.add('completed');
+    if (dot2) dot2.classList.add('completed');
+    if (circle2) circle2.innerHTML = '<i data-lucide="check" style="width: 15px; height: 15px;"></i>';
+    if (line2) line2.classList.add('completed');
+    if (dot3) dot3.classList.add('completed');
+    if (circle3) circle3.innerHTML = '<i data-lucide="sparkles" style="width: 15px; height: 15px;"></i>';
+    if (progText) progText.textContent = isTh ? 'ขั้นตอนที่ 3 จาก 3 (เสร็จสิ้น 100%)' : 'Step 3 of 3 (Ready 100%)';
+    if (progBar) progBar.style.width = '100%';
+  }
+}
+
+// Render Main Round Card UI
+function renderCurrentRoundUI() {
+  const isTh = currentLang === 'th';
+
+  const badgePill = document.getElementById('roundBadgePill');
+  const badgeText = document.getElementById('roundBadgeText');
+  const mainTitle = document.getElementById('roundMainTitle');
+  const subTitle = document.getElementById('roundSubTitle');
+  const timerNum = document.getElementById('shrinkTimerNum');
+  const timerUnit = document.getElementById('shrinkTimerUnit');
+  const statusDot = document.getElementById('shrinkStatusDot');
+  const statusTitle = document.getElementById('shrinkStatusTitle');
+  const statusSub = document.getElementById('shrinkStatusSub');
+  const bar = document.getElementById('shrinkTimerProgressBar');
+  const btn = document.getElementById('btnShrinkAction');
+  const btnText = document.getElementById('btnShrinkText');
+  const btnIcon = document.getElementById('btnShrinkIcon');
+  const btnArrow = document.getElementById('btnShrinkArrow');
+  const hintText = document.getElementById('actionSubHintText');
+
+  // --- ROUND 1 ---
+  if (currentRound === 1) {
+    if (badgeText) badgeText.textContent = 'STEP 1 OF 3';
+    if (mainTitle) mainTitle.textContent = isTh ? 'ขั้นตอนที่ 1 / 3: กำลังเตรียมลิงก์เข้าใช้งาน' : 'Step 1 of 3: Preparing Website Access Link';
+    if (subTitle) subTitle.textContent = isTh
+      ? 'แตะปุ่มด้านล่างเพื่อเปิดหน้าสปอนเซอร์และเริ่มนับเวลา 7 วินาที'
+      : 'Click the button below to open sponsor ad & start 7s countdown.';
+
+    if (roundState === 'READY') {
+      if (timerNum) timerNum.textContent = '7';
+      if (timerUnit) timerUnit.textContent = isTh ? 'วินาที' : 'seconds';
+      if (statusTitle) statusTitle.textContent = isTh ? 'พร้อมเริ่มขั้นตอนที่ 1' : 'Ready to start Step 1';
+      if (statusSub) statusSub.textContent = isTh ? 'กดปุ่มด้านล่างเพื่อเปิดหน้าสปอนเซอร์และเริ่มนับเวลา' : 'Click button below to open ad and start timer';
+      if (bar) bar.style.width = '0%';
+
+      if (btn) {
+        btn.disabled = false;
+        btn.className = 'btn-enter-website ready';
+      }
+      if (btnText) btnText.textContent = isTh ? 'แตะเพื่อเริ่มขั้นตอนที่ 1 (Start 7s) ⚡' : 'Start Step 1 (7s) ⚡';
+      if (btnIcon) {
+        btnIcon.setAttribute('data-lucide', 'play');
+        btnIcon.classList.remove('spin');
+      }
+      if (btnArrow) btnArrow.style.opacity = '0.8';
+      if (hintText) hintText.textContent = isTh ? 'แตะปุ่มเพื่อเปิดสปอนเซอร์ Monetag และเริ่มนับเวลา' : 'Click button to open sponsor ad & begin countdown';
+
+    } else if (roundState === 'COUNTING') {
+      if (timerNum) timerNum.textContent = remainingSeconds;
+      if (timerUnit) timerUnit.textContent = isTh ? 'วินาที' : 'seconds';
+      if (statusTitle) statusTitle.textContent = isTh ? `กำลังเตรียมลิงก์... (${remainingSeconds}s)` : `Preparing link... (${remainingSeconds}s)`;
+      if (statusSub) statusSub.textContent = isTh ? 'ระบบกำลังเชื่อมต่อและยืนยันข้อมูลอุปกรณ์' : 'Connecting and verifying device data';
+      if (bar) {
+        const pct = Math.round(((ROUND_DURATION - remainingSeconds) / ROUND_DURATION) * 100);
+        bar.style.width = `${pct}%`;
       }
 
-      updateButtonsVisualState();
-      updateProgressUI();
+      if (btn) {
+        btn.disabled = true;
+        btn.className = 'btn-enter-website disabled';
+      }
+      if (btnText) btnText.textContent = isTh ? `กรุณารอสักครู่... (${remainingSeconds}s)` : `Please wait... (${remainingSeconds}s)`;
+      if (btnIcon) {
+        btnIcon.setAttribute('data-lucide', 'loader-2');
+        btnIcon.classList.add('spin');
+      }
+      if (btnArrow) btnArrow.style.opacity = '0.3';
+      if (hintText) hintText.textContent = isTh ? `รอเวลาให้ครบ ${remainingSeconds} วินาทีเพื่อไปยังขั้นตอนถัดไป` : `Wait ${remainingSeconds}s to unlock next step`;
+
+    } else if (roundState === 'COMPLETED') {
+      if (timerNum) timerNum.innerHTML = '<i data-lucide="check" style="width: 28px; height: 28px; color: #10B981;"></i>';
+      if (timerUnit) timerUnit.textContent = isTh ? 'เสร็จสิ้น' : 'Done';
+      if (statusTitle) statusTitle.textContent = isTh ? '🎉 ขั้นตอนที่ 1 เสร็จเรียบร้อยแล้ว!' : '🎉 Step 1 Completed!';
+      if (statusSub) statusSub.textContent = isTh ? 'คลิกปุ่มด้านล่างเพื่อไปยังขั้นตอนที่ 2' : 'Click button below to advance to Step 2';
+      if (bar) bar.style.width = '100%';
+
+      if (btn) {
+        btn.disabled = false;
+        btn.className = 'btn-enter-website ready';
+      }
+      if (btnText) btnText.textContent = isTh ? 'ไปยังขั้นตอนที่ 2 จาก 3 (Next Step) ➔' : 'Go to Step 2 of 3 (Next Step) ➔';
+      if (btnIcon) {
+        btnIcon.setAttribute('data-lucide', 'arrow-right-circle');
+        btnIcon.classList.remove('spin');
+      }
+      if (btnArrow) btnArrow.style.opacity = '1';
+      if (hintText) hintText.textContent = isTh ? '✅ ขั้นตอนที่ 1 ผ่านแล้ว! แตะปุ่มด้านบนเพื่อไปด่าน 2' : '✅ Step 1 passed! Click button to proceed';
     }
-  }
-}
 
-// Background Ticker: Updates document title while away and verifies completion
-function startBackgroundTicker() {
-  if (backgroundTicker) clearInterval(backgroundTicker);
+  // --- ROUND 2 ---
+  } else if (currentRound === 2) {
+    if (badgeText) badgeText.textContent = 'STEP 2 OF 3';
+    if (mainTitle) mainTitle.textContent = isTh ? 'ขั้นตอนที่ 2 / 3: ยืนยันสิทธิ์สปอนเซอร์' : 'Step 2 of 3: Sponsor Key Verification';
+    if (subTitle) subTitle.textContent = isTh
+      ? 'แตะปุ่มด้านล่างเพื่อเปิดหน้าสปอนเซอร์และสร้างรหัสผ่าน 24 ชั่วโมง'
+      : 'Click button below to open sponsor ad & generate 24h pass key.';
 
-  backgroundTicker = setInterval(() => {
-    if (!activeDwellingStep || completedSteps[activeDwellingStep]) return;
-    const step = activeDwellingStep;
-    const isUserAway = document.hidden || !document.hasFocus();
+    if (roundState === 'READY') {
+      if (timerNum) timerNum.textContent = '7';
+      if (timerUnit) timerUnit.textContent = isTh ? 'วินาที' : 'seconds';
+      if (statusTitle) statusTitle.textContent = isTh ? 'พร้อมเริ่มขั้นตอนที่ 2' : 'Ready to start Step 2';
+      if (statusSub) statusSub.textContent = isTh ? 'กดปุ่มด้านล่างเพื่อเปิดหน้าสปอนเซอร์และเริ่มนับเวลา' : 'Click button below to open ad and start timer';
+      if (bar) bar.style.width = '0%';
 
-    if (isUserAway && dwellSessionStart[step]) {
-      const currentAway = Math.floor((Date.now() - dwellSessionStart[step]) / 1000);
-      const total = secondsOnAd[step] + currentAway;
-      const remaining = Math.max(0, requiredDwellSeconds - total);
+      if (btn) {
+        btn.disabled = false;
+        btn.className = 'btn-enter-website ready';
+      }
+      if (btnText) btnText.textContent = isTh ? 'แตะเพื่อเริ่มขั้นตอนที่ 2 (Start 7s) ⚡' : 'Start Step 2 (7s) ⚡';
+      if (btnIcon) {
+        btnIcon.setAttribute('data-lucide', 'play');
+        btnIcon.classList.remove('spin');
+      }
+      if (btnArrow) btnArrow.style.opacity = '0.8';
+      if (hintText) hintText.textContent = isTh ? 'แตะปุ่มเพื่อเปิดสปอนเซอร์ Monetag และเริ่มนับเวลา' : 'Click button to open sponsor ad & begin countdown';
 
-      if (remaining > 0) {
-        document.title = `⏳ (${remaining}s) ค้างอยู่หน้าโฆษณา...`;
-      } else {
-        document.title = `✅ (ครบ 10 วิแล้ว!) สลับกลับมาหน้านี้ได้เลย`;
+    } else if (roundState === 'COUNTING') {
+      if (timerNum) timerNum.textContent = remainingSeconds;
+      if (timerUnit) timerUnit.textContent = isTh ? 'วินาที' : 'seconds';
+      if (statusTitle) statusTitle.textContent = isTh ? `กำลังสร้างรหัสผ่าน 24 ชม.... (${remainingSeconds}s)` : `Generating 24h pass... (${remainingSeconds}s)`;
+      if (statusSub) statusSub.textContent = isTh ? 'ระบบกำลังเข้ารหัส Session Token ปลอดภัย 100%' : 'Encrypting secure 24-hour session token';
+      if (bar) {
+        const pct = Math.round(((ROUND_DURATION - remainingSeconds) / ROUND_DURATION) * 100);
+        bar.style.width = `${pct}%`;
       }
 
-      // If user stayed away full 10 seconds
-      if (remaining <= 0) {
-        secondsOnAd[step] = requiredDwellSeconds;
-        dwellSessionStart[step] = null;
-        onButtonDwellVerified(step);
+      if (btn) {
+        btn.disabled = true;
+        btn.className = 'btn-enter-website disabled';
       }
+      if (btnText) btnText.textContent = isTh ? `กำลังสร้างรหัสผ่าน... (${remainingSeconds}s)` : `Generating pass... (${remainingSeconds}s)`;
+      if (btnIcon) {
+        btnIcon.setAttribute('data-lucide', 'loader-2');
+        btnIcon.classList.add('spin');
+      }
+      if (btnArrow) btnArrow.style.opacity = '0.3';
+      if (hintText) hintText.textContent = isTh ? `รอเวลาให้ครบ ${remainingSeconds} วินาทีเพื่อไปยังขั้นตอนสุดท้าย` : `Wait ${remainingSeconds}s to unlock final step`;
+
+    } else if (roundState === 'COMPLETED') {
+      if (timerNum) timerNum.innerHTML = '<i data-lucide="check" style="width: 28px; height: 28px; color: #10B981;"></i>';
+      if (timerUnit) timerUnit.textContent = isTh ? 'เสร็จสิ้น' : 'Done';
+      if (statusTitle) statusTitle.textContent = isTh ? '🎉 ยืนยันสิทธิ์สำเร็จ พร้อมรับลิงก์แล้ว!' : '🎉 Verification complete! Ready for link.';
+      if (statusSub) statusSub.textContent = isTh ? 'คลิกปุ่มด้านล่างเพื่อไปยังหน้ารับลิงก์' : 'Click button below to go to Get Link page';
+      if (bar) bar.style.width = '100%';
+
+      if (btn) {
+        btn.disabled = false;
+        btn.className = 'btn-enter-website ready';
+      }
+      if (btnText) btnText.textContent = isTh ? 'ไปยังหน้ารับลิงก์ (Final Step) ➔' : 'Go to Get Link (Final Step) ➔';
+      if (btnIcon) {
+        btnIcon.setAttribute('data-lucide', 'arrow-right-circle');
+        btnIcon.classList.remove('spin');
+      }
+      if (btnArrow) btnArrow.style.opacity = '1';
+      if (hintText) hintText.textContent = isTh ? '✅ สิทธิ์พร้อมแล้ว! แตะปุ่มด้านบนเพื่อไปรับลิงก์' : '✅ Pass ready! Click button to get link';
     }
-  }, 500);
-}
 
-// When a button completes its 10s dwell verification
-function onButtonDwellVerified(btnIndex) {
-  completedSteps[btnIndex] = true;
-  activeDwellingStep = null;
-  dwellSessionStart[btnIndex] = null;
-  secondsOnAd[btnIndex] = requiredDwellSeconds;
+  // --- ROUND 3 (FINAL GET LINK) ---
+  } else if (currentRound === 3) {
+    if (badgeText) badgeText.textContent = 'FINAL STEP: GET LINK';
+    if (mainTitle) mainTitle.textContent = isTh ? 'ขั้นตอนสุดท้าย: ลิงก์ของคุณพร้อมแล้ว! 🎉' : 'Final Step: Your Link is Ready! 🎉';
+    if (subTitle) subTitle.textContent = isTh
+      ? 'ระบบจัดเตรียมสิทธิ์เข้าใช้งานเว็บไซต์ 24 ชั่วโมงให้คุณเรียบร้อยแล้ว แตะปุ่มด้านล่างเพื่อเข้าสู่เว็บไซต์ได้ทันที'
+      : 'Your 24-hour free access pass is fully generated. Click the button below to enter website!';
 
-  // Mobile haptic vibration if supported (Gentle buzz when 10s dwell is done)
-  if (typeof navigator !== 'undefined' && navigator.vibrate) {
-    try { navigator.vibrate([160, 90, 160]); } catch(e) {}
-  }
+    if (timerNum) timerNum.innerHTML = '<i data-lucide="sparkles" style="width: 32px; height: 32px; color: #10B981;"></i>';
+    if (timerUnit) timerUnit.textContent = isTh ? 'พร้อมเข้าเว็บ' : 'Ready';
+    if (statusTitle) statusTitle.textContent = isTh ? '🎉 ปลดล็อคสิทธิ์ 24 ชม. เรียบร้อยแล้ว!' : '🎉 24h Pass Unlocked Successfully!';
+    if (statusSub) statusSub.textContent = isTh ? 'คลิกปุ่มรับลิงก์ด้านล่างเพื่อเข้าสู่เว็บไซต์ทันที' : 'Click Get Link button below to enter website';
+    if (bar) bar.style.width = '100%';
 
-  hidePopupFallback();
-
-  document.title = `${currentLocker.name} \u2014 BlackPass 10s Verification`;
-
-  updateButtonsVisualState();
-  updateProgressUI();
-  updateBottomButtonUI();
-
-  const successMsg = isThaiLang()
-    ? `✅ ปุ่มที่ ${btnIndex} ผ่านแล้ว! (ดูครบ 10 วินาทีเต็ม)`
-    : `✅ Button ${btnIndex} Verified! (10s dwell completed)`;
-  showToast(successMsg, 'success', 3500);
-
-  // Check if all 3 buttons are completed!
-  if (completedSteps[1] && completedSteps[2] && completedSteps[3]) {
-    const allDoneMsg = isThaiLang()
-      ? '🎉 ผ่านครบ 3 ด่านแล้ว! กำลังเข้าสู่เว็บไซต์ทันที...'
-      : '🎉 All 3 steps complete! Redirecting now...';
-    showToast(allDoneMsg, 'success', 2000);
-
-    setTimeout(() => {
-      unlockContent();
-    }, 250);
-  }
-}
-
-// Progress Bar & Step Text Calculation
-function updateProgressUI() {
-  const doneCount = [completedSteps[1], completedSteps[2], completedSteps[3]].filter(Boolean).length;
-  let fraction = doneCount / totalSteps;
-
-  if (activeDwellingStep && !completedSteps[activeDwellingStep]) {
-    const isUserAway = document.hidden || !document.hasFocus();
-    const currentSpent = secondsOnAd[activeDwellingStep] + (isUserAway && dwellSessionStart[activeDwellingStep] ? Math.floor((Date.now() - dwellSessionStart[activeDwellingStep]) / 1000) : 0);
-    const currentProgress = Math.min(1, currentSpent / requiredDwellSeconds);
-    fraction = (doneCount + currentProgress) / totalSteps;
-  }
-
-  const percent = Math.min(100, Math.round(fraction * 100));
-
-  const stepEl = document.getElementById('progressStepText');
-  if (stepEl) {
-    const stepTemplate = typeof getI18nText === 'function'
-      ? getI18nText('locker_step_text', '{current} / {total} ด่าน ({percent}%)')
-      : '{current} / {total} ด่าน ({percent}%)';
-    stepEl.textContent = stepTemplate
-      .replace('{current}', doneCount)
-      .replace('{total}', totalSteps)
-      .replace('{percent}', percent);
-  }
-
-  const fillEl = document.getElementById('progressBarFill');
-  if (fillEl) {
-    fillEl.style.width = `${Math.max(6, percent)}%`;
-  }
-}
-
-// Bottom Action / Unlock Status Button
-function updateBottomButtonUI() {
-  const btn = document.getElementById('btnContinue');
-  const btnText = document.getElementById('btnText');
-  const btnIcon = document.getElementById('btnIcon');
-  const hintEl = document.getElementById('lockerHintText');
-  if (!btn) return;
-
-  const doneCount = [completedSteps[1], completedSteps[2], completedSteps[3]].filter(Boolean).length;
-
-  if (doneCount >= totalSteps) {
-    // All 3 Completed! Reveal glowing unlock button
-    btn.style.display = 'flex';
-    btn.disabled = false;
-    btn.className = 'btn-locker-continue btn-unlock';
-    if (btnText) {
-      btnText.textContent = typeof getI18nText === 'function'
-        ? getI18nText('locker_bottom_unlock', '🎉 ผ่านครบ 3 ด่านแล้ว! ปลดล็อคเข้าสู่เว็บไซต์ 🔓')
-        : '🎉 ผ่านครบ 3 ด่านแล้ว! ปลดล็อคเข้าสู่เว็บไซต์ 🔓';
+    if (btn) {
+      btn.disabled = false;
+      btn.className = 'btn-enter-website ready-enter';
     }
+    if (btnText) btnText.textContent = isTh ? 'รับลิงก์เข้าสู่เว็บไซต์ (GET LINK 🚀)' : 'GET LINK — Enter Website 🚀';
     if (btnIcon) {
       btnIcon.setAttribute('data-lucide', 'unlock');
+      btnIcon.classList.remove('spin');
     }
-    btn.onclick = () => unlockContent();
-    if (hintEl) hintEl.style.display = 'none';
-  } else {
-    // Still in progress: Hide giant button, show minimal elegant hint
-    btn.style.display = 'none';
-    if (hintEl) {
-      hintEl.style.display = 'flex';
-      const remaining = totalSteps - doneCount;
-      const isTh = isThaiLang();
-      const hintMsg = isTh
-        ? `ค้างหน้าโฆษณาปุ่มละ 10 วินาที เพื่อปลดล็อค (เหลือ ${remaining} ด่าน)`
-        : `Stay on each ad for 10s to unlock (${remaining} remaining)`;
-      hintEl.innerHTML = `<i data-lucide="sparkles" style="width: 14px; height: 14px; color: #818CF8; flex-shrink: 0;"></i> <span>${hintMsg}</span>`;
-    }
+    if (btnArrow) btnArrow.style.opacity = '1';
+    if (hintText) hintText.textContent = isTh ? '✅ คลิกปุ่มด้านบนเพื่อรับลิงก์และเข้าสู่เว็บไซต์ทันที' : '✅ Click button above to claim link & enter website';
   }
 
   lucide.createIcons();
 }
 
-function updateLockerLanguage() {
-  renderTaskButtons();
-  updateProgressUI();
-  updateBottomButtonUI();
-}
+// Handle Interactive Button Click in Each Round
+window.handleShrinkButtonClick = function() {
+  const isTh = currentLang === 'th';
 
-// Real Ad Trigger (Links 1, 2, 3) - Monetag High CPM Direct Links
-function triggerSmartlinkAd(btnIndex = 1) {
-  // Owner's verified Monetag Direct Links (High Thai CPM)
-  let targetSmartlink = 'https://omg10.com/4/11905140';
-  if (btnIndex === 1) targetSmartlink = 'https://omg10.com/4/11905140';
-  else if (btnIndex === 2) targetSmartlink = 'https://omg10.com/4/11905141';
-  else if (btnIndex === 3) targetSmartlink = 'https://omg10.com/4/11905142';
+  // --- ROUND 1 CLICK HANDLING ---
+  if (currentRound === 1) {
+    if (roundState === 'READY') {
+      // 1. User clicked Start Step 1: Open Monetag Ad #1! 💰
+      triggerDirectAd(0);
 
-  try {
-    const adWindow = window.open(targetSmartlink, '_blank');
-    if (!adWindow || adWindow.closed || typeof adWindow.closed === 'undefined') {
-      showPopupFallback(targetSmartlink, btnIndex);
-      showToast('⚠️ เบราว์เซอร์บล็อกป๊อปอัป! ได้แสดงปุ่มเปิดโดยตรงด้านบนแล้ว', 'warning', 4500);
-    } else {
-      hidePopupFallback();
-    }
-  } catch (e) {
-    console.warn('[BlackPass] Popup blocked by browser policy:', e);
-    showPopupFallback(targetSmartlink, btnIndex);
-  }
-}
+      // 2. Start 7-second countdown
+      roundState = 'COUNTING';
+      remainingSeconds = ROUND_DURATION;
+      renderCurrentRoundUI();
 
-// Mobile Popup Fallback Helpers
-function showPopupFallback(targetUrl, btnIndex) {
-  const banner = document.getElementById('popupFallbackBanner');
-  const link = document.getElementById('btnPopupFallback');
-  const text = document.getElementById('popupFallbackText');
-  if (banner && link) {
-    link.href = targetUrl;
-    if (text) text.innerHTML = `⚠️ เบราว์เซอร์บล็อกหน้าต่างใหม่สำหรับ <strong>ปุ่มที่ ${btnIndex}</strong>:`;
-    banner.style.display = 'flex';
-    link.onclick = () => {
-      dwellSessionStart[btnIndex] = Date.now();
-      setTimeout(() => {
-        banner.style.display = 'none';
+      if (countdownTimer) clearInterval(countdownTimer);
+      countdownTimer = setInterval(() => {
+        remainingSeconds--;
+        renderCurrentRoundUI();
+
+        if (remainingSeconds <= 0) {
+          clearInterval(countdownTimer);
+          countdownTimer = null;
+          roundState = 'COMPLETED';
+          renderCurrentRoundUI();
+          showToast(isTh ? '🎉 ขั้นตอนที่ 1 เสร็จแล้ว! แตะปุ่มเพื่อไปขั้นตอนที่ 2' : '🎉 Step 1 complete! Click to advance to Step 2', 'success', 3000);
+        }
       }, 1000);
-    };
-    lucide.createIcons();
-  }
-}
 
-function hidePopupFallback() {
-  const banner = document.getElementById('popupFallbackBanner');
-  if (banner) banner.style.display = 'none';
-}
-
-// Detect Discord / In-App Browser on Mobile
-function checkInAppBrowser() {
-  const ua = navigator.userAgent || navigator.vendor || window.opera || '';
-  const isInApp = /Discord|Line\/|FBAN|FBAV|Instagram|TikTok|MicroMessenger/i.test(ua);
-  const noticeEl = document.getElementById('inAppBrowserNotice');
-  if (noticeEl && isInApp) {
-    noticeEl.style.display = 'flex';
-    lucide.createIcons();
-  }
-}
-
-// Clean Ad Injector Engine (Filters out 18+ and adult spam)
-function initAdInjectors() {
-  const settings = (typeof GateStore !== 'undefined' && GateStore.getSettings) ? GateStore.getSettings() : null;
-  const ads = settings?.ads || {};
-
-  // 1. Inject Custom Native Banner if configured
-  if (ads.bannerCode && ads.bannerCode.trim()) {
-    const bannerContainer = document.getElementById('adBannerMock');
-    if (bannerContainer) {
-      const lower = ads.bannerCode.toLowerCase();
-      if (lower.includes('porn') || lower.includes('xxx') || lower.includes('erotic') || lower.includes('dating18')) {
-        console.warn('[BlackPass Shield] Blocked suspicious 18+ banner code');
-      } else {
-        bannerContainer.innerHTML = ads.bannerCode;
-        const scripts = Array.from(bannerContainer.querySelectorAll('script'));
-        scripts.forEach(oldScript => {
-          const newScript = document.createElement('script');
-          Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-          newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-          oldScript.parentNode.replaceChild(newScript, oldScript);
-        });
-      }
-    }
-  }
-
-  // 2. Popunder script: Block intrusive 18+ social bar / push scripts
-  if (ads.popunderScript && ads.popunderScript.trim()) {
-    const popVal = ads.popunderScript.trim();
-    const lower = popVal.toLowerCase();
-    if (lower.includes('accountut') || lower.includes('bellnewyork') || lower.includes('adult') || lower.includes('sex') || lower.includes('erotic')) {
-      console.warn('[BlackPass Shield] Blocked 18+ spam script:', popVal);
-      return;
+    } else if (roundState === 'COMPLETED') {
+      // Advance to Round 2!
+      setRound(2);
+      showToast(isTh ? '➡️ เข้าสู่ขั้นตอนที่ 2 จาก 3' : '➡️ Welcome to Step 2 of 3', 'info', 2000);
     }
 
-    if (popVal.startsWith('http://') || popVal.startsWith('https://') || popVal.startsWith('//')) {
-      const s = document.createElement('script');
-      s.src = popVal;
-      s.async = true;
-      document.head.appendChild(s);
-    }
-  }
-}
+  // --- ROUND 2 CLICK HANDLING ---
+  } else if (currentRound === 2) {
+    if (roundState === 'READY') {
+      // 1. User clicked Start Step 2: Open Monetag Ad #2! 💰
+      triggerDirectAd(1);
 
-// Unlock Content Trigger - Strictly enforced dwell verification on all 3 buttons
-async function unlockContent() {
-  // CRITICAL CHECK: Must complete all 3 buttons 30s dwell on client
-  for (let s = 1; s <= totalSteps; s++) {
-    if (!completedSteps[s]) {
-      const err = isThaiLang()
-        ? `⛔ ปุ่มที่ ${s} ยังไม่ผ่านการดูโฆษณา 10 วินาที! กรุณากดทำภารกิจให้ครบ`
-        : `⛔ Button ${s} requires 10s viewing! Please complete all 3 buttons.`;
-      showToast(err, 'error', 4000);
-      return;
-    }
-  }
+      // 2. Start 7-second countdown
+      roundState = 'COUNTING';
+      remainingSeconds = ROUND_DURATION;
+      renderCurrentRoundUI();
 
-  // Server-Side Anti-Bypass Check: Submit Ticket to Worker
-  let passToken = null;
-  if (!isVipBypassed && serverSessionTicket) {
+      if (countdownTimer) clearInterval(countdownTimer);
+      countdownTimer = setInterval(() => {
+        remainingSeconds--;
+        renderCurrentRoundUI();
+
+        if (remainingSeconds <= 0) {
+          clearInterval(countdownTimer);
+          countdownTimer = null;
+          roundState = 'COMPLETED';
+          renderCurrentRoundUI();
+          showToast(isTh ? '✨ ขั้นตอนที่ 2 เสร็จแล้ว! แตะปุ่มเพื่อไปรับลิงก์' : '✨ Step 2 complete! Click to go to Get Link', 'success', 3000);
+        }
+      }, 1000);
+
+    } else if (roundState === 'COMPLETED') {
+      // Advance to Round 3 (Final Get Link)!
+      setRound(3);
+      showToast(isTh ? '🎉 ขั้นตอนสุดท้าย: ลิงก์พร้อมแล้ว!' : '🎉 Final Step: Your link is ready!', 'success', 2500);
+    }
+
+  // --- ROUND 3 CLICK HANDLING (FINAL GET LINK) ---
+  } else if (currentRound === 3) {
+    // 1. User clicked GET LINK: Open Monetag Ad #3! 💰
+    triggerDirectAd(2);
+
+    // 2. Grant 24-Hour Access in localStorage
+    grant24HourAccess();
+
+    const btnText = document.getElementById('btnShrinkText');
+    if (btnText) btnText.textContent = isTh ? 'กำลังพาวาร์ปเข้าสู่เว็บไซต์...' : 'Redirecting to website...';
+
+    showToast(isTh ? '🎉 รับสิทธิ์เข้าเว็บ 24 ชม. สำเร็จ! กำลังเข้าสู่เว็บไซต์...' : '🎉 Unlocked 24h pass! Entering website...', 'success', 2000);
+
+    setTimeout(() => {
+      window.location.href = destinationUrl;
+    }, 600);
+  }
+};
+
+// Trigger Monetag Direct Link (Bulletproof Popup Bypass for Mobile & PC)
+function triggerDirectAd(preferredIndex = 0) {
+  try {
+    let index = parseInt(localStorage.getItem('blackpass_direct_index') || String(preferredIndex), 10);
+    if (isNaN(index) || index >= AD_DIRECT_POOL.length) {
+      index = preferredIndex % AD_DIRECT_POOL.length;
+    }
+
+    const targetAdUrl = AD_DIRECT_POOL[index];
+    
+    // Rotate to next zone for next time
+    localStorage.setItem('blackpass_direct_index', String((index + 1) % AD_DIRECT_POOL.length));
+
+    // 1. Try simulated anchor click (highest success rate on Mobile Chrome & Safari)
+    const link = document.createElement('a');
+    link.href = targetAdUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => link.remove(), 100);
+
+  } catch (e) {
     try {
-      const verifyRes = await fetch('/api/gate/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ticket: serverSessionTicket,
-          steps: [1, 2, 3]
-        })
-      });
-
-      const verifyData = await verifyRes.json();
-      if (!verifyRes.ok || !verifyData.success) {
-        const errMsg = verifyData.error || '⛔ ตรวจพบการพยายามข้ามด่าน! เวลาดูโฆษณาไม่ครบตามที่เซิร์ฟเวอร์กำหนด';
-        showToast(errMsg, 'error', 5500);
-        return;
-      }
-
-      passToken = verifyData.passToken;
-    } catch (e) {
-      console.warn('[BlackPass] Server verification error:', e);
+      window.open(AD_DIRECT_POOL[0], '_blank');
+    } catch (err) {
+      console.warn('[BlackPass] Ad popup blocked:', err);
     }
   }
+}
 
-  // Record unlock in store
-  GateStore.recordUnlock(currentLocker?.slug || 'hub-access');
-
-  // Resolve destination URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const returnTo = urlParams.get('url') || urlParams.get('return_to') || urlParams.get('redirect') || '';
-
-  let destUrl = returnTo || currentLocker?.destinationUrl || 'https://th.blacklisthub.workers.dev/';
-  destUrl = destUrl.replace(/[?&]auth_success=[^&]*/g, '');
-
-  // Only append pass_token if destUrl is internal to our site/hub so external destinations (Pastebin, Mediafire, etc.) remain clean
-  const isInternal = destUrl.startsWith('/') || destUrl.includes('workers.dev') || (window.location.hostname && destUrl.includes(window.location.hostname));
-  if (passToken && isInternal) {
-    const separator = destUrl.includes('?') ? '&' : '?';
-    destUrl = `${destUrl}${separator}pass_token=${encodeURIComponent(passToken)}`;
-  }
-
-  // Set 24-Hour Authorization immediately across localStorage & sessionStorage
+// Grant 24-Hour Access
+function grant24HourAccess() {
   try {
     const expiry24h = Date.now() + (24 * 60 * 60 * 1000);
     localStorage.setItem('blacklist_lootlabs_auth_expiry', String(expiry24h));
     sessionStorage.setItem('blacklist_lootlabs_auth', 'true');
-    if (passToken) {
-      localStorage.setItem('blackpass_token', passToken);
-    }
     localStorage.setItem('blacklist_lootlabs_unlocked_event', String(Date.now()));
     window.dispatchEvent(new Event('storage'));
-  } catch(e) {}
-
-  // INSTANT REDIRECT DIRECTLY TO DESTINATION! (พาไปเลย ไม่ต้องแวะหน้าปลดล็อค)
-  window.location.replace(destUrl);
-  setTimeout(() => {
-    window.location.href = destUrl;
-  }, 100);
+  } catch (e) {}
 }
 
-// VIP Modal Logic
-function initVipModal() {
-  const btnOpen = document.getElementById('btnOpenVipModal');
+// VIP Modal Handlers
+window.openVipModal = function() {
   const modal = document.getElementById('vipModal');
-  const btnSubmit = document.getElementById('btnSubmitVipKey');
+  if (modal) modal.classList.add('active');
+};
+
+window.closeVipModal = function() {
+  const modal = document.getElementById('vipModal');
+  if (modal) modal.classList.remove('active');
+};
+
+window.submitVipKey = function() {
   const input = document.getElementById('inputVipKey');
+  const key = (input ? input.value : '').trim().toUpperCase();
+  const isTh = currentLang === 'th';
 
-  if (btnOpen) {
-    btnOpen.onclick = () => modal.classList.add('active');
+  if (!key) {
+    showToast(isTh ? 'กรุณากรอกรหัส VIP Key' : 'Please enter VIP Key', 'error');
+    return;
   }
 
-  window.closeVipModal = function() {
-    if (modal) modal.classList.remove('active');
-  };
-
-  if (btnSubmit) {
-    btnSubmit.onclick = () => {
-      const key = (input.value || '').trim().toUpperCase();
-      if (!key) {
-        const enterKeyMsg = isThaiLang() ? 'กรุณากรอกคีย์ VIP ของคุณ' : 'Please enter your VIP Key';
-        showToast(enterKeyMsg, 'error');
-        return;
-      }
-
-      // Valid test keys
-      if (key.includes('VIP') || key === 'ADMIN' || key === 'BYPASS' || key === '30BAHT') {
-        closeVipModal();
-        isVipBypassed = true;
-        const successMsg = isThaiLang() ? 'ตรวจสอบคีย์ VIP สำเร็จ! กำลังข้ามด่านทั้งหมด...' : 'VIP Key validated! Bypassing all tasks...';
-        showToast(successMsg, 'success', 2000);
-        setTimeout(() => {
-          // Grant VIP authorization directly
-          for (let i = 1; i <= totalSteps; i++) {
-            completedSteps[i] = true;
-          }
-          unlockContent();
-        }, 600);
-      } else {
-        const errorMsg = isThaiLang() ? 'คีย์ VIP ไม่ถูกต้องหรือหมดอายุแล้ว ติดต่อแอดมิน Discord' : 'Invalid or expired VIP key. Contact Discord admin.';
-        showToast(errorMsg, 'error');
-      }
-    };
+  // Check valid keys: VIP30 or VIP-PASS-2026 or any custom prefix
+  if (key === 'VIP30' || key === 'VIP-PASS-2026' || key.startsWith('VIP-')) {
+    grant24HourAccess();
+    closeVipModal();
+    showToast(isTh ? '👑 VIP Bypass สำเร็จ! กำลังเข้าสู่เว็บไซต์...' : '👑 VIP Bypass granted! Entering...', 'success', 2000);
+    setTimeout(() => {
+      window.location.href = destinationUrl;
+    }, 600);
+  } else {
+    showToast(isTh ? '❌ รหัส VIP Key ไม่ถูกต้อง หรือหมดอายุแล้ว' : '❌ Invalid or expired VIP Key', 'error');
   }
+};
+
+// Toast Utility
+function showToast(message, type = 'info', duration = 3000) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `clean-toast toast-${type}`;
+
+  let iconHtml = '<i data-lucide="info" style="width: 15px; height: 15px; flex-shrink: 0;"></i>';
+  if (type === 'success') {
+    iconHtml = '<i data-lucide="check-circle-2" style="width: 15px; height: 15px; flex-shrink: 0; color: #10B981;"></i>';
+  } else if (type === 'error') {
+    iconHtml = '<i data-lucide="alert-triangle" style="width: 15px; height: 15px; flex-shrink: 0; color: #EF4444;"></i>';
+  }
+
+  toast.innerHTML = `${iconHtml}<span>${message}</span>`;
+  container.appendChild(toast);
+  lucide.createIcons();
+
+  setTimeout(() => {
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
 }

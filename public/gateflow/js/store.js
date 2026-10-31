@@ -21,7 +21,7 @@ const DEFAULT_LOCKERS = [
     timer: 8,
     antiBypass: true,
     adultAds: true,
-    smartlinkUrl: 'https://omg10.com/4/11911452',
+    smartlinkUrl: 'https://uplcm.com/4/12157094',
     ads: { popunder: true, banner: true, smartlink: true },
     clicks: 148,
     unlocks: 112,
@@ -406,10 +406,10 @@ class BlackPassStore {
         pendingPayout: 0.00
       },
       ads: {
-        smartlinkUrl: 'https://omg10.com/4/11911452',
-        step1Url: 'https://omg10.com/4/11905140',
-        step2Url: 'https://omg10.com/4/11905141',
-        step3Url: 'https://omg10.com/4/11905142',
+        smartlinkUrl: 'https://uplcm.com/4/12157094',
+        step1Url: 'https://uplcm.com/4/12157091',
+        step2Url: 'https://uplcm.com/4/12157092',
+        step3Url: 'https://uplcm.com/4/12157093',
         popunderScript: '',
         bannerCode: '',
         network: 'monetag'
@@ -422,10 +422,10 @@ class BlackPassStore {
       const parsed = JSON.parse(data);
       if (!parsed.ads || !parsed.ads.step1Url) {
         parsed.ads = {
-          smartlinkUrl: 'https://omg10.com/4/11911452',
-          step1Url: 'https://omg10.com/4/11905140',
-          step2Url: 'https://omg10.com/4/11905141',
-          step3Url: 'https://omg10.com/4/11905142',
+          smartlinkUrl: 'https://uplcm.com/4/12157094',
+          step1Url: 'https://uplcm.com/4/12157091',
+          step2Url: 'https://uplcm.com/4/12157092',
+          step3Url: 'https://uplcm.com/4/12157093',
           popunderScript: parsed.ads?.popunderScript || '',
           bannerCode: parsed.ads?.bannerCode || '',
           network: 'monetag'
@@ -458,10 +458,10 @@ class BlackPassStore {
         pendingPayout: 0.00
       },
       ads: {
-        smartlinkUrl: 'https://omg10.com/4/11911452',
-        step1Url: 'https://omg10.com/4/11905140',
-        step2Url: 'https://omg10.com/4/11905141',
-        step3Url: 'https://omg10.com/4/11905142',
+        smartlinkUrl: 'https://uplcm.com/4/12157094',
+        step1Url: 'https://uplcm.com/4/12157091',
+        step2Url: 'https://uplcm.com/4/12157092',
+        step3Url: 'https://uplcm.com/4/12157093',
         popunderScript: '',
         bannerCode: '',
         network: 'monetag'

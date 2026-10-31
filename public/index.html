@@ -161,25 +161,133 @@
                     return origOpen.apply(this, arguments);
                 };
 
-                document.querySelectorAll('script[data-zone="287788"]').forEach(function (el) { el.remove(); });
+                document.querySelectorAll('script[data-zone="303760"], script[data-zone="287788"]').forEach(function (el) { el.remove(); });
 
                 console.log('[VIP Shield] VIP Bypass active: All ads and popups blocked 100%.');
 
             } else {
-                console.log('[Monetag Hub] Monetag Multitag (Zone 287788) active.');
+                console.log('[Monetag Hub] Monetag MultiTag (Zone 303760) standby.');
             }
         })();
     </script>
 
-    <!-- Monetag MultiTag Official Integration (Non-VIP only) -->
+    <!-- Monetag Smart Frequency Limiter (Max 5 Hits / 24h) & MultiTag Integration -->
     <script>
-        if (!window.__IS_VIP__) {
+        (function () {
+            if (window.__IS_VIP__) return;
+
+            var MAX_HITS = 5;
+            var STORAGE_KEY = 'blacklist_main_ad_hits_v1';
+            var TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+
+            function getHitData() {
+                try {
+                    var raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) {
+                        var data = JSON.parse(raw);
+                        if (data && data.resetAt && Date.now() < data.resetAt && typeof data.count === 'number') {
+                            return data;
+                        }
+                    }
+                } catch (e) { }
+                return { count: 0, resetAt: Date.now() + TWENTY_FOUR_HOURS };
+            }
+
+            function saveHitData(data) {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                } catch (e) { }
+            }
+
+            function isAdUrl(url) {
+                if (!url || typeof url !== 'string') return true;
+                var u = url.trim().toLowerCase();
+                if (u === 'about:blank' || u === '') return true;
+
+                // Internal or relative links
+                if (u.startsWith('/') || u.startsWith('#') || u.startsWith('javascript:')) return false;
+                if (window.location.host && u.includes(window.location.host.toLowerCase())) return false;
+                if (window.location.origin && u.startsWith(window.location.origin.toLowerCase())) return false;
+
+                // Whitelisted legitimate external services
+                if (u.includes('discord.gg') || u.includes('discord.com') ||
+                    u.includes('youtube.com') || u.includes('youtu.be') ||
+                    u.includes('tiktok.com') || u.includes('github.com') ||
+                    u.includes('roblox.com') || u.includes('lootlabs.gg') ||
+                    u.includes('loot-link.com') || u.includes('loot-links.com') ||
+                    u.includes('pastebin.com') || u.includes('raw.githubusercontent.com')) {
+                    return false;
+                }
+
+                return true;
+            }
+
+            function recordHit() {
+                var current = getHitData();
+                current.count = (current.count || 0) + 1;
+                saveHitData(current);
+                console.log('[Ad Limiter] Ad hit recorded: ' + current.count + '/' + MAX_HITS);
+
+                if (current.count >= MAX_HITS) {
+                    window.__AD_CAPPED__ = true;
+                    // Neutralize and remove MultiTag script and any active ad wrappers immediately
+                    document.querySelectorAll('script[data-zone="303760"], script[data-zone="287788"]').forEach(function (el) { el.remove(); });
+                    console.log('[Ad Limiter] 5/5 Ad hits reached! All popunders and ads paused for 24 hours.');
+                }
+            }
+
+            var hitData = getHitData();
+
+            // If user already reached 5 hits within 24h, block ads completely
+            if (hitData.count >= MAX_HITS) {
+                window.__AD_CAPPED__ = true;
+                console.log('[Ad Limiter] Daily limit reached (5/5). Enjoying clean ad-free browsing.');
+                return;
+            }
+
+            // Intercept window.open to count hits and block once 5 is reached
+            var origOpen = window.open;
+            window.open = function (url, target, features) {
+                if (isAdUrl(url)) {
+                    if (window.__AD_CAPPED__) {
+                        console.warn('[Ad Limiter] Ad popup blocked (5-hit limit reached):', url);
+                        return null;
+                    }
+                    recordHit();
+                }
+                return origOpen.apply(this, arguments);
+            };
+
+            // Intercept programmatic anchor clicks from Monetag popunders
+            var origAnchorClick = HTMLAnchorElement.prototype.click;
+            HTMLAnchorElement.prototype.click = function () {
+                if (this.href && isAdUrl(this.href)) {
+                    if (window.__AD_CAPPED__) {
+                        console.warn('[Ad Limiter] Ad anchor click blocked (5-hit limit reached):', this.href);
+                        return;
+                    }
+                    recordHit();
+                }
+                return origAnchorClick.apply(this, arguments);
+            };
+
+            // Inject MultiTag script for remaining hits
             var mTag = document.createElement('script');
             mTag.src = 'https://quge5.com/88/tag.min.js';
-            mTag.dataset.zone = '287788';
+            mTag.dataset.zone = '303760';
             mTag.async = true;
             mTag.setAttribute('data-cfasync', 'false');
             document.head.appendChild(mTag);
+            console.log('[Ad Limiter] Monetag MultiTag active (' + hitData.count + '/' + MAX_HITS + ' hits today).');
+        })();
+    </script>
+
+    <!-- Monetag Web Push Service Worker (Zone 12157291) -->
+    <script>
+        if ('serviceWorker' in navigator && !window.__IS_VIP__) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').catch(function() {});
+            });
         }
     </script>
 
