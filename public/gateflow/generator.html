@@ -329,6 +329,17 @@
       </div>
 
       <div class="form-group">
+        <label class="form-label" for="customSlug" style="display: flex; align-items: center; justify-content: space-between;">
+          <span>⚡ กำหนดชื่อลิงก์สั้น (Custom Short Slug / Alias):</span>
+          <span style="font-size: 11px; color: #38bdf8; font-weight: normal;">(เว้นว่างไว้ = สุ่มรหัสสั้น 5 ตัวให้อัตโนมัติ)</span>
+        </label>
+        <div style="position: relative; display: flex; align-items: center;">
+          <span style="position: absolute; left: 14px; color: #64748B; font-family: monospace; font-size: 13px; font-weight: 700;">/l/</span>
+          <input type="text" id="customSlug" class="form-input" style="padding-left: 38px; font-family: monospace; color: #38bdf8; font-weight: 600;" placeholder="เช่น test หรือ blox หรือ ff-aim" />
+        </div>
+      </div>
+
+      <div class="form-group">
         <label class="form-label" for="ytChannelSelect">ช่อง YouTube ที่ต้องการให้ผู้ใช้กดติดตาม:</label>
         <select id="ytChannelSelect" class="form-input" style="appearance: auto; padding-right: 30px; background: #090e17; color: #ffffff;" onchange="toggleCustomYtInput(this.value)">
           <option value="Blacklistxyx" style="background: #090e17; color: #ffffff;">🔴 @Blacklistxyx (ช่องหลัก - Roblox)</option>
@@ -426,7 +437,7 @@
       if (grp) grp.style.display = val === 'custom' ? 'block' : 'none';
     }
 
-    function generateGateLink(e) {
+    async function generateGateLink(e) {
       e.preventDefault();
       const domainChoice = document.getElementById('domainOption').value;
 
@@ -439,41 +450,82 @@
 
       const customTitle = (document.getElementById('customTitle')?.value || '').trim();
       const customDesc = (document.getElementById('customDesc')?.value || '').trim();
+      const customSlug = (document.getElementById('customSlug')?.value || '').trim();
 
-      let queryParams = [];
-
-      // เลือกช่อง YouTube ที่ต้องการ (Blacklistxyx เป็นค่าเริ่มต้น ไม่ต้องต่อ param ให้ลิงก์ยาว)
       const channelChoice = document.getElementById('ytChannelSelect')?.value || 'Blacklistxyx';
-      if (channelChoice === 'GhostSensix') {
-        queryParams.push('ch=GhostSensix');
-      } else if (channelChoice === 'custom') {
+      let selectedChannel = channelChoice;
+      if (channelChoice === 'custom') {
         const customCh = (document.getElementById('customYt')?.value || '').trim();
-        if (customCh) queryParams.push(`ch=${encodeURIComponent(customCh)}`);
+        if (customCh) selectedChannel = customCh;
       }
 
+      let scriptCode = '';
+      let targetUrl = '';
+
       if (currentMode === 'script') {
-        const scriptCode = (document.getElementById('targetScript')?.value || '').trim();
+        scriptCode = (document.getElementById('targetScript')?.value || '').trim();
         if (!scriptCode) {
           alert('กรุณาวางโค้ดสคริปต์ที่ต้องการแจก');
           return;
         }
-        queryParams.push(`script=${encodeURIComponent(scriptCode)}`);
-        if (customTitle) queryParams.push(`title=${encodeURIComponent(customTitle)}`);
-        if (customDesc) queryParams.push(`desc=${encodeURIComponent(customDesc)}`);
-        saveToHistory(`Script: ${customTitle || 'Blox Fruits Script'}`, currentGeneratedUrl);
       } else {
-        const target = (document.getElementById('targetUrl')?.value || '').trim();
-        if (!target) {
+        targetUrl = (document.getElementById('targetUrl')?.value || '').trim();
+        if (!targetUrl) {
           alert('กรุณาวางลิงก์ดาวน์โหลดปลายทาง');
           return;
         }
-        queryParams.push(`url=${encodeURIComponent(target)}`);
-        if (customTitle) queryParams.push(`title=${encodeURIComponent(customTitle)}`);
-        if (customDesc) queryParams.push(`desc=${encodeURIComponent(customDesc)}`);
-        saveToHistory(target, currentGeneratedUrl);
       }
 
-      currentGeneratedUrl = `${baseUrl}/go?${queryParams.join('&')}`;
+      // Show loading indicator
+      const btnGen = document.querySelector('.btn-generate');
+      const originalBtnHtml = btnGen ? btnGen.innerHTML : '';
+      if (btnGen) {
+        btnGen.innerHTML = '<i data-lucide="sparkles" style="width: 18px; height: 18px;"></i><span>กำลังสร้างลิงก์สั้น...</span>';
+      }
+
+      currentGeneratedUrl = '';
+
+      try {
+        const payload = {
+          slug: customSlug,
+          url: targetUrl,
+          script: scriptCode,
+          title: customTitle,
+          desc: customDesc,
+          ch: selectedChannel
+        };
+
+        const res = await fetch('/api/locker/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success && data.slug) {
+            currentGeneratedUrl = `${baseUrl}/l/${data.slug}`;
+          }
+        }
+      } catch (err) {
+        console.warn('API short link create failed, falling back:', err);
+      }
+
+      // Fallback if API was unavailable
+      if (!currentGeneratedUrl || !currentGeneratedUrl.includes('/l/')) {
+        let queryParams = [];
+        if (selectedChannel && selectedChannel !== 'Blacklistxyx') queryParams.push(`ch=${encodeURIComponent(selectedChannel)}`);
+        if (scriptCode) queryParams.push(`script=${encodeURIComponent(scriptCode)}`);
+        if (targetUrl) queryParams.push(`url=${encodeURIComponent(targetUrl)}`);
+        if (customTitle) queryParams.push(`title=${encodeURIComponent(customTitle)}`);
+        if (customDesc) queryParams.push(`desc=${encodeURIComponent(customDesc)}`);
+        currentGeneratedUrl = `${baseUrl}/go?${queryParams.join('&')}`;
+      }
+
+      if (btnGen) btnGen.innerHTML = originalBtnHtml;
+
+      // Save to History
+      saveToHistory(customTitle || (targetUrl || 'Blox Fruits Script'), currentGeneratedUrl);
 
       // Show result
       const resultBox = document.getElementById('resultBox');

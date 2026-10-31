@@ -36,7 +36,7 @@ try {
         if ($rawPath -eq "/") { $rawPath = "/index.html" }
 
         # Short & Clean URLs for Locker & Access Gate
-        if ($rawPath -in @("/access", "/hub", "/gate", "/go", "/locker")) {
+        if ($rawPath -in @("/access", "/hub", "/gate", "/go", "/locker") -or $rawPath -like "/l/*") {
             $rawPath = "/gateflow/locker.html"
         }
         if ($rawPath -in @("/generator")) {
@@ -44,6 +44,104 @@ try {
         }
         if ($rawPath -in @("/dashboard")) {
             $rawPath = "/gateflow/dashboard.html"
+        }
+
+        # Handle Short Locker API (/api/locker and /api/locker/create)
+        if ($rawPath -eq "/api/locker" -or $rawPath -eq "/api/locker/create") {
+            $key = "AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI"
+            $proj = "blacklistscripts"
+            $response.Headers.Add("Access-Control-Allow-Origin", "*")
+            $response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            $response.Headers.Add("Access-Control-Allow-Headers", "Content-Type")
+
+            if ($request.HttpMethod -eq "OPTIONS") {
+                $response.StatusCode = 204
+                $response.Close()
+                continue
+            }
+
+            if ($request.HttpMethod -eq "POST") {
+                $reader = New-Object System.IO.StreamReader($request.InputStream, [System.Text.Encoding]::UTF8)
+                $bodyText = $reader.ReadToEnd()
+                $body = ConvertFrom-Json $bodyText
+                
+                $slug = "$($body.slug)".Trim().ToLower() -replace '[^a-z0-9_-]', '-' -replace '-+', '-'
+                if (-not $slug) {
+                    $slug = -join ((97..122) + (48..57) | Get-Random -Count 5 | ForEach-Object {[char]$_})
+                }
+                
+                $targetUrl = "$($body.url)"
+                $scriptCode = "$($body.script)"
+                $title = "$($body.title)"
+                $desc = "$($body.desc)"
+                $channel = if ($body.ch) { "$($body.ch)" } else { "Blacklistxyx" }
+                
+                $fbUri = "https://firestore.googleapis.com/v1/projects/$proj/databases/(default)/documents/lockers/$slug`?key=$key"
+                $fbBody = @{
+                    fields = @{
+                        slug = @{ stringValue = $slug }
+                        url = @{ stringValue = $targetUrl }
+                        script = @{ stringValue = $scriptCode }
+                        title = @{ stringValue = $title }
+                        desc = @{ stringValue = $desc }
+                        ch = @{ stringValue = $channel }
+                        createdAt = @{ stringValue = (Get-Date).ToUniversalTime().ToString("o") }
+                    }
+                } | ConvertTo-Json -Depth 5
+                
+                try {
+                    $fbRes = Invoke-RestMethod -Uri $fbUri -Method Patch -Body $fbBody -ContentType "application/json; charset=utf-8"
+                    $jsonOut = @{
+                        success = $true
+                        slug = $slug
+                        shortUrl = "http://localhost:$Port/l/$slug"
+                    } | ConvertTo-Json
+                    $outBytes = [System.Text.Encoding]::UTF8.GetBytes($jsonOut)
+                    $response.ContentType = "application/json; charset=utf-8"
+                    $response.ContentLength64 = $outBytes.Length
+                    $response.StatusCode = 200
+                    $response.OutputStream.Write($outBytes, 0, $outBytes.Length)
+                } catch {
+                    $errBytes = [System.Text.Encoding]::UTF8.GetBytes("{""error"":""$($_)""}")
+                    $response.ContentType = "application/json; charset=utf-8"
+                    $response.StatusCode = 500
+                    $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
+                }
+                $response.Close()
+                continue
+            }
+            
+            if ($request.HttpMethod -eq "GET") {
+                $slug = $request.QueryString["slug"]
+                if ($slug) {
+                    $fbUri = "https://firestore.googleapis.com/v1/projects/$proj/databases/(default)/documents/lockers/$slug`?key=$key"
+                    try {
+                        $doc = Invoke-RestMethod -Uri $fbUri -Method Get
+                        $f = $doc.fields
+                        $jsonOut = @{
+                            success = $true
+                            locker = @{
+                                slug = if ($f.slug.stringValue) { $f.slug.stringValue } else { $slug }
+                                url = if ($f.url.stringValue) { $f.url.stringValue } else { "" }
+                                script = if ($f.script.stringValue) { $f.script.stringValue } else { "" }
+                                title = if ($f.title.stringValue) { $f.title.stringValue } else { "" }
+                                desc = if ($f.desc.stringValue) { $f.desc.stringValue } else { "" }
+                                ch = if ($f.ch.stringValue) { $f.ch.stringValue } else { "Blacklistxyx" }
+                            }
+                        } | ConvertTo-Json
+                        $outBytes = [System.Text.Encoding]::UTF8.GetBytes($jsonOut)
+                        $response.ContentType = "application/json; charset=utf-8"
+                        $response.StatusCode = 200
+                        $response.OutputStream.Write($outBytes, 0, $outBytes.Length)
+                    } catch {
+                        $errBytes = [System.Text.Encoding]::UTF8.GetBytes("{""error"":""Not found""}")
+                        $response.StatusCode = 404
+                        $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
+                    }
+                }
+                $response.Close()
+                continue
+            }
         }
 
         # Normalize relative path

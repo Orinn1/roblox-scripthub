@@ -9,6 +9,7 @@ const TOTAL_TASKS = 6;
 let destinationUrl = '';
 let targetScriptCode = '';
 let cachedLatestVideoUrl = '';
+let currentLockerChannel = '';
 const tasksDone = [false, false, false, false, false, false];
 const isVerifying = [false, false, false, false, false, false];
 
@@ -23,10 +24,63 @@ const AD_DIRECT_POOL = [
 document.addEventListener('DOMContentLoaded', () => {
   initCustomTitleAndDesc();
   initDestinationUrl();
-  fetchLatestVideo();
+
+  const params = new URLSearchParams(window.location.search);
+  const path = window.location.pathname.toLowerCase();
+  const slug = path.startsWith('/l/') ? path.slice(3).trim() : (params.get('slug') || '');
+
+  if (slug && slug !== 'hub-access') {
+    loadLockerBySlug(slug);
+  } else {
+    fetchLatestVideo();
+  }
+
   checkInAppBrowser();
   if (window.lucide) lucide.createIcons();
 });
+
+// Load Locker configuration from Firestore / API when short slug is visited (/l/:slug)
+async function loadLockerBySlug(slug) {
+  if (!slug || slug === 'hub-access') return;
+  try {
+    const res = await fetch(`/api/locker?slug=${encodeURIComponent(slug)}`);
+    if (!res.ok) {
+      fetchLatestVideo();
+      return;
+    }
+    const data = await res.json();
+    if (data && data.success && data.locker) {
+      const l = data.locker;
+      if (l.url) destinationUrl = l.url;
+      if (l.script) targetScriptCode = l.script;
+
+      const titleEl = document.getElementById('lockerTitle');
+      const descEl = document.getElementById('lockerDesc');
+      if (l.title && titleEl) titleEl.textContent = l.title;
+      if (l.desc && descEl) descEl.textContent = l.desc;
+      if (l.title) document.title = `${l.title} — Social Unlock Gateway`;
+
+      if (l.ch) {
+        currentLockerChannel = l.ch;
+      }
+      fetchLatestVideo();
+
+      const txtUnlock = document.getElementById('txtUnlock');
+      if (txtUnlock) {
+        if (targetScriptCode) {
+          txtUnlock.textContent = 'กดรับสคริปต์ (Get Script ➔)';
+        } else {
+          txtUnlock.textContent = 'Unlock (ดาวน์โหลดไฟล์ ➔)';
+        }
+      }
+    } else {
+      fetchLatestVideo();
+    }
+  } catch (err) {
+    console.warn('Could not load slug from API:', err);
+    fetchLatestVideo();
+  }
+}
 
 // 1. Initialize Custom or Default Title & Description
 function initCustomTitleAndDesc() {
@@ -83,7 +137,7 @@ function initDestinationUrl() {
 // Helper: Get Target YouTube Channel URL (with auto-subscribe popup)
 function getTargetYoutubeUrl() {
   const params = new URLSearchParams(window.location.search);
-  const customYt = params.get('yt') || params.get('ch');
+  const customYt = params.get('yt') || params.get('ch') || currentLockerChannel;
   if (customYt) {
     let url = customYt.trim();
     if (!url.startsWith('http')) {
@@ -93,7 +147,7 @@ function getTargetYoutubeUrl() {
   }
 
   const fullSearch = window.location.search.toLowerCase();
-  if (fullSearch.includes('ghost') || fullSearch.includes('freefire')) {
+  if (fullSearch.includes('ghost') || fullSearch.includes('freefire') || (currentLockerChannel && currentLockerChannel.toLowerCase().includes('ghost'))) {
     return 'https://www.youtube.com/@GhostSensix?sub_confirmation=1';
   }
 
@@ -109,7 +163,7 @@ async function fetchLatestVideo() {
     return;
   }
 
-  const customCh = params.get('ch') || params.get('yt') || '';
+  const customCh = params.get('ch') || params.get('yt') || currentLockerChannel || '';
   const fullSearch = window.location.search.toLowerCase();
   const isGhost = customCh.toLowerCase().includes('ghost') || fullSearch.includes('ghost') || fullSearch.includes('freefire');
   const targetCh = isGhost ? 'GhostSensix' : (customCh ? customCh : 'Blacklistxyx');

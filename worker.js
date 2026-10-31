@@ -678,6 +678,116 @@ export default {
         }
 
         // =========================================================================
+        // 4.1 SHORT LOCKER API (/api/locker & /api/locker/create)
+        // =========================================================================
+        if (url.pathname === '/api/locker' || url.pathname === '/api/locker/create') {
+            if (request.method === 'POST') {
+                try {
+                    const body = await request.json();
+                    let slug = (body.slug || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-').replace(/-+/g, '-');
+                    if (!slug) {
+                        slug = Math.random().toString(36).substring(2, 7);
+                    }
+
+                    const targetUrl = (body.url || body.destinationUrl || '').trim();
+                    const scriptCode = (body.script || body.scriptCode || '').trim();
+                    const title = (body.title || '').trim();
+                    const desc = (body.desc || '').trim();
+                    const channel = (body.ch || body.channel || 'Blacklistxyx').trim();
+
+                    const docUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lockers/${encodeURIComponent(slug)}?key=${FIREBASE_API_KEY}`;
+                    
+                    const fbPayload = {
+                        fields: {
+                            slug: { stringValue: slug },
+                            url: { stringValue: targetUrl },
+                            script: { stringValue: scriptCode },
+                            title: { stringValue: title },
+                            desc: { stringValue: desc },
+                            ch: { stringValue: channel },
+                            createdAt: { stringValue: new Date().toISOString() }
+                        }
+                    };
+
+                    const fbRes = await fetch(docUrl, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                        body: JSON.stringify(fbPayload)
+                    });
+
+                    if (!fbRes.ok) {
+                        const errTxt = await fbRes.text();
+                        return new Response(JSON.stringify({ error: 'Firestore write failed', details: errTxt }), {
+                            status: 500,
+                            headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                        });
+                    }
+
+                    return new Response(JSON.stringify({
+                        success: true,
+                        slug: slug,
+                        shortUrl: `${url.origin}/l/${slug}`
+                    }), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                    });
+                } catch (e) {
+                    return new Response(JSON.stringify({ error: e.message }), {
+                        status: 500,
+                        headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                    });
+                }
+            }
+
+            if (request.method === 'GET') {
+                const slug = (url.searchParams.get('slug') || '').trim();
+                if (!slug) {
+                    return new Response(JSON.stringify({ error: 'Missing slug' }), {
+                        status: 400,
+                        headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                    });
+                }
+
+                try {
+                    const docUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lockers/${encodeURIComponent(slug)}?key=${FIREBASE_API_KEY}`;
+                    const fbRes = await fetch(docUrl);
+                    if (fbRes.ok) {
+                        const data = await fbRes.json();
+                        const fields = data.fields || {};
+                        return new Response(JSON.stringify({
+                            success: true,
+                            locker: {
+                                slug: fields.slug?.stringValue || slug,
+                                url: fields.url?.stringValue || '',
+                                script: fields.script?.stringValue || '',
+                                title: fields.title?.stringValue || '',
+                                desc: fields.desc?.stringValue || '',
+                                ch: fields.ch?.stringValue || 'Blacklistxyx'
+                            }
+                        }), {
+                            status: 200,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Cache-Control': 'public, max-age=120',
+                                ...corsHeaders()
+                            }
+                        });
+                    } else {
+                        return new Response(JSON.stringify({ error: 'Locker not found', status: 404 }), {
+                            status: 404,
+                            headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                        });
+                    }
+                } catch (e) {
+                    return new Response(JSON.stringify({ error: e.message }), {
+                        status: 500,
+                        headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                    });
+                }
+            }
+        }
+
+        // =========================================================================
         // 5. SHRINKEARN SHORTENER (/api/shrinkearn)
         // =========================================================================
         if (url.pathname === '/api/shrinkearn') {
