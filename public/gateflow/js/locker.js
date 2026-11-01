@@ -483,15 +483,10 @@ window.handleTaskClick = function(taskNum) {
     } catch (e) {}
   }
 
-  // 3. Start Dynamic Verification Timer (LootLabs Tab Keep-Alive Anti-Cheat)
+  // 3. Start Verification Countdown Timer
   isVerifying[idx] = true;
   const totalSec = getTaskDuration(taskNum);
   const openedAt = Date.now();
-
-  if (taskNum === 4) {
-    task4OpenedAt = openedAt;
-    task4TotalSec = totalSec;
-  }
 
   btn.classList.add('verifying');
   btn.classList.remove('completed');
@@ -503,17 +498,6 @@ window.handleTaskClick = function(taskNum) {
     const elapsed = Math.floor((Date.now() - openedAt) / 1000);
     const secLeft = Math.max(0, totalSec - elapsed);
 
-    // ANTI-CHEAT TAB CHECK FOR TASK 4:
-    // If the user is actively on/viewing the locker tab before 60s finished -> RESET TO REDO!
-    if (taskNum === 4 && isVerifying[idx] && !tasksDone[idx]) {
-      if (elapsed >= 2 && elapsed < totalSec) {
-        if (document.visibilityState === 'visible' && document.hasFocus()) {
-          failTask4Early();
-          return;
-        }
-      }
-    }
-
     if (secLeft > 0) {
       txt.textContent = `${t('verifying')} (${secLeft}s)`;
     } else {
@@ -523,57 +507,6 @@ window.handleTaskClick = function(taskNum) {
 
   if (window.lucide) lucide.createIcons();
 };
-
-// Global Tracking & Detection for Task 4 Keep-Alive (LootLabs Engine)
-let task4OpenedAt = 0;
-let task4TotalSec = 60;
-
-// Detect when user returns to the locker tab:
-function handleUserReturned() {
-  if (!isVerifying[3] || tasksDone[3]) return;
-
-  const elapsed = Math.floor((Date.now() - task4OpenedAt) / 1000);
-
-  // If user returned to locker tab before 60 seconds finished -> RESET TO REDO FROM SCRATCH!
-  if (elapsed >= 2 && elapsed < task4TotalSec) {
-    failTask4Early();
-  } else if (elapsed >= task4TotalSec) {
-    // Stayed on sponsor page for full 60s duration -> Verified!
-    completeTask(4);
-  }
-}
-
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    handleUserReturned();
-  }
-});
-
-window.addEventListener('focus', handleUserReturned);
-
-function failTask4Early() {
-  const idx = 3; // Task 4 is index 3
-  if (!isVerifying[idx] || tasksDone[idx]) return;
-
-  if (activeTimers[idx]) {
-    clearInterval(activeTimers[idx]);
-    delete activeTimers[idx];
-  }
-  isVerifying[idx] = false;
-  tasksDone[idx] = false;
-
-  const btn = document.getElementById('btnTask4');
-  const txt = document.getElementById('txtTask4');
-  if (btn) {
-    btn.classList.remove('verifying');
-    btn.classList.remove('completed');
-  }
-  if (txt) {
-    txt.textContent = t('retryTask');
-  }
-
-  showToast(t('toastTabClosedEarly'), 'error', 5500);
-}
 
 function completeTask(taskNum) {
   const idx = taskNum - 1;
