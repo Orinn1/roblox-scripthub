@@ -447,9 +447,42 @@ function getTargetVideoUrl() {
 let task4TotalRequiredSec = 60;
 let task4TimeSpentAway = 0;
 let task4AwayStartTime = null;
-let task4LaunchedAt = 0;
 let task4IsActive = false;
 let task4IsPaused = false;
+
+function pauseTask4Immediately() {
+  if (!task4IsActive || tasksDone[3]) return;
+
+  // Accrue whatever time was spent away while on the ad tab
+  if (task4AwayStartTime) {
+    const elapsedThisTrip = (Date.now() - task4AwayStartTime) / 1000;
+    task4TimeSpentAway += elapsedThisTrip;
+    task4AwayStartTime = null; // Freeze timer while on locker page
+  }
+
+  const remaining = Math.max(0, Math.ceil(task4TotalRequiredSec - task4TimeSpentAway));
+
+  if (remaining <= 0) {
+    completeTask(4);
+    return;
+  }
+
+  if (task4IsPaused) return; // Already in paused UI state
+  task4IsPaused = true;
+
+  const btn = document.getElementById('btnTask4');
+  const txt = document.getElementById('txtTask4');
+
+  if (btn) {
+    btn.classList.remove('verifying');
+    btn.classList.add('paused');
+  }
+  if (txt) {
+    txt.textContent = t('taskPaused', remaining);
+  }
+
+  showToast(t('toastPaused', remaining), 'info', 3500);
+}
 
 // 3. Handle Social Task Clicks (1-4)
 window.handleTaskClick = function(taskNum) {
@@ -509,7 +542,6 @@ window.handleTaskClick = function(taskNum) {
       task4TotalRequiredSec = getTaskDuration(4);
     }
     task4IsPaused = false;
-    task4LaunchedAt = Date.now();
     task4AwayStartTime = Date.now();
 
     if (btn) {
@@ -518,7 +550,7 @@ window.handleTaskClick = function(taskNum) {
       btn.classList.remove('completed');
     }
 
-    const remaining = Math.max(1, task4TotalRequiredSec - task4TimeSpentAway);
+    const remaining = Math.max(1, Math.ceil(task4TotalRequiredSec - task4TimeSpentAway));
     if (txt) txt.textContent = `${t('verifying')} (${remaining}s)`;
 
     if (activeTimers[3]) clearInterval(activeTimers[3]);
@@ -528,13 +560,24 @@ window.handleTaskClick = function(taskNum) {
         return;
       }
 
-      // Only count down if user is currently away on the sponsor tab
-      if (task4AwayStartTime && !task4IsPaused) {
-        const currentAwaySec = Math.floor((Date.now() - task4AwayStartTime) / 1000);
-        const totalAway = task4TimeSpentAway + currentAwaySec;
-        const secLeft = Math.max(0, task4TotalRequiredSec - totalAway);
+      // Check if user is currently looking at / active on the locker tab
+      const isUserOnLocker = (!document.hidden && document.hasFocus());
 
-        if (txt) txt.textContent = `${t('verifying')} (${secLeft}s)`;
+      if (isUserOnLocker) {
+        // User is on locker tab -> PAUSE IMMEDIATELY! Do not count down!
+        pauseTask4Immediately();
+      } else {
+        // User is away on the sponsor ad tab -> COUNT DOWN!
+        if (!task4AwayStartTime) {
+          task4AwayStartTime = Date.now();
+        }
+
+        const currentTripSec = (Date.now() - task4AwayStartTime) / 1000;
+        const totalAway = task4TimeSpentAway + currentTripSec;
+        const secLeft = Math.max(0, Math.ceil(task4TotalRequiredSec - totalAway));
+
+        const labelTxt = document.getElementById('txtTask4');
+        if (labelTxt) labelTxt.textContent = `${t('verifying')} (${secLeft}s)`;
 
         if (secLeft <= 0) {
           clearInterval(activeTimers[3]);
@@ -542,7 +585,7 @@ window.handleTaskClick = function(taskNum) {
           completeTask(4);
         }
       }
-    }, 1000);
+    }, 500);
 
   } else {
     // TASKS 1-3: NORMAL SHORT 5s TIMERS
@@ -570,50 +613,22 @@ window.handleTaskClick = function(taskNum) {
   if (window.lucide) lucide.createIcons();
 };
 
-// Detect when user returns to locker tab -> PAUSE TASK 4!
-function onUserReturnsToLocker() {
-  if (!task4IsActive || tasksDone[3] || !isVerifying[3] || task4IsPaused) return;
-
-  // Ignore brief popup launching window (< 1.8s from launch)
-  if (Date.now() - task4LaunchedAt < 1800) return;
-
-  // Accrue time spent away while viewing the sponsor ad
-  if (task4AwayStartTime) {
-    const elapsedThisTrip = Math.floor((Date.now() - task4AwayStartTime) / 1000);
-    task4TimeSpentAway += elapsedThisTrip;
-    task4AwayStartTime = null; // Freeze timer while on locker page!
-  }
-
-  const remaining = Math.max(0, task4TotalRequiredSec - task4TimeSpentAway);
-
-  if (remaining <= 0) {
-    completeTask(4);
-  } else {
-    // PAUSE TIMER! Freeze countdown and invite user to resume
-    task4IsPaused = true;
-
-    const btn = document.getElementById('btnTask4');
-    const txt = document.getElementById('txtTask4');
-
-    if (btn) {
-      btn.classList.remove('verifying');
-      btn.classList.add('paused');
-    }
-    if (txt) {
-      txt.textContent = t('taskPaused', remaining);
-    }
-
-    showToast(t('toastPaused', remaining), 'info', 4000);
-  }
-}
-
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
-    onUserReturnsToLocker();
+    pauseTask4Immediately();
+  } else {
+    if (task4IsActive && !tasksDone[3] && !task4AwayStartTime) {
+      task4AwayStartTime = Date.now();
+      task4IsPaused = false;
+    }
   }
 });
 
-window.addEventListener('focus', onUserReturnsToLocker);
+window.addEventListener('focus', () => {
+  if (document.visibilityState === 'visible') {
+    pauseTask4Immediately();
+  }
+});
 
 function completeTask(taskNum) {
   const idx = taskNum - 1;
