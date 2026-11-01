@@ -36,8 +36,8 @@ const I18N = {
     btnCopied: 'คัดลอกเรียบร้อยแล้ว! ✅',
     btnCopyAgain: 'คัดลอกสคริปต์อีกครั้ง (Copy Again) 📋',
     inAppNotice: '💡 เปิดในแอป? แนะนำกด ⋯ มุมขวาแล้วเลือก "เปิดในเบราว์เซอร์หลัก"',
-    retryTask: 'แตะเพื่อเริ่มภารกิจใหม่ ↻',
-    toastTabClosedEarly: '❌ คุณปิดแท็บโฆษณาก่อนเวลา! ต้องเปิดทิ้งไว้จนกว่าเวลานับถอยหลังจะหมด',
+    retryTask: 'แตะเพื่อเริ่มทำใหม่ (รอ 60 วิ) ↻',
+    toastTabClosedEarly: '❌ ยังไม่ครบ 60 วินาที! คุณกลับมาหน้าเดิมก่อนเวลา ต้องเริ่มทำภารกิจใหม่',
     humanVerifyPrompt: 'ยืนยันว่าไม่ใช่บอท (Verify you are human)',
     humanVerifying: 'กำลังตรวจสอบความปลอดภัย...',
     humanVerified: 'ยืนยันตัวตนสำเร็จแล้ว ✅',
@@ -73,8 +73,8 @@ const I18N = {
     btnCopied: 'Copied to Clipboard! ✅',
     btnCopyAgain: 'Copy Script Again 📋',
     inAppNotice: '💡 Using in-app browser? Tap ⋯ and select "Open in Browser"',
-    retryTask: 'Tap to retry task ↻',
-    toastTabClosedEarly: '❌ Sponsor tab was closed early! Please keep it open until countdown finishes.',
+    retryTask: 'Tap to restart task (60s) ↻',
+    toastTabClosedEarly: '❌ 60s not reached! You returned early. Please restart the task.',
     humanVerifyPrompt: 'Verify you are human',
     humanVerifying: 'Checking security...',
     humanVerified: 'Human Verified ✅',
@@ -491,7 +491,6 @@ window.handleTaskClick = function(taskNum) {
   if (taskNum === 4) {
     task4OpenedAt = openedAt;
     task4TotalSec = totalSec;
-    task4LeftTab = false;
   }
 
   btn.classList.add('verifying');
@@ -505,10 +504,14 @@ window.handleTaskClick = function(taskNum) {
     const secLeft = Math.max(0, totalSec - elapsed);
 
     // ANTI-CHEAT TAB CHECK FOR TASK 4:
-    // If after 5s the user never even switched to the sponsor tab (popup blocked or stayed on locker)
-    if (taskNum === 4 && isVerifying[idx] && !tasksDone[idx] && elapsed >= 5 && !task4LeftTab) {
-      failTask4Early();
-      return;
+    // If the user is actively on/viewing the locker tab before 60s finished -> RESET TO REDO!
+    if (taskNum === 4 && isVerifying[idx] && !tasksDone[idx]) {
+      if (elapsed >= 2 && elapsed < totalSec) {
+        if (document.visibilityState === 'visible' && document.hasFocus()) {
+          failTask4Early();
+          return;
+        }
+      }
     }
 
     if (secLeft > 0) {
@@ -524,36 +527,19 @@ window.handleTaskClick = function(taskNum) {
 // Global Tracking & Detection for Task 4 Keep-Alive (LootLabs Engine)
 let task4OpenedAt = 0;
 let task4TotalSec = 60;
-let task4LeftTab = false;
 
-// 1. Mark that user actually left the locker tab to visit the sponsor
-function markUserLeftLocker() {
-  if (isVerifying[3] && !tasksDone[3]) {
-    task4LeftTab = true;
-  }
-}
-window.addEventListener('blur', markUserLeftLocker);
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    markUserLeftLocker();
-  }
-});
-
-// 2. Detect when user returns to the locker tab
+// Detect when user returns to the locker tab:
 function handleUserReturned() {
   if (!isVerifying[3] || tasksDone[3]) return;
 
   const elapsed = Math.floor((Date.now() - task4OpenedAt) / 1000);
 
-  // If user had left the tab and is now returning to locker:
-  if (task4LeftTab) {
-    if (elapsed < task4TotalSec - 1) {
-      // Returned before countdown finished -> Tab was closed or left early!
-      failTask4Early();
-    } else {
-      // Stayed the full duration -> Verified!
-      completeTask(4);
-    }
+  // If user returned to locker tab before 60 seconds finished -> RESET TO REDO FROM SCRATCH!
+  if (elapsed >= 2 && elapsed < task4TotalSec) {
+    failTask4Early();
+  } else if (elapsed >= task4TotalSec) {
+    // Stayed on sponsor page for full 60s duration -> Verified!
+    completeTask(4);
   }
 }
 
@@ -575,7 +561,6 @@ function failTask4Early() {
   }
   isVerifying[idx] = false;
   tasksDone[idx] = false;
-  task4LeftTab = false;
 
   const btn = document.getElementById('btnTask4');
   const txt = document.getElementById('txtTask4');
