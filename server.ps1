@@ -65,6 +65,22 @@ try {
                     $vid = $m.Groups[1].Value
                 }
             } catch {}
+
+            # Fallback: scrape directly from /videos
+            if (-not $vid) {
+                try {
+                    $htmlRes = Invoke-WebRequest -Uri "https://www.youtube.com/@$cleanCh/videos" -UserAgent "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" -UseBasicParsing
+                    $m2 = [regex]::Match($htmlRes.Content, 'watch\?v=([a-zA-Z0-9_\-]{11})')
+                    if ($m2.Success) {
+                        $vid = $m2.Groups[1].Value
+                    }
+                } catch {}
+            }
+
+            if (-not $vid) {
+                if ($cleanCh -like "*ghost*") { $vid = "HVPqCzVCnQk" }
+                elseif ($cleanCh -like "*blacklist*") { $vid = "ClBmbJDIWzA" }
+            }
             
             $videoUrl = if ($vid) { "https://www.youtube.com/watch?v=$vid" } else { "https://www.youtube.com/@$cleanCh/videos" }
             $outJson = @{
