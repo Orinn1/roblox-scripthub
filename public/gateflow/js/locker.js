@@ -245,7 +245,7 @@ async function fetchLatestVideo() {
 
   // Fallback if API hasn't loaded or local dev
   if (isGhost) {
-    cachedLatestVideoUrl = 'https://www.youtube.com/@GhostSensix/videos';
+    cachedLatestVideoUrl = 'https://www.youtube.com/watch?v=HVPqCzVCnQk';
   } else {
     cachedLatestVideoUrl = 'https://www.youtube.com/watch?v=ClBmbJDIWzA';
   }
@@ -259,12 +259,12 @@ function getTargetVideoUrl() {
 
   if (isGhostSensixActive()) {
     // For GhostSensix: strictly prevent any fallback to Blacklistxyx
-    if (cachedLatestVideoUrl && (cachedLatestVideoUrl.includes('GhostSensix') || cachedLatestVideoUrl.includes('watch?v='))) {
+    if (cachedLatestVideoUrl && cachedLatestVideoUrl.includes('watch?v=')) {
       if (!cachedLatestVideoUrl.includes('ClBmbJDIWzA')) {
         return cachedLatestVideoUrl;
       }
     }
-    return 'https://www.youtube.com/@GhostSensix/videos';
+    return 'https://www.youtube.com/watch?v=HVPqCzVCnQk';
   }
 
   if (cachedLatestVideoUrl) {

@@ -1074,32 +1074,74 @@ export default {
                 const rssRes = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`, {
                     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
                 });
-                const rssXml = await rssRes.text();
-                const vMatch = rssXml.match(/<yt:videoId>([a-zA-Z0-9_-]{11})<\/yt:videoId>/);
-                if (vMatch && vMatch[1]) {
-                    const vid = vMatch[1];
-                    return new Response(JSON.stringify({
-                        success: true,
-                        channel: cleanCh,
-                        channelId,
-                        videoId: vid,
-                        videoUrl: `https://www.youtube.com/watch?v=${vid}`
-                    }), {
-                        headers: { 
-                            'Content-Type': 'application/json', 
-                            'Cache-Control': 'public, max-age=180',
-                            ...corsHeaders() 
-                        }
-                    });
+                if (rssRes.ok) {
+                    const rssXml = await rssRes.text();
+                    const vMatch = rssXml.match(/<yt:videoId>([a-zA-Z0-9_-]{11})<\/yt:videoId>/);
+                    if (vMatch && vMatch[1]) {
+                        const vid = vMatch[1];
+                        return new Response(JSON.stringify({
+                            success: true,
+                            channel: cleanCh,
+                            channelId,
+                            videoId: vid,
+                            videoUrl: `https://www.youtube.com/watch?v=${vid}`
+                        }), {
+                            headers: { 
+                                'Content-Type': 'application/json', 
+                                'Cache-Control': 'public, max-age=180',
+                                ...corsHeaders() 
+                            }
+                        });
+                    }
                 }
             } catch (err) {}
+
+            // Secondary: Fetch latest video directly from channel /videos page
+            try {
+                const ytHtmlRes = await fetch(`https://www.youtube.com/@${cleanCh}/videos`, {
+                    headers: { 
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept-Language': 'en-US,en;q=0.9'
+                    }
+                });
+                if (ytHtmlRes.ok) {
+                    const ytHtml = await ytHtmlRes.text();
+                    const vMatch2 = ytHtml.match(/\/watch\?v=([a-zA-Z0-9_-]{11})/);
+                    if (vMatch2 && vMatch2[1]) {
+                        const vid = vMatch2[1];
+                        return new Response(JSON.stringify({
+                            success: true,
+                            channel: cleanCh,
+                            channelId,
+                            videoId: vid,
+                            videoUrl: `https://www.youtube.com/watch?v=${vid}`
+                        }), {
+                            headers: { 
+                                'Content-Type': 'application/json', 
+                                'Cache-Control': 'public, max-age=180',
+                                ...corsHeaders() 
+                            }
+                        });
+                    }
+                }
+            } catch (err2) {}
+
+            // Known fallback latest videos
+            const FALLBACK_VIDEOS = {
+                'ghostsensix': 'HVPqCzVCnQk',
+                'ghostsensi': 'HVPqCzVCnQk',
+                'blacklistxyx': 'ClBmbJDIWzA',
+                'blacklist': 'ClBmbJDIWzA'
+            };
+            const fallbackVid = FALLBACK_VIDEOS[cleanCh] || '';
+            const fallbackUrl = fallbackVid ? `https://www.youtube.com/watch?v=${fallbackVid}` : `https://www.youtube.com/@${cleanCh}/videos`;
 
             return new Response(JSON.stringify({
                 success: true,
                 channel: cleanCh,
                 channelId,
-                videoId: '',
-                videoUrl: `https://www.youtube.com/@${cleanCh}/videos`
+                videoId: fallbackVid,
+                videoUrl: fallbackUrl
             }), {
                 headers: { 'Content-Type': 'application/json', ...corsHeaders() }
             });
