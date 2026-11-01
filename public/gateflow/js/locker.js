@@ -37,9 +37,8 @@ const I18N = {
     btnCopyAgain: 'คัดลอกสคริปต์อีกครั้ง (Copy Again) 📋',
     inAppNotice: '💡 เปิดในแอป? แนะนำกด ⋯ มุมขวาแล้วเลือก "เปิดในเบราว์เซอร์หลัก"',
     retryTask: 'แตะเพื่อเริ่มทำใหม่ (รอ 60 วิ) ↻',
-    taskPaused: (sec) => `⏸️ เวลาหยุดนิ่ง (เหลือ ${sec}s) — แตะเปิดดูต่อ ➔`,
-    toastPaused: (sec) => `⏸️ เวลาหยุดนับ! คุณต้องเปิดหน้าโฆษณาค้างไว้ (เหลืออีก ${sec} วินาที)`,
-    toastTabClosedEarly: '❌ ยังไม่ครบ 60 วินาที! คุณกลับมาหน้าเดิมก่อนเวลา ต้องเริ่มทำภารกิจใหม่',
+    toastTask4Started: '⚠️ ระบบตรวจจับสปอนเซอร์: ต้องเปิดแท็บโฆษณาค้างไว้จนครบเวลา! หากสลับกลับมาก่อนจะถูกรีเซ็ตเริ่มใหม่ทันที',
+    toastTabClosedEarly: (secLeft) => `❌ ยังไม่ครบ 60 วินาที! คุณกลับมาหน้าเดิมก่อนเวลา (เหลืออีก ${secLeft}s) ต้องเริ่มทำภารกิจใหม่ ↻`,
     humanVerifyPrompt: 'ยืนยันว่าไม่ใช่บอท (Verify you are human)',
     humanVerifying: 'กำลังตรวจสอบความปลอดภัย...',
     humanVerified: 'ยืนยันตัวตนสำเร็จแล้ว ✅',
@@ -76,9 +75,8 @@ const I18N = {
     btnCopyAgain: 'Copy Script Again 📋',
     inAppNotice: '💡 Using in-app browser? Tap ⋯ and select "Open in Browser"',
     retryTask: 'Tap to restart task (60s) ↻',
-    taskPaused: (sec) => `⏸️ Paused (${sec}s left) — Tap to continue ad ➔`,
-    toastPaused: (sec) => `⏸️ Timer paused! Keep sponsor page open (${sec}s left)`,
-    toastTabClosedEarly: '❌ 60s not reached! You returned early. Please restart the task.',
+    toastTask4Started: '⚠️ Active Verification: Keep sponsor tab open! Returning early will reset progress to 0.',
+    toastTabClosedEarly: (secLeft) => `❌ 60s not reached! You returned early (${secLeft}s left). Please restart the task ↻`,
     humanVerifyPrompt: 'Verify you are human',
     humanVerifying: 'Checking security...',
     humanVerified: 'Human Verified ✅',
@@ -443,55 +441,84 @@ function getTargetVideoUrl() {
   return 'https://www.youtube.com/watch?v=ClBmbJDIWzA';
 }
 
-// State for Task 4 "Pause on Return" Engine
-let task4TotalRequiredSec = 60;
-let task4TimeSpentAway = 0;
-let task4AwayStartTime = null;
+// State for Task 4 LootLabs Anti-Cheat Engine (60s Keep-Alive & Strict Reset)
+let task4OpenedAt = 0;
+let task4TotalSec = 60;
+let task4HasLeftTab = false;
 let task4IsActive = false;
-let task4IsPaused = false;
 
-function pauseTask4Immediately() {
+// 1. Detect when user actually leaves locker tab to view the sponsor ad
+function markTask4UserLeft() {
+  if (task4IsActive && !tasksDone[3] && !task4HasLeftTab) {
+    if (Date.now() - task4OpenedAt >= 600) {
+      task4HasLeftTab = true;
+    }
+  }
+}
+window.addEventListener('blur', markTask4UserLeft);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    markTask4UserLeft();
+  }
+});
+
+// 2. Detect Early Return (LootLabs Reset Penalty: Returning before countdown completes)
+function checkTask4EarlyReturn() {
+  if (!task4IsActive || tasksDone[3]) return;
+  if (!task4HasLeftTab) return;
+
+  const elapsed = Math.floor((Date.now() - task4OpenedAt) / 1000);
+  const secLeft = Math.max(0, task4TotalSec - elapsed);
+
+  // If user returns before countdown completes (with 4s initial launch grace period):
+  if (elapsed >= 4 && secLeft > 0) {
+    failTask4Early(secLeft);
+  }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    checkTask4EarlyReturn();
+  }
+});
+window.addEventListener('focus', () => {
+  checkTask4EarlyReturn();
+});
+
+// 3. Reset Task 4 to Redo from 0
+function failTask4Early(secLeft) {
   if (!task4IsActive || tasksDone[3]) return;
 
-  // Accrue whatever time was spent away while on the ad tab
-  if (task4AwayStartTime) {
-    const elapsedThisTrip = (Date.now() - task4AwayStartTime) / 1000;
-    task4TimeSpentAway += elapsedThisTrip;
-    task4AwayStartTime = null; // Freeze timer while on locker page
+  if (activeTimers[3]) {
+    clearInterval(activeTimers[3]);
+    delete activeTimers[3];
   }
 
-  const remaining = Math.max(0, Math.ceil(task4TotalRequiredSec - task4TimeSpentAway));
-
-  if (remaining <= 0) {
-    completeTask(4);
-    return;
-  }
-
-  if (task4IsPaused) return; // Already in paused UI state
-  task4IsPaused = true;
+  task4IsActive = false;
+  task4HasLeftTab = false;
+  isVerifying[3] = false;
+  tasksDone[3] = false;
 
   const btn = document.getElementById('btnTask4');
   const txt = document.getElementById('txtTask4');
 
   if (btn) {
-    btn.classList.remove('verifying');
-    btn.classList.add('paused');
+    btn.classList.remove('verifying', 'paused', 'completed');
+    btn.classList.add('failed');
   }
   if (txt) {
-    txt.textContent = t('taskPaused', remaining);
+    txt.textContent = t('retryTask');
   }
 
-  showToast(t('toastPaused', remaining), 'info', 3500);
+  showToast(t('toastTabClosedEarly', secLeft), 'error', 5000);
 }
 
-// 3. Handle Social Task Clicks (1-4)
+// 4. Handle Social Task Clicks (1-4)
 window.handleTaskClick = function(taskNum) {
   const idx = taskNum - 1;
   if (idx < 0 || idx >= TOTAL_TASKS) return;
   if (tasksDone[idx]) return;
 
-  const isTask4Resume = (taskNum === 4 && task4IsActive && task4IsPaused);
-  if (isVerifying[idx] && !isTask4Resume) return;
+  if (isVerifying[idx] && taskNum !== 4) return;
 
   const btn = document.getElementById(`btnTask${taskNum}`);
   const txt = document.getElementById(`txtTask${taskNum}`);
@@ -535,23 +562,22 @@ window.handleTaskClick = function(taskNum) {
   isVerifying[idx] = true;
 
   if (taskNum === 4) {
-    // TASK 4: PAUSE TIMER ON RETURN ENGINE
-    if (!task4IsActive) {
-      task4IsActive = true;
-      task4TimeSpentAway = 0;
-      task4TotalRequiredSec = getTaskDuration(4);
-    }
-    task4IsPaused = false;
-    task4AwayStartTime = Date.now();
+    // TASK 4: LOOTLABS 60s ENGINE (Warning + Keep-Alive + Reset on Early Return)
+    task4OpenedAt = Date.now();
+    task4TotalSec = getTaskDuration(4);
+    task4HasLeftTab = false;
+    task4IsActive = true;
 
     if (btn) {
-      btn.classList.remove('paused');
+      btn.classList.remove('failed', 'paused', 'completed');
       btn.classList.add('verifying');
-      btn.classList.remove('completed');
+    }
+    if (txt) {
+      txt.textContent = `${t('verifying')} (${task4TotalSec}s)`;
     }
 
-    const remaining = Math.max(1, Math.ceil(task4TotalRequiredSec - task4TimeSpentAway));
-    if (txt) txt.textContent = `${t('verifying')} (${remaining}s)`;
+    // Show initial LootLabs warning toast
+    showToast(t('toastTask4Started'), 'info', 5000);
 
     if (activeTimers[3]) clearInterval(activeTimers[3]);
     activeTimers[3] = setInterval(() => {
@@ -560,32 +586,26 @@ window.handleTaskClick = function(taskNum) {
         return;
       }
 
-      // Check if user is currently looking at / active on the locker tab
-      const isUserOnLocker = (!document.hidden && document.hasFocus());
+      const elapsed = Math.floor((Date.now() - task4OpenedAt) / 1000);
+      const secLeft = Math.max(0, task4TotalSec - elapsed);
 
-      if (isUserOnLocker) {
-        // User is on locker tab -> PAUSE IMMEDIATELY! Do not count down!
-        pauseTask4Immediately();
-      } else {
-        // User is away on the sponsor ad tab -> COUNT DOWN!
-        if (!task4AwayStartTime) {
-          task4AwayStartTime = Date.now();
-        }
-
-        const currentTripSec = (Date.now() - task4AwayStartTime) / 1000;
-        const totalAway = task4TimeSpentAway + currentTripSec;
-        const secLeft = Math.max(0, Math.ceil(task4TotalRequiredSec - totalAway));
-
-        const labelTxt = document.getElementById('txtTask4');
-        if (labelTxt) labelTxt.textContent = `${t('verifying')} (${secLeft}s)`;
-
-        if (secLeft <= 0) {
-          clearInterval(activeTimers[3]);
-          task4TimeSpentAway = task4TotalRequiredSec;
-          completeTask(4);
-        }
+      const labelTxt = document.getElementById('txtTask4');
+      if (labelTxt) {
+        labelTxt.textContent = `${t('verifying')} (${secLeft}s)`;
       }
-    }, 500);
+
+      // Check early return inside interval if user is active on tab
+      if (elapsed >= 4 && task4HasLeftTab && !document.hidden && document.hasFocus() && secLeft > 0) {
+        failTask4Early(secLeft);
+        return;
+      }
+
+      if (secLeft <= 0) {
+        clearInterval(activeTimers[3]);
+        task4IsActive = false;
+        completeTask(4);
+      }
+    }, 1000);
 
   } else {
     // TASKS 1-3: NORMAL SHORT 5s TIMERS
@@ -612,23 +632,6 @@ window.handleTaskClick = function(taskNum) {
 
   if (window.lucide) lucide.createIcons();
 };
-
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    pauseTask4Immediately();
-  } else {
-    if (task4IsActive && !tasksDone[3] && !task4AwayStartTime) {
-      task4AwayStartTime = Date.now();
-      task4IsPaused = false;
-    }
-  }
-});
-
-window.addEventListener('focus', () => {
-  if (document.visibilityState === 'visible') {
-    pauseTask4Immediately();
-  }
-});
 
 function completeTask(taskNum) {
   const idx = taskNum - 1;
