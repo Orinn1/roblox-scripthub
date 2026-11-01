@@ -3464,7 +3464,7 @@ document.addEventListener("DOMContentLoaded", () => {
         refreshIcons();
     }
 
-    // Handle Executor Download with Monetag Direct Link integration (with Anti-Spam Cooldown)
+    // Handle Executor Download (Clean 100% Direct Official Download)
     window.handleExecutorDownload = function(e, officialUrl) {
         if (e) {
             try {
@@ -3473,26 +3473,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (err) {}
         }
         if (!officialUrl || officialUrl === '#' || officialUrl === 'javascript:void(0)') return;
-
-        const directLink = (SITE_CONFIG && SITE_CONFIG.executorDirectLinkUrl) || "https://omg10.com/4/11919658";
-        const now = Date.now();
-        // Anti-Spam: Cooldown 3 นาที (180,000ms) ไม่ให้เด้งแท็บโฆษณารัวเมื่อกดดูตัวรันหลายตัว
-        const cooldownMs = 180000;
-        const isVip = window.__IS_VIP__ || isVipMember();
-        const shouldShowAd = !isVip && directLink && 
-            (!window.__lastExecutorDirectClick || (now - window.__lastExecutorDirectClick > cooldownMs));
-
-        if (shouldShowAd) {
-            window.__lastExecutorDirectClick = now;
-            try {
-                window.open(directLink, "_blank");
-            } catch (err) {}
-            setTimeout(() => {
-                window.open(officialUrl, "_blank");
-            }, 300);
-        } else {
-            window.open(officialUrl, "_blank");
-        }
+        window.open(officialUrl, "_blank");
     };
 
     // Open sUNC Benchmark Details Modal
@@ -4621,83 +4602,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const isRecentlyDismissed = dismissedTime && (Date.now() - Number(dismissedTime) < 4 * 60 * 60 * 1000);
 
         async function detectAdblockActive() {
-            if (window.__IS_VIP__ || (getVipData() && getVipData().canBypass)) return false;
-
-            let blocked = false;
-
-            // 1. Bait element test (Catches cosmetic/filter rules in uBlock, AdBlock, Brave, etc.)
-            try {
-                const bait = document.createElement("div");
-                bait.className = "adsbox ad-placement pub_300x250 pub_300x250m pub_728x90 text-ad textAd text_ad text_ads text-ads banner-ad";
-                bait.setAttribute("style", "position: absolute !important; left: -9999px !important; top: -9999px !important; width: 1px !important; height: 1px !important; pointer-events: none !important;");
-                document.body.appendChild(bait);
-
-                await new Promise(r => setTimeout(r, 120));
-
-                const style = window.getComputedStyle(bait);
-                if (
-                    bait.offsetParent === null ||
-                    bait.offsetHeight === 0 ||
-                    bait.clientHeight === 0 ||
-                    style.display === "none" ||
-                    style.visibility === "hidden"
-                ) {
-                    blocked = true;
-                }
-                bait.remove();
-            } catch (e) {}
-
-            // 2. Network request test to ad provider domain (Catches network-level block rules)
-            if (!blocked) {
-                try {
-                    await fetch(new Request("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js", {
-                        method: "HEAD",
-                        mode: "no-cors",
-                        cache: "no-store"
-                    }));
-                } catch (e) {
-                    blocked = true;
-                }
-            }
-
-            // 3. Adsterra slot inspection
-            if (!blocked) {
-                const adSlot = document.getElementById("adsterraSlot300x250");
-                if (adSlot) {
-                    const iframe = adSlot.querySelector("iframe");
-                    if (!iframe || iframe.offsetHeight === 0) {
-                        blocked = true;
-                    }
-                }
-            }
-
-            return blocked;
+            return false;
         }
 
         async function runAdblockCheck() {
-            const isBlocked = await detectAdblockActive();
-            if (!isBlocked || window.__IS_VIP__) return;
-
-            const fallbackCard = document.getElementById("adblockFallbackCard");
-            const adSlot = document.getElementById("adsterraSlot300x250");
-            const toast = document.getElementById("gentleAdblockToast");
-
-            // Activate in-place fallback card inside the 300x250 banner container
-            if (fallbackCard) {
-                fallbackCard.style.display = "flex";
-                if (adSlot) adSlot.style.display = "none";
-                if (typeof refreshIcons === "function") refreshIcons();
-            }
-
-            // Show floating gentle toast (if not dismissed within last 4 hours)
-            if (toast && !isRecentlyDismissed) {
-                setTimeout(() => {
-                    if (!window.__IS_VIP__) {
-                        toast.style.display = "block";
-                        if (typeof refreshIcons === "function") refreshIcons();
-                    }
-                }, 1800);
-            }
+            return;
         }
 
         function dismissToast() {

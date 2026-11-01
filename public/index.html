@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="monetag" content="006f5ad39e692eb6afe28008d13ae710">
     <title>BlacklistScriptX - Roblox Scripts & Exploit Hub</title>
 
     <!-- Instant Dark Mode to avoid white screen flash on iOS / Mobile WebKit -->
@@ -183,129 +182,9 @@
                 console.log('[VIP Shield] VIP Bypass active: All ads and popups blocked 100%.');
 
             } else {
-                console.log('[Monetag Hub] Monetag MultiTag (Zone 303760) standby.');
+                console.log('[System] Clean ad-free mode active.');
             }
         })();
-    </script>
-
-    <!-- Monetag Smart Frequency Limiter (Max 5 Hits / 24h) & MultiTag Integration -->
-    <script>
-        (function () {
-            if (window.__IS_VIP__) return;
-
-            var MAX_HITS = 5;
-            var STORAGE_KEY = 'blacklist_main_ad_hits_v1';
-            var TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
-
-            function getHitData() {
-                try {
-                    var raw = localStorage.getItem(STORAGE_KEY);
-                    if (raw) {
-                        var data = JSON.parse(raw);
-                        if (data && data.resetAt && Date.now() < data.resetAt && typeof data.count === 'number') {
-                            return data;
-                        }
-                    }
-                } catch (e) { }
-                return { count: 0, resetAt: Date.now() + TWENTY_FOUR_HOURS };
-            }
-
-            function saveHitData(data) {
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-                } catch (e) { }
-            }
-
-            function isAdUrl(url) {
-                if (!url || typeof url !== 'string') return true;
-                var u = url.trim().toLowerCase();
-                if (u === 'about:blank' || u === '') return true;
-
-                // Internal or relative links
-                if (u.startsWith('/') || u.startsWith('#') || u.startsWith('javascript:')) return false;
-                if (window.location.host && u.includes(window.location.host.toLowerCase())) return false;
-                if (window.location.origin && u.startsWith(window.location.origin.toLowerCase())) return false;
-
-                // Whitelisted legitimate external services
-                if (u.includes('discord.gg') || u.includes('discord.com') ||
-                    u.includes('youtube.com') || u.includes('youtu.be') ||
-                    u.includes('tiktok.com') || u.includes('github.com') ||
-                    u.includes('roblox.com') || u.includes('lootlabs.gg') ||
-                    u.includes('loot-link.com') || u.includes('loot-links.com') ||
-                    u.includes('pastebin.com') || u.includes('raw.githubusercontent.com')) {
-                    return false;
-                }
-
-                return true;
-            }
-
-            function recordHit() {
-                var current = getHitData();
-                current.count = (current.count || 0) + 1;
-                saveHitData(current);
-                console.log('[Ad Limiter] Ad hit recorded: ' + current.count + '/' + MAX_HITS);
-
-                if (current.count >= MAX_HITS) {
-                    window.__AD_CAPPED__ = true;
-                    // Neutralize and remove MultiTag script and any active ad wrappers immediately
-                    document.querySelectorAll('script[data-zone="303760"], script[data-zone="287788"]').forEach(function (el) { el.remove(); });
-                    console.log('[Ad Limiter] 5/5 Ad hits reached! All popunders and ads paused for 24 hours.');
-                }
-            }
-
-            var hitData = getHitData();
-
-            // If user already reached 5 hits within 24h, block ads completely
-            if (hitData.count >= MAX_HITS) {
-                window.__AD_CAPPED__ = true;
-                console.log('[Ad Limiter] Daily limit reached (5/5). Enjoying clean ad-free browsing.');
-                return;
-            }
-
-            // Intercept window.open to count hits and block once 5 is reached
-            var origOpen = window.open;
-            window.open = function (url, target, features) {
-                if (isAdUrl(url)) {
-                    if (window.__AD_CAPPED__) {
-                        console.warn('[Ad Limiter] Ad popup blocked (5-hit limit reached):', url);
-                        return null;
-                    }
-                    recordHit();
-                }
-                return origOpen.apply(this, arguments);
-            };
-
-            // Intercept programmatic anchor clicks from Monetag popunders
-            var origAnchorClick = HTMLAnchorElement.prototype.click;
-            HTMLAnchorElement.prototype.click = function () {
-                if (this.href && isAdUrl(this.href)) {
-                    if (window.__AD_CAPPED__) {
-                        console.warn('[Ad Limiter] Ad anchor click blocked (5-hit limit reached):', this.href);
-                        return;
-                    }
-                    recordHit();
-                }
-                return origAnchorClick.apply(this, arguments);
-            };
-
-            // Inject MultiTag script for remaining hits
-            var mTag = document.createElement('script');
-            mTag.src = 'https://quge5.com/88/tag.min.js';
-            mTag.dataset.zone = '303760';
-            mTag.async = true;
-            mTag.setAttribute('data-cfasync', 'false');
-            document.head.appendChild(mTag);
-            console.log('[Ad Limiter] Monetag MultiTag active (' + hitData.count + '/' + MAX_HITS + ' hits today).');
-        })();
-    </script>
-
-    <!-- Monetag Web Push Service Worker (Zone 12157291) -->
-    <script>
-        if ('serviceWorker' in navigator && !window.__IS_VIP__) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').catch(function() {});
-            });
-        }
     </script>
 
     <link rel="stylesheet" href="css/style.css?v=20261024_badge_v1">
@@ -1175,33 +1054,7 @@
         </div>
     </div>
 
-    <!-- Gentle Anti-Adblock Floating Toast -->
-        <div class="gentle-adblock-toast" id="gentleAdblockToast" style="display: none;">
-            <button class="adblock-toast-close" id="btnCloseAdblockToast" title="Close" aria-label="Close">
-                <i data-lucide="x"></i>
-            </button>
-            <div class="adblock-toast-badge">
-                <i data-lucide="shield-check"></i>
-                <span id="lblToastBadge">SUPPORT BLACKLISTSCRIPT</span>
-            </div>
-            <h4 id="lblToastTitle">ช่วยสนับสนุนด้วยการปิด AdBlock ❤️</h4>
-            <p id="lblToastDesc">
-                หรือ <strong>เข้าสู่ระบบด้วย Discord (ฟรี)</strong> เพื่อปลดล็อคการใช้งานแบบไร้โฆษณา 100% ตลอดชีพ!
-            </p>
-            <div class="adblock-toast-btns">
-                <a href="/api/discord-auth?action=login" class="adblock-btn-dc" id="btnToastDiscord">
-                    <svg class="social-svg dc-svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="margin-right: 2px;">
-                        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-                    </svg>
-                    <span id="lblToastBtnDc">เข้าสู่ระบบ Discord (ไร้โฆษณา)</span>
-                </a>
-                <button class="adblock-btn-dismiss" id="btnDismissAdblockToast">
-                    <span id="lblToastBtnDismiss">เข้าใจแล้ว / ปิด</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Mobile Bottom Navigation Bar -->
+    <!-- Mobile Bottom Navigation Bar -->
         <nav class="mobile-bottom-nav" id="mobileBottomNav">
             <button class="bottom-nav-item active" data-nav="home">
                 <i data-lucide="home"></i>
