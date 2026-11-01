@@ -190,10 +190,10 @@ window.handleHumanVerifyClick = function() {
 
 // Multi-Network Direct Link Pool (Fresh User Zones)
 const AD_DIRECT_POOL = [
+  'https://uplcm.com/4/12169736',
   'https://uplcm.com/4/12157091',
   'https://uplcm.com/4/12157092',
-  'https://uplcm.com/4/12157093',
-  'https://uplcm.com/4/12157094'
+  'https://uplcm.com/4/12157093'
 ];
 
 function getAdPool() {

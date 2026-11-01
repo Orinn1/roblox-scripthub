@@ -21,7 +21,7 @@ const DEFAULT_LOCKERS = [
     timer: 8,
     antiBypass: true,
     adultAds: true,
-    smartlinkUrl: 'https://uplcm.com/4/12157094',
+    smartlinkUrl: 'https://uplcm.com/4/12169736',
     ads: { popunder: true, banner: true, smartlink: true },
     clicks: 148,
     unlocks: 112,
@@ -406,8 +406,8 @@ class BlackPassStore {
         pendingPayout: 0.00
       },
       ads: {
-        smartlinkUrl: 'https://uplcm.com/4/12157094',
-        step1Url: 'https://uplcm.com/4/12157091',
+        smartlinkUrl: 'https://uplcm.com/4/12169736',
+        step1Url: 'https://uplcm.com/4/12169736',
         step2Url: 'https://uplcm.com/4/12157092',
         step3Url: 'https://uplcm.com/4/12157093',
         popunderScript: '',
@@ -422,8 +422,8 @@ class BlackPassStore {
       const parsed = JSON.parse(data);
       if (!parsed.ads || !parsed.ads.step1Url) {
         parsed.ads = {
-          smartlinkUrl: 'https://uplcm.com/4/12157094',
-          step1Url: 'https://uplcm.com/4/12157091',
+          smartlinkUrl: 'https://uplcm.com/4/12169736',
+          step1Url: 'https://uplcm.com/4/12169736',
           step2Url: 'https://uplcm.com/4/12157092',
           step3Url: 'https://uplcm.com/4/12157093',
           popunderScript: parsed.ads?.popunderScript || '',
@@ -458,8 +458,8 @@ class BlackPassStore {
         pendingPayout: 0.00
       },
       ads: {
-        smartlinkUrl: 'https://uplcm.com/4/12157094',
-        step1Url: 'https://uplcm.com/4/12157091',
+        smartlinkUrl: 'https://uplcm.com/4/12169736',
+        step1Url: 'https://uplcm.com/4/12169736',
         step2Url: 'https://uplcm.com/4/12157092',
         step3Url: 'https://uplcm.com/4/12157093',
         popunderScript: '',
