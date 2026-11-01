@@ -663,10 +663,7 @@ window.handleUnlockClick = function() {
     trackGateEvent(activeSlug, 'unlock');
   }
 
-  // 1. Open Monetag Bonus Ad
-  triggerDirectAd(3);
-
-  // 2. Grant 24-Hour Access in localStorage
+  // 1. Grant 24-Hour Access in localStorage
   grant24HourAccess();
 
   // 3. If a script code is attached: REVEAL SCRIPT DIRECTLY ON THIS PAGE!
@@ -798,19 +795,5 @@ function showToast(message, type = 'info', duration = 3000) {
   }, duration);
 }
 
-// 11. Native OnClick Popunder Ad Trigger (Monetag Direct Smartlinks)
-let lastOnClickTime = 0;
-document.addEventListener('click', function(e) {
-  // If user clicks on tasks or buttons directly, allow their specific handlers to manage them
-  if (e.target.closest('.btn-social-yt') || e.target.closest('.btn-social-ad') || e.target.closest('.btn-social-unlock') || e.target.closest('.btn-copy-script') || e.target.closest('a')) {
-    return;
-  }
 
-  // Frequency limit: fire on background/card click, cooldown 15s
-  const now = Date.now();
-  if (now - lastOnClickTime > 15000) {
-    lastOnClickTime = now;
-    triggerDirectAd();
-  }
-});
 
