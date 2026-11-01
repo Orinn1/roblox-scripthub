@@ -521,6 +521,8 @@ window.handleTaskClick = function(taskNum) {
   isVerifying[idx] = true;
   let totalSec = getTaskDuration(taskNum);
   let secLeft = totalSec;
+  const openedAt = Date.now();
+  let wasEverOpen = false;
 
   btn.classList.add('verifying');
   btn.classList.remove('completed');
@@ -529,9 +531,16 @@ window.handleTaskClick = function(taskNum) {
   if (activeTimers[idx]) clearInterval(activeTimers[idx]);
 
   activeTimers[idx] = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - openedAt) / 1000);
+
+    // Track if window was successfully opened and accessible
+    if (adWin && !adWin.closed) {
+      wasEverOpen = true;
+    }
+
     // ANTI-CHEAT TAB CHECK (LootLabs Engine):
-    // If user opened the sponsor tab and closed it before countdown completes:
-    if (adWin && adWin.closed && secLeft > 2) {
+    // Only check sponsor tasks (4-7) after 4s grace period, and only if tab was genuinely open before
+    if (taskNum >= 4 && wasEverOpen && adWin && adWin.closed && elapsed >= 4 && secLeft > 3) {
       clearInterval(activeTimers[idx]);
       isVerifying[idx] = false;
       tasksDone[idx] = false;
