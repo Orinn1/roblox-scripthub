@@ -1373,7 +1373,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (descAdminGateUrl) descAdminGateUrl.textContent = "นำลิงก์ย่อที่ได้จาก ShrinkMe.io มาใส่ในช่องนี้";
             if (adminGateUrl) {
                 adminGateUrl.placeholder = "https://shrinkme.click/xxxx";
-                adminGateUrl.value = (SITE_CONFIG.lootlabsGate && (SITE_CONFIG.lootlabsGate.shrinkmeUrl || (SITE_CONFIG.lootlabsGate.provider === "shrinkme" ? (SITE_CONFIG.lootlabsGate.shrinkearnUrl || SITE_CONFIG.lootlabsGate.lootlabsUrl) : ""))) || "https://shrinkme.click/cBGgRn";
+                adminGateUrl.value = (SITE_CONFIG.lootlabsGate && (SITE_CONFIG.lootlabsGate.shrinkmeUrl || (SITE_CONFIG.lootlabsGate.provider === "shrinkme" ? (SITE_CONFIG.lootlabsGate.shrinkearnUrl || SITE_CONFIG.lootlabsGate.lootlabsUrl) : ""))) || "https://shrinkme.click/aZd1s";
             }
         } else if (provider === "blackpass") {
             if (blackpassGuideBox) blackpassGuideBox.style.display = "flex";

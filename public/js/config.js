@@ -49,16 +49,16 @@ const SITE_CONFIG = {
     // ระบบสร้างรายได้และป้องกัน Bypass (BlackPass / ShrinkMe / ShrinkEarn / LootLabs Gate)
     lootlabsGate: {
         enabled: true,
-        provider: "blackpass", // "blackpass" | "shrinkme" | "shrinkearn" | "lootlabs" | "custom"
+        provider: "shrinkme", // "blackpass" | "shrinkme" | "shrinkearn" | "lootlabs" | "custom"
         token: "blacklist_vip",
-        shrinkmeUrl: "https://shrinkme.click/cBGgRn",
+        shrinkmeUrl: "https://shrinkme.click/aZd1s",
         blackpassLockerUrl: "/access",
         shrinkearnUrl: "https://srnky.com/aehfqq0",
         shrinkearnApiToken: "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
         tutorialVideoUrl: "https://youtu.be/FdXsvivWhOw",
         lootlabsUrl: "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
         expiryHours: 24, // จดจำเครื่องไว้ 24 ชั่วโมง
-        bypassMessage: "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
     },
 
     // Monetag Smartlink / Direct Link

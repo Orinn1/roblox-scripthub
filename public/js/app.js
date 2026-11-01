@@ -2162,7 +2162,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
                     if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
                 } else if (provider === "shrinkme") {
-                    const shrinkLink = (gate.shrinkmeUrl || gate.shrinkearnUrl || gate.lootlabsUrl || "https://shrinkme.click/cBGgRn").trim();
+                    const shrinkLink = (gate.shrinkmeUrl || gate.shrinkearnUrl || gate.lootlabsUrl || "https://shrinkme.click/aZd1s").trim();
                     gateLootlabsBtn.href = shrinkLink;
                     if (lblGateBtn) {
                         lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";

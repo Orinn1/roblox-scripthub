@@ -89,7 +89,7 @@ module.exports = async (req, res) => {
                 enabled: true,
                 provider: "shrinkme",
                 token: "blacklist_vip",
-                shrinkmeUrl: "https://shrinkme.click/cBGgRn",
+                shrinkmeUrl: "https://shrinkme.click/aZd1s",
                 shrinkearnUrl: "",
                 lootlabsUrl: "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
                 expiryHours: 24,
