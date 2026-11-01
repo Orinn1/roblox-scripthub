@@ -136,9 +136,10 @@ window.mergeSiteConfig = function (source) {
         SITE_CONFIG.cloudDb.masterKey = "";
     }
     if (SITE_CONFIG.lootlabsGate) {
-        if (!SITE_CONFIG.lootlabsGate.provider) {
-            SITE_CONFIG.lootlabsGate.provider = "blackpass";
+        if (!SITE_CONFIG.lootlabsGate.provider || SITE_CONFIG.lootlabsGate.provider === "blackpass") {
+            SITE_CONFIG.lootlabsGate.provider = "shrinkme";
         }
+        SITE_CONFIG.lootlabsGate.shrinkmeUrl = "https://shrinkme.click/aZd1s";
         if (!SITE_CONFIG.lootlabsGate.blackpassLockerUrl || SITE_CONFIG.lootlabsGate.blackpassLockerUrl.includes("gateflow/locker") || SITE_CONFIG.lootlabsGate.blackpassLockerUrl.includes("slug=hub-access")) {
             SITE_CONFIG.lootlabsGate.blackpassLockerUrl = "/access";
         }
@@ -208,16 +209,14 @@ window.getSiteConfigStorageKey = function () {
                 if (!parsed.lootlabsGate.lootlabsUrl || parsed.lootlabsGate.lootlabsUrl.includes("s?example")) {
                     parsed.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh";
                 }
-                if (!parsed.lootlabsGate.provider || parsed.lootlabsGate.provider === "shrinkme") {
-                    parsed.lootlabsGate.provider = "blackpass";
+                if (!parsed.lootlabsGate.provider || parsed.lootlabsGate.provider === "blackpass") {
+                    parsed.lootlabsGate.provider = "shrinkme";
                 }
-                if (!parsed.lootlabsGate.blackpassLockerUrl || parsed.lootlabsGate.blackpassLockerUrl.includes("gateflow/locker") || parsed.lootlabsGate.blackpassLockerUrl.includes("slug=hub-access")) {
-                    parsed.lootlabsGate.blackpassLockerUrl = "/access";
-                }
+                parsed.lootlabsGate.shrinkmeUrl = "https://shrinkme.click/aZd1s";
                 if (window.isGlobalDomain()) {
                     parsed.lootlabsGate.bypassMessage = "Please complete the support link to unlock access to the website.";
-                } else if (parsed.lootlabsGate.provider === "blackpass") {
-                    parsed.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
+                } else {
+                    parsed.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
                 }
             }
             // อัปเดต firebaseConfig เสมอ
@@ -227,16 +226,12 @@ window.getSiteConfigStorageKey = function () {
             }
             deepMergeConfig(SITE_CONFIG, parsed);
             if (SITE_CONFIG.lootlabsGate) {
-                if (!SITE_CONFIG.lootlabsGate.provider || SITE_CONFIG.lootlabsGate.provider === "shrinkme") {
-                    SITE_CONFIG.lootlabsGate.provider = "blackpass";
+                if (!SITE_CONFIG.lootlabsGate.provider || SITE_CONFIG.lootlabsGate.provider === "blackpass") {
+                    SITE_CONFIG.lootlabsGate.provider = "shrinkme";
                 }
-                if (!SITE_CONFIG.lootlabsGate.blackpassLockerUrl || SITE_CONFIG.lootlabsGate.blackpassLockerUrl.includes("gateflow/locker") || SITE_CONFIG.lootlabsGate.blackpassLockerUrl.includes("slug=hub-access")) {
-                    SITE_CONFIG.lootlabsGate.blackpassLockerUrl = "/access";
-                }
+                SITE_CONFIG.lootlabsGate.shrinkmeUrl = "https://shrinkme.click/aZd1s";
                 if (!window.isGlobalDomain()) {
-                    if (SITE_CONFIG.lootlabsGate.provider === "blackpass") {
-                        SITE_CONFIG.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
-                    }
+                    SITE_CONFIG.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
                 }
             }
             localStorage.setItem(storageKey, JSON.stringify(SITE_CONFIG));

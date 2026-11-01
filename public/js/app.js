@@ -1975,38 +1975,54 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast(currentLang === 'th' ? "รีเซ็ตสถานะเป็นเครื่องใหม่ (ล็อคหน้าเว็บ) เรียบร้อยแล้ว" : "Reset device status (locked) successfully.");
         }
 
-        // 0. Check BlackPass Server-Signed Pass Token (?pass_token=...)
+        // 0. Check GateFlow Pass Token (?pass_token=gateflow_24h) or BlackPass Server-Signed Pass Token (?pass_token=...)
         const incomingPassToken = urlParams.get("pass_token") || "";
-        if (incomingPassToken && incomingPassToken.includes(".")) {
-            // Verify with Worker / Local Server HMAC Endpoint
-            fetch(`/api/gate/check-pass?token=${encodeURIComponent(incomingPassToken)}`)
-                .then(r => r.json())
-                .then(data => {
-                    if (data && data.valid) {
-                        const expiry = data.expiresAt || (Date.now() + durationMs);
-                        localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiry));
-                        sessionStorage.setItem("blacklist_lootlabs_auth", "true");
-                        localStorage.setItem("blackpass_token", incomingPassToken);
-                        localStorage.setItem("blacklist_lootlabs_unlocked_event", String(Date.now()));
-                        hideGateOverlay(false);
-                        try {
-                            const cleanUrl = window.location.origin + window.location.pathname;
-                            window.history.replaceState({}, document.title, cleanUrl);
-                        } catch (e) {}
-                        showToast(currentLang === 'th' ? "ยืนยันตัวตนผ่าน BlackPass สำเร็จ! (มีลายเซ็นรับรอง 24 ชม.)" : "Access verified via BlackPass (24h Signed Pass)");
-                    } else {
-                        // Invalid or forged token
-                        localStorage.removeItem("blacklist_lootlabs_auth_expiry");
-                        sessionStorage.removeItem("blacklist_lootlabs_auth");
-                        localStorage.removeItem("blackpass_token");
-                        showToast(currentLang === 'th' ? "⛔ โทเค็นยืนยันตัวตนไม่ถูกต้องหรือหมดอายุ!" : "Invalid or expired access token!");
-                        checkLootlabsGate();
-                    }
-                })
-                .catch(() => {
-                    grantDeviceAccess();
-                });
-            return;
+        if (incomingPassToken) {
+            if (incomingPassToken === "gateflow_24h" || incomingPassToken.startsWith("gateflow")) {
+                const expiry = Date.now() + durationMs;
+                localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiry));
+                sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+                localStorage.setItem("blackpass_token", incomingPassToken);
+                localStorage.setItem("blacklist_lootlabs_unlocked_event", String(Date.now()));
+                hideGateOverlay(false);
+                try {
+                    const cleanUrl = window.location.origin + window.location.pathname;
+                    window.history.replaceState({}, document.title, cleanUrl);
+                } catch (e) {}
+                showToast(currentLang === 'th' ? "ยืนยันสิทธิ์สำเร็จ! ปลดล็อคการเข้าใช้งาน 24 ชั่วโมง" : "Access verified! Unlocked for 24 hours.");
+                return;
+            }
+            if (incomingPassToken.includes(".")) {
+                // Verify with Worker / Local Server HMAC Endpoint
+                fetch(`/api/gate/check-pass?token=${encodeURIComponent(incomingPassToken)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data && data.valid) {
+                            const expiry = data.expiresAt || (Date.now() + durationMs);
+                            localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiry));
+                            sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+                            localStorage.setItem("blackpass_token", incomingPassToken);
+                            localStorage.setItem("blacklist_lootlabs_unlocked_event", String(Date.now()));
+                            hideGateOverlay(false);
+                            try {
+                                const cleanUrl = window.location.origin + window.location.pathname;
+                                window.history.replaceState({}, document.title, cleanUrl);
+                            } catch (e) {}
+                            showToast(currentLang === 'th' ? "ยืนยันตัวตนผ่าน BlackPass สำเร็จ! (มีลายเซ็นรับรอง 24 ชม.)" : "Access verified via BlackPass (24h Signed Pass)");
+                        } else {
+                            // Invalid or forged token
+                            localStorage.removeItem("blacklist_lootlabs_auth_expiry");
+                            sessionStorage.removeItem("blacklist_lootlabs_auth");
+                            localStorage.removeItem("blackpass_token");
+                            showToast(currentLang === 'th' ? "⛔ โทเค็นยืนยันตัวตนไม่ถูกต้องหรือหมดอายุ!" : "Invalid or expired access token!");
+                            checkLootlabsGate();
+                        }
+                    })
+                    .catch(() => {
+                        grantDeviceAccess();
+                    });
+                return;
+            }
         }
 
         // Blind auth_success attempt without signed token -> REJECT!
