@@ -485,71 +485,152 @@ window.handleTaskClick = function(taskNum) {
 
   // 3. Start Dynamic Verification Timer (LootLabs Tab Keep-Alive Anti-Cheat)
   isVerifying[idx] = true;
-  let totalSec = getTaskDuration(taskNum);
-  let secLeft = totalSec;
+  const totalSec = getTaskDuration(taskNum);
   const openedAt = Date.now();
-  let wasEverOpen = false;
+
+  if (taskNum === 4) {
+    task4OpenedAt = openedAt;
+    task4TotalSec = totalSec;
+    sponsorEverBlurred = false;
+  }
 
   btn.classList.add('verifying');
   btn.classList.remove('completed');
-  txt.textContent = `${t('verifying')} (${secLeft}s)`;
+  txt.textContent = `${t('verifying')} (${totalSec}s)`;
 
   if (activeTimers[idx]) clearInterval(activeTimers[idx]);
 
   activeTimers[idx] = setInterval(() => {
     const elapsed = Math.floor((Date.now() - openedAt) / 1000);
+    const secLeft = Math.max(0, totalSec - elapsed);
 
-    // Track if window was successfully opened and accessible
-    if (adWin && !adWin.closed) {
-      wasEverOpen = true;
+    // ANTI-CHEAT TAB CHECK FOR TASK 4:
+    // If ad tab was closed (via adWin.closed) or user is currently back on locker tab before countdown finishes
+    if (taskNum === 4 && isVerifying[idx] && !tasksDone[idx]) {
+      let isAdClosed = false;
+      try {
+        if (adWin && adWin.closed) isAdClosed = true;
+      } catch (e) {}
+
+      // If user closed the sponsor tab (or returned to locker tab early after 3s grace period)
+      if (elapsed >= 3 && elapsed < totalSec - 1) {
+        const isBackOnLocker = (document.visibilityState === 'visible' && (sponsorEverBlurred || document.hasFocus()));
+        if (isAdClosed || isBackOnLocker) {
+          failTask4Early();
+          return;
+        }
+      }
     }
 
-    // ANTI-CHEAT TAB CHECK (LootLabs Engine):
-    // Only check sponsor task (4) after 4s grace period, and only if tab was genuinely open before
-    if (taskNum === 4 && wasEverOpen && adWin && adWin.closed && elapsed >= 4 && secLeft > 3) {
-      clearInterval(activeTimers[idx]);
-      isVerifying[idx] = false;
-      tasksDone[idx] = false;
-      btn.classList.remove('verifying');
-      btn.classList.remove('completed');
-      txt.textContent = t('retryTask');
-      showToast(t('toastTabClosedEarly'), 'error', 5500);
-      return;
-    }
-
-    secLeft--;
     if (secLeft > 0) {
       txt.textContent = `${t('verifying')} (${secLeft}s)`;
     } else {
-      clearInterval(activeTimers[idx]);
-      tasksDone[idx] = true;
-      isVerifying[idx] = false;
-
-      btn.classList.remove('verifying');
-      btn.classList.add('completed');
-
-      const labels = [
-        'Subscribed on YouTube ✅',
-        'Liked Video ✅',
-        'Joined Discord Server ✅',
-        'Sponsor Ad Verified ✅'
-      ];
-      txt.textContent = labels[idx] || 'Verified ✅';
-      if (checkIcon) checkIcon.style.display = 'block';
-
-      const completedCount = tasksDone.slice(0, TOTAL_TASKS).filter(Boolean).length;
-      if (completedCount < TOTAL_TASKS) {
-        showToast(t('toastStepDone', completedCount, TOTAL_TASKS), 'success', 2200);
-      } else {
-        showToast(t('toastAllDone', TOTAL_TASKS), 'success', 3500);
-      }
-
-      updateProgressState();
+      completeTask(taskNum);
     }
   }, 1000);
 
   if (window.lucide) lucide.createIcons();
 };
+
+// Global Tracking & Detection for Task 4 Keep-Alive
+let task4OpenedAt = 0;
+let task4TotalSec = 60;
+let sponsorEverBlurred = false;
+
+window.addEventListener('blur', () => {
+  if (isVerifying[3]) {
+    sponsorEverBlurred = true;
+  }
+});
+
+function failTask4Early() {
+  const idx = 3; // Task 4 is index 3
+  if (!isVerifying[idx] || tasksDone[idx]) return;
+
+  if (activeTimers[idx]) {
+    clearInterval(activeTimers[idx]);
+    delete activeTimers[idx];
+  }
+  isVerifying[idx] = false;
+  tasksDone[idx] = false;
+
+  const btn = document.getElementById('btnTask4');
+  const txt = document.getElementById('txtTask4');
+  if (btn) {
+    btn.classList.remove('verifying');
+    btn.classList.remove('completed');
+  }
+  if (txt) {
+    txt.textContent = t('retryTask');
+  }
+
+  showToast(t('toastTabClosedEarly'), 'error', 5500);
+}
+
+function completeTask(taskNum) {
+  const idx = taskNum - 1;
+  if (idx < 0 || idx >= TOTAL_TASKS) return;
+  if (tasksDone[idx]) return;
+
+  if (activeTimers[idx]) {
+    clearInterval(activeTimers[idx]);
+    delete activeTimers[idx];
+  }
+
+  tasksDone[idx] = true;
+  isVerifying[idx] = false;
+
+  const btn = document.getElementById(`btnTask${taskNum}`);
+  const txt = document.getElementById(`txtTask${taskNum}`);
+  const checkIcon = document.getElementById(`checkTask${taskNum}`);
+
+  if (btn) {
+    btn.classList.remove('verifying');
+    btn.classList.add('completed');
+  }
+
+  const labels = [
+    'Subscribed on YouTube ✅',
+    'Liked Video ✅',
+    'Joined Discord Server ✅',
+    'Sponsor Ad Verified ✅'
+  ];
+  if (txt) txt.textContent = labels[idx] || 'Verified ✅';
+  if (checkIcon) checkIcon.style.display = 'block';
+
+  const completedCount = tasksDone.slice(0, TOTAL_TASKS).filter(Boolean).length;
+  if (completedCount < TOTAL_TASKS) {
+    showToast(t('toastStepDone', completedCount, TOTAL_TASKS), 'success', 2200);
+  } else {
+    showToast(t('toastAllDone', TOTAL_TASKS), 'success', 3500);
+  }
+
+  updateProgressState();
+  if (window.lucide) lucide.createIcons();
+}
+
+function checkTask4Return() {
+  if (isVerifying[3] && !tasksDone[3]) {
+    const elapsed = Math.floor((Date.now() - task4OpenedAt) / 1000);
+    // If user returned after grace period (3s) but BEFORE countdown finished
+    if (elapsed >= 3 && elapsed < task4TotalSec - 1) {
+      failTask4Early();
+    } else if (elapsed >= task4TotalSec) {
+      // User waited the full time on sponsor page and came back!
+      completeTask(4);
+    }
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    checkTask4Return();
+  }
+});
+
+window.addEventListener('focus', () => {
+  checkTask4Return();
+});
 
 // 4. Update Progress Bar & Unlock State
 function updateProgressState() {
