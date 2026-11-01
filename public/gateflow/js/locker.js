@@ -505,7 +505,7 @@ window.handleTaskClick = function(taskNum) {
   } else if (taskNum === 2) {
     targetUrl = getTargetVideoUrl();
   } else if (taskNum === 3) {
-    targetUrl = 'https://discord.gg/6x67MrtfbX';
+    targetUrl = 'https://discord.gg/6MTUP78KF6';
   } else if (taskNum === 4) {
     targetUrl = pool[0] || AD_DIRECT_POOL[0];
   } else {

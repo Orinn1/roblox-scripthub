@@ -204,7 +204,7 @@ const DEFAULT_CONFIG = {
     },
     socialLinks: {
         youtube: "https://www.youtube.com/@Blacklistxyx",
-        discord: "https://discord.gg/6x67MrtfbX",
+        discord: "https://discord.gg/6MTUP78KF6",
         tiktok: "https://www.tiktok.com/@YOUR_TIKTOK"
     },
     adsterraSmartlinkUrl: "https://omg10.com/4/11911452",

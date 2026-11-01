@@ -42,7 +42,7 @@ const SITE_CONFIG = {
     // ลิงก์ Social Media ด้านบนเว็บ
     socialLinks: {
         youtube: "https://www.youtube.com/@Blacklistxyx",
-        discord: "https://discord.gg/6x67MrtfbX",
+        discord: "https://discord.gg/6MTUP78KF6",
         tiktok: "https://www.tiktok.com/@YOUR_TIKTOK"
     },
 

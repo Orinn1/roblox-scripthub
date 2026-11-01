@@ -3638,7 +3638,7 @@ document.addEventListener("DOMContentLoaded", () => {
             : t.task2Hint;
         let targetUrl = url;
         if (!targetUrl || targetUrl.includes("shopee.co.th")) {
-            targetUrl = (SITE_CONFIG.socialLinks && SITE_CONFIG.socialLinks.discord) || "https://discord.gg/6x67MrtfbX";
+            targetUrl = (SITE_CONFIG.socialLinks && SITE_CONFIG.socialLinks.discord) || "https://discord.gg/6MTUP78KF6";
         }
         return { isSponsorTask, title, icon, hint, targetUrl };
     }
@@ -4500,7 +4500,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (popupLink) {
             const dcLink = (SITE_CONFIG.socialLinks && SITE_CONFIG.socialLinks.discord) ||
                            (SITE_CONFIG.unlockTasks && SITE_CONFIG.unlockTasks.affiliateUrl) ||
-                           "https://discord.gg/6x67MrtfbX";
+                           "https://discord.gg/6MTUP78KF6";
             popupLink.href = dcLink;
         }
 
