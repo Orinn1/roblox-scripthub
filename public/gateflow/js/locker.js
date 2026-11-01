@@ -491,7 +491,7 @@ window.handleTaskClick = function(taskNum) {
   if (taskNum === 4) {
     task4OpenedAt = openedAt;
     task4TotalSec = totalSec;
-    sponsorEverBlurred = false;
+    task4LeftTab = false;
   }
 
   btn.classList.add('verifying');
@@ -505,21 +505,10 @@ window.handleTaskClick = function(taskNum) {
     const secLeft = Math.max(0, totalSec - elapsed);
 
     // ANTI-CHEAT TAB CHECK FOR TASK 4:
-    // If ad tab was closed (via adWin.closed) or user is currently back on locker tab before countdown finishes
-    if (taskNum === 4 && isVerifying[idx] && !tasksDone[idx]) {
-      let isAdClosed = false;
-      try {
-        if (adWin && adWin.closed) isAdClosed = true;
-      } catch (e) {}
-
-      // If user closed the sponsor tab (or returned to locker tab early after 3s grace period)
-      if (elapsed >= 3 && elapsed < totalSec - 1) {
-        const isBackOnLocker = (document.visibilityState === 'visible' && (sponsorEverBlurred || document.hasFocus()));
-        if (isAdClosed || isBackOnLocker) {
-          failTask4Early();
-          return;
-        }
-      }
+    // If after 5s the user never even switched to the sponsor tab (popup blocked or stayed on locker)
+    if (taskNum === 4 && isVerifying[idx] && !tasksDone[idx] && elapsed >= 5 && !task4LeftTab) {
+      failTask4Early();
+      return;
     }
 
     if (secLeft > 0) {
@@ -532,16 +521,49 @@ window.handleTaskClick = function(taskNum) {
   if (window.lucide) lucide.createIcons();
 };
 
-// Global Tracking & Detection for Task 4 Keep-Alive
+// Global Tracking & Detection for Task 4 Keep-Alive (LootLabs Engine)
 let task4OpenedAt = 0;
 let task4TotalSec = 60;
-let sponsorEverBlurred = false;
+let task4LeftTab = false;
 
-window.addEventListener('blur', () => {
-  if (isVerifying[3]) {
-    sponsorEverBlurred = true;
+// 1. Mark that user actually left the locker tab to visit the sponsor
+function markUserLeftLocker() {
+  if (isVerifying[3] && !tasksDone[3]) {
+    task4LeftTab = true;
+  }
+}
+window.addEventListener('blur', markUserLeftLocker);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    markUserLeftLocker();
   }
 });
+
+// 2. Detect when user returns to the locker tab
+function handleUserReturned() {
+  if (!isVerifying[3] || tasksDone[3]) return;
+
+  const elapsed = Math.floor((Date.now() - task4OpenedAt) / 1000);
+
+  // If user had left the tab and is now returning to locker:
+  if (task4LeftTab) {
+    if (elapsed < task4TotalSec - 1) {
+      // Returned before countdown finished -> Tab was closed or left early!
+      failTask4Early();
+    } else {
+      // Stayed the full duration -> Verified!
+      completeTask(4);
+    }
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    handleUserReturned();
+  }
+});
+
+window.addEventListener('focus', handleUserReturned);
 
 function failTask4Early() {
   const idx = 3; // Task 4 is index 3
@@ -553,6 +575,7 @@ function failTask4Early() {
   }
   isVerifying[idx] = false;
   tasksDone[idx] = false;
+  task4LeftTab = false;
 
   const btn = document.getElementById('btnTask4');
   const txt = document.getElementById('txtTask4');
@@ -608,29 +631,6 @@ function completeTask(taskNum) {
   updateProgressState();
   if (window.lucide) lucide.createIcons();
 }
-
-function checkTask4Return() {
-  if (isVerifying[3] && !tasksDone[3]) {
-    const elapsed = Math.floor((Date.now() - task4OpenedAt) / 1000);
-    // If user returned after grace period (3s) but BEFORE countdown finished
-    if (elapsed >= 3 && elapsed < task4TotalSec - 1) {
-      failTask4Early();
-    } else if (elapsed >= task4TotalSec) {
-      // User waited the full time on sponsor page and came back!
-      completeTask(4);
-    }
-  }
-}
-
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    checkTask4Return();
-  }
-});
-
-window.addEventListener('focus', () => {
-  checkTask4Return();
-});
 
 // 4. Update Progress Bar & Unlock State
 function updateProgressState() {
