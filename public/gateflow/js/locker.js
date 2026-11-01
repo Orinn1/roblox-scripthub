@@ -488,6 +488,13 @@ window.handleTaskClick = function(taskNum) {
   const totalSec = getTaskDuration(taskNum);
   const openedAt = Date.now();
 
+  if (taskNum === 4) {
+    task4OpenedAt = openedAt;
+    task4TotalSec = totalSec;
+    task4Active = true;
+    task4UserLeft = false;
+  }
+
   btn.classList.add('verifying');
   btn.classList.remove('completed');
   txt.textContent = `${t('verifying')} (${totalSec}s)`;
@@ -497,6 +504,15 @@ window.handleTaskClick = function(taskNum) {
   activeTimers[idx] = setInterval(() => {
     const elapsed = Math.floor((Date.now() - openedAt) / 1000);
     const secLeft = Math.max(0, totalSec - elapsed);
+
+    // ANTI-CHILL CHECK FOR TASK 4:
+    // If after 4s the user never even switched to the sponsor tab (sitting on locker tab from the start)
+    if (taskNum === 4 && isVerifying[idx] && !tasksDone[idx]) {
+      if (elapsed >= 4 && !task4UserLeft && document.visibilityState === 'visible' && document.hasFocus()) {
+        failTask4AndForceRedo();
+        return;
+      }
+    }
 
     if (secLeft > 0) {
       txt.textContent = `${t('verifying')} (${secLeft}s)`;
@@ -508,10 +524,83 @@ window.handleTaskClick = function(taskNum) {
   if (window.lucide) lucide.createIcons();
 };
 
+// Global Tracking for Task 4 Direct Link (Anti-Chill Detection)
+let task4OpenedAt = 0;
+let task4TotalSec = 60;
+let task4Active = false;
+let task4UserLeft = false;
+
+// Track when user switches away to the Direct Link tab
+function onUserLeftToSponsor() {
+  if (task4Active && !tasksDone[3]) {
+    task4UserLeft = true;
+  }
+}
+window.addEventListener('blur', onUserLeftToSponsor);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    onUserLeftToSponsor();
+  }
+});
+
+// Detect when user returns to sit/chill on the locker tab before 60s is up
+function onUserReturnedToLocker() {
+  if (!task4Active || tasksDone[3]) return;
+
+  const elapsed = Math.floor((Date.now() - task4OpenedAt) / 1000);
+
+  // If user came back to the locker tab BEFORE 60s finished -> STOP & FORCE REDO!
+  if (task4UserLeft) {
+    if (elapsed < task4TotalSec) {
+      failTask4AndForceRedo();
+    } else {
+      completeTask(4);
+    }
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    onUserReturnedToLocker();
+  }
+});
+window.addEventListener('focus', onUserReturnedToLocker);
+
+function failTask4AndForceRedo() {
+  const idx = 3; // Task 4
+  if (!isVerifying[idx] || tasksDone[idx]) return;
+
+  if (activeTimers[idx]) {
+    clearInterval(activeTimers[idx]);
+    delete activeTimers[idx];
+  }
+  isVerifying[idx] = false;
+  tasksDone[idx] = false;
+  task4Active = false;
+  task4UserLeft = false;
+
+  const btn = document.getElementById('btnTask4');
+  const txt = document.getElementById('txtTask4');
+  if (btn) {
+    btn.classList.remove('verifying');
+    btn.classList.remove('completed');
+  }
+  if (txt) {
+    txt.textContent = t('retryTask');
+  }
+
+  showToast(t('toastTabClosedEarly'), 'error', 5500);
+}
+
 function completeTask(taskNum) {
   const idx = taskNum - 1;
   if (idx < 0 || idx >= TOTAL_TASKS) return;
   if (tasksDone[idx]) return;
+
+  if (taskNum === 4) {
+    task4Active = false;
+    task4UserLeft = false;
+  }
 
   if (activeTimers[idx]) {
     clearInterval(activeTimers[idx]);
