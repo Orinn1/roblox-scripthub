@@ -201,6 +201,7 @@
 }
 
 .btn-social-yt,
+.btn-social-dc,
 .btn-social-ad {
   width: 100%;
   height: 44px;
@@ -234,6 +235,24 @@
   transform: translateY(0);
 }
 
+.btn-social-dc {
+  border: 1px solid rgba(88, 101, 242, 0.45);
+  background: linear-gradient(135deg, rgba(88, 101, 242, 0.9) 0%, rgba(71, 82, 196, 0.98) 100%);
+  color: #FFFFFF;
+  box-shadow: 0 3px 12px rgba(88, 101, 242, 0.35);
+}
+
+.btn-social-dc:hover {
+  background: linear-gradient(135deg, #5865F2 0%, #4752C4 100%);
+  border-color: rgba(129, 140, 248, 0.75);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(88, 101, 242, 0.55);
+}
+
+.btn-social-dc:active {
+  transform: translateY(0);
+}
+
 .btn-social-ad {
   border: 1px solid rgba(59, 130, 246, 0.35);
   background: linear-gradient(135deg, rgba(30, 58, 138, 0.88) 0%, rgba(29, 78, 216, 0.95) 100%);
@@ -263,6 +282,7 @@
 }
 
 .btn-social-yt.verifying,
+.btn-social-dc.verifying,
 .btn-social-ad.verifying {
   background: rgba(245, 158, 11, 0.2) !important;
   border: 1px solid rgba(245, 158, 11, 0.5) !important;
@@ -272,6 +292,7 @@
 }
 
 .btn-social-yt.completed,
+.btn-social-dc.completed,
 .btn-social-ad.completed {
   background: rgba(16, 185, 129, 0.12) !important;
   border: 1px solid rgba(16, 185, 129, 0.45) !important;
@@ -281,6 +302,7 @@
 }
 
 .btn-social-yt.completed:hover,
+.btn-social-dc.completed:hover,
 .btn-social-ad.completed:hover {
   transform: none;
 }

@@ -9,18 +9,15 @@
 const I18N = {
   th: {
     defaultTitle: 'ปลดล็อกลิงก์และไฟล์ฟรี',
-    defaultDesc: 'ทำภารกิจสนับสนุน 6 ขั้นตอนด้านล่างเพื่อรับไฟล์/สคริปต์ฟรี',
+    defaultDesc: 'ทำภารกิจสนับสนุน 4 ขั้นตอนด้านล่างเพื่อรับไฟล์/สคริปต์ฟรี',
     scriptTitle: 'แจกสคริปต์ฟรี (Script Access)',
-    scriptDesc: 'ทำภารกิจ 6 ขั้นตอนด้านล่างเพื่อปลดล็อกและรับโค้ดสคริปต์',
+    scriptDesc: 'ทำภารกิจ 4 ขั้นตอนด้านล่างเพื่อปลดล็อกและรับโค้ดสคริปต์',
     gateTitle: 'ระบบยืนยันสิทธิ์ Security Access Gate',
-    gateDesc: 'ทำภารกิจ 6 ขั้นตอนด้านล่างเพื่อรับสิทธิ์เข้าใช้งานเว็บฟรี 24 ชั่วโมง',
+    gateDesc: 'ทำภารกิจ 4 ขั้นตอนด้านล่างเพื่อรับสิทธิ์เข้าใช้งานเว็บฟรี 24 ชั่วโมง',
     task1: 'Subscribe on YouTube (กดติดตาม)',
     task2: 'Like Video (กดไลค์คลิป)',
-    task3: 'Comment Video (คอมเมนต์คลิป)',
-    task4: 'Visit Sponsor #1 (ลิงก์โฆษณา 1)',
-    task5: 'Visit Sponsor #2 (ลิงก์โฆษณา 2)',
-    task6: 'Visit Sponsor #3 (ลิงก์โฆษณา 3)',
-    task7: 'Visit Sponsor #4 (ลิงก์โฆษณา 4)',
+    task3: 'Join Discord Server (เข้าร่วมดิสคอร์ด)',
+    task4: 'Visit Sponsor (ดูโฆษณาสปอนเซอร์ 60s)',
     verifying: 'กำลังตรวจสอบ...',
     progress: 'Unlock progress',
     unlockBtn: 'Unlock (ดาวน์โหลดไฟล์ ➔)',
@@ -49,18 +46,15 @@ const I18N = {
   },
   en: {
     defaultTitle: 'Unlock Free Script & Download',
-    defaultDesc: 'Complete the sponsor steps below to get instant access',
+    defaultDesc: 'Complete the 4 steps below to get instant access',
     scriptTitle: 'Free Script Access',
-    scriptDesc: 'Complete the sponsor steps below to unlock and copy the script',
+    scriptDesc: 'Complete the 4 steps below to unlock and copy the script',
     gateTitle: 'Security Verification Gate',
-    gateDesc: 'Complete the steps below to verify access for 24 hours',
+    gateDesc: 'Complete the 4 steps below to verify access for 24 hours',
     task1: 'Subscribe on YouTube',
     task2: 'Like Video',
-    task3: 'Comment on Video',
-    task4: 'Visit Sponsor #1',
-    task5: 'Visit Sponsor #2',
-    task6: 'Visit Sponsor #3',
-    task7: 'Visit Sponsor #4',
+    task3: 'Join Discord Server',
+    task4: 'Visit Sponsor (Wait 60s)',
     verifying: 'Verifying...',
     progress: 'Unlock progress',
     unlockBtn: 'Download File ➔',
@@ -118,17 +112,11 @@ function applyStaticTranslations() {
   const t2 = document.getElementById('txtTask2');
   const t3 = document.getElementById('txtTask3');
   const t4 = document.getElementById('txtTask4');
-  const t5 = document.getElementById('txtTask5');
-  const t6 = document.getElementById('txtTask6');
-  const t7 = document.getElementById('txtTask7');
 
   if (t1) t1.textContent = t('task1');
   if (t2) t2.textContent = t('task2');
   if (t3) t3.textContent = t('task3');
   if (t4) t4.textContent = t('task4');
-  if (t5) t5.textContent = t('task5');
-  if (t6) t6.textContent = t('task6');
-  if (t7) t7.textContent = t('task7');
 
   const lblProgress = document.getElementById('lblUnlockProgress');
   if (lblProgress) lblProgress.textContent = t('progress');
@@ -145,28 +133,21 @@ function applyStaticTranslations() {
   }
 }
 
-// LootLabs Dynamic Countdown Timer Engine
+// Universal Countdown Timer Engine (60s Sponsor for EVERYONE)
 function getTaskDuration(taskNum) {
   const p = new URLSearchParams(window.location.search);
   if (p.get('fast') === '1') return 3; // Fast test mode (?fast=1)
 
-  const isThai = getCurrentLang() === 'th';
-  // Tasks 1-3 (YouTube sub/like/comment)
+  // Tasks 1-3 (YouTube sub, Like, Discord): 5 seconds
   if (taskNum <= 3) {
-    return isThai ? 5 : 8;
+    return 5;
   }
 
-  // Sponsor Tasks 4-7:
-  if (isThai) {
-    // Thai users: shorter (15-20s) so they don't get bored
-    return Math.floor(Math.random() * (20 - 15 + 1)) + 15;
-  } else {
-    // Foreign/International users: 60 - 80s randomized! (LootLabs Tier-1 monetization)
-    return Math.floor(Math.random() * (80 - 60 + 1)) + 60;
-  }
+  // Task 4: Sponsor Direct Link - 60 seconds for EVERYONE regardless of country!
+  return 60;
 }
 
-let TOTAL_TASKS = 6;
+let TOTAL_TASKS = 4;
 let destinationUrl = '';
 let targetScriptCode = '';
 let cachedLatestVideoUrl = '';
@@ -226,20 +207,9 @@ function getAdPool() {
   return AD_DIRECT_POOL;
 }
 
-// Dynamically configure number of ad rounds (0, 1, 2, 3, or 4 ads)
+// Dynamically configure number of ad rounds (Standardized to 4 Universal Tasks)
 function applyAdRounds(adCount) {
-  const count = (adCount !== undefined && !isNaN(adCount)) ? parseInt(adCount, 10) : 3;
-  const btn4 = document.getElementById('btnTask4');
-  const btn5 = document.getElementById('btnTask5');
-  const btn6 = document.getElementById('btnTask6');
-  const btn7 = document.getElementById('btnTask7');
-
-  if (btn4) btn4.style.display = count >= 1 ? 'flex' : 'none';
-  if (btn5) btn5.style.display = count >= 2 ? 'flex' : 'none';
-  if (btn6) btn6.style.display = count >= 3 ? 'flex' : 'none';
-  if (btn7) btn7.style.display = count >= 4 ? 'flex' : 'none';
-
-  TOTAL_TASKS = 3 + Math.max(0, Math.min(4, count));
+  TOTAL_TASKS = 4;
   const progressText = document.getElementById('txtProgressVal');
   if (progressText) {
     const completedCount = tasksDone.slice(0, TOTAL_TASKS).filter(Boolean).length;
@@ -487,15 +457,11 @@ window.handleTaskClick = function(taskNum) {
   } else if (taskNum === 2) {
     targetUrl = getTargetVideoUrl();
   } else if (taskNum === 3) {
-    targetUrl = getTargetVideoUrl();
+    targetUrl = 'https://discord.gg/6x67MrtfbX';
   } else if (taskNum === 4) {
     targetUrl = pool[0] || AD_DIRECT_POOL[0];
-  } else if (taskNum === 5) {
-    targetUrl = pool[1] || AD_DIRECT_POOL[1];
-  } else if (taskNum === 6) {
-    targetUrl = pool[2] || AD_DIRECT_POOL[2];
-  } else if (taskNum === 7) {
-    targetUrl = pool[3] || AD_DIRECT_POOL[3] || pool[0];
+  } else {
+    targetUrl = pool[0] || AD_DIRECT_POOL[0];
   }
 
   // 2. Open Target URL in a new window/tab and track window reference
@@ -539,8 +505,8 @@ window.handleTaskClick = function(taskNum) {
     }
 
     // ANTI-CHEAT TAB CHECK (LootLabs Engine):
-    // Only check sponsor tasks (4-7) after 4s grace period, and only if tab was genuinely open before
-    if (taskNum >= 4 && wasEverOpen && adWin && adWin.closed && elapsed >= 4 && secLeft > 3) {
+    // Only check sponsor task (4) after 4s grace period, and only if tab was genuinely open before
+    if (taskNum === 4 && wasEverOpen && adWin && adWin.closed && elapsed >= 4 && secLeft > 3) {
       clearInterval(activeTimers[idx]);
       isVerifying[idx] = false;
       tasksDone[idx] = false;
@@ -565,13 +531,10 @@ window.handleTaskClick = function(taskNum) {
       const labels = [
         'Subscribed on YouTube ✅',
         'Liked Video ✅',
-        'Commented on Video ✅',
-        'Sponsor Link #1 Verified ✅',
-        'Sponsor Link #2 Verified ✅',
-        'Sponsor Link #3 Verified ✅',
-        'Sponsor Link #4 Verified ✅'
+        'Joined Discord Server ✅',
+        'Sponsor Ad Verified ✅'
       ];
-      txt.textContent = labels[idx];
+      txt.textContent = labels[idx] || 'Verified ✅';
       if (checkIcon) checkIcon.style.display = 'block';
 
       const completedCount = tasksDone.slice(0, TOTAL_TASKS).filter(Boolean).length;
