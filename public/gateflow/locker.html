@@ -116,6 +116,21 @@
         </div>
       </div>
 
+      <!-- Human Verification Card (LootLabs Style) -->
+      <div class="human-verify-card" id="humanVerifyCard" onclick="handleHumanVerifyClick()">
+        <div class="verify-left">
+          <div class="verify-chk" id="verifyChk">
+            <div class="verify-spinner" id="verifySpinner" style="display: none;"></div>
+            <i data-lucide="check" class="verify-check-icon" id="verifyCheckIcon" style="display: none; width: 16px; height: 16px;"></i>
+          </div>
+          <span class="verify-text" id="verifyText">Verify you are human (ยืนยันว่าไม่ใช่บอท)</span>
+        </div>
+        <div class="verify-right">
+          <i data-lucide="shield-check" style="width: 18px; height: 18px; color: #3b82f6;"></i>
+          <span class="verify-brand">CloudShield</span>
+        </div>
+      </div>
+
       <!-- Unlock Button -->
       <button type="button" class="btn-social-unlock locked" id="btnUnlock" disabled onclick="handleUnlockClick()">
         <i data-lucide="lock" id="iconUnlock" style="width: 15px; height: 15px;"></i>

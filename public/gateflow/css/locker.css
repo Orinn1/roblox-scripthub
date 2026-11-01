@@ -369,6 +369,141 @@
   }
 }
 
+.btn-social-unlock.pending-verify {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  cursor: pointer;
+  animation: pulsePendingBtn 2s infinite ease-in-out;
+}
+
+@keyframes pulsePendingBtn {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+  }
+}
+
+/* LootLabs Style Human Verification Card */
+.human-verify-card {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 10px;
+  padding: 11px 15px;
+  margin-top: 14px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.human-verify-card:hover {
+  border-color: rgba(59, 130, 246, 0.55);
+  background: rgba(15, 23, 42, 0.95);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.15);
+}
+
+.human-verify-card.highlight-pulse {
+  animation: shakeCard 0.4s ease-in-out, glowHighlight 1.5s ease-in-out;
+}
+
+@keyframes shakeCard {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes glowHighlight {
+  0%, 100% { border-color: rgba(59, 130, 246, 0.25); }
+  50% { border-color: #f59e0b; box-shadow: 0 0 20px rgba(245, 158, 11, 0.6); }
+}
+
+.human-verify-card.verified {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(6, 78, 59, 0.2);
+  cursor: default;
+}
+
+.verify-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.verify-chk {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 2px solid #475569;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.human-verify-card:hover .verify-chk {
+  border-color: #3b82f6;
+}
+
+.human-verify-card.verified .verify-chk {
+  background: #10b981;
+  border-color: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+}
+
+.verify-check-icon {
+  color: #ffffff;
+}
+
+.verify-spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(59, 130, 246, 0.25);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spinVerify 0.7s linear infinite;
+}
+
+@keyframes spinVerify {
+  to { transform: rotate(360deg); }
+}
+
+.verify-text {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #e2e8f0;
+  text-align: left;
+}
+
+.human-verify-card.verified .verify-text {
+  color: #34d399;
+  font-weight: 600;
+}
+
+.verify-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  opacity: 0.85;
+}
+
+.verify-brand {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
 /* 7. Unlocked Script Box (In-Card Script Delivery) */
 .social-script-result {
   margin-top: 18px;

@@ -38,7 +38,14 @@ const I18N = {
     btnCopy: 'คัดลอกสคริปต์ (Copy Script) 📋',
     btnCopied: 'คัดลอกเรียบร้อยแล้ว! ✅',
     btnCopyAgain: 'คัดลอกสคริปต์อีกครั้ง (Copy Again) 📋',
-    inAppNotice: '💡 เปิดในแอป? แนะนำกด ⋯ มุมขวาแล้วเลือก "เปิดในเบราว์เซอร์หลัก"'
+    inAppNotice: '💡 เปิดในแอป? แนะนำกด ⋯ มุมขวาแล้วเลือก "เปิดในเบราว์เซอร์หลัก"',
+    retryTask: 'แตะเพื่อเริ่มภารกิจใหม่ ↻',
+    toastTabClosedEarly: '❌ คุณปิดแท็บโฆษณาก่อนเวลา! ต้องเปิดทิ้งไว้จนกว่าเวลานับถอยหลังจะหมด',
+    humanVerifyPrompt: 'ยืนยันว่าไม่ใช่บอท (Verify you are human)',
+    humanVerifying: 'กำลังตรวจสอบความปลอดภัย...',
+    humanVerified: 'ยืนยันตัวตนสำเร็จแล้ว ✅',
+    toastNeedHumanVerify: '⚠️ กรุณากดยืนยันว่าไม่ใช่บอทด้านล่างก่อนปลดล็อก',
+    pleaseVerifyHuman: 'กรุณายืนยันว่าไม่ใช่บอทด้านบน ⬆️'
   },
   en: {
     defaultTitle: 'Unlock Free Script & Download',
@@ -71,7 +78,14 @@ const I18N = {
     btnCopy: 'Copy Script 📋',
     btnCopied: 'Copied to Clipboard! ✅',
     btnCopyAgain: 'Copy Script Again 📋',
-    inAppNotice: '💡 Using in-app browser? Tap ⋯ and select "Open in Browser"'
+    inAppNotice: '💡 Using in-app browser? Tap ⋯ and select "Open in Browser"',
+    retryTask: 'Tap to retry task ↻',
+    toastTabClosedEarly: '❌ Sponsor tab was closed early! Please keep it open until countdown finishes.',
+    humanVerifyPrompt: 'Verify you are human',
+    humanVerifying: 'Checking security...',
+    humanVerified: 'Human Verified ✅',
+    toastNeedHumanVerify: '⚠️ Please verify you are human before unlocking',
+    pleaseVerifyHuman: 'Please verify you are human above ⬆️'
   }
 };
 
@@ -124,6 +138,32 @@ function applyStaticTranslations() {
 
   const btnCopyScript = document.getElementById('txtCopyScript');
   if (btnCopyScript) btnCopyScript.textContent = t('btnCopy');
+
+  const vTxt = document.getElementById('verifyText');
+  if (vTxt && !isHumanVerified) {
+    vTxt.textContent = t('humanVerifyPrompt');
+  }
+}
+
+// LootLabs Dynamic Countdown Timer Engine
+function getTaskDuration(taskNum) {
+  const p = new URLSearchParams(window.location.search);
+  if (p.get('fast') === '1') return 3; // Fast test mode (?fast=1)
+
+  const isThai = getCurrentLang() === 'th';
+  // Tasks 1-3 (YouTube sub/like/comment)
+  if (taskNum <= 3) {
+    return isThai ? 5 : 8;
+  }
+
+  // Sponsor Tasks 4-7:
+  if (isThai) {
+    // Thai users: shorter (15-20s) so they don't get bored
+    return Math.floor(Math.random() * (20 - 15 + 1)) + 15;
+  } else {
+    // Foreign/International users: 60 - 80s randomized! (LootLabs Tier-1 monetization)
+    return Math.floor(Math.random() * (80 - 60 + 1)) + 60;
+  }
 }
 
 let TOTAL_TASKS = 6;
@@ -133,6 +173,39 @@ let cachedLatestVideoUrl = '';
 let currentLockerChannel = '';
 const tasksDone = [false, false, false, false, false, false, false];
 const isVerifying = [false, false, false, false, false, false, false];
+const activeAdWindows = {};
+const activeTimers = {};
+let isHumanVerified = false;
+let isVerifyingHuman = false;
+
+// LootLabs Human Verification Checkbox Handler
+window.handleHumanVerifyClick = function() {
+  if (isHumanVerified || isVerifyingHuman) return;
+  isVerifyingHuman = true;
+
+  const spinner = document.getElementById('verifySpinner');
+  const checkIcon = document.getElementById('verifyCheckIcon');
+  const txt = document.getElementById('verifyText');
+  const card = document.getElementById('humanVerifyCard');
+
+  if (spinner) spinner.style.display = 'block';
+  if (txt) txt.textContent = t('humanVerifying');
+
+  setTimeout(() => {
+    isVerifyingHuman = false;
+    isHumanVerified = true;
+
+    if (spinner) spinner.style.display = 'none';
+    if (checkIcon) checkIcon.style.display = 'block';
+    if (txt) txt.textContent = t('humanVerified');
+    if (card) card.classList.add('verified');
+
+    if (window.lucide) lucide.createIcons();
+    showToast(`🛡️ ${t('humanVerified')}`, 'success', 2500);
+
+    updateProgressState();
+  }, 1200);
+};
 
 // Multi-Network Direct Link Pool (Fresh User Zones)
 const AD_DIRECT_POOL = [
@@ -425,10 +498,15 @@ window.handleTaskClick = function(taskNum) {
     targetUrl = pool[3] || AD_DIRECT_POOL[3] || pool[0];
   }
 
-  // 2. Open Target URL in a new window/tab
+  // 2. Open Target URL in a new window/tab and track window reference
+  let adWin = null;
   try {
-    const win = window.open(targetUrl, '_blank');
-    if (!win) {
+    adWin = window.open(targetUrl, '_blank');
+    activeAdWindows[idx] = adWin;
+  } catch (e) {}
+
+  if (!adWin) {
+    try {
       const link = document.createElement('a');
       link.href = targetUrl;
       link.target = '_blank';
@@ -436,22 +514,39 @@ window.handleTaskClick = function(taskNum) {
       document.body.appendChild(link);
       link.click();
       setTimeout(() => link.remove(), 100);
-    }
-  } catch (e) {}
+    } catch (e) {}
+  }
 
-  // 3. Start Verification Timer (3 seconds)
+  // 3. Start Dynamic Verification Timer (LootLabs Tab Keep-Alive Anti-Cheat)
   isVerifying[idx] = true;
-  let secLeft = 3;
+  let totalSec = getTaskDuration(taskNum);
+  let secLeft = totalSec;
 
   btn.classList.add('verifying');
+  btn.classList.remove('completed');
   txt.textContent = `${t('verifying')} (${secLeft}s)`;
 
-  const timer = setInterval(() => {
+  if (activeTimers[idx]) clearInterval(activeTimers[idx]);
+
+  activeTimers[idx] = setInterval(() => {
+    // ANTI-CHEAT TAB CHECK (LootLabs Engine):
+    // If user opened the sponsor tab and closed it before countdown completes:
+    if (adWin && adWin.closed && secLeft > 2) {
+      clearInterval(activeTimers[idx]);
+      isVerifying[idx] = false;
+      tasksDone[idx] = false;
+      btn.classList.remove('verifying');
+      btn.classList.remove('completed');
+      txt.textContent = t('retryTask');
+      showToast(t('toastTabClosedEarly'), 'error', 5500);
+      return;
+    }
+
     secLeft--;
     if (secLeft > 0) {
       txt.textContent = `${t('verifying')} (${secLeft}s)`;
     } else {
-      clearInterval(timer);
+      clearInterval(activeTimers[idx]);
       tasksDone[idx] = true;
       isVerifying[idx] = false;
 
@@ -498,24 +593,39 @@ function updateProgressState() {
 
   // When all required tasks are completed
   if (completedCount >= TOTAL_TASKS) {
-    if (btnUnlock) {
-      btnUnlock.disabled = false;
-      btnUnlock.className = 'btn-social-unlock ready';
-    }
-    if (txtUnlock) {
-      if (targetScriptCode) {
-        txtUnlock.textContent = t('getScriptBtn');
-      } else {
-        const path = window.location.pathname.toLowerCase();
-        const isHub = path === '/access' || path === '/hub' || path === '/gate' || window.location.search.includes('hub-access') || destinationUrl === '/' || destinationUrl.includes('blacklisthub') || destinationUrl.includes('localhost');
-        txtUnlock.textContent = isHub ? t('enterWebBtn') : t('unlockBtn');
+    if (isHumanVerified) {
+      if (btnUnlock) {
+        btnUnlock.disabled = false;
+        btnUnlock.className = 'btn-social-unlock ready';
+      }
+      if (txtUnlock) {
+        if (targetScriptCode) {
+          txtUnlock.textContent = t('getScriptBtn');
+        } else {
+          const path = window.location.pathname.toLowerCase();
+          const isHub = path === '/access' || path === '/hub' || path === '/gate' || window.location.search.includes('hub-access') || destinationUrl === '/' || destinationUrl.includes('blacklisthub') || destinationUrl.includes('localhost');
+          txtUnlock.textContent = isHub ? t('enterWebBtn') : t('unlockBtn');
+        }
+      }
+      if (iconUnlock) {
+        iconUnlock.setAttribute('data-lucide', 'sparkles');
+        if (window.lucide) lucide.createIcons();
+      }
+      showToast(t('toastUnlocked'), 'success', 3500);
+    } else {
+      // Tasks done, but human verification is still pending
+      if (btnUnlock) {
+        btnUnlock.disabled = false;
+        btnUnlock.className = 'btn-social-unlock pending-verify';
+      }
+      if (txtUnlock) {
+        txtUnlock.textContent = t('pleaseVerifyHuman');
+      }
+      if (iconUnlock) {
+        iconUnlock.setAttribute('data-lucide', 'shield-alert');
+        if (window.lucide) lucide.createIcons();
       }
     }
-    if (iconUnlock) {
-      iconUnlock.setAttribute('data-lucide', 'sparkles');
-      if (window.lucide) lucide.createIcons();
-    }
-    showToast(t('toastUnlocked'), 'success', 3500);
   }
 }
 
@@ -523,6 +633,18 @@ function updateProgressState() {
 window.handleUnlockClick = function() {
   const completedCount = tasksDone.slice(0, TOTAL_TASKS).filter(Boolean).length;
   if (completedCount < TOTAL_TASKS) return;
+
+  // Check Human Verification (LootLabs style)
+  if (!isHumanVerified) {
+    showToast(t('toastNeedHumanVerify'), 'error', 3500);
+    const card = document.getElementById('humanVerifyCard');
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.classList.add('highlight-pulse');
+      setTimeout(() => card.classList.remove('highlight-pulse'), 1500);
+    }
+    return;
+  }
 
   // Track Unlock in Firestore
   const p = new URLSearchParams(window.location.search);
