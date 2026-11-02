@@ -41,6 +41,12 @@ async function purgeUserAcrossGuild(guild, userId) {
 
 // Configuration for Hardcore Anti-Raid
 const ANTI_RAID_CONFIG = {
+    // 0. Exempt / Whitelist Channels (ห้องที่ยกเว้น ไม่ต้องตรวจ Anti-Raid)
+    exemptChannels: [
+        '1566177348330463242',
+        ...(botConfig.antiRaidExemptChannels || [])
+    ],
+
     // 1. Fast Spam
     maxMessagesPerWindow: 4,     // ไม่เกิน 4 ข้อความ
     windowMs: 3500,              // ภายใน 3.5 วินาที
@@ -67,12 +73,18 @@ const ANTI_RAID_CONFIG = {
 };
 
 /**
- * Check if a member is exempt from Anti-Raid (Admins, Bots, Server Owner)
+ * Check if a member or channel is exempt from Anti-Raid (Admins, Bots, Server Owner, Exempt Channels)
  */
 function isExempt(member, channel) {
     if (!member) return true;
-    if (member.user.bot) return true;
+    if (member.user?.bot) return true;
     if (member.id === member.guild?.ownerId) return true;
+
+    // ยกเว้นห้องที่ระบุ ไม่ต้องตรวจ Anti-Raid
+    const channelId = channel?.id || (typeof channel === 'string' ? channel : null);
+    if (channelId && ANTI_RAID_CONFIG.exemptChannels.includes(channelId)) {
+        return true;
+    }
 
     // Check Administrator or ManageGuild permissions
     if (member.permissions && (

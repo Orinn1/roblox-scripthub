@@ -21,5 +21,8 @@ module.exports = {
     themeColor: 0x00d2ff,
     requiredRoleId: process.env.DISCORD_REQUIRED_ROLE_ID || '1549727990542508083',
     bypassChannelId: process.env.DISCORD_BYPASS_CHANNEL_ID || '1549758071734140958',
-    roleWaitChannelId: process.env.DISCORD_ROLE_WAIT_CHANNEL_ID || '1553327513990860821'
+    roleWaitChannelId: process.env.DISCORD_ROLE_WAIT_CHANNEL_ID || '1553327513990860821',
+    antiRaidExemptChannels: process.env.DISCORD_ANTI_RAID_EXEMPT_CHANNELS
+        ? process.env.DISCORD_ANTI_RAID_EXEMPT_CHANNELS.split(',').map(s => s.trim()).filter(Boolean)
+        : ['1566177348330463242']
 };
