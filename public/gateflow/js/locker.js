@@ -154,6 +154,25 @@ const activeAdWindows = {};
 const activeTimers = {};
 let isHumanVerified = false;
 let isVerifyingHuman = false;
+let serverSessionTicket = '';
+
+// Initialize Server-Side Anti-Bypass Session Ticket (/api/gate/start)
+async function initGateAntiBypassSession() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const path = window.location.pathname.toLowerCase();
+    const slug = path.startsWith('/l/') ? path.slice(3).trim() : (params.get('slug') || (path === '/access' || path === '/hub' || path === '/gate' ? 'hub-access' : ''));
+    const res = await fetch(`/api/gate/start?slug=${encodeURIComponent(slug || 'hub-access')}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.success && data.ticket) {
+        serverSessionTicket = data.ticket;
+      }
+    }
+  } catch (err) {
+    console.warn('Anti-Bypass Session Start Warning:', err);
+  }
+}
 
 // LootLabs Human Verification Checkbox Handler
 window.handleHumanVerifyClick = function() {
@@ -232,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyStaticTranslations();
   initCustomTitleAndDesc();
   initDestinationUrl();
+  initGateAntiBypassSession();
 
   const params = new URLSearchParams(window.location.search);
   const path = window.location.pathname.toLowerCase();
@@ -656,13 +676,60 @@ window.handleUnlockClick = function() {
   const path = window.location.pathname.toLowerCase();
   const isHub = path === '/access' || path === '/hub' || path === '/gate' || window.location.search.includes('hub-access') || destinationUrl === '/' || destinationUrl.includes('blacklisthub') || destinationUrl.includes('localhost');
   const txtUnlock = document.getElementById('txtUnlock');
-  if (txtUnlock) txtUnlock.textContent = isHub ? t('redirectingHub') : t('redirecting');
+  const btnUnlock = document.getElementById('btnUnlock');
 
-  showToast(isHub ? `🚀 ${t('redirectingHub')}` : `🚀 ${t('redirecting')}`, 'success', 2000);
+  // Server-Side Anti-Bypass Verification (HMAC-SHA256 Token & Dwell Time)
+  if (isHub) {
+    if (btnUnlock) btnUnlock.disabled = true;
+    if (txtUnlock) txtUnlock.textContent = t('verifying');
 
+    (async () => {
+      try {
+        let passToken = '';
+        if (serverSessionTicket) {
+          const verifyRes = await fetch('/api/gate/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticket: serverSessionTicket })
+          });
+          const verifyData = await verifyRes.json();
+          if (!verifyData.success) {
+            if (btnUnlock) btnUnlock.disabled = false;
+            if (txtUnlock) txtUnlock.textContent = t('enterWebBtn');
+            showToast(verifyData.error || 'Anti-Bypass: คุณทำภารกิจไม่ครบเวลาที่กำหนด', 'error', 4500);
+            return;
+          }
+          passToken = verifyData.passToken;
+        }
+
+        grant24HourAccess();
+        if (passToken) {
+          localStorage.setItem('blackpass_token', passToken);
+          document.cookie = `blackpass_token=${passToken}; Path=/; Max-Age=86400; SameSite=Lax`;
+        }
+
+        showToast(`🚀 ${t('redirectingHub')}`, 'success', 2000);
+        setTimeout(() => {
+          const separator = destinationUrl.includes('?') ? '&' : '?';
+          const redirectUrl = passToken 
+            ? `${destinationUrl}${separator}pass_token=${encodeURIComponent(passToken)}`
+            : `${destinationUrl}${separator}pass_token=gateflow_24h`;
+          window.location.href = redirectUrl;
+        }, 600);
+      } catch (err) {
+        console.warn('Anti-Bypass verify offline fallback:', err);
+        grant24HourAccess();
+        window.location.href = destinationUrl;
+      }
+    })();
+    return;
+  }
+
+  // Regular external download / link redirect
+  if (txtUnlock) txtUnlock.textContent = t('redirecting');
+  showToast(`🚀 ${t('redirecting')}`, 'success', 2000);
   setTimeout(() => {
-    const separator = destinationUrl.includes('?') ? '&' : '?';
-    window.location.href = isHub ? `${destinationUrl}${separator}pass_token=gateflow_24h` : destinationUrl;
+    window.location.href = destinationUrl;
   }, 600);
 };
 
