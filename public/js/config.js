@@ -49,16 +49,16 @@ const SITE_CONFIG = {
     // ระบบสร้างรายได้และป้องกัน Bypass (BlackPass / ShrinkMe / ShrinkEarn / LootLabs Gate)
     lootlabsGate: {
         enabled: true,
-        provider: "shrinkme", // "blackpass" | "shrinkme" | "shrinkearn" | "lootlabs" | "custom"
+        provider: "lootlabs", // "blackpass" | "shrinkme" | "shrinkearn" | "lootlabs" | "custom"
         token: "blacklist_vip",
         shrinkmeUrl: "https://shrinkme.click/aZd1s",
         blackpassLockerUrl: "/access",
         shrinkearnUrl: "https://srnky.com/aehfqq0",
         shrinkearnApiToken: "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
         tutorialVideoUrl: "https://youtu.be/FdXsvivWhOw",
-        lootlabsUrl: "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
+        lootlabsUrl: "https://loot-link.com/s?cWo9w57Q&data=S5ry/nbaIQ20n2jVNZ7M9UpuqobHGbsHCdlKRgIVMRFjJypYEmr0NbQXLrHww5",
         expiryHours: 24, // จดจำเครื่องไว้ 24 ชั่วโมง
-        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
     },
 
     // Monetag Smartlink / Direct Link
@@ -136,19 +136,13 @@ window.mergeSiteConfig = function (source) {
         SITE_CONFIG.cloudDb.masterKey = "";
     }
     if (SITE_CONFIG.lootlabsGate) {
-        if (!SITE_CONFIG.lootlabsGate.provider || SITE_CONFIG.lootlabsGate.provider === "blackpass") {
-            SITE_CONFIG.lootlabsGate.provider = "shrinkme";
-        }
-        SITE_CONFIG.lootlabsGate.shrinkmeUrl = "https://shrinkme.click/aZd1s";
+        SITE_CONFIG.lootlabsGate.provider = "lootlabs";
+        SITE_CONFIG.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?cWo9w57Q&data=S5ry/nbaIQ20n2jVNZ7M9UpuqobHGbsHCdlKRgIVMRFjJypYEmr0NbQXLrHww5";
         if (!SITE_CONFIG.lootlabsGate.blackpassLockerUrl || SITE_CONFIG.lootlabsGate.blackpassLockerUrl.includes("gateflow/locker") || SITE_CONFIG.lootlabsGate.blackpassLockerUrl.includes("slug=hub-access")) {
             SITE_CONFIG.lootlabsGate.blackpassLockerUrl = "/access";
         }
         if (!window.isGlobalDomain()) {
-            if (SITE_CONFIG.lootlabsGate.provider === "blackpass") {
-                SITE_CONFIG.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
-            } else if (SITE_CONFIG.lootlabsGate.provider === "shrinkme") {
-                SITE_CONFIG.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
-            }
+            SITE_CONFIG.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
         }
     }
     if (window.isGlobalDomain()) {
@@ -204,19 +198,14 @@ window.getSiteConfigStorageKey = function () {
                     parsed.socialLinks.youtube = "https://www.youtube.com/@Blacklistxyx";
                 }
             }
-            // ล้างลิงก์ LootLabs เก่าที่เป็นตัวอย่างออก
+            // อัปเดตลิงก์ LootLabs
             if (parsed.lootlabsGate) {
-                if (!parsed.lootlabsGate.lootlabsUrl || parsed.lootlabsGate.lootlabsUrl.includes("s?example")) {
-                    parsed.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh";
-                }
-                if (!parsed.lootlabsGate.provider || parsed.lootlabsGate.provider === "blackpass") {
-                    parsed.lootlabsGate.provider = "shrinkme";
-                }
-                parsed.lootlabsGate.shrinkmeUrl = "https://shrinkme.click/aZd1s";
+                parsed.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?cWo9w57Q&data=S5ry/nbaIQ20n2jVNZ7M9UpuqobHGbsHCdlKRgIVMRFjJypYEmr0NbQXLrHww5";
+                parsed.lootlabsGate.provider = "lootlabs";
                 if (window.isGlobalDomain()) {
                     parsed.lootlabsGate.bypassMessage = "Please complete the support link to unlock access to the website.";
                 } else {
-                    parsed.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
+                    parsed.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
                 }
             }
             // อัปเดต firebaseConfig เสมอ
@@ -226,12 +215,10 @@ window.getSiteConfigStorageKey = function () {
             }
             deepMergeConfig(SITE_CONFIG, parsed);
             if (SITE_CONFIG.lootlabsGate) {
-                if (!SITE_CONFIG.lootlabsGate.provider || SITE_CONFIG.lootlabsGate.provider === "blackpass") {
-                    SITE_CONFIG.lootlabsGate.provider = "shrinkme";
-                }
-                SITE_CONFIG.lootlabsGate.shrinkmeUrl = "https://shrinkme.click/aZd1s";
+                SITE_CONFIG.lootlabsGate.provider = "lootlabs";
+                SITE_CONFIG.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?cWo9w57Q&data=S5ry/nbaIQ20n2jVNZ7M9UpuqobHGbsHCdlKRgIVMRFjJypYEmr0NbQXLrHww5";
                 if (!window.isGlobalDomain()) {
-                    SITE_CONFIG.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
+                    SITE_CONFIG.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
                 }
             }
             localStorage.setItem(storageKey, JSON.stringify(SITE_CONFIG));
