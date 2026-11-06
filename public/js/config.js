@@ -56,7 +56,7 @@ const SITE_CONFIG = {
         shrinkearnUrl: "https://srnky.com/aehfqq0",
         shrinkearnApiToken: "3ce8c70d0c1e31404164f66164ea8f9117b29b69",
         tutorialVideoUrl: "https://youtu.be/FdXsvivWhOw",
-        lootlabsUrl: "https://loot-link.com/s?cWo9w57Q&data=S5ry/nbaIQ20n2jVNZ7M9UpuqobHGbsHCdlKRgIVMRFjJypYEmr0NbQXLrHww5",
+        lootlabsUrl: "https://loot-link.com/s?cWo9w57Q&data=5Sry/nbaIQi29n2jVNZ7M9UpuqobH6bsHCdIKRglVMRPjJjypYEmr0NbQXLrHww5",
         expiryHours: 24, // จดจำเครื่องไว้ 24 ชั่วโมง
         bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
     },
@@ -137,7 +137,7 @@ window.mergeSiteConfig = function (source) {
     }
     if (SITE_CONFIG.lootlabsGate) {
         SITE_CONFIG.lootlabsGate.provider = "lootlabs";
-        SITE_CONFIG.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?cWo9w57Q&data=S5ry/nbaIQ20n2jVNZ7M9UpuqobHGbsHCdlKRgIVMRFjJypYEmr0NbQXLrHww5";
+        SITE_CONFIG.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?cWo9w57Q&data=5Sry/nbaIQi29n2jVNZ7M9UpuqobH6bsHCdIKRglVMRPjJjypYEmr0NbQXLrHww5";
         if (!SITE_CONFIG.lootlabsGate.blackpassLockerUrl || SITE_CONFIG.lootlabsGate.blackpassLockerUrl.includes("gateflow/locker") || SITE_CONFIG.lootlabsGate.blackpassLockerUrl.includes("slug=hub-access")) {
             SITE_CONFIG.lootlabsGate.blackpassLockerUrl = "/access";
         }
@@ -216,7 +216,7 @@ window.getSiteConfigStorageKey = function () {
             deepMergeConfig(SITE_CONFIG, parsed);
             if (SITE_CONFIG.lootlabsGate) {
                 SITE_CONFIG.lootlabsGate.provider = "lootlabs";
-                SITE_CONFIG.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?cWo9w57Q&data=S5ry/nbaIQ20n2jVNZ7M9UpuqobHGbsHCdlKRgIVMRFjJypYEmr0NbQXLrHww5";
+                SITE_CONFIG.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?cWo9w57Q&data=5Sry/nbaIQi29n2jVNZ7M9UpuqobH6bsHCdIKRglVMRPjJjypYEmr0NbQXLrHww5";
                 if (!window.isGlobalDomain()) {
                     SITE_CONFIG.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
                 }
