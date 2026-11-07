@@ -135,15 +135,10 @@ window.mergeSiteConfig = function (source) {
         SITE_CONFIG.cloudDb.binId = "";
         SITE_CONFIG.cloudDb.masterKey = "";
     }
-    if (SITE_CONFIG.lootlabsGate) {
-        SITE_CONFIG.lootlabsGate.provider = "lootlabs";
-        SITE_CONFIG.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?cWo9w57Q&data=5Sry/nbaIQi29n2jVNZ7M9UpuqobH6bsHCdIKRglVMRPjJjypYEmr0NbQXLrHww5";
-        if (!SITE_CONFIG.lootlabsGate.blackpassLockerUrl || SITE_CONFIG.lootlabsGate.blackpassLockerUrl.includes("gateflow/locker") || SITE_CONFIG.lootlabsGate.blackpassLockerUrl.includes("slug=hub-access")) {
-            SITE_CONFIG.lootlabsGate.blackpassLockerUrl = "/access";
-        }
-        if (!window.isGlobalDomain()) {
-            SITE_CONFIG.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
-        }
+    if (source && source.lootlabsGate) {
+        if (source.lootlabsGate.provider) SITE_CONFIG.lootlabsGate.provider = source.lootlabsGate.provider;
+        if (source.lootlabsGate.shrinkmeUrl) SITE_CONFIG.lootlabsGate.shrinkmeUrl = source.lootlabsGate.shrinkmeUrl;
+        if (source.lootlabsGate.bypassMessage) SITE_CONFIG.lootlabsGate.bypassMessage = source.lootlabsGate.bypassMessage;
     }
     if (window.isGlobalDomain()) {
         if (SITE_CONFIG.siteTagline && /[\u0E00-\u0E7F]/.test(SITE_CONFIG.siteTagline)) {
@@ -166,11 +161,19 @@ window.getSiteConfigStorageKey = function () {
 // ตรวจสอบว่าเคยบันทึกการตั้งค่าไว้ใน LocalStorage หรือไม่
 (function loadSavedConfig() {
     try {
+        // Migration: ล้างแคชเก่าที่เคยถูกฮาร์ดโค้ดบังคับ LootLabs
+        const CONFIG_CACHE_VERSION = "20261107_shrinkme_v3";
+        if (localStorage.getItem("blacklist_config_cache_version") !== CONFIG_CACHE_VERSION) {
+            localStorage.removeItem("nova_site_config");
+            localStorage.removeItem("nova_site_config_global");
+            localStorage.setItem("blacklist_config_cache_version", CONFIG_CACHE_VERSION);
+            return;
+        }
+
         const storageKey = window.getSiteConfigStorageKey();
         const saved = localStorage.getItem(storageKey);
         if (saved) {
             const parsed = JSON.parse(saved);
-            // คลาย configJson เก่าที่อาจจะค้างอยู่ใน localStorage
             if (parsed.configJson && typeof parsed.configJson === "string") {
                 try {
                     const unpacked = JSON.parse(parsed.configJson);
@@ -179,48 +182,12 @@ window.getSiteConfigStorageKey = function () {
                 delete parsed.configJson;
             }
 
-            // ล้างลิงก์ตัวอย่าง YOUR_CHANNEL ออกให้หมด และแทนที่ด้วยช่อง Blacklistxyx
-            if (parsed.unlockTasks) {
-                if (!parsed.unlockTasks.youtubeChannelUrl || parsed.unlockTasks.youtubeChannelUrl.includes("YOUR_CHANNEL")) {
-                    parsed.unlockTasks.youtubeChannelUrl = "https://www.youtube.com/@Blacklistxyx?sub_confirmation=1";
-                }
-                if (!parsed.unlockTasks.latestVideoUrl || parsed.unlockTasks.latestVideoUrl.includes("YOUR_CHANNEL") || parsed.unlockTasks.latestVideoUrl.includes("dQw4w9WgXcQ")) {
-                    parsed.unlockTasks.latestVideoUrl = "https://www.youtube.com/@Blacklistxyx";
-                }
-                parsed.unlockTasks.youtubeChannelName = window.isGlobalDomain() ? "Blacklistxyx Channel" : "ช่อง Blacklistxyx";
-                if (window.isGlobalDomain()) {
-                    parsed.unlockTasks.affiliateTitle = "Join Discord Community";
-                    parsed.unlockTasks.latestVideoTitle = "Like & Comment Latest Showcase Video";
-                }
-            }
-            if (parsed.socialLinks) {
-                if (!parsed.socialLinks.youtube || parsed.socialLinks.youtube.includes("YOUR_CHANNEL")) {
-                    parsed.socialLinks.youtube = "https://www.youtube.com/@Blacklistxyx";
-                }
-            }
-            // อัปเดตลิงก์ LootLabs
-            if (parsed.lootlabsGate) {
-                parsed.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?cWo9w57Q&data=S5ry/nbaIQ20n2jVNZ7M9UpuqobHGbsHCdlKRgIVMRFjJypYEmr0NbQXLrHww5";
-                parsed.lootlabsGate.provider = "lootlabs";
-                if (window.isGlobalDomain()) {
-                    parsed.lootlabsGate.bypassMessage = "Please complete the support link to unlock access to the website.";
-                } else {
-                    parsed.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
-                }
-            }
             // อัปเดต firebaseConfig เสมอ
             parsed.firebaseConfig = SITE_CONFIG.firebaseConfig;
             if (window.isGlobalDomain()) {
                 parsed.siteTagline = "Ultimate Roblox Script Hub - Safe, Updated & Free Keyless Exploits";
             }
             deepMergeConfig(SITE_CONFIG, parsed);
-            if (SITE_CONFIG.lootlabsGate) {
-                SITE_CONFIG.lootlabsGate.provider = "lootlabs";
-                SITE_CONFIG.lootlabsGate.lootlabsUrl = "https://loot-link.com/s?cWo9w57Q&data=5Sry/nbaIQi29n2jVNZ7M9UpuqobH6bsHCdIKRglVMRPjJjypYEmr0NbQXLrHww5";
-                if (!window.isGlobalDomain()) {
-                    SITE_CONFIG.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
-                }
-            }
             localStorage.setItem(storageKey, JSON.stringify(SITE_CONFIG));
         }
     } catch (e) {
