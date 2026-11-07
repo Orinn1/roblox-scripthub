@@ -605,6 +605,57 @@ export default {
         }
 
         // =========================================================================
+        // 3.5 LOOTLABS ANTI-BYPASS POSTBACK & CHECKPOINT (/api/lootlabs-postback, /api/checkpoint/*)
+        // =========================================================================
+        if (url.pathname === '/api/lootlabs-postback') {
+            const uid = url.searchParams.get('uid') || url.searchParams.get('puid') || '';
+            const clickId = url.searchParams.get('click_id') || '';
+            if (uid) {
+                try {
+                    const docUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(uid)}?key=${FIREBASE_API_KEY}`;
+                    await fetch(docUrl, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            fields: {
+                                verified: { booleanValue: true },
+                                clickId: { stringValue: clickId },
+                                verifiedAt: { integerValue: String(Date.now()) }
+                            }
+                        })
+                    });
+                } catch (e) {
+                    console.warn('[Worker] Lootlabs postback error:', e);
+                }
+            }
+            return new Response(JSON.stringify({ status: 'ok', message: 'LootLabs postback credited successfully', uid, verified: true }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+            });
+        }
+
+        if (url.pathname === '/api/checkpoint/status' || url.pathname === '/api/check-session') {
+            const sessionId = url.searchParams.get('session') || url.searchParams.get('puid') || '';
+            let verified = false;
+            if (sessionId) {
+                try {
+                    const docUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(sessionId)}?key=${FIREBASE_API_KEY}`;
+                    const res = await fetch(docUrl);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.fields && data.fields.verified && data.fields.verified.booleanValue === true) {
+                            verified = true;
+                        }
+                    }
+                } catch (e) {}
+            }
+            return new Response(JSON.stringify({ sessionId, puid: sessionId, verified }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders() }
+            });
+        }
+
+        // =========================================================================
         // 4. SITE CONFIGURATION FROM FIRESTORE (/api/config)
         // =========================================================================
         if (url.pathname === '/api/config') {
@@ -635,14 +686,14 @@ export default {
                 return new Response(JSON.stringify({
                     lootlabsGate: {
                         enabled: true,
-                        provider: "shrinkme",
+                        provider: "lootlabs",
                         token: "blacklist_vip",
                         shrinkmeUrl: "https://shrinkme.click/aZd1s",
                         blackpassLockerUrl: "/access",
                         shrinkearnUrl: "",
-                        lootlabsUrl: "",
+                        lootlabsUrl: "https://loot-link.com/s?cWo9w57Q&data=5Sry/nbaIQi29n2jVNZ7M9UpuqobH6bsHCdIKRglVMRPjJjypYEmr0NbQXLrHww5",
                         expiryHours: 24,
-                        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+                        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
                     }
                 }), {
                     status: 200,

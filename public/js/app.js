@@ -1689,7 +1689,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Helper: ตรวจสอบว่าเครื่องนี้มีสิทธิ์ผ่าน LootLabs หรือยัง
     function isGateAuthorized() {
         if (isVipMember() || isUserLoggedIn()) return true;
-        if (window.location.search.includes("pass_token") || window.location.search.includes("vip_token")) return true;
         const gate = SITE_CONFIG.lootlabsGate;
         if (!gate || !gate.enabled) return true;
         const savedExpiry = localStorage.getItem("blacklist_lootlabs_auth_expiry");
@@ -1698,16 +1697,20 @@ document.addEventListener("DOMContentLoaded", () => {
         return false;
     }
 
-    // Helper: ตรวจสอบสถานะการยืนยัน Postback จากเซิร์ฟเวอร์
+    // Helper: ตรวจสอบสถานะการยืนยัน Postback จากเซิร์ฟเวอร์ (Anti-Bypass Checkpoint)
     async function verifyLootlabsSession(silent = false) {
-        const puid = localStorage.getItem("blacklist_lootlabs_puid") || "";
+        const puid = getOrCreateLootlabsPuid();
         const gate = SITE_CONFIG.lootlabsGate || {};
         const durationHours = Number(gate.expiryHours || 24);
+        const alertBox = document.getElementById("gateBypassAlertBox");
+        const gateStage = document.getElementById("gateStage");
 
         try {
-            // 1. ตรวจสอบผ่าน Endpoint /api/check-session (รองรับทั้ง puid และ IP)
-            const queryParam = puid ? `?puid=${encodeURIComponent(puid)}` : "";
-            let res = await fetch(`/api/check-session${queryParam}`).catch(() => null);
+            // 1. ตรวจสอบผ่าน Endpoint /api/checkpoint/status หรือ /api/check-session
+            let res = await fetch(`/api/checkpoint/status?session=${encodeURIComponent(puid)}`).catch(() => null);
+            if (!res || !res.ok) {
+                res = await fetch(`/api/check-session?puid=${encodeURIComponent(puid)}`).catch(() => null);
+            }
             if (res && res.ok) {
                 const data = await res.json();
                 if (data.verified) {
@@ -1715,18 +1718,25 @@ document.addEventListener("DOMContentLoaded", () => {
                     localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
                     sessionStorage.setItem("blacklist_lootlabs_auth", "true");
                     localStorage.setItem("blacklist_lootlabs_unlocked_event", String(Date.now()));
-                    localStorage.removeItem("blacklist_lootlabs_puid");
 
-                    if (gateAutoDetectBox) {
-                        gateAutoDetectBox.style.display = "flex";
-                        const unlockedMsg = currentLang === 'th' ? 'ปลดล็อคสำเร็จ! กำลังเปิดหน้าเว็บ...' : 'Unlocked! Opening website...';
-                        gateAutoDetectBox.innerHTML = `<i data-lucide="check-circle" style="color: #4ade80; width: 16px; height: 16px;"></i> <span style="color: #4ade80; font-weight: 600;">${unlockedMsg}</span>`;
-                        refreshIcons();
+                    if (alertBox) {
+                        alertBox.className = "gate-bypass-alert-box state-success";
+                        alertBox.style.display = "block";
+                        alertBox.innerHTML = `
+                            <div style="font-weight: 700; color: #4ade80; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                                <span>ยืนยันสิทธิ์สำเร็จเรียบร้อย!</span>
+                            </div>
+                            <div style="font-size: 11.5px; color: #bbf7d0; margin-top: 4px;">
+                                LootLabs Postback ยืนยันแล้ว • ปลดล็อคเข้าใช้งาน 24 ชั่วโมง
+                            </div>
+                        `;
+                        if (window.lucide && lucide.createIcons) lucide.createIcons();
                     }
 
                     setTimeout(() => {
                         hideGateOverlay(true);
-                    }, 500);
+                    }, 800);
                     return true;
                 }
             }
@@ -1742,18 +1752,25 @@ document.addEventListener("DOMContentLoaded", () => {
                         localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
                         sessionStorage.setItem("blacklist_lootlabs_auth", "true");
                         localStorage.setItem("blacklist_lootlabs_unlocked_event", String(Date.now()));
-                        localStorage.removeItem("blacklist_lootlabs_puid");
 
-                        if (gateAutoDetectBox) {
-                            gateAutoDetectBox.style.display = "flex";
-                            const unlockedMsg = currentLang === 'th' ? 'ปลดล็อคสำเร็จ! กำลังเปิดหน้าเว็บ...' : 'Unlocked! Opening website...';
-                            gateAutoDetectBox.innerHTML = `<i data-lucide="check-circle" style="color: #4ade80; width: 16px; height: 16px;"></i> <span style="color: #4ade80; font-weight: 600;">${unlockedMsg}</span>`;
-                            refreshIcons();
+                        if (alertBox) {
+                            alertBox.className = "gate-bypass-alert-box state-success";
+                            alertBox.style.display = "block";
+                            alertBox.innerHTML = `
+                                <div style="font-weight: 700; color: #4ade80; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                    <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                                    <span>ยืนยันสิทธิ์สำเร็จเรียบร้อย!</span>
+                                </div>
+                                <div style="font-size: 11.5px; color: #bbf7d0; margin-top: 4px;">
+                                    LootLabs Postback ยืนยันแล้ว • ปลดล็อคเข้าใช้งาน 24 ชั่วโมง
+                                </div>
+                            `;
+                            if (window.lucide && lucide.createIcons) lucide.createIcons();
                         }
 
                         setTimeout(() => {
                             hideGateOverlay(true);
-                        }, 500);
+                        }, 800);
                         return true;
                     }
                 }
@@ -1762,8 +1779,32 @@ document.addEventListener("DOMContentLoaded", () => {
             console.warn("Session check notice:", err);
         }
 
+        // สถานะไม่ผ่าน (ยังไม่มี Postback หรือตรวจพบบายพาส)
         if (!silent) {
-            showToast(currentLang === 'th' ? "ยังไม่พบการยืนยันจาก LootLabs กรุณาทำภารกิจให้ครบ" : "Verification not found yet. Please complete the tasks.");
+            if (gateStage) {
+                gateStage.classList.remove("gate-shake");
+                void gateStage.offsetWidth; // force reflow
+                gateStage.classList.add("gate-shake");
+                setTimeout(() => gateStage.classList.remove("gate-shake"), 600);
+            }
+
+            if (alertBox) {
+                alertBox.className = "gate-bypass-alert-box state-error";
+                alertBox.style.display = "block";
+                alertBox.innerHTML = `
+                    <div style="font-weight: 700; color: #f87171; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i data-lucide="shield-alert" style="width: 16px; height: 16px;"></i>
+                        <span>ตรวจพบบายพาส หรือยังดูโฆษณาไม่สำเร็จ!</span>
+                    </div>
+                    <div style="font-size: 11.5px; color: #fca5a5; margin-top: 4px; line-height: 1.4;">
+                        ระบบยังไม่ได้รับข้อมูล Postback ยืนยันจาก LootLabs สำหรับเซสชันนี้<br>
+                        <span style="opacity: 0.9;">⚠️ ห้ามใช้บอท/เว็บ Bypass • กรุณาทำภารกิจผ่าน LootLabs ให้จบจริง</span>
+                    </div>
+                `;
+                if (window.lucide && lucide.createIcons) lucide.createIcons();
+            }
+
+            showToast(currentLang === 'th' ? "⛔ ตรวจพบบายพาส! ยังไม่พบการยืนยันจาก LootLabs" : "⛔ Bypass detected! LootLabs postback not received.");
         }
         return false;
     }
@@ -2195,13 +2236,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
                 } else if (provider === "lootlabs") {
                     let baseLink = (gate.lootlabsUrl || "https://loot-link.com/s?example").trim();
-                    baseLink = baseLink.replace(/[?&]puid=[^&]+/, '');
+                    baseLink = baseLink.replace(/[?&]puid=[^&]+/, '').replace(/[?&]uid=[^&]+/, '');
                     const separator = baseLink.includes("?") ? "&" : "?";
-                    gateLootlabsBtn.href = `${baseLink}${separator}puid=${encodeURIComponent(puid)}`;
+                    gateLootlabsBtn.href = `${baseLink}${separator}uid=${encodeURIComponent(puid)}&puid=${encodeURIComponent(puid)}`;
+                    gateLootlabsBtn.target = "_blank";
                     if (lblGateBtn) {
                         lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
                     }
-                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "inline-flex";
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "flex";
                     // เริ่มระบบตรวจจับอัตโนมัติเบื้องหลัง
                     startGatePolling(false);
                     verifyLootlabsSession(true);
@@ -2241,7 +2283,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (gateLootlabsBtn) {
         gateLootlabsBtn.addEventListener("click", () => {
             const gate = SITE_CONFIG.lootlabsGate || {};
-            const provider = gate.provider || "shrinkearn";
+            const provider = gate.provider || "lootlabs";
 
             // 1. บันทึก Session & LocalStorage Handshake และเวลาที่คลิก สำหรับป้องกัน Bypass
             localStorage.setItem("blacklist_gate_clicked", "true");
@@ -2251,14 +2293,23 @@ document.addEventListener("DOMContentLoaded", () => {
             sessionStorage.setItem("blacklist_gate_click_time", String(Date.now()));
             sessionStorage.setItem("blacklist_gate_provider", provider);
 
+            const alertBox = document.getElementById("gateBypassAlertBox");
+            if (alertBox) {
+                alertBox.className = "gate-bypass-alert-box state-waiting";
+                alertBox.style.display = "block";
+                alertBox.innerHTML = `
+                    <div style="font-weight: 600; color: #38bdf8; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <span class="gate-spinner"></span>
+                        <span>กำลังรอการทำรายการจาก LootLabs...</span>
+                    </div>
+                    <div style="font-size: 11.5px; color: #94a3b8; margin-top: 4px;">
+                        เมื่อทำภารกิจในแท็บใหม่เสร็จแล้ว ให้กลับมากดปุ่ม <b>"ตรวจสอบสถานะทันที"</b> ด้านล่าง
+                    </div>
+                `;
+                if (window.lucide && lucide.createIcons) lucide.createIcons();
+            }
+
             if (provider === "lootlabs") {
-                if (gateAutoDetectBox) {
-                    gateAutoDetectBox.style.display = "flex";
-                    if (gateAutoDetectText) {
-                        const t = I18N[currentLang] || I18N.en;
-                        gateAutoDetectText.textContent = t.gateDetect || "Waiting for completion... (Unlocks automatically when finished)";
-                    }
-                }
                 startGatePolling(true);
             }
         });
@@ -2452,6 +2503,43 @@ document.addEventListener("DOMContentLoaded", () => {
         await fetch("/api/reset-device-test").catch(() => null);
         window.location.href = window.location.origin + window.location.pathname + "?lock=1";
     };
+
+    // Dev Testing Helpers (Anti-Bypass Simulation)
+    window.testBypassAttempt = function() {
+        verifyLootlabsSession(false);
+    };
+
+    window.testSimulatePostback = async function() {
+        const puid = getOrCreateLootlabsPuid();
+        try {
+            await fetch(`/api/lootlabs-postback?uid=${encodeURIComponent(puid)}`);
+        } catch (e) {}
+        await verifyLootlabsSession(false);
+    };
+
+    // Inject Localhost Dev Test Bar
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+        setTimeout(() => {
+            if (!document.getElementById("devTestBar")) {
+                const bar = document.createElement("div");
+                bar.id = "devTestBar";
+                bar.className = "dev-test-bar";
+                bar.innerHTML = `
+                    <span class="dev-test-tag">🧪 ทดสอบระบบ Anti-Bypass:</span>
+                    <button type="button" class="btn-dev-test btn-dev-bypass" onclick="window.testBypassAttempt()" title="คลิกตรวจสอบสถานะโดยไม่ผ่าน LootLabs (จะตรวจพบ Bypass)">
+                        <span>❌ ทดสอบ Bypass</span>
+                    </button>
+                    <button type="button" class="btn-dev-test btn-dev-postback" onclick="window.testSimulatePostback()" title="จำลองว่า LootLabs ส่ง Webhook ยืนยันมาแล้ว">
+                        <span>⚡ จำลอง LootLabs ผ่านจริง (Postback)</span>
+                    </button>
+                    <button type="button" class="btn-dev-test btn-dev-reset" onclick="window.resetDeviceLock()" title="ล้างเซสชันและล็อกหน้าจอใหม่">
+                        <span>🔄 รีเซ็ตล็อกใหม่</span>
+                    </button>
+                `;
+                document.body.appendChild(bar);
+            }
+        }, 800);
+    }
 
     // ป้องกันการแอบ Inspect Element / DevTools ปิด Modal หน้าเว็บ
     if (window.MutationObserver) {

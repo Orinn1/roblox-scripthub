@@ -857,7 +857,7 @@
             <!-- 6. Action Buttons Group -->
             <div class="gate-actions-row">
                 <!-- Primary Action Button (Glowing Blue Pill) -->
-                <a href="https://loot-link.com/s?cWo9w57Q&data=5Sry/nbaIQi29n2jVNZ7M9UpuqobH6bsHCdIKRglVMRPjJjypYEmr0NbQXLrHww5" class="gate-btn-primary" id="gateLootlabsBtn" rel="noopener noreferrer">
+                <a href="https://loot-link.com/s?cWo9w57Q&data=5Sry/nbaIQi29n2jVNZ7M9UpuqobH6bsHCdIKRglVMRPjJjypYEmr0NbQXLrHww5" target="_blank" class="gate-btn-primary" id="gateLootlabsBtn" rel="noopener noreferrer">
                     <span id="lblGateBtn">ปลดล็อคเข้าใช้งาน</span>
                     <i data-lucide="arrow-right" style="width: 17px; height: 17px;"></i>
                 </a>
@@ -865,7 +865,7 @@
                 <!-- Secondary Action Button (Dark Glass Pill) -->
                 <button type="button" class="gate-btn-secondary" id="gateOpenVipModalBtn" onclick="if(window.openVipModal)window.openVipModal();">
                     <i data-lucide="crown" style="width: 16px; height: 16px; color: #fbbf24;"></i>
-                    <span id="lblGateVipBtn">สมาชิก VIP / ข้ามด่าน</span>
+                    <span id="lblGateVipBtn">เข้าสู่ระบบด้วย Discord (ไร้โฆษณา 100%)</span>
                 </button>
             </div>
 
@@ -873,7 +873,7 @@
             <div class="gate-utilities-box">
                 <button type="button" class="btn-gate-tutorial" id="btnToggleGateTutorial">
                     <i data-lucide="play-circle" style="width: 15px; height: 15px; color: #38bdf8;"></i>
-                    <span id="lblGateTutorial">ดูคลิปสอนวิธีผ่าน (Tutorial Guide)</span>
+                    <span id="lblGateTutorial">ดูคลิปสอนวิธีผ่านลิงก์ (คลิกที่นี่)</span>
                     <i data-lucide="chevron-down" id="gateTutorialChevron" style="width: 14px; height: 14px; transition: transform 0.25s ease;"></i>
                 </button>
 
@@ -892,14 +892,12 @@
                     </div>
                 </div>
 
-                <div id="gateAutoDetectBox" class="gate-auto-detect" style="display: none;">
-                    <span class="gate-spinner"></span>
-                    <span id="gateAutoDetectText">กำลังรอการทำรายการ... (ระบบจะปลดล็อคอัตโนมัติเมื่อสำเร็จ)</span>
-                </div>
+                <!-- Anti-Bypass Status Alert Box (Waiting / Bypass Error / Success) -->
+                <div id="gateBypassAlertBox" class="gate-bypass-alert-box" style="display: none;"></div>
 
-                <button type="button" id="gateCheckStatusBtn" class="btn-gate-check" style="display: none;">
+                <button type="button" id="gateCheckStatusBtn" class="btn-gate-check">
                     <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
-                    <span id="lblGateCheck">ตรวจสอบสถานะอีกครั้ง</span>
+                    <span id="lblGateCheck">ตรวจสอบสถานะทันที</span>
                 </button>
 
                 <!-- Hidden inputs for token fallback -->

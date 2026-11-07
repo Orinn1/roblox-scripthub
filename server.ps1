@@ -81,14 +81,14 @@ while ($listener.IsListening) {
             continue
         }
 
-        # Checkpoint: Check Status
-        if ($rawPath -eq "/api/checkpoint/status") {
-            $s = $req.QueryString["session"]
+        # Checkpoint: Check Status (/api/checkpoint/status or /api/check-session)
+        if ($rawPath -eq "/api/checkpoint/status" -or $rawPath -eq "/api/check-session") {
+            $s = if ($req.QueryString["session"]) { $req.QueryString["session"] } else { $req.QueryString["puid"] }
             $isVerified = $false
             if ($s -and $Sessions.ContainsKey($s)) {
-                $isVerified = $Sessions[$s].verified
+                $isVerified = [bool]$Sessions[$s].verified
             }
-            $ans = '{"sessionId":"' + $s + '","verified":' + ($isVerified.ToString().ToLower()) + '}'
+            $ans = '{"sessionId":"' + $s + '","puid":"' + $s + '","verified":' + ($isVerified.ToString().ToLower()) + '}'
             $bytes = [System.Text.Encoding]::UTF8.GetBytes($ans)
             $res.ContentType = "application/json"
             $res.StatusCode = 200
@@ -98,18 +98,48 @@ while ($listener.IsListening) {
         }
 
         # LootLabs Postback Webhook Endpoint
-        if ($rawPath -eq "/api/lootlabs-postback") {
-            $uid = $req.QueryString["uid"]
-            $clickId = $req.QueryString["click_id"]
-            if ($uid -and $Sessions.ContainsKey($uid)) {
-                $Sessions[$uid].verified = $true
-                $Sessions[$uid].paidAt = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
-            } elseif ($uid) {
-                $Sessions[$uid] = @{ verified = $true; paidAt = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() }
+        if ($rawPath -eq "/api/lootlabs-postback" -or $rawPath -eq "/api/simulate-postback" -or $rawPath -eq "/api/test-verify") {
+            $uid = if ($req.QueryString["uid"]) { $req.QueryString["uid"] } else { $req.QueryString["puid"] }
+            if (-not $uid) { $uid = $req.QueryString["session"] }
+            if ($uid) {
+                if ($Sessions.ContainsKey($uid)) {
+                    $Sessions[$uid].verified = $true
+                    $Sessions[$uid].paidAt = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+                } else {
+                    $Sessions[$uid] = @{ verified = $true; paidAt = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() }
+                }
+            } else {
+                # Mark all sessions verified if no uid passed
+                foreach ($k in @($Sessions.Keys)) {
+                    $Sessions[$k].verified = $true
+                }
             }
-            $ans = '{"status":"ok","message":"LootLabs postback credited successfully","uid":"' + $uid + '"}'
+            $ans = '{"status":"ok","message":"LootLabs postback credited successfully","uid":"' + $uid + '","verified":true}'
             $bytes = [System.Text.Encoding]::UTF8.GetBytes($ans)
             $res.ContentType = "application/json"
+            $res.StatusCode = 200
+            $res.OutputStream.Write($bytes, 0, $bytes.Length)
+            $res.Close()
+            continue
+        }
+
+        # Reset Device Test
+        if ($rawPath -eq "/api/reset-device-test") {
+            $Sessions.Clear()
+            $ans = '{"success":true,"message":"Sessions cleared"}'
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($ans)
+            $res.ContentType = "application/json"
+            $res.StatusCode = 200
+            $res.OutputStream.Write($bytes, 0, $bytes.Length)
+            $res.Close()
+            continue
+        }
+
+        # Mock /api/config for local testing
+        if ($rawPath -eq "/api/config") {
+            $ans = '{"lootlabsGate":{"enabled":true,"provider":"lootlabs","token":"blacklist_vip","shrinkmeUrl":"https://shrinkme.click/aZd1s","blackpassLockerUrl":"/access","shrinkearnUrl":"","lootlabsUrl":"https://loot-link.com/s?cWo9w57Q&data=5Sry/nbaIQi29n2jVNZ7M9UpuqobH6bsHCdIKRglVMRPjJjypYEmr0NbQXLrHww5","expiryHours":24,"bypassMessage":"Please complete LootLabs verification to unlock website access for 24 hours"}}'
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($ans)
+            $res.ContentType = "application/json; charset=utf-8"
             $res.StatusCode = 200
             $res.OutputStream.Write($bytes, 0, $bytes.Length)
             $res.Close()
