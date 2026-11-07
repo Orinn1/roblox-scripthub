@@ -2504,43 +2504,6 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = window.location.origin + window.location.pathname + "?lock=1";
     };
 
-    // Dev Testing Helpers (Anti-Bypass Simulation)
-    window.testBypassAttempt = function() {
-        verifyLootlabsSession(false);
-    };
-
-    window.testSimulatePostback = async function() {
-        const puid = getOrCreateLootlabsPuid();
-        try {
-            await fetch(`/api/lootlabs-postback?uid=${encodeURIComponent(puid)}`);
-        } catch (e) {}
-        await verifyLootlabsSession(false);
-    };
-
-    // Inject Localhost Dev Test Bar
-    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-        setTimeout(() => {
-            if (!document.getElementById("devTestBar")) {
-                const bar = document.createElement("div");
-                bar.id = "devTestBar";
-                bar.className = "dev-test-bar";
-                bar.innerHTML = `
-                    <span class="dev-test-tag">🧪 ทดสอบระบบ Anti-Bypass:</span>
-                    <button type="button" class="btn-dev-test btn-dev-bypass" onclick="window.testBypassAttempt()" title="คลิกตรวจสอบสถานะโดยไม่ผ่าน LootLabs (จะตรวจพบ Bypass)">
-                        <span>❌ ทดสอบ Bypass</span>
-                    </button>
-                    <button type="button" class="btn-dev-test btn-dev-postback" onclick="window.testSimulatePostback()" title="จำลองว่า LootLabs ส่ง Webhook ยืนยันมาแล้ว">
-                        <span>⚡ จำลอง LootLabs ผ่านจริง (Postback)</span>
-                    </button>
-                    <button type="button" class="btn-dev-test btn-dev-reset" onclick="window.resetDeviceLock()" title="ล้างเซสชันและล็อกหน้าจอใหม่">
-                        <span>🔄 รีเซ็ตล็อกใหม่</span>
-                    </button>
-                `;
-                document.body.appendChild(bar);
-            }
-        }, 800);
-    }
-
     // ป้องกันการแอบ Inspect Element / DevTools ปิด Modal หน้าเว็บ
     if (window.MutationObserver) {
         if (lootlabsGateOverlay) {
