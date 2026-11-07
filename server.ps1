@@ -146,8 +146,8 @@ while ($listener.IsListening) {
             continue
         }
 
-        # Route: /checkpoint or /gateway
-        if ($rawPath -eq "/checkpoint" -or $rawPath -eq "/gateway") {
+        # Route: /access, /checkpoint or /gateway
+        if ($rawPath -eq "/access" -or $rawPath -eq "/checkpoint" -or $rawPath -eq "/gateway") {
             $filePath = Join-Path $Root "checkpoint.html"
             $bytes = [System.IO.File]::ReadAllBytes($filePath)
             $res.ContentType = "text/html; charset=utf-8"
@@ -157,8 +157,8 @@ while ($listener.IsListening) {
             continue
         }
 
-        # Route: /access, /hub, /gate, /locker
-        if ($rawPath -eq "/access" -or $rawPath -eq "/hub" -or $rawPath -eq "/gate" -or $rawPath -eq "/locker" -or $rawPath -eq "/gateflow/locker") {
+        # Route: /hub, /gate, /locker
+        if ($rawPath -eq "/hub" -or $rawPath -eq "/gate" -or $rawPath -eq "/locker" -or $rawPath -eq "/gateflow/locker") {
             $filePath = Join-Path $Root "gateflow\locker.html"
             $bytes = [System.IO.File]::ReadAllBytes($filePath)
             $res.ContentType = "text/html; charset=utf-8"

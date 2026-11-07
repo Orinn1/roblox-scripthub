@@ -1234,8 +1234,17 @@ try {
             return Response.redirect(`${url.origin}/gateflow/index.html`, 302);
         }
 
+        // Anti-Bypass Checkpoint Route for LootLabs (/access, /checkpoint)
+        if (url.pathname === '/access' || url.pathname === '/checkpoint') {
+            const assetUrl = new URL(`${url.origin}/checkpoint.html`);
+            url.searchParams.forEach((val, key) => {
+                assetUrl.searchParams.set(key, val);
+            });
+            return env.ASSETS.fetch(new Request(assetUrl.toString(), request));
+        }
+
         // Short & Clean direct routes for Access Gate and Locker
-        if (url.pathname === '/access' || url.pathname === '/hub' || url.pathname === '/gate' || url.pathname === '/go' || url.pathname === '/short' || url.pathname === '/locker' || url.pathname === '/gateflow/locker' || url.pathname.startsWith('/l/')) {
+        if (url.pathname === '/hub' || url.pathname === '/gate' || url.pathname === '/go' || url.pathname === '/short' || url.pathname === '/locker' || url.pathname === '/gateflow/locker' || url.pathname.startsWith('/l/')) {
             const assetUrl = new URL(`${url.origin}/gateflow/locker.html`);
             url.searchParams.forEach((val, key) => {
                 assetUrl.searchParams.set(key, val);
@@ -1246,7 +1255,7 @@ try {
                     assetUrl.searchParams.set('slug', slug);
                 }
             }
-            if ((url.pathname === '/access' || url.pathname === '/hub') && !assetUrl.searchParams.has('slug')) {
+            if (url.pathname === '/hub' && !assetUrl.searchParams.has('slug')) {
                 assetUrl.searchParams.set('slug', 'hub-access');
             }
             return env.ASSETS.fetch(new Request(assetUrl.toString(), request));
