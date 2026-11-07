@@ -1697,7 +1697,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return false;
     }
 
-    // Helper: ตรวจสอบสถานะการยืนยัน Postback จากเซิร์ฟเวอร์ (Anti-Bypass Checkpoint)
+    // Helper: ตรวจสอบสถานะการยืนยัน Postback จากเซิร์ฟเวอร์ หรือ ShrinkMe Time-Window (Anti-Bypass Checkpoint)
     async function verifyLootlabsSession(silent = false) {
         const puid = getOrCreateLootlabsPuid();
         const gate = SITE_CONFIG.lootlabsGate || {};
@@ -1705,8 +1705,58 @@ document.addEventListener("DOMContentLoaded", () => {
         const alertBox = document.getElementById("gateBypassAlertBox");
         const gateStage = document.getElementById("gateStage");
 
+        // 1. ระบบดักจับ Bypass ของ ShrinkMe (Time-Window Challenge & Device Signature)
+        if (gate.provider === "shrinkme") {
+            const clickTime = Number(localStorage.getItem("blacklist_gate_click_time") || sessionStorage.getItem("blacklist_gate_click_time") || 0);
+            const timeSinceClick = clickTime > 0 ? (Date.now() - clickTime) : 0;
+            const hasClicked = (localStorage.getItem("blacklist_gate_clicked") === "true") || (sessionStorage.getItem("blacklist_gate_clicked") === "true");
+
+            if (!hasClicked || clickTime === 0) {
+                if (!silent) {
+                    showGateBypassError(currentLang === 'th' ? "กรุณากดปุ่มปลดล็อคเพื่อทำภารกิจ ShrinkMe ให้เสร็จก่อนตรวจสอบ!" : "Please click unlock button to complete ShrinkMe tasks first!");
+                }
+                return false;
+            }
+
+            if (timeSinceClick < 20000) {
+                const sec = Math.round(timeSinceClick / 1000);
+                if (!silent) {
+                    showGateBypassError(currentLang === 'th' 
+                        ? `⛔ ตรวจพบบายพาส! คุณใช้เวลาเพียง ${sec} วินาที (การดูโฆษณา ShrinkMe ต้องใช้เวลาอย่างน้อย 20 วินาที) ห้ามใช้บอท/เว็บ Bypass!`
+                        : `⛔ Bypass Detected! You arrived in only ${sec}s (ShrinkMe tasks take at least 20s). Do not use bypass tools!`);
+                }
+                return false;
+            }
+
+            // ผ่านการตรวจสอบเวลาจริง (Human completion >= 20s)
+            const expiryTimestamp = Date.now() + (durationHours * 60 * 60 * 1000);
+            localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
+            sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+            localStorage.setItem("blacklist_lootlabs_unlocked_event", String(Date.now()));
+
+            if (alertBox) {
+                alertBox.className = "gate-bypass-alert-box state-success";
+                alertBox.style.display = "block";
+                alertBox.innerHTML = `
+                    <div style="font-weight: 700; color: #4ade80; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                        <span>${currentLang === 'th' ? "ยืนยันสิทธิ์สำเร็จเรียบร้อย!" : "Verification Successful!"}</span>
+                    </div>
+                    <div style="font-size: 11.5px; color: #bbf7d0; margin-top: 4px;">
+                        ShrinkMe Verified • ปลดล็อคเข้าใช้งาน 24 ชั่วโมง
+                    </div>
+                `;
+                if (window.lucide && lucide.createIcons) lucide.createIcons();
+            }
+
+            setTimeout(() => {
+                hideGateOverlay(true);
+            }, 800);
+            return true;
+        }
+
         try {
-            // 1. ตรวจสอบผ่าน Endpoint /api/checkpoint/status หรือ /api/check-session
+            // 2. ตรวจสอบผ่าน Endpoint /api/checkpoint/status หรือ /api/check-session (สำหรับ LootLabs)
             let res = await fetch(`/api/checkpoint/status?session=${encodeURIComponent(puid)}`).catch(() => null);
             if (!res || !res.ok) {
                 res = await fetch(`/api/check-session?puid=${encodeURIComponent(puid)}`).catch(() => null);
@@ -2219,12 +2269,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
                     if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
                 } else if (provider === "shrinkme") {
-                    const shrinkLink = (gate.shrinkmeUrl || gate.shrinkearnUrl || gate.lootlabsUrl || "https://shrinkme.click/aZd1s").trim();
+                    const shrinkLink = (gate.shrinkmeUrl || "https://shrinkme.click/aZd1s").trim();
                     gateLootlabsBtn.href = shrinkLink;
+                    gateLootlabsBtn.target = "_blank";
+                    gateLootlabsBtn.onclick = function() {
+                        localStorage.setItem("blacklist_gate_clicked", "true");
+                        localStorage.setItem("blacklist_gate_click_time", String(Date.now()));
+                        sessionStorage.setItem("blacklist_gate_clicked", "true");
+                        sessionStorage.setItem("blacklist_gate_click_time", String(Date.now()));
+                    };
                     if (lblGateBtn) {
                         lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
                     }
-                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "flex";
                     if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
                 } else if (provider === "shrinkearn") {
                     const shrinkLink = (gate.shrinkearnUrl || gate.shrinkmeUrl || gate.lootlabsUrl || SITE_CONFIG.lootlabsGate?.shrinkearnUrl || "https://srnky.com/aehfqq0").trim();

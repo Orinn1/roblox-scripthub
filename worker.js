@@ -608,9 +608,10 @@ export default {
         // 3.5 LOOTLABS ANTI-BYPASS POSTBACK & CHECKPOINT (/api/lootlabs-postback, /api/checkpoint/*)
         // =========================================================================
         if (url.pathname === '/api/lootlabs-postback') {
-            const uid = url.searchParams.get('uid') || url.searchParams.get('puid') || '';
+            const uid = url.searchParams.get('uid') || url.searchParams.get('puid') || url.searchParams.get('session') || url.searchParams.get('click_id') || '';
             const clickId = url.searchParams.get('click_id') || '';
             if (uid) {
+                // 1. Save to BlacklistScripts Firestore
                 try {
                     const docUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(uid)}?key=${FIREBASE_API_KEY}`;
                     await fetch(docUrl, {
@@ -627,6 +628,22 @@ export default {
                 } catch (e) {
                     console.warn('[Worker] Lootlabs postback error:', e);
                 }
+
+                // 2. Also sync to GhostSensix Firestore (Cross-site LootLabs sync)
+                try {
+                    const ghostDocUrl = `https://firestore.googleapis.com/v1/projects/ghostsensi-1d96b/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(uid)}?key=AIzaSyBCMSULoP-CnTWurWMTUKDfRMEEu2T7PVE`;
+                    fetch(ghostDocUrl, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            fields: {
+                                verified: { booleanValue: true },
+                                clickId: { stringValue: clickId },
+                                verifiedAt: { integerValue: String(Date.now()) }
+                            }
+                        })
+                    }).catch(() => {});
+                } catch (e) {}
             }
             return new Response(JSON.stringify({ status: 'ok', message: 'LootLabs postback credited successfully', uid, verified: true }), {
                 status: 200,
