@@ -46,11 +46,13 @@ const SITE_CONFIG = {
         tiktok: "https://www.tiktok.com/@YOUR_TIKTOK"
     },
 
-    // ระบบสร้างรายได้และป้องกัน Bypass (BlackPass / ShrinkMe / ShrinkEarn / LootLabs Gate)
+    // ระบบสร้างรายได้และป้องกัน Bypass (Linkvertise / ShrinkMe / LootLabs Gate)
     lootlabsGate: {
         enabled: true,
-        provider: "shrinkme", // "blackpass" | "shrinkme" | "shrinkearn" | "lootlabs" | "custom"
+        provider: "linkvertise", // "linkvertise" | "shrinkme" | "lootlabs"
         token: "blacklist_vip",
+        linkvertiseUrl: "https://link-center.net/3335115/wnzycVtiGOAK",
+        linkvertiseToken: "51fdfa2e4968abbf74a67de73fe63cefbe2cd2e1802bd67af651d4fa88aec7e7",
         shrinkmeUrl: "https://shrinkme.click/aZd1s",
         blackpassLockerUrl: "/access",
         shrinkearnUrl: "https://srnky.com/aehfqq0",
@@ -58,7 +60,7 @@ const SITE_CONFIG = {
         tutorialVideoUrl: "https://youtu.be/FdXsvivWhOw",
         lootlabsUrl: "https://loot-link.com/s?cWo9w57Q&data=5Sry/nbaIQi29n2jVNZ7M9UpuqobH6bsHCdIKRglVMRPjJjypYEmr0NbQXLrHww5",
         expiryHours: 24, // จดจำเครื่องไว้ 24 ชั่วโมง
-        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน Linkvertise เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
     },
 
     // Monetag Smartlink / Direct Link
@@ -137,6 +139,8 @@ window.mergeSiteConfig = function (source) {
     }
     if (source && source.lootlabsGate) {
         if (source.lootlabsGate.provider) SITE_CONFIG.lootlabsGate.provider = source.lootlabsGate.provider;
+        if (source.lootlabsGate.linkvertiseUrl) SITE_CONFIG.lootlabsGate.linkvertiseUrl = source.lootlabsGate.linkvertiseUrl;
+        if (source.lootlabsGate.linkvertiseToken) SITE_CONFIG.lootlabsGate.linkvertiseToken = source.lootlabsGate.linkvertiseToken;
         if (source.lootlabsGate.shrinkmeUrl) SITE_CONFIG.lootlabsGate.shrinkmeUrl = source.lootlabsGate.shrinkmeUrl;
         if (source.lootlabsGate.bypassMessage) SITE_CONFIG.lootlabsGate.bypassMessage = source.lootlabsGate.bypassMessage;
     }
@@ -161,11 +165,15 @@ window.getSiteConfigStorageKey = function () {
 // ตรวจสอบว่าเคยบันทึกการตั้งค่าไว้ใน LocalStorage หรือไม่
 (function loadSavedConfig() {
     try {
-        // Migration: ล้างแคชเก่าที่เคยถูกฮาร์ดโค้ดบังคับ LootLabs
-        const CONFIG_CACHE_VERSION = "20261107_shrinkme_v3";
+        // Migration: ล้างแคชเก่าที่เคยถูกฮาร์ดโค้ดบังคับ ShrinkMe/LootLabs
+        const CONFIG_CACHE_VERSION = "20261111_linkvertise_v5";
         if (localStorage.getItem("blacklist_config_cache_version") !== CONFIG_CACHE_VERSION) {
             localStorage.removeItem("nova_site_config");
             localStorage.removeItem("nova_site_config_global");
+            localStorage.removeItem("blacklist_gate_clicked");
+            localStorage.removeItem("blacklist_gate_click_time");
+            sessionStorage.removeItem("blacklist_gate_clicked");
+            sessionStorage.removeItem("blacklist_gate_click_time");
             localStorage.setItem("blacklist_config_cache_version", CONFIG_CACHE_VERSION);
             return;
         }
@@ -180,6 +188,14 @@ window.getSiteConfigStorageKey = function () {
                     deepMergeConfig(parsed, unpacked);
                 } catch (e) {}
                 delete parsed.configJson;
+            }
+
+            // ถ้าแคชเก่ามี provider เป็น shrinkme ให้บังคับเปลี่ยนเป็น linkvertise ทันที
+            if (parsed.lootlabsGate && (parsed.lootlabsGate.provider === "shrinkme" || parsed.lootlabsGate.shrinkmeUrl)) {
+                parsed.lootlabsGate.provider = "linkvertise";
+                parsed.lootlabsGate.linkvertiseUrl = "https://link-center.net/3335115/wnzycVtiGOAK";
+                parsed.lootlabsGate.linkvertiseToken = "51fdfa2e4968abbf74a67de73fe63cefbe2cd2e1802bd67af651d4fa88aec7e7";
+                parsed.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน Linkvertise เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
             }
 
             // อัปเดต firebaseConfig เสมอ

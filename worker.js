@@ -673,6 +673,55 @@ export default {
         }
 
         // =========================================================================
+        // 3.6 LINKVERTISE ANTI-BYPASS VERIFICATION (/api/linkvertise/verify)
+        // =========================================================================
+        if (url.pathname === '/api/linkvertise/verify') {
+            const hash = url.searchParams.get('hash') || '';
+            const lvToken = '51fdfa2e4968abbf74a67de73fe63cefbe2cd2e1802bd67af651d4fa88aec7e7';
+
+            if (!hash) {
+                return new Response(JSON.stringify({ success: false, error: 'Missing hash parameter' }), {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            try {
+                const lvRes = await fetch(`https://publisher.linkvertise.com/api/v1/anti_bypassing?token=${lvToken}&hash=${encodeURIComponent(hash)}`, {
+                    method: 'POST'
+                });
+                const resText = await lvRes.text();
+                const isValid = resText.trim().toLowerCase() === 'true';
+
+                if (isValid) {
+                    return new Response(JSON.stringify({
+                        success: true,
+                        verified: true,
+                        message: 'Linkvertise anti-bypass verification successful'
+                    }), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                    });
+                } else {
+                    return new Response(JSON.stringify({
+                        success: false,
+                        verified: false,
+                        error: 'Hash expired (10s limit) or invalid bypass attempt',
+                        details: resText
+                    }), {
+                        status: 403,
+                        headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                    });
+                }
+            } catch (err) {
+                return new Response(JSON.stringify({ success: false, error: err.message }), {
+                    status: 500,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+        }
+
+        // =========================================================================
         // 4. SITE CONFIGURATION FROM FIRESTORE (/api/config)
         // =========================================================================
         if (url.pathname === '/api/config') {
@@ -703,14 +752,16 @@ export default {
                 return new Response(JSON.stringify({
                     lootlabsGate: {
                         enabled: true,
-                        provider: "lootlabs",
+                        provider: "linkvertise",
                         token: "blacklist_vip",
+                        linkvertiseUrl: "https://link-center.net/3335115/wnzycVtiGOAK",
+                        linkvertiseToken: "51fdfa2e4968abbf74a67de73fe63cefbe2cd2e1802bd67af651d4fa88aec7e7",
                         shrinkmeUrl: "https://shrinkme.click/aZd1s",
                         blackpassLockerUrl: "/access",
                         shrinkearnUrl: "",
                         lootlabsUrl: "https://loot-link.com/s?cWo9w57Q&data=5Sry/nbaIQi29n2jVNZ7M9UpuqobH6bsHCdIKRglVMRPjJjypYEmr0NbQXLrHww5",
                         expiryHours: 24,
-                        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+                        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน Linkvertise เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
                     }
                 }), {
                     status: 200,

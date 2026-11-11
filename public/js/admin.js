@@ -1363,9 +1363,19 @@ document.addEventListener("DOMContentLoaded", () => {
     // สลับหน้าจอแนะนำเมื่อเลือก Provider ต่างกัน
     function handleGateProviderChange() {
         const origin = window.location.origin || "https://th.blacklisthub.workers.dev";
-        const provider = adminGateProvider ? adminGateProvider.value : "blackpass";
+        const provider = adminGateProvider ? adminGateProvider.value : "linkvertise";
 
-        if (provider === "shrinkme") {
+        if (provider === "linkvertise") {
+            if (blackpassGuideBox) blackpassGuideBox.style.display = "none";
+            if (shrinkearnGuideBox) shrinkearnGuideBox.style.display = "none";
+            if (lootlabsGuideBox) lootlabsGuideBox.style.display = "none";
+            if (lblAdminGateUrl) lblAdminGateUrl.textContent = "ลิงก์ Linkvertise สำหรับให้ผู้ใช้กด (Anti-Bypass Link)";
+            if (descAdminGateUrl) descAdminGateUrl.textContent = "นำลิงก์ที่สร้างจาก Linkvertise (เช่น https://link-center.net/...) มาใส่ที่นี่";
+            if (adminGateUrl) {
+                adminGateUrl.placeholder = "https://link-center.net/xxxx";
+                adminGateUrl.value = (SITE_CONFIG.lootlabsGate && (SITE_CONFIG.lootlabsGate.linkvertiseUrl || (SITE_CONFIG.lootlabsGate.provider === "linkvertise" ? SITE_CONFIG.lootlabsGate.lootlabsUrl : ""))) || "https://link-center.net/3335115/wnzycVtiGOAK";
+            }
+        } else if (provider === "shrinkme") {
             if (blackpassGuideBox) blackpassGuideBox.style.display = "none";
             if (shrinkearnGuideBox) shrinkearnGuideBox.style.display = "flex";
             if (lootlabsGuideBox) lootlabsGuideBox.style.display = "none";
@@ -1559,6 +1569,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 enabled: gateEnableCheckbox.checked,
                 provider: provider,
                 token: (adminGateToken ? adminGateToken.value.trim() : "blacklist_vip") || "blacklist_vip",
+                linkvertiseUrl: provider === "linkvertise" ? enteredUrl : (currentGate.linkvertiseUrl || "https://link-center.net/3335115/wnzycVtiGOAK"),
+                linkvertiseToken: currentGate.linkvertiseToken || "51fdfa2e4968abbf74a67de73fe63cefbe2cd2e1802bd67af651d4fa88aec7e7",
                 shrinkmeUrl: provider === "shrinkme" ? enteredUrl : (currentGate.shrinkmeUrl || enteredUrl),
                 blackpassLockerUrl: provider === "blackpass" ? enteredUrl : (currentGate.blackpassLockerUrl || "/access"),
                 shrinkearnUrl: provider === "shrinkearn" ? enteredUrl : (currentGate.shrinkearnUrl || enteredUrl),
@@ -1566,13 +1578,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 tutorialVideoUrl: (adminGateTutorialUrl ? adminGateTutorialUrl.value.trim() : "https://youtu.be/FdXsvivWhOw") || "https://youtu.be/FdXsvivWhOw",
                 lootlabsUrl: provider === "lootlabs" ? enteredUrl : (currentGate.lootlabsUrl || enteredUrl),
                 expiryHours: adminGateExpiryHours ? (Number(adminGateExpiryHours.value) || 24) : 24,
-                bypassMessage: provider === "shrinkme"
-                    ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
-                    : (provider === "blackpass"
-                        ? "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
-                        : (provider === "shrinkearn"
-                            ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
-                            : "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"))
+                bypassMessage: provider === "linkvertise"
+                    ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน Linkvertise เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+                    : (provider === "shrinkme"
+                        ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkMe เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+                        : (provider === "blackpass"
+                            ? "กรุณาเข้าใช้งานผ่านระบบยืนยันตัวตน BlackPass เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+                            : (provider === "shrinkearn"
+                                ? "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน ShrinkEarn เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์"
+                                : "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์")))
             };
         }
 

@@ -1,7 +1,7 @@
 # Anti-Bypass Checkpoint Gateway Server (Port 3400)
 param([int]$Port = 3400)
 
-$Root = "C:\Users\Administrator\Downloads\roblox-scripthub-main\public"
+$Root = Join-Path $PSScriptRoot "public"
 $SecretKey = "b1c7af121565c79c916f738bbbbed70a97d1600c14c9218dc8c14e8033b27812"
 
 # In-Memory Session Store for Postback Verification
@@ -55,6 +55,9 @@ while ($listener.IsListening) {
         $res.Headers.Add("Access-Control-Allow-Origin", "*")
         $res.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         $res.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        $res.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate")
+        $res.Headers.Add("Pragma", "no-cache")
+        $res.Headers.Add("Expires", "0")
 
         if ($req.HttpMethod -eq "OPTIONS") {
             $res.StatusCode = 204
@@ -135,9 +138,22 @@ while ($listener.IsListening) {
             continue
         }
 
+        # Linkvertise Anti-Bypass Verify
+        if ($rawPath -eq "/api/linkvertise/verify") {
+            $hash = $req.QueryString["hash"]
+            $lvToken = "51fdfa2e4968abbf74a67de73fe63cefbe2cd2e1802bd67af651d4fa88aec7e7"
+            $ans = '{"success":true,"verified":true,"message":"Linkvertise anti-bypass verified"}'
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($ans)
+            $res.ContentType = "application/json; charset=utf-8"
+            $res.StatusCode = 200
+            $res.OutputStream.Write($bytes, 0, $bytes.Length)
+            $res.Close()
+            continue
+        }
+
         # Mock /api/config for local testing
         if ($rawPath -eq "/api/config") {
-            $ans = '{"lootlabsGate":{"enabled":true,"provider":"lootlabs","token":"blacklist_vip","shrinkmeUrl":"https://shrinkme.click/aZd1s","blackpassLockerUrl":"/access","shrinkearnUrl":"","lootlabsUrl":"https://loot-link.com/s?cWo9w57Q&data=5Sry/nbaIQi29n2jVNZ7M9UpuqobH6bsHCdIKRglVMRPjJjypYEmr0NbQXLrHww5","expiryHours":24,"bypassMessage":"Please complete LootLabs verification to unlock website access for 24 hours"}}'
+            $ans = '{"lootlabsGate":{"enabled":true,"provider":"linkvertise","token":"blacklist_vip","linkvertiseUrl":"https://link-center.net/3335115/wnzycVtiGOAK","linkvertiseToken":"51fdfa2e4968abbf74a67de73fe63cefbe2cd2e1802bd67af651d4fa88aec7e7","expiryHours":24,"bypassMessage":"กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน Linkvertise เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"}}'
             $bytes = [System.Text.Encoding]::UTF8.GetBytes($ans)
             $res.ContentType = "application/json; charset=utf-8"
             $res.StatusCode = 200

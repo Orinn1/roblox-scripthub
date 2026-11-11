@@ -314,6 +314,12 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    // API: Linkvertise Anti-Bypass Verify
+    if (pathname === '/api/linkvertise/verify') {
+        await executeServerless('./api/linkvertise-verify.js', req, res, parsedUrl);
+        return;
+    }
+
     // API: LootLabs Postback Webhook
     if (pathname === '/api/lootlabs-postback') {
         const query = parsedUrl.query || {};

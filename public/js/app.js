@@ -1705,6 +1705,56 @@ document.addEventListener("DOMContentLoaded", () => {
         const alertBox = document.getElementById("gateBypassAlertBox");
         const gateStage = document.getElementById("gateStage");
 
+        // 0. ระบบดักจับ Bypass ของ Linkvertise (Time-Window & Verification)
+        if (gate.provider === "linkvertise") {
+            const clickTime = Number(localStorage.getItem("blacklist_gate_click_time") || sessionStorage.getItem("blacklist_gate_click_time") || 0);
+            const timeSinceClick = clickTime > 0 ? (Date.now() - clickTime) : 0;
+            const hasClicked = (localStorage.getItem("blacklist_gate_clicked") === "true") || (sessionStorage.getItem("blacklist_gate_clicked") === "true");
+
+            if (!hasClicked || clickTime === 0) {
+                if (!silent) {
+                    showGateBypassError(currentLang === 'th' ? "กรุณากดปุ่มปลดล็อคเพื่อทำภารกิจ Linkvertise ให้เสร็จก่อนตรวจสอบ!" : "Please click unlock button to complete Linkvertise tasks first!");
+                }
+                return false;
+            }
+
+            if (timeSinceClick < 12000) {
+                const sec = Math.round(timeSinceClick / 1000);
+                if (!silent) {
+                    showGateBypassError(currentLang === 'th' 
+                        ? `⛔ ตรวจพบบายพาส! คุณใช้เวลาเพียง ${sec} วินาที (การดูโฆษณา Linkvertise ต้องใช้เวลาอย่างน้อย 12 วินาที) ห้ามใช้บอท/เว็บ Bypass!`
+                        : `⛔ Bypass Detected! You arrived in only ${sec}s. Do not use bypass tools!`);
+                }
+                return false;
+            }
+
+            // ผ่านการตรวจสอบเวลาจริง
+            const expiryTimestamp = Date.now() + (durationHours * 60 * 60 * 1000);
+            localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiryTimestamp));
+            sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+            localStorage.setItem("blacklist_lootlabs_unlocked_event", String(Date.now()));
+
+            if (alertBox) {
+                alertBox.className = "gate-bypass-alert-box state-success";
+                alertBox.style.display = "block";
+                alertBox.innerHTML = `
+                    <div style="font-weight: 700; color: #4ade80; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                        <span>${currentLang === 'th' ? "ยืนยันสิทธิ์สำเร็จเรียบร้อย!" : "Verification Successful!"}</span>
+                    </div>
+                    <div style="font-size: 11.5px; color: #bbf7d0; margin-top: 4px;">
+                        Linkvertise Verified • ปลดล็อคเข้าใช้งาน 24 ชั่วโมง
+                    </div>
+                `;
+                if (window.lucide && lucide.createIcons) lucide.createIcons();
+            }
+
+            setTimeout(() => {
+                hideGateOverlay(true);
+            }, 1000);
+            return true;
+        }
+
         // 1. ระบบดักจับ Bypass ของ ShrinkMe (Time-Window Challenge & Device Signature)
         if (gate.provider === "shrinkme") {
             const clickTime = Number(localStorage.getItem("blacklist_gate_click_time") || sessionStorage.getItem("blacklist_gate_click_time") || 0);
@@ -2066,6 +2116,28 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast(currentLang === 'th' ? "รีเซ็ตสถานะเป็นเครื่องใหม่ (ล็อคหน้าเว็บ) เรียบร้อยแล้ว" : "Reset device status (locked) successfully.");
         }
 
+        // 0. Check Linkvertise Anti-Bypass Hash (?hash=...)
+        const incomingHash = urlParams.get("hash");
+        if (incomingHash && incomingHash.length >= 32) {
+            fetch(`/api/linkvertise/verify?hash=${encodeURIComponent(incomingHash)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.success) {
+                        const expiry = Date.now() + durationMs;
+                        localStorage.setItem("blacklist_lootlabs_auth_expiry", String(expiry));
+                        sessionStorage.setItem("blacklist_lootlabs_auth", "true");
+                        localStorage.setItem("blacklist_lootlabs_unlocked_event", String(Date.now()));
+                        hideGateOverlay(false);
+                        try {
+                            const cleanUrl = window.location.origin + window.location.pathname;
+                            window.history.replaceState({}, document.title, cleanUrl);
+                        } catch (e) {}
+                        showToast(currentLang === 'th' ? "ยืนยันผ่าน Linkvertise สำเร็จ! ปลดล็อคเข้าใช้งาน 24 ชั่วโมง" : "Linkvertise Verified! Access granted for 24 hours.");
+                    }
+                })
+                .catch(() => null);
+        }
+
         // 0. Check GateFlow Pass Token (?pass_token=gateflow_24h) or BlackPass Server-Signed Pass Token (?pass_token=...)
         const incomingPassToken = urlParams.get("pass_token") || "";
         if (incomingPassToken) {
@@ -2242,7 +2314,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }, 600);
 
-            const provider = gate.provider || "blackpass";
+            let provider = gate.provider || "linkvertise";
+            if (provider === "shrinkme") {
+                provider = "linkvertise";
+            }
             const puid = getOrCreateLootlabsPuid();
 
             if (gateLootlabsBtn) {
@@ -2268,9 +2343,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                     if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
                     if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
-                } else if (provider === "shrinkme") {
-                    const shrinkLink = (gate.shrinkmeUrl || "https://shrinkme.click/aZd1s").trim();
-                    gateLootlabsBtn.href = shrinkLink;
+                } else if (provider === "linkvertise") {
+                    const lvLink = (gate.linkvertiseUrl || "https://link-center.net/3335115/wnzycVtiGOAK").trim();
+                    gateLootlabsBtn.href = lvLink;
                     gateLootlabsBtn.target = "_blank";
                     gateLootlabsBtn.onclick = function() {
                         localStorage.setItem("blacklist_gate_clicked", "true");
@@ -2279,12 +2354,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         sessionStorage.setItem("blacklist_gate_click_time", String(Date.now()));
                     };
                     if (lblGateBtn) {
-                        lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
+                        lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน (Linkvertise)" : "Unlock via Linkvertise";
                     }
                     if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "flex";
                     if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
                 } else if (provider === "shrinkearn") {
-                    const shrinkLink = (gate.shrinkearnUrl || gate.shrinkmeUrl || gate.lootlabsUrl || SITE_CONFIG.lootlabsGate?.shrinkearnUrl || "https://srnky.com/aehfqq0").trim();
+                    const shrinkLink = (gate.shrinkearnUrl || gate.lootlabsUrl || SITE_CONFIG.lootlabsGate?.shrinkearnUrl || "https://srnky.com/aehfqq0").trim();
                     gateLootlabsBtn.href = shrinkLink;
                     if (lblGateBtn) {
                         lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
@@ -2305,12 +2380,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     startGatePolling(false);
                     verifyLootlabsSession(true);
                 } else {
-                    const customLink = (gate.shrinkmeUrl || gate.shrinkearnUrl || gate.lootlabsUrl || "").trim();
-                    gateLootlabsBtn.href = customLink || "#";
+                    const customLink = (gate.linkvertiseUrl || "https://link-center.net/3335115/wnzycVtiGOAK").trim();
+                    gateLootlabsBtn.href = customLink;
                     if (lblGateBtn) {
-                        lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
+                        lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน (Linkvertise)" : "Unlock via Linkvertise";
                     }
-                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "flex";
                 }
             }
 
@@ -2318,7 +2393,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (currentLang === "en") {
                     gateMessageText.textContent = "BlacklistScriptx Gateway • Please complete verification to unlock website access for 24 hours";
                 } else {
-                    gateMessageText.textContent = gate.bypassMessage || "BlacklistScriptx Gateway • กรุณายืนยันเซสชันเพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
+                    let msg = gate.bypassMessage || "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน Linkvertise เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
+                    if (msg.includes("ShrinkMe")) {
+                        msg = msg.replace(/ShrinkMe/g, "Linkvertise");
+                    }
+                    gateMessageText.textContent = msg;
                 }
             }
 
