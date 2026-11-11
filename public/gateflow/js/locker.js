@@ -254,28 +254,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const params = new URLSearchParams(window.location.search);
 
-  // Linkvertise Anti-Bypass Auto-Unlock & Redirect to Main Hub
+  // ตรวจจับ Hash จาก Linkvertise ถ้ามีให้ขึ้นแจ้งเตือนว่าผ่านด่านที่ 1 แล้ว
   const incomingHash = params.get('hash');
   if (incomingHash && incomingHash.length >= 32) {
-    fetch(`/api/linkvertise/verify?hash=${encodeURIComponent(incomingHash)}`)
-      .then(r => r.json())
-      .then(data => {
-        if (data && data.success) {
-          grant24HourAccess();
-          showToast('✅ ยืนยันผ่าน Linkvertise สำเร็จ! กำลังเข้าสู่เว็บไซต์...', 'success', 2000);
-          setTimeout(() => {
-            window.location.href = '/?auth=blacklist_vip';
-          }, 600);
-        } else {
-          grant24HourAccess();
-          window.location.href = '/';
-        }
-      })
-      .catch(() => {
-        grant24HourAccess();
-        window.location.href = '/';
-      });
-    return;
+    showToast('✅ ผ่านด่าน Linkvertise สำเร็จ! กรุณาทำภารกิจสนับสนุนด้านล่างเพื่อเข้าสู่เว็บไซต์', 'success', 6000);
   }
 
   initGateAntiBypassSession();
