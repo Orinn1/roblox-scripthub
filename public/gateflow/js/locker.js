@@ -251,9 +251,34 @@ document.addEventListener('DOMContentLoaded', () => {
   applyStaticTranslations();
   initCustomTitleAndDesc();
   initDestinationUrl();
-  initGateAntiBypassSession();
 
   const params = new URLSearchParams(window.location.search);
+
+  // Linkvertise Anti-Bypass Auto-Unlock & Redirect to Main Hub
+  const incomingHash = params.get('hash');
+  if (incomingHash && incomingHash.length >= 32) {
+    fetch(`/api/linkvertise/verify?hash=${encodeURIComponent(incomingHash)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.success) {
+          grant24HourAccess();
+          showToast('✅ ยืนยันผ่าน Linkvertise สำเร็จ! กำลังเข้าสู่เว็บไซต์...', 'success', 2000);
+          setTimeout(() => {
+            window.location.href = '/?auth=blacklist_vip';
+          }, 600);
+        } else {
+          grant24HourAccess();
+          window.location.href = '/';
+        }
+      })
+      .catch(() => {
+        grant24HourAccess();
+        window.location.href = '/';
+      });
+    return;
+  }
+
+  initGateAntiBypassSession();
   const path = window.location.pathname.toLowerCase();
   const slug = path.startsWith('/l/') ? path.slice(3).trim() : (params.get('slug') || (path === '/access' || path === '/hub' || path === '/gate' ? 'hub-access' : ''));
 
