@@ -64,13 +64,12 @@ module.exports = async (req, res) => {
                 if (data.fields && data.fields.configJson && data.fields.configJson.stringValue) {
                     const parsed = JSON.parse(data.fields.configJson.stringValue);
                     if (parsed.lootlabsGate) {
-                        if (!parsed.lootlabsGate.provider || parsed.lootlabsGate.provider === "blackpass" || parsed.lootlabsGate.provider === "shrinkme") {
-                            parsed.lootlabsGate.provider = "linkvertise";
+                        if (!parsed.lootlabsGate.provider) {
+                            parsed.lootlabsGate.provider = "lootlabs";
                         }
-                        if (parsed.lootlabsGate.provider === "linkvertise") {
-                            parsed.lootlabsGate.linkvertiseUrl = parsed.lootlabsGate.linkvertiseUrl || "https://link-center.net/3335115/wnzycVtiGOAK";
-                            parsed.lootlabsGate.linkvertiseToken = "51fdfa2e4968abbf74a67de73fe63cefbe2cd2e1802bd67af651d4fa88aec7e7";
-                            parsed.lootlabsGate.bypassMessage = "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน Linkvertise เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
+                        if (parsed.lootlabsGate.provider === "lootlabs") {
+                            parsed.lootlabsGate.lootlabsUrl = parsed.lootlabsGate.lootlabsUrl || "https://loot-link.com/s?cWo9w57Q";
+                            parsed.lootlabsGate.bypassMessage = parsed.lootlabsGate.bypassMessage || "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง";
                         }
                     }
                     return res.status(200).json(parsed);
@@ -89,15 +88,15 @@ module.exports = async (req, res) => {
         return res.status(200).json({
             lootlabsGate: {
                 enabled: true,
-                provider: "linkvertise",
+                provider: "lootlabs",
                 token: "blacklist_vip",
                 linkvertiseUrl: "https://link-center.net/3335115/wnzycVtiGOAK",
                 linkvertiseToken: "51fdfa2e4968abbf74a67de73fe63cefbe2cd2e1802bd67af651d4fa88aec7e7",
                 shrinkmeUrl: "https://shrinkme.click/aZd1s",
                 shrinkearnUrl: "",
-                lootlabsUrl: "https://loot-link.com/s?oSxvK7gj&data=Ie0PVBmn90rQrhCi8dVydrnOLIdR8byoGkbNlLEmHw1qavc1xhDTH/PaTy9MUFqh",
+                lootlabsUrl: "https://loot-link.com/s?cWo9w57Q",
                 expiryHours: 24,
-                bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน Linkvertise เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+                bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
             }
         });
     }
