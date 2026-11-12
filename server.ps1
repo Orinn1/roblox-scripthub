@@ -1,4 +1,4 @@
-# Anti-Bypass Checkpoint Gateway Server (Port 3400)
+﻿# Anti-Bypass Checkpoint Gateway Server (Port 3400)
 param([int]$Port = 3400)
 
 $Root = Join-Path $PSScriptRoot "public"
@@ -153,7 +153,7 @@ while ($listener.IsListening) {
 
         # Mock /api/config for local testing
         if ($rawPath -eq "/api/config") {
-            $ans = '{"lootlabsGate":{"enabled":true,"provider":"linkvertise","token":"blacklist_vip","linkvertiseUrl":"https://link-center.net/3335115/wnzycVtiGOAK","linkvertiseToken":"51fdfa2e4968abbf74a67de73fe63cefbe2cd2e1802bd67af651d4fa88aec7e7","expiryHours":24,"bypassMessage":"กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน Linkvertise เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"}}'
+            $ans = '{"lootlabsGate":{"enabled":true,"provider":"lootlabs","token":"blacklist_vip","lootlabsUrl":"https://loot-link.com/s?cWo9w57Q","expiryHours":24,"bypassMessage":"กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"}}'
             $bytes = [System.Text.Encoding]::UTF8.GetBytes($ans)
             $res.ContentType = "application/json; charset=utf-8"
             $res.StatusCode = 200

@@ -752,16 +752,16 @@ export default {
                 return new Response(JSON.stringify({
                     lootlabsGate: {
                         enabled: true,
-                        provider: "linkvertise",
+                        provider: "lootlabs",
                         token: "blacklist_vip",
                         linkvertiseUrl: "https://link-center.net/3335115/wnzycVtiGOAK",
                         linkvertiseToken: "51fdfa2e4968abbf74a67de73fe63cefbe2cd2e1802bd67af651d4fa88aec7e7",
                         shrinkmeUrl: "https://shrinkme.click/aZd1s",
                         blackpassLockerUrl: "/access",
                         shrinkearnUrl: "",
-                        lootlabsUrl: "https://loot-link.com/s?cWo9w57Q&data=5Sry/nbaIQi29n2jVNZ7M9UpuqobH6bsHCdIKRglVMRPjJjypYEmr0NbQXLrHww5",
+                        lootlabsUrl: "https://loot-link.com/s?cWo9w57Q",
                         expiryHours: 24,
-                        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน Linkvertise เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
+                        bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
                     }
                 }), {
                     status: 200,
