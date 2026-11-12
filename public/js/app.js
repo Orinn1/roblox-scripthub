@@ -3667,7 +3667,7 @@ document.addEventListener("DOMContentLoaded", () => {
         refreshIcons();
     }
 
-    // Handle Executor Download (Clean 100% Direct Official Download + Smart Sponsor)
+    // Handle Executor Download (Clean 100% Direct Official Download)
     window.handleExecutorDownload = function(e, officialUrl) {
         if (e) {
             try {
@@ -3677,19 +3677,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (!officialUrl || officialUrl === '#' || officialUrl === 'javascript:void(0)') return;
         window.open(officialUrl, "_blank");
-
-        // Smart Sponsor (Max once per 24h)
-        try {
-            const lastExAd = parseInt(localStorage.getItem("blacklist_last_executor_sponsor") || "0", 10);
-            const now = Date.now();
-            if (now - lastExAd > 24 * 60 * 60 * 1000) {
-                localStorage.setItem("blacklist_last_executor_sponsor", String(now));
-                const exSponsor = (window.SITE_CONFIG && window.SITE_CONFIG.executorDirectLinkUrl) || "https://omg10.com/4/11919658";
-                setTimeout(() => {
-                    try { window.open(exSponsor, "_blank"); } catch (e) {}
-                }, 350);
-            }
-        } catch (err) {}
     };
 
     // Open sUNC Benchmark Details Modal
@@ -4227,19 +4214,6 @@ document.addEventListener("DOMContentLoaded", () => {
             document.execCommand("copy");
             copySuccess();
         }
-
-        // Smart Copy Sponsor (Max once per 24h)
-        try {
-            const lastCopyAd = parseInt(localStorage.getItem("blacklist_last_copy_sponsor") || "0", 10);
-            const now = Date.now();
-            if (now - lastCopyAd > 24 * 60 * 60 * 1000) {
-                localStorage.setItem("blacklist_last_copy_sponsor", String(now));
-                const copySponsor = (window.SITE_CONFIG && window.SITE_CONFIG.adsterraSmartlinkUrl) || "https://omg10.com/4/11911452";
-                setTimeout(() => {
-                    try { window.open(copySponsor, "_blank"); } catch (e) {}
-                }, 350);
-            }
-        } catch (err) {}
     });
 
     closeLockerBtn.addEventListener("click", () => {
