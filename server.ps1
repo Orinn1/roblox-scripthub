@@ -1,4 +1,4 @@
-﻿# Anti-Bypass Checkpoint Gateway Server (Port 3400)
+# Anti-Bypass Checkpoint Gateway Server (Port 3400)
 param([int]$Port = 3400)
 
 $Root = Join-Path $PSScriptRoot "public"
