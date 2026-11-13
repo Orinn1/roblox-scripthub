@@ -2429,22 +2429,6 @@ document.addEventListener("DOMContentLoaded", () => {
             sessionStorage.setItem("blacklist_gate_click_time", String(Date.now()));
             sessionStorage.setItem("blacklist_gate_provider", provider);
 
-            const alertBox = document.getElementById("gateBypassAlertBox");
-            if (alertBox) {
-                alertBox.className = "gate-bypass-alert-box state-waiting";
-                alertBox.style.display = "block";
-                alertBox.innerHTML = `
-                    <div style="font-weight: 600; color: #38bdf8; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        <span class="gate-spinner"></span>
-                        <span>กำลังรอการทำรายการจาก LootLabs...</span>
-                    </div>
-                    <div style="font-size: 11.5px; color: #94a3b8; margin-top: 4px;">
-                        เมื่อทำภารกิจในแท็บใหม่เสร็จแล้ว ให้กลับมากดปุ่ม <b>"ตรวจสอบสถานะทันที"</b> ด้านล่าง
-                    </div>
-                `;
-                if (window.lucide && lucide.createIcons) lucide.createIcons();
-            }
-
             if (provider === "lootlabs") {
                 startGatePolling(true);
             }
