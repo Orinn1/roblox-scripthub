@@ -254,10 +254,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const params = new URLSearchParams(window.location.search);
 
-  // ตรวจจับ Hash จาก Linkvertise ถ้ามีให้ขึ้นแจ้งเตือนว่าผ่านด่านที่ 1 แล้ว
+  // ตรวจจับผู้ใช้ที่ผ่านด่านมาจาก LootLabs หรือ Linkvertise
   const incomingHash = params.get('hash');
+  const ref = document.referrer || '';
   if (incomingHash && incomingHash.length >= 32) {
     showToast('✅ ผ่านด่าน Linkvertise สำเร็จ! กรุณาทำภารกิจสนับสนุนด้านล่างเพื่อเข้าสู่เว็บไซต์', 'success', 6000);
+  } else if (/loot-link|lootlabs|lootlinks|lootdest/i.test(ref) || params.get('session') || params.get('uid')) {
+    showToast('✅ ผ่านด่าน LootLabs สำเร็จ! ทำภารกิจสนับสนุนอีกนิดเพื่อเข้าสู่เว็บไซต์', 'success', 5000);
   }
 
   initGateAntiBypassSession();

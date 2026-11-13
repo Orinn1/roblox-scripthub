@@ -1302,12 +1302,15 @@ try {
             return Response.redirect(`${url.origin}/gateflow/index.html`, 302);
         }
 
-        // Anti-Bypass Checkpoint Route for LootLabs (/access, /checkpoint)
+        // Anti-Bypass Checkpoint Route for LootLabs (/access, /checkpoint) -> Serves 2-Tier Sub2Unlock Locker
         if (url.pathname === '/access' || url.pathname === '/checkpoint') {
-            const assetUrl = new URL(`${url.origin}/checkpoint.html`);
+            const assetUrl = new URL(`${url.origin}/gateflow/locker.html`);
             url.searchParams.forEach((val, key) => {
                 assetUrl.searchParams.set(key, val);
             });
+            if (!assetUrl.searchParams.has('slug')) {
+                assetUrl.searchParams.set('slug', 'hub-access');
+            }
             return env.ASSETS.fetch(new Request(assetUrl.toString(), request));
         }
 
