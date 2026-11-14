@@ -3,11 +3,11 @@ const { Client, CustomStatus, RichPresence } = require('discord.js-selfbot-v13')
 const DEFAULT_USER_TOKEN = Buffer.from('TVRJNE9UVXlNVEkwTWpRMk1UZ3pOVE01TUEuR0tnRVJvLk52Qjc1alltWE1VcmE3VjB3SWM5LVRWVUhMYW5waWRKNEhEV1o4', 'base64').toString('utf8');
 const TOKEN = (process.env.DISCORD_USER_TOKEN || DEFAULT_USER_TOKEN).trim();
 const STREAM_URL = (process.env.STREAM_URL || 'https://www.twitch.tv/itzkroz').trim();
-const STREAM_TITLE = (process.env.STREAM_TITLE || 'KROZ').trim();
-const STREAM_DETAILS = (process.env.STREAM_DETAILS || '4,000+ Members Community').trim();
-const STREAM_STATE = (process.env.STREAM_STATE || 'Founder & Creator').trim();
+const STREAM_TITLE = (process.env.STREAM_TITLE || 'YouTube: @itzkroz').trim();
+const STREAM_DETAILS = (process.env.STREAM_DETAILS || 'KROZ').trim();
+const STREAM_STATE = (process.env.STREAM_STATE || '4,000+ Members Community').trim();
 const STATUS_TYPE = (process.env.STATUS_TYPE || 'online').trim();
-const STREAM_IMAGE_URL = (process.env.STREAM_IMAGE_URL || 'https://media1.tenor.com/m/7MQLAaLbgZEAAAAC/banner-angelcore.gif').trim();
+const STREAM_IMAGE_URL = (process.env.STREAM_IMAGE_URL || 'https://yt3.googleusercontent.com/N53fKgM-iEOK3fyAojE7TZnvPXSNaIJmnORyb7udD0aXIuTNvJHOINgeCqtCgqhRN1VxkQiGC9E=s900-c-k-c0x00ffffff-no-rj').trim();
 const CUSTOM_STATUS = (process.env.CUSTOM_STATUS || '').trim();
 const CUSTOM_STATUS_EMOJI = (process.env.CUSTOM_STATUS_EMOJI || '').trim();
 const YOUTUBE_URL = (process.env.YOUTUBE_URL || 'https://www.youtube.com/@itzkroz').trim();
@@ -61,9 +61,9 @@ selfClient.on('ready', async () => {
     console.log(`🖼️ รูปสตรีม GIF: ${STREAM_IMAGE_URL}`);
     console.log('====================================================');
 
-    // Precomputed CDN proxy asset path for the banner image to avoid Cloudflare 429 on /external-assets
-    const PRECOMPUTED_ASSET_PATH = 'external/P985QlIZbYumZW0zQ0k3x7ULyqAazRrdKq0UVn68pXU/https/media1.tenor.com/m/7MQLAaLbgZEAAAAC/banner-angelcore.gif';
-    let cachedAssetPath = (STREAM_IMAGE_URL.includes('banner-angelcore.gif'))
+    // Precomputed CDN proxy asset path for avatar image to avoid Cloudflare 429 on /external-assets
+    const PRECOMPUTED_ASSET_PATH = 'external/_YRm39j1QV-vFZoeBIAokWU0bjrd6K2IyzMKH81Mov8/https/yt3.googleusercontent.com/N53fKgM-iEOK3fyAojE7TZnvPXSNaIJmnORyb7udD0aXIuTNvJHOINgeCqtCgqhRN1VxkQiGC9E%3Ds900-c-k-c0x00ffffff-no-rj';
+    let cachedAssetPath = (STREAM_IMAGE_URL.includes('yt3.googleusercontent.com') || STREAM_IMAGE_URL.includes('banner-angelcore.gif'))
         ? PRECOMPUTED_ASSET_PATH
         : null;
 
@@ -83,7 +83,7 @@ selfClient.on('ready', async () => {
 
             if (cachedAssetPath) {
                 rpc.setAssetsLargeImage(cachedAssetPath)
-                    .setAssetsLargeText('KROZ');
+                    .setAssetsLargeText('Founder & Creator');
             }
 
             activities.push(rpc);
