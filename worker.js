@@ -1339,6 +1339,17 @@ try {
             return env.ASSETS.fetch(new Request(`${url.origin}/gateflow/dashboard.html${url.search}`, request));
         }
 
+        if (url.pathname === '/sw.js') {
+            const swRes = await env.ASSETS.fetch(request);
+            const headers = new Headers(swRes.headers);
+            headers.set('Content-Type', 'application/javascript; charset=utf-8');
+            headers.set('Service-Worker-Allowed', '/');
+            return new Response(swRes.body, {
+                status: swRes.status,
+                headers
+            });
+        }
+
         // Serve static assets from ./public
         return env.ASSETS.fetch(request);
     }
