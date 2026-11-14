@@ -2,15 +2,15 @@ const { Client, CustomStatus, RichPresence } = require('discord.js-selfbot-v13')
 
 const DEFAULT_USER_TOKEN = Buffer.from('TVRJNE9UVXlNVEkwTWpRMk1UZ3pOVE01TUEuR0tnRVJvLk52Qjc1alltWE1VcmE3VjB3SWM5LVRWVUhMYW5waWRKNEhEV1o4', 'base64').toString('utf8');
 const TOKEN = (process.env.DISCORD_USER_TOKEN || DEFAULT_USER_TOKEN).trim();
-const STREAM_URL = (process.env.STREAM_URL || 'https://www.twitch.tv/blacklistxyx').trim();
-const STREAM_TITLE = (process.env.STREAM_TITLE || 'YouTube: @Blacklistxyx').trim();
-const STREAM_DETAILS = (process.env.STREAM_DETAILS || 'ʚ pure serenity ɞ').trim();
-const STREAM_STATE = (process.env.STREAM_STATE || '𐦍 floating in heaven ☁️').trim();
+const STREAM_URL = (process.env.STREAM_URL || 'https://www.twitch.tv/itzkroz').trim();
+const STREAM_TITLE = (process.env.STREAM_TITLE || 'KROZ').trim();
+const STREAM_DETAILS = (process.env.STREAM_DETAILS || '4,000+ Members Community').trim();
+const STREAM_STATE = (process.env.STREAM_STATE || 'Founder & Creator').trim();
 const STATUS_TYPE = (process.env.STATUS_TYPE || 'online').trim();
 const STREAM_IMAGE_URL = (process.env.STREAM_IMAGE_URL || 'https://media1.tenor.com/m/7MQLAaLbgZEAAAAC/banner-angelcore.gif').trim();
 const CUSTOM_STATUS = (process.env.CUSTOM_STATUS || '').trim();
 const CUSTOM_STATUS_EMOJI = (process.env.CUSTOM_STATUS_EMOJI || '').trim();
-const YOUTUBE_URL = (process.env.YOUTUBE_URL || 'https://www.youtube.com/@Blacklistxyx').trim();
+const YOUTUBE_URL = (process.env.YOUTUBE_URL || 'https://www.youtube.com/@itzkroz').trim();
 
 if (!TOKEN) {
     console.log('ℹ️ [Presence Stream] ไม่พบ DISCORD_USER_TOKEN ข้ามการรันระบบสตรีมมิ่งบัญชีส่วนตัว');
@@ -83,7 +83,7 @@ selfClient.on('ready', async () => {
 
             if (cachedAssetPath) {
                 rpc.setAssetsLargeImage(cachedAssetPath)
-                    .setAssetsLargeText('ʚ Angelcore ɞ');
+                    .setAssetsLargeText('KROZ');
             }
 
             activities.push(rpc);
