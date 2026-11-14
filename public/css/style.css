@@ -5593,6 +5593,22 @@ body:has(#lootlabsGateOverlay:not([style*="display: none"])) #siteNoticePopup {
     margin-bottom: 24px;
 }
 
+/* Force completely hidden for manual check status button, alert box, and ad notices */
+#gateCheckStatusBtn,
+#gateBypassAlertBox,
+.gate-bypass-alert-box,
+.btn-gate-check,
+.ad-notice-banner {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+
 
 
 

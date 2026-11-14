@@ -2356,7 +2356,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (lblGateBtn) {
                         lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน (Linkvertise)" : "Unlock via Linkvertise";
                     }
-                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "flex";
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
                     if (gateAutoDetectBox) gateAutoDetectBox.style.display = "none";
                 } else if (provider === "shrinkearn") {
                     const shrinkLink = (gate.shrinkearnUrl || gate.lootlabsUrl || SITE_CONFIG.lootlabsGate?.shrinkearnUrl || "https://srnky.com/aehfqq0").trim();
@@ -2375,7 +2375,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (lblGateBtn) {
                         lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน" : "Unlock Access";
                     }
-                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "flex";
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
                     // เริ่มระบบตรวจจับอัตโนมัติเบื้องหลัง
                     startGatePolling(false);
                     verifyLootlabsSession(true);
@@ -2385,7 +2385,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (lblGateBtn) {
                         lblGateBtn.textContent = currentLang === "th" ? "ปลดล็อคเข้าใช้งาน (Linkvertise)" : "Unlock via Linkvertise";
                     }
-                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "flex";
+                    if (gateCheckStatusBtn) gateCheckStatusBtn.style.display = "none";
                 }
             }
 
