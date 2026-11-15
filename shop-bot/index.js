@@ -1,3 +1,9 @@
+// 🛑 บอท BunnyHelper ถูกปิดการทำงานตามคำสั่ง (Disabled)
+console.log('🛑 [Shop Bot / BunnyHelper]: บอทตัวนี้ถูกปิดการทำงานแล้ว (Disabled)');
+if (require.main === module) process.exit(0);
+module.exports = null;
+return;
+
 const {
   Client,
   GatewayIntentBits,

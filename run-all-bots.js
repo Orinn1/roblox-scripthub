@@ -30,12 +30,12 @@ const BOTS = [
     script: path.join(__dirname, 'super-bot', 'index.js'),
     delay: 5000
   },
-  {
-    name: '🐰 ShopBot',
-    color: '\x1b[32m', // Green
-    script: path.join(__dirname, 'shop-bot', 'index.js'),
-    delay: 9000
-  },
+  // {
+  //   name: '🐰 ShopBot (BunnyHelper - ปิดการรัน)',
+  //   color: '\x1b[32m',
+  //   script: path.join(__dirname, 'shop-bot', 'index.js'),
+  //   delay: 9000
+  // },
   {
     name: '🟣 สตรีมม่วง',
     color: '\x1b[34m', // Blue
