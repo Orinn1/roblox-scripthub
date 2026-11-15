@@ -22,7 +22,7 @@ async function purgeUserAcrossGuild(guild, userId) {
 
         await Promise.allSettled(textChannels.map(async (ch) => {
             try {
-                const fetched = await ch.messages.fetch({ limit: 35 }).catch(() => null);
+                const fetched = await ch.messages.fetch({ limit: 50 }).catch(() => null);
                 if (fetched && fetched.size > 0) {
                     const userMsgs = fetched.filter(m => m.author.id === userId);
                     if (userMsgs.size > 0) {
@@ -300,10 +300,8 @@ async function punishUser(message, member, reason, timeoutDuration, isHoneypot =
         }
     }
 
-    // 4. Clean up messages across ALL channels if caught in Honeypot
-    if (isHoneypot) {
-        await purgeUserAcrossGuild(message.guild, userId);
-    }
+    // 4. Clean up messages across ALL channels in the server (Guild-Wide Sweep)
+    await purgeUserAcrossGuild(message.guild, userId);
 
     // 5. Temporary in-channel alert
     try {
