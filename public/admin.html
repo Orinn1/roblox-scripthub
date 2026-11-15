@@ -770,6 +770,12 @@
                         <textarea id="sCode" class="form-control" style="height: 120px; font-family: monospace;" placeholder='loadstring(game:HttpGet("https://raw.githubusercontent.com/..."))()' required></textarea>
                     </div>
 
+                    <div class="full-width">
+                        <label class="form-label">ลิงก์คลิปวิดีโอตัวอย่างสคริปต์ (YouTube Video URL / Shorts / MP4)</label>
+                        <input type="url" id="sVideoUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=... หรือ https://youtu.be/...">
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">รองรับลิงก์ YouTube ปกติ, YouTube Shorts หรือไฟล์วิดีโอ .mp4 (ตอนคนกดรับสคริปต์จะมีคลิปนี้เด้งขึ้นมาให้ดู)</div>
+                    </div>
+
                     <div class="full-width checkbox-group">
                         <label class="checkbox-label">
                             <input type="checkbox" id="sKeyless" checked> ไร้คีย์ (Keyless ไม่ต้องใส่คีย์)
@@ -1225,6 +1231,12 @@
                     <div class="full-width">
                         <label class="form-label">โค้ดสคริปต์ Lua (Loadstring) *</label>
                         <textarea id="editCode" class="form-control" style="height: 120px; font-family: monospace;" required></textarea>
+                    </div>
+
+                    <div class="full-width">
+                        <label class="form-label">ลิงก์คลิปวิดีโอตัวอย่างสคริปต์ (YouTube Video URL / Shorts / MP4)</label>
+                        <input type="url" id="editVideoUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=... หรือ https://youtu.be/...">
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">รองรับลิงก์ YouTube ปกติ, YouTube Shorts หรือไฟล์วิดีโอ .mp4 (ตอนคนกดรับสคริปต์จะมีคลิปนี้เด้งขึ้นมาให้ดู)</div>
                     </div>
 
                     <div class="full-width checkbox-group">

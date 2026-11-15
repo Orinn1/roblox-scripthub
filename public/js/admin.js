@@ -835,6 +835,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const thumb = (document.getElementById("sThumb") && document.getElementById("sThumb").value.trim()) || "Logo.ico";
         const thumbEn = document.getElementById("sThumbEn") ? document.getElementById("sThumbEn").value.trim() : thumb;
         const code = document.getElementById("sCode") ? document.getElementById("sCode").value.trim() : "";
+        const videoUrl = document.getElementById("sVideoUrl") ? document.getElementById("sVideoUrl").value.trim() : "";
 
         const isKeyless = document.getElementById("sKeyless") ? document.getElementById("sKeyless").checked : true;
         const isMobile = document.getElementById("sMobile") ? document.getElementById("sMobile").checked : true;
@@ -858,6 +859,7 @@ document.addEventListener("DOMContentLoaded", () => {
             badge: "มาใหม่",
             thumbnail: thumb,
             thumbnail_en: thumbEn,
+            videoUrl: videoUrl,
             description: desc,
             description_en: descEn,
             loadstring: code
@@ -985,6 +987,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (editThumb) editThumb.value = item.thumbnail || "";
         if (editThumbEn) editThumbEn.value = item.thumbnail_en || "";
         if (editCode) editCode.value = item.loadstring || "";
+        const editVideoUrl = document.getElementById("editVideoUrl");
+        if (editVideoUrl) editVideoUrl.value = item.videoUrl || item.youtubeUrl || "";
 
         const editViews = document.getElementById("editViews");
         const editLikes = document.getElementById("editLikes");
@@ -1163,6 +1167,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const thumbnail = (document.getElementById("editThumb") && document.getElementById("editThumb").value.trim()) || scripts[index].thumbnail || "Logo.ico";
             const thumbnailEn = document.getElementById("editThumbEn") ? document.getElementById("editThumbEn").value.trim() : (scripts[index].thumbnail_en || thumbnail);
             const loadstring = document.getElementById("editCode") ? document.getElementById("editCode").value.trim() : (scripts[index].loadstring || "");
+            const videoUrl = document.getElementById("editVideoUrl") ? document.getElementById("editVideoUrl").value.trim() : (scripts[index].videoUrl || "");
             const isKeyless = document.getElementById("editKeyless") ? document.getElementById("editKeyless").checked : (scripts[index].isKeyless !== false);
             const isMobile = document.getElementById("editMobile") ? document.getElementById("editMobile").checked : (scripts[index].isMobile !== false);
             const isPC = document.getElementById("editPC") ? document.getElementById("editPC").checked : (scripts[index].isPC !== false);
@@ -1178,6 +1183,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 description_en: descriptionEn,
                 thumbnail,
                 thumbnail_en: thumbnailEn,
+                videoUrl,
                 loadstring,
                 isKeyless,
                 isMobile,

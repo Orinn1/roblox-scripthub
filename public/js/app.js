@@ -3830,6 +3830,24 @@ document.addEventListener("DOMContentLoaded", () => {
         return { isSponsorTask, title, icon, hint, targetUrl };
     }
 
+    function getYouTubeEmbedUrl(url) {
+        if (!url) return null;
+        const clean = String(url).trim();
+        const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([^"&?\/\s]{11})/i;
+        const match = clean.match(regExp);
+        if (match && match[1]) {
+            return `https://www.youtube-nocookie.com/embed/${match[1]}?autoplay=1&rel=0&modestbranding=1`;
+        }
+        return null;
+    }
+
+    function stopScriptVideo() {
+        const videoContainer = document.getElementById("scriptVideoPlayerContainer");
+        if (videoContainer) videoContainer.innerHTML = "";
+        const videoWrap = document.getElementById("scriptVideoWrap");
+        if (videoWrap) videoWrap.style.display = "none";
+    }
+
     window.openLocker = function(id) {
         cleanupActiveTask();
         selectedScript = scripts.find(s => String(s.id) === String(id));
@@ -3837,6 +3855,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
         tasks = { t1: true, t2: true, t3: true };
         scriptCodeBox.value = selectedScript.loadstring || "";
+
+        // Video Preview handling
+        const videoWrap = document.getElementById("scriptVideoWrap");
+        const videoContainer = document.getElementById("scriptVideoPlayerContainer");
+        const videoExtLink = document.getElementById("scriptVideoExternalLink");
+
+        if (videoWrap && videoContainer) {
+            videoContainer.innerHTML = "";
+            const rawVideo = (selectedScript.videoUrl || selectedScript.youtubeUrl || "").trim();
+
+            if (rawVideo) {
+                const ytEmbed = getYouTubeEmbedUrl(rawVideo);
+                if (ytEmbed) {
+                    videoContainer.innerHTML = `<iframe src="${ytEmbed}" title="Script Demo Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+                    if (videoExtLink) {
+                        videoExtLink.href = rawVideo;
+                        videoExtLink.style.display = "inline-flex";
+                    }
+                    videoWrap.style.display = "block";
+                } else if (rawVideo.match(/\.(mp4|webm|ogg)(\?.*)?$/i) || rawVideo.startsWith("data:video")) {
+                    videoContainer.innerHTML = `<video src="${rawVideo}" controls autoplay playsinline style="width:100%;height:100%;"></video>`;
+                    if (videoExtLink) {
+                        videoExtLink.href = rawVideo;
+                        videoExtLink.style.display = "inline-flex";
+                    }
+                    videoWrap.style.display = "block";
+                } else {
+                    videoContainer.innerHTML = `<iframe src="${rawVideo}" allowfullscreen></iframe>`;
+                    if (videoExtLink) {
+                        videoExtLink.href = rawVideo;
+                        videoExtLink.style.display = "inline-flex";
+                    }
+                    videoWrap.style.display = "block";
+                }
+            } else {
+                videoWrap.style.display = "none";
+            }
+        }
 
         // ซ่อนภารกิจทั้ง 3 ขั้นตอน ตัวนับสเต็ป และข้อความเตือนล็อค เพื่อให้รับสคริปต์ได้ทันที
         if (tasksStack) tasksStack.style.display = "none";
@@ -4202,11 +4258,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     closeLockerBtn.addEventListener("click", () => {
         cleanupActiveTask();
+        stopScriptVideo();
         lockerModal.classList.remove("active");
     });
     lockerModal.addEventListener("click", (e) => {
         if (e.target === lockerModal) {
             cleanupActiveTask();
+            stopScriptVideo();
             lockerModal.classList.remove("active");
         }
     });
@@ -4215,6 +4273,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
             if (lockerModal && lockerModal.classList.contains("active")) {
+                stopScriptVideo();
                 lockerModal.classList.remove("active");
             }
             if (suncModal && suncModal.classList.contains("active")) {

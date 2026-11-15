@@ -1,5 +1,5 @@
-# Anti-Bypass Checkpoint Gateway Server (Port 3400)
-param([int]$Port = 3400)
+﻿# Anti-Bypass Checkpoint Gateway Server (Port 3000)
+param([int]$Port = 3000)
 
 $Root = Join-Path $PSScriptRoot "public"
 $SecretKey = "b1c7af121565c79c916f738bbbbed70a97d1600c14c9218dc8c14e8033b27812"
@@ -154,6 +154,32 @@ while ($listener.IsListening) {
         # Mock /api/config for local testing
         if ($rawPath -eq "/api/config") {
             $ans = '{"lootlabsGate":{"enabled":true,"provider":"lootlabs","token":"blacklist_vip","lootlabsUrl":"https://loot-link.com/s?cWo9w57Q","expiryHours":24,"bypassMessage":"กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"}}'
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($ans)
+            $res.ContentType = "application/json; charset=utf-8"
+            $res.StatusCode = 200
+            $res.OutputStream.Write($bytes, 0, $bytes.Length)
+            $res.Close()
+            continue
+        }
+
+        # API: /api/scripts (GET and POST)
+        if ($rawPath -eq "/api/scripts") {
+            $scriptsFile = Join-Path $Root "data\scripts.json"
+            $backupFile = Join-Path (Split-Path $Root) "data\scripts.json"
+
+            if ($req.HttpMethod -eq "POST") {
+                $reader = New-Object System.IO.StreamReader($req.InputStream, [System.Text.Encoding]::UTF8)
+                $body = $reader.ReadToEnd()
+                if (-not [string]::IsNullOrWhiteSpace($body)) {
+                    [System.IO.File]::WriteAllText($scriptsFile, $body, [System.Text.Encoding]::UTF8)
+                    if (Test-Path (Split-Path $backupFile)) {
+                        [System.IO.File]::WriteAllText($backupFile, $body, [System.Text.Encoding]::UTF8)
+                    }
+                }
+                $ans = '{"success":true,"message":"Scripts saved successfully"}'
+            } else {
+                $ans = if (Test-Path $scriptsFile) { [System.IO.File]::ReadAllText($scriptsFile, [System.Text.Encoding]::UTF8) } else { "[]" }
+            }
             $bytes = [System.Text.Encoding]::UTF8.GetBytes($ans)
             $res.ContentType = "application/json; charset=utf-8"
             $res.StatusCode = 200
