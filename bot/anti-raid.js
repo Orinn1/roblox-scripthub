@@ -6,6 +6,7 @@ const userMessageHistory = new Map(); // userId -> [timestamps]
 const userLastMessage = new Map();    // userId -> { content: string, count: number, time: number }
 const userViolationCount = new Map(); // userId -> number of violations
 const activePunishingUsers = new Set(); // userId currently being punished to prevent race conditions
+const honeypotCooldown = new Map();   // userId -> timestamp (Prevent DM spam)
 
 /**
  * Emergency Guild-Wide Purge: Deletes all recent messages from a user across ALL text channels in the server
@@ -96,9 +97,89 @@ function isExempt(member, channel) {
 async function sendPunishmentDM(member, guild, reason, actionTaken, triggerContent = '', isHoneypot = false) {
     if (!member || !member.user) return false;
     try {
+        if (isHoneypot) {
+            // 🇹🇭 ข้อความที่ 1: ภาษาไทย (Thai Version)
+            const thaiFields = [
+                { name: '🚨 เหตุผล', value: `\`พิมพ์ข้อความในห้องกับดักบอทสแปม (Honeypot)\``, inline: true },
+                { name: '⚡ บทลงโทษ', value: `\`ระงับการพิมพ์ 5 นาที (Timeout 5m)\``, inline: true }
+            ];
+            if (triggerContent) {
+                const cleanSnippet = triggerContent.length > 80 ? triggerContent.slice(0, 77) + '...' : triggerContent;
+                thaiFields.push({ name: '💬 ข้อความที่ตรวจพบ', value: `\`\`\`text\n${cleanSnippet}\n\`\`\``, inline: false });
+            }
+            thaiFields.push(
+                {
+                    name: '⚠️ บัญชี Discord ของคุณอาจถูกแฮก หรือติดไวรัสดูด Token',
+                    value: 
+                        'หากคุณไม่ได้เป็นคนส่งข้อความนี้ แสดงว่า **บัญชีของคุณถูกแฮก หรือติดไวรัสดูดโทเคน (Token Grabber)** จากการดาวน์โหลดโปรแกรม/สคริปต์แปลกๆ ครับ\n\n' +
+                        '💡 **วิธีแก้ไขให้หายขาดทันที:**\n' +
+                        '1️⃣ ไปที่ **User Settings (การตั้งค่า) ➔ My Account (บัญชีของฉัน)**\n' +
+                        '2️⃣ กด **Change Password (เปลี่ยนรหัสผ่าน)** ทันที\n' +
+                        '3️⃣ เปิดการยืนยันตัวตน 2 ชั้น (**2FA**)\n\n' +
+                        '*(เพียงเปลี่ยนรหัสผ่านใหม่ ระบบจะเตะแฮกเกอร์ออกจากบัญชีทันทีครับ)*',
+                    inline: false
+                },
+                {
+                    name: '📌 ติดต่อแอดมิน',
+                    value: 'หากคิดว่าเป็นความเข้าใจผิด สามารถติดต่อ Admin เพื่อชี้แจงได้ครับ (กรุณาพิมพ์อย่างสุภาพ)',
+                    inline: false
+                }
+            );
+
+            const thaiEmbed = new EmbedBuilder()
+                .setTitle(`🛡️ แจ้งเตือนความปลอดภัย — ${guild?.name || 'KROZ Community'}`)
+                .setColor(0xFFA500) // Honey Orange
+                .setDescription(`⚠️ **คุณถูกระงับการพิมพ์ชั่วคราว 5 นาที**\nระบบตรวจพบว่าคุณพิมพ์ข้อความใน **ห้องกับดักบอทสแปม (Honeypot)**`)
+                .addFields(thaiFields)
+                .setFooter({ text: 'KROZ Community Automated Security' })
+                .setTimestamp();
+
+            // 🇬🇧 ข้อความที่ 2: ภาษาอังกฤษ (English Version)
+            const enFields = [
+                { name: '🚨 Reason', value: `\`Triggered Spam Bot Trap Channel\``, inline: true },
+                { name: '⚡ Action Taken', value: `\`Muted (5 Minutes Timeout)\``, inline: true }
+            ];
+            if (triggerContent) {
+                const cleanSnippet = triggerContent.length > 80 ? triggerContent.slice(0, 77) + '...' : triggerContent;
+                enFields.push({ name: '💬 Detected Message', value: `\`\`\`text\n${cleanSnippet}\n\`\`\``, inline: false });
+            }
+            enFields.push(
+                {
+                    name: '⚠️ Your Discord Account May Be Compromised',
+                    value: 
+                        'If you did not send this message yourself, your Discord token was **grabbed / compromised by malware or untrusted scripts**.\n\n' +
+                        '💡 **How to secure your account immediately:**\n' +
+                        '1️⃣ Go to **User Settings ➔ My Account**\n' +
+                        '2️⃣ Click **Change Password** immediately\n' +
+                        '3️⃣ Enable **Two-Factor Authentication (2FA)**\n\n' +
+                        '*(Changing your password invalidates your token and kicks out the intruder immediately!)*',
+                    inline: false
+                },
+                {
+                    name: '📌 Contact Admin',
+                    value: 'If you believe this is a mistake, you may politely reach out to an Admin.',
+                    inline: false
+                }
+            );
+
+            const enEmbed = new EmbedBuilder()
+                .setTitle(`🛡️ Security Alert — ${guild?.name || 'KROZ Community'}`)
+                .setColor(0x5865F2) // Discord Blurple
+                .setDescription(`⚠️ **You have been timed out for 5 minutes.**\nYou triggered our automated **Spam Bot Trap (Honeypot Channel)**.`)
+                .addFields(enFields)
+                .setFooter({ text: 'KROZ Community Automated Security' })
+                .setTimestamp();
+
+            // ส่งแยกกัน 2 ข้อความ (ไทย 1 ข้อความ + อังกฤษ 1 ข้อความ)
+            await member.send({ embeds: [thaiEmbed] });
+            await member.send({ embeds: [enEmbed] });
+            return true;
+        }
+
+        // ข้อความสำหรับกรณีอื่นๆ (Fast Spam / Mass Mention)
         const fields = [
-            { name: '🚨 เหตุผลที่ถูกระงับ', value: `\`${reason}\``, inline: false },
-            { name: '⚡ บทลงโทษที่ได้รับ', value: `\`${actionTaken}\``, inline: true }
+            { name: '🚨 เหตุผล / Reason', value: `\`${reason}\``, inline: true },
+            { name: '⚡ บทลงโทษ / Action', value: `\`${actionTaken}\``, inline: true }
         ];
 
         if (triggerContent) {
@@ -106,42 +187,17 @@ async function sendPunishmentDM(member, guild, reason, actionTaken, triggerConte
             fields.push({ name: '💬 ข้อความของคุณที่ถูกตรวจพบ', value: `\`\`\`text\n${cleanSnippet}\n\`\`\``, inline: false });
         }
 
-        if (isHoneypot) {
-            fields.push({
-                name: '⚠️ คำเตือนด่วน: บัญชีของคุณอาจถูกแฮก / Account Security Alert',
-                value: 
-                    '🇹🇭 **[ภาษาไทย]**\n' +
-                    'ระบบตรวจพบการส่งข้อความเข้ามาใน **ห้องกับดักบอทสแปม (Honeypot Channel)**\n' +
-                    'หากคุณไม่ได้เป็นคนส่งข้อความนี้ แสดงว่า **บัญชี Discord ของคุณถูกแฮก หรือติดไวรัสดูดโทเคน (Token Grabber)** จากการดาวน์โหลดโปรแกรม/สคริปต์แปลกๆ ครับ\n\n' +
-                    '💡 **วิธีแก้ไขให้หายขาด:**\n' +
-                    '1. ไปที่ **User Settings (การตั้งค่า) ➔ My Account (บัญชีของฉัน)**\n' +
-                    '2. กด **Change Password (เปลี่ยนรหัสผ่าน)** ทันที\n' +
-                    '3. เปิดการยืนยันตัวตน 2 ชั้น (**2FA**)\n' +
-                    '*(เพียงเปลี่ยนรหัสผ่านใหม่ ระบบจะเตะแฮกเกอร์ออกจากบัญชีทันทีครับ)*\n\n' +
-                    '──────────────────────────────────\n\n' +
-                    '🇬🇧 **[English]**\n' +
-                    'You triggered our automated **Spam Bot Trap (Honeypot Channel)**.\n' +
-                    'If you did not send this message, your **Discord account is compromised / token-grabbed** by malware or untrusted scripts.\n\n' +
-                    '💡 **How to secure your account:**\n' +
-                    '1. Go to **User Settings ➔ My Account**\n' +
-                    '2. Click **Change Password** immediately\n' +
-                    '3. Enable **Two-Factor Authentication (2FA)**\n' +
-                    '*(Changing your password invalidates your token and kicks out the hacker immediately!)*',
-                inline: false
-            });
-        } else {
-            fields.push({
-                name: '📌 ติดต่อชี้แจง / Contact Admin',
-                value: 
-                    '🇹🇭 หากคิดว่าเป็นความเข้าใจผิด สามารถติดต่อ Admin เพื่อชี้แจงได้ครับ (กรุณาพิมพ์อย่างสุภาพ)\n' +
-                    '🇬🇧 If you believe this is a mistake, you may politely reach out to an Admin.',
-                inline: false
-            });
-        }
+        fields.push({
+            name: '📌 ติดต่อชี้แจง / Contact Admin',
+            value: 
+                '🇹🇭 หากคิดว่าเป็นความเข้าใจผิด สามารถติดต่อ Admin เพื่อชี้แจงได้ครับ (กรุณาพิมพ์อย่างสุภาพ)\n' +
+                '🇬🇧 If you believe this is a mistake, you may politely reach out to an Admin.',
+            inline: false
+        });
 
         const dmEmbed = new EmbedBuilder()
             .setTitle(`🛡️ Security Alert / ระบบแจ้งเตือนความปลอดภัย — ${guild?.name || 'KROZ Community'}`)
-            .setColor(isHoneypot ? 0xFFA500 : 0xFF0033)
+            .setColor(0xFF0033)
             .setDescription(`คุณถูกระงับการพิมพ์ชั่วคราวเนื่องจากระบบตรวจพบพฤติกรรมผิดกฎ (Anti-Raid)\nYou have been timed out temporarily due to a security violation.`)
             .addFields(fields)
             .setFooter({ text: 'KROZ Community Automated Security' })
@@ -193,13 +249,16 @@ async function logAntiRaidAction(guild, targetMember, reason, actionTaken, dmSen
  */
 async function punishUser(message, member, reason, timeoutDuration, isHoneypot = false) {
     const userId = member.id;
+    if (activePunishingUsers.has(userId)) {
+        try { await message.delete().catch(() => {}); } catch (e) {}
+        return;
+    }
+    activePunishingUsers.add(userId);
+    setTimeout(() => activePunishingUsers.delete(userId), 30000);
+
     const content = message.content || '';
     const currentViolations = (userViolationCount.get(userId) || 0) + 1;
     userViolationCount.set(userId, currentViolations);
-
-    // Prevent duplicate race-condition calls when selfbot spams multiple channels
-    activePunishingUsers.add(userId);
-    setTimeout(() => activePunishingUsers.delete(userId), 20000);
 
     // 1. Delete triggering message immediately
     try {
@@ -280,6 +339,14 @@ async function handleAntiRaidMessage(message) {
     // 0. 🍯 HONEYPOT TRAP CHANNEL CHECK (#1571400673273188424)
     // ----------------------------------------------------
     if (channelId === ANTI_RAID_CONFIG.honeypotChannelId) {
+        // Cooldown guard: Don't re-DM or spam if the user sent multiple messages
+        const lastHoneypot = honeypotCooldown.get(userId) || 0;
+        if (now - lastHoneypot < 60000) {
+            try { await message.delete().catch(() => {}); } catch (e) {}
+            return true;
+        }
+        honeypotCooldown.set(userId, now);
+
         await punishUser(message, message.member, 'พิมพ์ข้อความในห้องกับดักบอทสแปม / Triggered Honeypot Trap Channel', ANTI_RAID_CONFIG.honeypotTimeout, true);
         return true;
     }
