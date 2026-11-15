@@ -39,36 +39,28 @@ async function purgeUserAcrossGuild(guild, userId) {
     }
 }
 
-// Configuration for Hardcore Anti-Raid
+// Configuration for Streamlined Anti-Raid & Honeypot
 const ANTI_RAID_CONFIG = {
-    // 0. Exempt / Whitelist Channels (ห้องที่ยกเว้น ไม่ต้องตรวจ Anti-Raid)
+    // 0. Exempt / Whitelist Channels (ห้องที่ยกเว้น ไม่ต้องตรวจ Anti-Raid ปกติ)
     exemptChannels: [
         '1566177348330463242',
         ...(botConfig.antiRaidExemptChannels || [])
     ],
 
-    // 1. Fast Spam
-    maxMessagesPerWindow: 4,     // ไม่เกิน 4 ข้อความ
-    windowMs: 3500,              // ภายใน 3.5 วินาที
-    
-    // 2. Wall of Text / Copypasta
-    maxMessageLength: 280,       // ความยาวสูงสุดไม่เกิน 280 ตัวอักษร
-    maxCjkCharacters: 40,        // ห้ามส่งตัวอักษร จีน/ญี่ปุ่น เกิน 40 ตัว (กัน Raid Copypasta)
-    
-    // 3. Repeated Characters / Zalgo
-    maxRepeatPattern: 12,        // ตัวอักษรซ้ำกันเกิน 12 ครั้งติด
-    
-    // 4. Mass Mention
-    maxMentions: 3,              // ห้ามแท็กคนเกิน 3 คน
-    
-    // 5. Timeouts
+    // 1. Honeypot Channel (ห้องกับดักบอทสแปม)
+    honeypotChannelId: botConfig.honeypotChannelId || '1571400673273188424',
+    honeypotTimeout: 5 * 60 * 1000,     // ปิดปาก 5 นาทีทันทีเมื่อพิมพ์ในห้องกับดัก
+
+    // 2. Fast Spam (พิมพ์รัว)
+    maxMessagesPerWindow: 4,            // ไม่เกิน 4 ข้อความ
+    windowMs: 3500,                     // ภายใน 3.5 วินาที
     fastSpamTimeout: 15 * 60 * 1000,    // ปิดปาก 15 นาที
-    wallOfTextTimeout: 60 * 60 * 1000,  // ปิดปาก 1 ชั่วโมง
+
+    // 3. Mass Mention (แท็กคนหมู่มาก)
+    maxMentions: 3,                     // ห้ามแท็กคนเกิน 3 คน
     massMentionTimeout: 60 * 60 * 1000, // ปิดปาก 1 ชั่วโมง
-    inviteSpamTimeout: 30 * 60 * 1000,  // ปิดปาก 30 นาที
-    scamTimeout: 24 * 60 * 60 * 1000,   // ปิดปาก 24 ชั่วโมงสำหรับ Scam / Phishing / MrBeast
-    
-    // 6. Ban Threshold
+
+    // 4. Ban Threshold
     banAfterViolations: 3               // ทำผิดซ้ำ 3 ครั้ง แบนทันที
 };
 
@@ -80,12 +72,6 @@ function isExempt(member, channel) {
     if (member.user?.bot) return true;
     if (member.id === member.guild?.ownerId) return true;
 
-    // ยกเว้นห้องที่ระบุ ไม่ต้องตรวจ Anti-Raid
-    const channelId = channel?.id || (typeof channel === 'string' ? channel : null);
-    if (channelId && ANTI_RAID_CONFIG.exemptChannels.includes(channelId)) {
-        return true;
-    }
-
     // Check Administrator or ManageGuild permissions
     if (member.permissions && (
         member.permissions.has(PermissionFlagsBits.Administrator) ||
@@ -95,13 +81,19 @@ function isExempt(member, channel) {
         return true;
     }
 
+    // Exempt channels (ยกเว้นห้องที่ระบุ ไม่ต้องตรวจ Anti-Raid)
+    const channelId = channel?.id || (typeof channel === 'string' ? channel : null);
+    if (channelId && channelId !== ANTI_RAID_CONFIG.honeypotChannelId && ANTI_RAID_CONFIG.exemptChannels.includes(channelId)) {
+        return true;
+    }
+
     return false;
 }
 
 /**
- * Send DM notification to user explaining why they were punished and warning against spamming Admin
+ * Send DM notification to user explaining why they were punished and how to fix compromised account
  */
-async function sendPunishmentDM(member, guild, reason, actionTaken, triggerContent = '') {
+async function sendPunishmentDM(member, guild, reason, actionTaken, triggerContent = '', isHoneypot = false) {
     if (!member || !member.user) return false;
     try {
         const fields = [
@@ -114,26 +106,26 @@ async function sendPunishmentDM(member, guild, reason, actionTaken, triggerConte
             fields.push({ name: '💬 ข้อความของคุณที่ถูกตรวจพบ', value: `\`\`\`text\n${cleanSnippet}\n\`\`\``, inline: false });
         }
 
-        if (reason.includes('Scam') || reason.includes('MrBeast') || reason.includes('Phishing') || reason.includes('โทเคน')) {
+        if (isHoneypot) {
             fields.push({
-                name: '⚠️ คำเตือนด่วนสำหรับเจ้าของบัญชี (บัญชีของคุณอาจถูกแฮก)',
-                value: 'หากคุณไม่ได้เป็นคนส่งข้อความหรือรูปภาพนี้ด้วยตนเอง แสดงว่า **บัญชี Discord ของคุณถูกแฮก หรือติดไวรัสขโมย Token (Token Grabber)** จากการดาวน์โหลดไฟล์หรือสแกน QR Code แปลกๆ แนะนำให้ **เปลี่ยนรหัสผ่าน Discord และเปิด 2FA ทันที** เพื่อเตะแฮกเกอร์ออกจากบัญชีครับ',
+                name: '⚠️ คำเตือนด่วน: บัญชี Discord ของคุณอาจถูกแฮก',
+                value: 'ระบบตรวจพบการส่งข้อความเข้ามาใน **ห้องกับดักบอทสแปม (Honeypot)**\nหากคุณไม่ได้เป็นคนส่งข้อความนี้ด้วยตนเอง แสดงว่า **บัญชี Discord ของคุณถูกแฮก หรือติดไวรัสดูดโทเคน (Token Grabber)** จากการดาวน์โหลดโปรแกรมหรือสคริปต์แปลกๆ ครับ\n\n💡 **วิธีแก้ไขให้หายขาด:**\n1. ไปที่ **การตั้งค่า Discord ➔ บัญชีของฉัน (User Settings > My Account)**\n2. กด **"เปลี่ยนรหัสผ่าน" (Change Password)** ใหม่ทันที\n3. แนะนำเปิดการยืนยันตัวตน 2 ชั้น (**2FA**)\n\n*(เพียงเปลี่ยนรหัสผ่านใหม่ ระบบจะเตะแฮกเกอร์ออกจากบัญชีทันทีครับ และระบบได้ระงับการพิมพ์ชั่วคราว 5 นาทีเพื่อความปลอดภัย)*',
+                inline: false
+            });
+        } else {
+            fields.push({
+                name: '📌 หากไม่ได้ตั้งใจทำ (ติดต่อชี้แจง)',
+                value: 'หากคุณไม่ได้ตั้งใจ หรือคิดว่าเป็นความเข้าใจผิดของระบบ สามารถทักหา Admin ได้เพื่อให้แอดมินพิจารณาปลดให้ครับ (กรุณาพิมพ์บอกอย่างสุภาพ)',
                 inline: false
             });
         }
 
-        fields.push({
-            name: '📌 หากไม่ได้ตั้งใจทำ (ติดต่อชี้แจง)',
-            value: 'หากคุณไม่ได้ตั้งใจ หรือคิดว่าเป็นความเข้าใจผิดของระบบ **สามารถทักหา Admin ได้ โดยให้แจ้งว่าตนเองพิมพ์อะไรไป** เพื่อให้แอดมินตรวจสอบและพิจารณาปลดให้ครับ (⚠️ กรุณาพิมพ์บอกอย่างสุภาพ ห้ามส่งข้อความสแปมรัวๆ โดยเด็ดขาด)',
-            inline: false
-        });
-
         const dmEmbed = new EmbedBuilder()
-            .setTitle(`🛡️ ระบบแจ้งเตือนความปลอดภัยจาก ${guild?.name || 'เซิร์ฟเวอร์'}`)
-            .setColor(0xFF0033)
-            .setDescription(`คุณถูกระงับการใช้งานในเซิร์ฟเวอร์ชั่วคราวเนื่องจากระบบตรวจพบพฤติกรรมผิดกฎ (Anti-Raid)`)
+            .setTitle(`🛡️ ระบบแจ้งเตือนความปลอดภัยจาก ${guild?.name || 'KROZ Community'}`)
+            .setColor(isHoneypot ? 0xFFA500 : 0xFF0033)
+            .setDescription(`คุณถูกระงับการพิมพ์ในเซิร์ฟเวอร์ชั่วคราวเนื่องจากระบบตรวจพบพฤติกรรมผิดกฎ (Anti-Raid Guard)`)
             .addFields(fields)
-            .setFooter({ text: 'ระบบป้องกันอัตโนมัติ BlacklistScriptx' })
+            .setFooter({ text: 'KROZ Community Automated Security' })
             .setTimestamp();
 
         await member.send({ embeds: [dmEmbed] });
@@ -144,12 +136,11 @@ async function sendPunishmentDM(member, guild, reason, actionTaken, triggerConte
 }
 
 /**
- * Log anti-raid event to alert channel or console
+ * Log anti-raid action to designated alert channel or console
  */
 async function logAntiRaidAction(guild, targetMember, reason, actionTaken, dmSent = false, triggerContent = '') {
     console.warn(`🛡️ [Anti-Raid] ${actionTaken} ผู้ใช้ ${targetMember.user.tag} (${targetMember.id}) - เหตุผล: ${reason} (DM: ${dmSent ? 'สำเร็จ' : 'ผู้ใช้ปิด DM'})`);
 
-    // Prioritize dedicated Anti-Raid Log Channel (1553430888686034964)
     const logChannelId = botConfig.antiRaidChannelId || botConfig.notifyChannelId || '1553430888686034964';
     if (logChannelId && guild) {
         try {
@@ -168,8 +159,8 @@ async function logAntiRaidAction(guild, targetMember, reason, actionTaken, dmSen
                 }
 
                 const embed = new EmbedBuilder()
-                    .setTitle('🛡️ Anti-Raid Guard: ตรวจพบและระงับการโจมตี')
-                    .setColor(0xFF0033)
+                    .setTitle('🛡️ Anti-Raid Guard: บันทึกการระงับผู้ใช้')
+                    .setColor(0xFFA500)
                     .addFields(embedFields)
                     .setTimestamp();
                 await channel.send({ embeds: [embed] }).catch(() => {});
@@ -179,36 +170,29 @@ async function logAntiRaidAction(guild, targetMember, reason, actionTaken, dmSen
 }
 
 /**
- * Punish member (Delete -> Guild-Wide Purge -> DM -> Ban/Timeout)
+ * Punish member (Delete Message -> DM -> Apply Timeout/Ban -> Purge)
  */
-async function punishUser(message, member, reason, timeoutDuration, isEmergencyScam = false) {
+async function punishUser(message, member, reason, timeoutDuration, isHoneypot = false) {
     const userId = member.id;
     const content = message.content || '';
     const currentViolations = (userViolationCount.get(userId) || 0) + 1;
     userViolationCount.set(userId, currentViolations);
 
-    // Prevent duplicate race-condition calls when selfbot spams 10 channels at the same millisecond
+    // Prevent duplicate race-condition calls when selfbot spams multiple channels
     activePunishingUsers.add(userId);
     setTimeout(() => activePunishingUsers.delete(userId), 20000);
 
-    // 1. Delete the triggering message immediately
+    // 1. Delete triggering message immediately
     try {
         await message.delete().catch(() => {});
     } catch (e) {}
 
     // Determine punishment
-    // For MrBeast Scam / Token Grabber / Phishing -> BAN with 24h message purge!
-    // (This leverages Discord API to instantly delete all messages across all channels natively)
     let actionTaken = 'Timeout';
     let isBan = false;
 
-    if (isEmergencyScam) {
-        if (member.bannable) {
-            actionTaken = 'Banned (ล้างข้อความทุกห้อง)';
-            isBan = true;
-        } else {
-            actionTaken = 'Timeout 24 ชม. (ล้างข้อความทุกห้อง)';
-        }
+    if (isHoneypot) {
+        actionTaken = 'Mute (Timeout 5 นาที)';
     } else if (currentViolations >= ANTI_RAID_CONFIG.banAfterViolations && member.bannable) {
         actionTaken = 'Banned (ถาวร)';
         isBan = true;
@@ -216,15 +200,15 @@ async function punishUser(message, member, reason, timeoutDuration, isEmergencyS
         actionTaken = `Timeout (${Math.round(timeoutDuration / 60000)} นาที)`;
     }
 
-    // 2. Send DM to the violator before applying timeout/ban
-    const dmSent = await sendPunishmentDM(member, message.guild, reason, actionTaken, content);
+    // 2. Send DM notification to violator
+    const dmSent = await sendPunishmentDM(member, message.guild, reason, actionTaken, content, isHoneypot);
 
-    // 3. Apply Ban or Timeout
+    // 3. Apply Timeout or Ban
     if (isBan) {
         try {
             await member.ban({
                 reason: `[Anti-Raid Guard] ${reason}`,
-                deleteMessageSeconds: 86400 // ลบข้อความย้อนหลัง 24 ชม. ทุกห้องในเซิร์ฟเวอร์แบบ Native 100%
+                deleteMessageSeconds: 86400 // ลบข้อย้อนหลัง 24 ชม. ทุกห้องในเซิร์ฟเวอร์
             });
         } catch (err) {
             console.warn('[Anti-Raid Ban Error]:', err.message);
@@ -237,120 +221,60 @@ async function punishUser(message, member, reason, timeoutDuration, isEmergencyS
         }
     }
 
-    // 4. Clean up messages across ALL channels in the server (Guild-Wide Sweep)
-    await purgeUserAcrossGuild(message.guild, userId);
+    // 4. Clean up messages across ALL channels if caught in Honeypot
+    if (isHoneypot) {
+        await purgeUserAcrossGuild(message.guild, userId);
+    }
 
     // 5. Temporary in-channel alert
     try {
-        const alert = await message.channel.send(`🛡️ **[Anti-Raid Guard]** ระงับ <@${userId}> เรียบร้อย: \`${reason}\` (${actionTaken})`).catch(() => null);
+        const alert = await message.channel.send(`🛡️ **[Honeypot Guard]** ระงับ <@${userId}>: \`${reason}\` (${actionTaken})`).catch(() => null);
         if (alert) {
-            setTimeout(() => alert.delete().catch(() => {}), 5000);
+            setTimeout(() => alert.delete().catch(() => {}), 6000);
         }
     } catch (e) {}
 
-    // 6. Send Log to designated channel
+    // 6. Send Log to designated alert channel
     await logAntiRaidAction(message.guild, member, reason, actionTaken, dmSent, content);
 }
 
 /**
- * Main Message Inspector for Anti-Raid Protection
+ * Main Message Inspector for Anti-Raid & Honeypot Protection
  */
 async function handleAntiRaidMessage(message) {
     if (!message || !message.guild || !message.member) return false;
     if (isExempt(message.member, message.channel)) return false;
 
-    // Concurrency Lock: If this user is currently undergoing punishment,
-    // immediately delete any remaining incoming messages across other channels without duplicate processing!
+    // Concurrency Lock: If user is already undergoing punishment, immediately delete
     if (activePunishingUsers.has(message.author.id)) {
         try { await message.delete().catch(() => {}); } catch (e) {}
         return true;
     }
 
+    const channelId = message.channel.id;
     const content = message.content || '';
     const userId = message.author.id;
     const now = Date.now();
 
     // ----------------------------------------------------
-    // 0. 🚨 ตรวจจับ MrBeast / Token Grabber / Phishing Scam
+    // 0. 🍯 HONEYPOT TRAP CHANNEL CHECK (#1571400673273188424)
     // ----------------------------------------------------
-    const contentLower = content.toLowerCase();
-    const hasAttachments = message.attachments && message.attachments.size > 0;
-    const attachmentNames = hasAttachments 
-        ? message.attachments.map(a => (a.name || '').toLowerCase()).join(' ') 
-        : '';
-    const fullText = (contentLower + ' ' + attachmentNames).trim();
-
-    // 0.1 คีย์เวิร์ด MrBeast / Fake Giveaway / QR Code
-    const isMrBeastScam = /mr\.?\s*beast/i.test(fullText) && (
-        hasAttachments || 
-        /(giveaway|gift\s*card|free\s*nitro|nitro|claim|tesla|\$1,?000|scan\s*qr|scan\s*code|promo)/i.test(fullText)
-    );
-
-    // 0.2 ตรวจจับ Phishing Domains / Fake Discord Nitro / Telegram Bots
-    const isPhishingLink = /(t\.me\/|bit\.ly\/|dlscord|discorcl|discocl|disord|disbord-nitro|discord-app|discord-gift|discord-nitro|nitro-discord|[a-z0-9-]+\.(xyz|top|gift|quest|surf|click|promo)\b)/i.test(contentLower);
-
-    // 0.3 ตรวจจับ Free Nitro Scam ทั่วไป
-    const isNitroScam = /(free\s*nitro|nitro\s*free|claim\s*nitro|steam\s*gift\s*card)/i.test(contentLower) && (
-        hasAttachments || isPhishingLink || contentLower.includes('http')
-    );
-
-    // 0.4 บัญชีธรรมดาส่งรูปภาพพร้อมแท็ก @everyone หรือ @here
-    const isImageEveryoneRaid = hasAttachments && (content.includes('@everyone') || content.includes('@here'));
-
-    if (isMrBeastScam || isPhishingLink || isNitroScam || isImageEveryoneRaid) {
-        let reason = 'ส่งภาพ/ข้อความสแปม MrBeast Scam หรือลิงก์ Phishing ดูดรหัส';
-        if (isImageEveryoneRaid) reason = 'ส่งรูปภาพพร้อมแท็ก @everyone (Scam/Raid)';
-        else if (isNitroScam) reason = 'สแปมหลอกแจก Discord Nitro ปลอม (Phishing)';
-        else if (isPhishingLink) reason = 'ส่งลิงก์ฟิชชิ่ง/ดูดโทเคน (Token Grabber)';
-
-        await punishUser(message, message.member, reason, ANTI_RAID_CONFIG.scamTimeout, true);
+    if (channelId === ANTI_RAID_CONFIG.honeypotChannelId) {
+        await punishUser(message, message.member, 'พิมพ์ข้อความในห้องกับดักบอทสแปม (Honeypot Channel)', ANTI_RAID_CONFIG.honeypotTimeout, true);
         return true;
     }
 
     // ----------------------------------------------------
-    // 1. ตรวจจับ Wall of Text / Copypasta ขนาดยักษ์ (เช่น อักษรจีน/ญี่ปุ่นที่เพิ่งโดน)
-    // ----------------------------------------------------
-    // นับตัวอักษร CJK (จีน/ญี่ปุ่น)
-    const cjkMatches = content.match(/[\u4e00-\u9fa5\u3040-\u30ff]/g);
-    const cjkCount = cjkMatches ? cjkMatches.length : 0;
-
-    if (cjkCount >= ANTI_RAID_CONFIG.maxCjkCharacters) {
-        await punishUser(message, message.member, `ยิงตัวอักษรจีน/ญี่ปุ่น Copypasta (${cjkCount} ตัว)`, ANTI_RAID_CONFIG.wallOfTextTimeout);
-        return true;
-    }
-
-    if (content.length > ANTI_RAID_CONFIG.maxMessageLength) {
-        await punishUser(message, message.member, `ข้อความยาวผิดปกติ (${content.length} ตัวอักษร)`, ANTI_RAID_CONFIG.wallOfTextTimeout);
-        return true;
-    }
-
-    // ----------------------------------------------------
-    // 2. ตรวจจับการสแปมตัวอักษรซ้ำๆ (Repeated Characters / Zalgo)
-    // ----------------------------------------------------
-    if (/(.)\1{12,}/.test(content)) {
-        await punishUser(message, message.member, 'สแปมตัวอักษรซ้ำๆ ยาวเกินกำหนด', ANTI_RAID_CONFIG.fastSpamTimeout);
-        return true;
-    }
-
-    // ----------------------------------------------------
-    // 3. ตรวจจับ Mass Mention (แท็กคนเกิน หรือพยายามแท็ก @everyone)
+    // 1. 📢 ตรวจจับ Mass Mention (แท็กคนเกิน 3 คน หรือแท็ก @everyone / @here)
     // ----------------------------------------------------
     const mentionCount = message.mentions.users.size + message.mentions.roles.size;
     if (mentionCount > ANTI_RAID_CONFIG.maxMentions || content.includes('@everyone') || content.includes('@here')) {
-        await punishUser(message, message.member, `แท็กหมู่เกินกำหนด (${mentionCount} คน)`, ANTI_RAID_CONFIG.massMentionTimeout);
+        await punishUser(message, message.member, `แท็กหมู่เกินกำหนด (${mentionCount} คน)`, ANTI_RAID_CONFIG.massMentionTimeout, false);
         return true;
     }
 
     // ----------------------------------------------------
-    // 4. ตรวจจับลิงก์เชิญ Discord อื่น (Discord Invite Links)
-    // ----------------------------------------------------
-    if (/(discord\.gg|discordapp\.com\/invite|discord\.com\/invite)\/[a-zA-Z0-9]+/i.test(content)) {
-        await punishUser(message, message.member, 'ส่งลิงก์เชิญ Discord อื่นโดยไม่ได้รับอนุญาต', ANTI_RAID_CONFIG.inviteSpamTimeout);
-        return true;
-    }
-
-    // ----------------------------------------------------
-    // 5. ตรวจจับ Fast Spam (พิมพ์รัวๆ เกิน X ข้อความใน Y วินาที)
+    // 2. ⚡ ตรวจจับ Fast Spam (พิมพ์รัวเกิน 4 ข้อความใน 3.5 วินาที)
     // ----------------------------------------------------
     let history = userMessageHistory.get(userId) || [];
     history = history.filter(ts => now - ts < ANTI_RAID_CONFIG.windowMs);
@@ -358,19 +282,19 @@ async function handleAntiRaidMessage(message) {
     userMessageHistory.set(userId, history);
 
     if (history.length >= ANTI_RAID_CONFIG.maxMessagesPerWindow) {
-        await punishUser(message, message.member, `พิมพ์รัวเกินไป (${history.length} ข้อความใน 3.5 วินาที)`, ANTI_RAID_CONFIG.fastSpamTimeout);
+        await punishUser(message, message.member, `พิมพ์รัวเกินไป (${history.length} ข้อความใน 3.5 วินาที)`, ANTI_RAID_CONFIG.fastSpamTimeout, false);
         return true;
     }
 
     // ----------------------------------------------------
-    // 6. ตรวจจับ Duplicate Message Spam (ส่งข้อความเดิมซ้ำๆ 3 ครั้ง)
+    // 3. 🔁 ตรวจจับ Duplicate Message Spam (ส่งข้อความเดิมซ้ำๆ 3 ครั้ง)
     // ----------------------------------------------------
     const last = userLastMessage.get(userId);
     if (last && last.content === content && (now - last.time < 10000)) {
         const count = last.count + 1;
         userLastMessage.set(userId, { content, count, time: now });
         if (count >= 3) {
-            await punishUser(message, message.member, 'ส่งข้อความเดิมซ้ำๆ (Duplicate Spam)', ANTI_RAID_CONFIG.fastSpamTimeout);
+            await punishUser(message, message.member, 'ส่งข้อความเดิมซ้ำๆ (Duplicate Spam)', ANTI_RAID_CONFIG.fastSpamTimeout, false);
             return true;
         }
     } else {
@@ -380,8 +304,46 @@ async function handleAntiRaidMessage(message) {
     return false;
 }
 
+/**
+ * Automatically sets up the Honeypot warning embed in the honeypot channel
+ */
+async function setupHoneypotChannel(client) {
+    const channelId = ANTI_RAID_CONFIG.honeypotChannelId;
+    if (!channelId || !client) return;
+
+    try {
+        const channel = await client.channels.fetch(channelId).catch(() => null);
+        if (!channel || !channel.isTextBased()) return;
+
+        // Check if bot already posted the honeypot notice
+        const messages = await channel.messages.fetch({ limit: 15 }).catch(() => null);
+        const hasBotNotice = messages && messages.some(m => m.author.id === client.user.id && m.embeds && m.embeds.length > 0);
+
+        if (!hasBotNotice) {
+            const embed = new EmbedBuilder()
+                .setTitle('🍯 DO NOT SEND MESSAGES IN THIS CHANNEL')
+                .setColor(0xFFA500)
+                .setDescription(
+                    '**This channel is an automated trap used to catch spam bots and compromised accounts.**\n\n' +
+                    '⚠️ **Any messages sent here will result in an immediate 5-minute timeout and message purge.**\n\n' +
+                    '──────────────────────────────────\n\n' +
+                    '🇹🇭 **ห้องนี้เป็นกับดักอัตโนมัติสำหรับดักจับบอทสแปมและบัญชีที่ถูกแฮก**\n\n' +
+                    '⚠️ **ห้ามพิมพ์ข้อความใดๆ ในห้องนี้เด็ดขาด หากพิมพ์จะถูกระงับการพิมพ์ (Timeout) 5 นาทีทันที!**'
+                )
+                .setFooter({ text: 'KROZ Honeypot Protection • Automated Security' })
+                .setTimestamp();
+
+            await channel.send({ embeds: [embed] });
+            console.log(`🍯 [Honeypot]: โพสต์การ์ดแจ้งเตือนในห้อง Honeypot (${channelId}) เรียบร้อย`);
+        }
+    } catch (err) {
+        console.warn('⚠️ [Honeypot Setup Error]:', err.message);
+    }
+}
+
 module.exports = {
     handleAntiRaidMessage,
+    setupHoneypotChannel,
     punishUser,
     ANTI_RAID_CONFIG
 };

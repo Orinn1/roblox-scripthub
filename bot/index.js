@@ -95,7 +95,7 @@ const { startYouTubeMonitor } = require('./youtube-monitor.js');
 const { startRobloxMonitor } = require('./roblox-monitor.js');
 const { startStockMonitor } = require('./stock-monitor.js');
 const { handleBypassMessage } = require('./bypass-helper.js');
-const { handleAntiRaidMessage } = require('./anti-raid.js');
+const { handleAntiRaidMessage, setupHoneypotChannel } = require('./anti-raid.js');
 const { handleStickyMessage, postStickyMessage } = require('./sticky-message.js');
 
 client.once(Events.ClientReady, async (readyClient) => {
@@ -129,6 +129,9 @@ client.once(Events.ClientReady, async (readyClient) => {
             await postStickyMessage(roleWaitChannel);
         }
     } catch (e) {}
+
+    // Initialize Honeypot Trap Notice in #1571400673273188424
+    setupHoneypotChannel(client);
 });
 
 // Interaction Handling
