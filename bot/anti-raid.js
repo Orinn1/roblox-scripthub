@@ -108,22 +108,41 @@ async function sendPunishmentDM(member, guild, reason, actionTaken, triggerConte
 
         if (isHoneypot) {
             fields.push({
-                name: '⚠️ คำเตือนด่วน: บัญชี Discord ของคุณอาจถูกแฮก',
-                value: 'ระบบตรวจพบการส่งข้อความเข้ามาใน **ห้องกับดักบอทสแปม (Honeypot)**\nหากคุณไม่ได้เป็นคนส่งข้อความนี้ด้วยตนเอง แสดงว่า **บัญชี Discord ของคุณถูกแฮก หรือติดไวรัสดูดโทเคน (Token Grabber)** จากการดาวน์โหลดโปรแกรมหรือสคริปต์แปลกๆ ครับ\n\n💡 **วิธีแก้ไขให้หายขาด:**\n1. ไปที่ **การตั้งค่า Discord ➔ บัญชีของฉัน (User Settings > My Account)**\n2. กด **"เปลี่ยนรหัสผ่าน" (Change Password)** ใหม่ทันที\n3. แนะนำเปิดการยืนยันตัวตน 2 ชั้น (**2FA**)\n\n*(เพียงเปลี่ยนรหัสผ่านใหม่ ระบบจะเตะแฮกเกอร์ออกจากบัญชีทันทีครับ และระบบได้ระงับการพิมพ์ชั่วคราว 5 นาทีเพื่อความปลอดภัย)*',
+                name: '⚠️ คำเตือนด่วน: บัญชีของคุณอาจถูกแฮก / Account Security Alert',
+                value: 
+                    '🇹🇭 **[ภาษาไทย]**\n' +
+                    'ระบบตรวจพบการส่งข้อความเข้ามาใน **ห้องกับดักบอทสแปม (Honeypot Channel)**\n' +
+                    'หากคุณไม่ได้เป็นคนส่งข้อความนี้ แสดงว่า **บัญชี Discord ของคุณถูกแฮก หรือติดไวรัสดูดโทเคน (Token Grabber)** จากการดาวน์โหลดโปรแกรม/สคริปต์แปลกๆ ครับ\n\n' +
+                    '💡 **วิธีแก้ไขให้หายขาด:**\n' +
+                    '1. ไปที่ **User Settings (การตั้งค่า) ➔ My Account (บัญชีของฉัน)**\n' +
+                    '2. กด **Change Password (เปลี่ยนรหัสผ่าน)** ทันที\n' +
+                    '3. เปิดการยืนยันตัวตน 2 ชั้น (**2FA**)\n' +
+                    '*(เพียงเปลี่ยนรหัสผ่านใหม่ ระบบจะเตะแฮกเกอร์ออกจากบัญชีทันทีครับ)*\n\n' +
+                    '──────────────────────────────────\n\n' +
+                    '🇬🇧 **[English]**\n' +
+                    'You triggered our automated **Spam Bot Trap (Honeypot Channel)**.\n' +
+                    'If you did not send this message, your **Discord account is compromised / token-grabbed** by malware or untrusted scripts.\n\n' +
+                    '💡 **How to secure your account:**\n' +
+                    '1. Go to **User Settings ➔ My Account**\n' +
+                    '2. Click **Change Password** immediately\n' +
+                    '3. Enable **Two-Factor Authentication (2FA)**\n' +
+                    '*(Changing your password invalidates your token and kicks out the hacker immediately!)*',
                 inline: false
             });
         } else {
             fields.push({
-                name: '📌 หากไม่ได้ตั้งใจทำ (ติดต่อชี้แจง)',
-                value: 'หากคุณไม่ได้ตั้งใจ หรือคิดว่าเป็นความเข้าใจผิดของระบบ สามารถทักหา Admin ได้เพื่อให้แอดมินพิจารณาปลดให้ครับ (กรุณาพิมพ์บอกอย่างสุภาพ)',
+                name: '📌 ติดต่อชี้แจง / Contact Admin',
+                value: 
+                    '🇹🇭 หากคิดว่าเป็นความเข้าใจผิด สามารถติดต่อ Admin เพื่อชี้แจงได้ครับ (กรุณาพิมพ์อย่างสุภาพ)\n' +
+                    '🇬🇧 If you believe this is a mistake, you may politely reach out to an Admin.',
                 inline: false
             });
         }
 
         const dmEmbed = new EmbedBuilder()
-            .setTitle(`🛡️ ระบบแจ้งเตือนความปลอดภัยจาก ${guild?.name || 'KROZ Community'}`)
+            .setTitle(`🛡️ Security Alert / ระบบแจ้งเตือนความปลอดภัย — ${guild?.name || 'KROZ Community'}`)
             .setColor(isHoneypot ? 0xFFA500 : 0xFF0033)
-            .setDescription(`คุณถูกระงับการพิมพ์ในเซิร์ฟเวอร์ชั่วคราวเนื่องจากระบบตรวจพบพฤติกรรมผิดกฎ (Anti-Raid Guard)`)
+            .setDescription(`คุณถูกระงับการพิมพ์ชั่วคราวเนื่องจากระบบตรวจพบพฤติกรรมผิดกฎ (Anti-Raid)\nYou have been timed out temporarily due to a security violation.`)
             .addFields(fields)
             .setFooter({ text: 'KROZ Community Automated Security' })
             .setTimestamp();
@@ -192,12 +211,13 @@ async function punishUser(message, member, reason, timeoutDuration, isHoneypot =
     let isBan = false;
 
     if (isHoneypot) {
-        actionTaken = 'Mute (Timeout 5 นาที)';
+        actionTaken = 'Mute (Timeout 5 mins / 5 นาที)';
     } else if (currentViolations >= ANTI_RAID_CONFIG.banAfterViolations && member.bannable) {
-        actionTaken = 'Banned (ถาวร)';
+        actionTaken = 'Banned (Permanent / ถาวร)';
         isBan = true;
     } else {
-        actionTaken = `Timeout (${Math.round(timeoutDuration / 60000)} นาที)`;
+        const mins = Math.round(timeoutDuration / 60000);
+        actionTaken = `Timeout (${mins} mins / ${mins} นาที)`;
     }
 
     // 2. Send DM notification to violator
@@ -260,7 +280,7 @@ async function handleAntiRaidMessage(message) {
     // 0. 🍯 HONEYPOT TRAP CHANNEL CHECK (#1571400673273188424)
     // ----------------------------------------------------
     if (channelId === ANTI_RAID_CONFIG.honeypotChannelId) {
-        await punishUser(message, message.member, 'พิมพ์ข้อความในห้องกับดักบอทสแปม (Honeypot Channel)', ANTI_RAID_CONFIG.honeypotTimeout, true);
+        await punishUser(message, message.member, 'พิมพ์ข้อความในห้องกับดักบอทสแปม / Triggered Honeypot Trap Channel', ANTI_RAID_CONFIG.honeypotTimeout, true);
         return true;
     }
 
@@ -269,7 +289,7 @@ async function handleAntiRaidMessage(message) {
     // ----------------------------------------------------
     const mentionCount = message.mentions.users.size + message.mentions.roles.size;
     if (mentionCount > ANTI_RAID_CONFIG.maxMentions || content.includes('@everyone') || content.includes('@here')) {
-        await punishUser(message, message.member, `แท็กหมู่เกินกำหนด (${mentionCount} คน)`, ANTI_RAID_CONFIG.massMentionTimeout, false);
+        await punishUser(message, message.member, `แท็กหมู่เกินกำหนด (${mentionCount} คน) / Mass Mention`, ANTI_RAID_CONFIG.massMentionTimeout, false);
         return true;
     }
 
@@ -282,7 +302,7 @@ async function handleAntiRaidMessage(message) {
     userMessageHistory.set(userId, history);
 
     if (history.length >= ANTI_RAID_CONFIG.maxMessagesPerWindow) {
-        await punishUser(message, message.member, `พิมพ์รัวเกินไป (${history.length} ข้อความใน 3.5 วินาที)`, ANTI_RAID_CONFIG.fastSpamTimeout, false);
+        await punishUser(message, message.member, `พิมพ์รัวเกินไป (${history.length} ข้อความใน 3.5s) / Fast Spamming`, ANTI_RAID_CONFIG.fastSpamTimeout, false);
         return true;
     }
 
@@ -294,7 +314,7 @@ async function handleAntiRaidMessage(message) {
         const count = last.count + 1;
         userLastMessage.set(userId, { content, count, time: now });
         if (count >= 3) {
-            await punishUser(message, message.member, 'ส่งข้อความเดิมซ้ำๆ (Duplicate Spam)', ANTI_RAID_CONFIG.fastSpamTimeout, false);
+            await punishUser(message, message.member, 'ส่งข้อความเดิมซ้ำๆ / Duplicate Spamming', ANTI_RAID_CONFIG.fastSpamTimeout, false);
             return true;
         }
     } else {
