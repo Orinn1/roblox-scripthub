@@ -4,7 +4,7 @@ const { ChannelType, PermissionFlagsBits } = require('discord.js');
 const botConfig = require('./config.js');
 
 const STATS_DATA_PATH = path.join(__dirname, '..', 'data', 'server-stats.json');
-const DEFAULT_SPAM_BASELINE = 18900;
+const DEFAULT_SPAM_BASELINE = 0; // Starts from 0 real blocks
 const UPDATE_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes (Discord limit: max 2 edits per 10m)
 
 let cachedStats = {
@@ -107,12 +107,12 @@ async function fetchYouTubeSubscribers() {
 
 // 5. Increment Spam Blocked count
 function incrementSpamBlocked() {
-    cachedStats.spamBlocked = (cachedStats.spamBlocked || DEFAULT_SPAM_BASELINE) + 1;
+    cachedStats.spamBlocked = (cachedStats.spamBlocked || 0) + 1;
     saveStatsData();
     console.log(`🛡️ [Server Stats] Spam Blocked count incremented to: ${cachedStats.spamBlocked.toLocaleString('en-US')}`);
 }
 
-// 6. Find or create stats category and channels
+// 6. Find or create stats category and channels (WITH AUTOMATIC DEDUPLICATION)
 async function getOrCreateStatsChannels(guild) {
     if (!guild) return null;
 
@@ -122,19 +122,36 @@ async function getOrCreateStatsChannels(guild) {
         return null;
     }
 
+    // Force fetch all guild channels to ensure cache is 100% complete
+    await guild.channels.fetch().catch(() => {});
+
     // A. Find or create Category: "--- SERVER STATS ---"
     let category = null;
     const catId = botConfig.statsCategoryId || cachedStats.channelIds.categoryId;
     if (catId) {
-        category = guild.channels.cache.get(catId)
-            || await guild.channels.fetch(catId).catch(() => null);
+        category = guild.channels.cache.get(catId);
     }
-    if (!category) {
-        category = guild.channels.cache.find(c => 
-            c.type === ChannelType.GuildCategory && 
-            c.name.trim().toUpperCase() === '--- SERVER STATS ---'
-        );
+
+    // Search all categories matching "--- SERVER STATS ---"
+    const matchingCategories = guild.channels.cache.filter(c => 
+        c.type === ChannelType.GuildCategory && 
+        c.name.trim().toUpperCase() === '--- SERVER STATS ---'
+    );
+
+    if (matchingCategories.size > 0) {
+        const catArray = Array.from(matchingCategories.values());
+        if (!category) {
+            category = catArray[0];
+        }
+        // Auto-delete duplicate categories if any
+        for (const extraCat of catArray) {
+            if (extraCat.id !== category.id) {
+                console.log(`🧹 [Server Stats] Deleting duplicate category: ${extraCat.name} (${extraCat.id})`);
+                await extraCat.delete('Delete duplicate stats category').catch(() => {});
+            }
+        }
     }
+
     if (!category) {
         category = await guild.channels.create({
             name: '--- SERVER STATS ---',
@@ -156,21 +173,36 @@ async function getOrCreateStatsChannels(guild) {
     if (!category) return null;
     cachedStats.channelIds.categoryId = category.id;
 
-    // Helper to find or create voice stat channel
+    // Helper to find, create, and DEDUPLICATE voice stat channel
     async function ensureVoiceStatChannel(savedIdKey, configOverrideKey, prefix, initialName, position) {
-        let channel = null;
         const savedId = botConfig[configOverrideKey] || cachedStats.channelIds[savedIdKey];
+        let channel = null;
+
         if (savedId) {
-            channel = guild.channels.cache.get(savedId)
-                || await guild.channels.fetch(savedId).catch(() => null);
+            channel = guild.channels.cache.get(savedId);
         }
-        if (!channel) {
-            channel = guild.channels.cache.find(c =>
-                c.parentId === category.id &&
-                c.type === ChannelType.GuildVoice &&
-                c.name.toLowerCase().startsWith(prefix.toLowerCase())
-            );
+
+        // Find ALL voice channels under this category matching prefix
+        const matchingChannels = guild.channels.cache.filter(c =>
+            c.parentId === category.id &&
+            c.type === ChannelType.GuildVoice &&
+            c.name.toLowerCase().startsWith(prefix.toLowerCase())
+        );
+
+        if (matchingChannels.size > 0) {
+            const arr = Array.from(matchingChannels.values());
+            if (!channel) {
+                channel = arr[0];
+            }
+            // Auto-clean: DELETE all extra duplicate channels!
+            for (const ch of arr) {
+                if (ch.id !== channel.id) {
+                    console.log(`🧹 [Server Stats] Deleting duplicate stat channel: ${ch.name} (${ch.id})`);
+                    await ch.delete('Auto-clean duplicate stats channel').catch(() => {});
+                }
+            }
         }
+
         if (!channel) {
             channel = await guild.channels.create({
                 name: initialName,
@@ -208,7 +240,7 @@ async function getOrCreateStatsChannels(guild) {
 
     const membersCh = await ensureVoiceStatChannel('membersChannelId', 'statsMembersChannelId', 'Members:', `Members: ${(guild.memberCount || 0).toLocaleString('en-US')}`, 1);
     const youtubeCh = await ensureVoiceStatChannel('youtubeChannelId', 'statsYoutubeChannelId', 'YouTube:', `YouTube: ${cachedStats.lastKnownYouTubeSubs || '2.19K'}`, 2);
-    const spamCh = await ensureVoiceStatChannel('spamChannelId', 'statsSpamChannelId', 'Spam Blocked:', `Spam Blocked: ${cachedStats.spamBlocked.toLocaleString('en-US')}`, 3);
+    const spamCh = await ensureVoiceStatChannel('spamChannelId', 'statsSpamChannelId', 'Spam Blocked:', `Spam Blocked: ${(cachedStats.spamBlocked || 0).toLocaleString('en-US')}`, 3);
 
     saveStatsData();
     return { category, membersCh, youtubeCh, spamCh };
@@ -248,7 +280,7 @@ async function updateServerStats(client) {
         }
 
         // 3. Spam Blocked
-        const targetSpamName = `Spam Blocked: ${(cachedStats.spamBlocked || DEFAULT_SPAM_BASELINE).toLocaleString('en-US')}`;
+        const targetSpamName = `Spam Blocked: ${(cachedStats.spamBlocked || 0).toLocaleString('en-US')}`;
         if (spamCh && spamCh.name !== targetSpamName) {
             await spamCh.setName(targetSpamName).catch(err => {
                 console.warn('[Server Stats] Spam channel rename rate limited or failed:', err.message);

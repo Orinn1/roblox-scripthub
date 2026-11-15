@@ -98,21 +98,21 @@ async function sendPunishmentDM(member, guild, reason, actionTaken, triggerConte
     if (!member || !member.user) return false;
     try {
         if (isHoneypot) {
-            // 🇹🇭 ข้อความที่ 1: ภาษาไทย (Thai Version)
-            const thaiFields = [
-                { name: '🚨 เหตุผล', value: `\`พิมพ์ข้อความในห้องกับดักบอทสแปม (Honeypot)\``, inline: true },
-                { name: '⚡ บทลงโทษ', value: `\`ระงับการพิมพ์ 5 นาที (Timeout 5m)\``, inline: true }
+            // 🛡️ ส่งข้อความเตือน 1 ข้อความเท่านั้น (Bilingual Clean Single Embed)
+            const fields = [
+                { name: '🚨 เหตุผล / Reason', value: '`พิมพ์ในห้องกับดักบอทสแปม (Honeypot Trap)`', inline: true },
+                { name: '⚡ บทลงโทษ / Penalty', value: '`ระงับการพิมพ์ 5 นาที (Timeout 5m)`', inline: true }
             ];
             if (triggerContent) {
                 const cleanSnippet = triggerContent.length > 80 ? triggerContent.slice(0, 77) + '...' : triggerContent;
-                thaiFields.push({ name: '💬 ข้อความที่ตรวจพบ', value: `\`\`\`text\n${cleanSnippet}\n\`\`\``, inline: false });
+                fields.push({ name: '💬 ข้อความที่ตรวจพบ / Detected Message', value: `\`\`\`text\n${cleanSnippet}\n\`\`\``, inline: false });
             }
-            thaiFields.push(
+            fields.push(
                 {
                     name: '⚠️ บัญชี Discord ของคุณอาจถูกแฮก หรือติดไวรัสดูด Token',
                     value: 
                         'หากคุณไม่ได้เป็นคนส่งข้อความนี้ แสดงว่า **บัญชีของคุณถูกแฮก หรือติดไวรัสดูดโทเคน (Token Grabber)** จากการดาวน์โหลดโปรแกรม/สคริปต์แปลกๆ ครับ\n\n' +
-                        '💡 **วิธีแก้ไขให้หายขาดทันที:**\n' +
+                        '💡 **วิธีแก้ไขให้หายขาดทันที (How to Fix):**\n' +
                         '1️⃣ ไปที่ **User Settings (การตั้งค่า) ➔ My Account (บัญชีของฉัน)**\n' +
                         '2️⃣ กด **Change Password (เปลี่ยนรหัสผ่าน)** ทันที\n' +
                         '3️⃣ เปิดการยืนยันตัวตน 2 ชั้น (**2FA**)\n\n' +
@@ -120,59 +120,21 @@ async function sendPunishmentDM(member, guild, reason, actionTaken, triggerConte
                     inline: false
                 },
                 {
-                    name: '📌 ติดต่อแอดมิน',
-                    value: 'หากคิดว่าเป็นความเข้าใจผิด สามารถติดต่อ Admin เพื่อชี้แจงได้ครับ (กรุณาพิมพ์อย่างสุภาพ)',
+                    name: '📌 ติดต่อแอดมิน / Contact Admin',
+                    value: 'หากคิดว่าเป็นความเข้าใจผิด สามารถติดต่อ Admin เพื่อชี้แจงได้ครับ\n*If you believe this was a mistake, you may reach out to an Admin.*',
                     inline: false
                 }
             );
 
-            const thaiEmbed = new EmbedBuilder()
+            const embed = new EmbedBuilder()
                 .setTitle(`🛡️ แจ้งเตือนความปลอดภัย — ${guild?.name || 'KROZ Community'}`)
                 .setColor(0xFFA500) // Honey Orange
-                .setDescription(`⚠️ **คุณถูกระงับการพิมพ์ชั่วคราว 5 นาที**\nระบบตรวจพบว่าคุณพิมพ์ข้อความใน **ห้องกับดักบอทสแปม (Honeypot)**`)
-                .addFields(thaiFields)
+                .setDescription(`⚠️ **คุณถูกระงับการพิมพ์ชั่วคราว 5 นาที (Timed out for 5 minutes)**\nระบบตรวจพบข้อความใน **ห้องกับดักบอทสแปม (Honeypot Channel)**`)
+                .addFields(fields)
                 .setFooter({ text: 'KROZ Community Automated Security' })
                 .setTimestamp();
 
-            // 🇬🇧 ข้อความที่ 2: ภาษาอังกฤษ (English Version)
-            const enFields = [
-                { name: '🚨 Reason', value: `\`Triggered Spam Bot Trap Channel\``, inline: true },
-                { name: '⚡ Action Taken', value: `\`Muted (5 Minutes Timeout)\``, inline: true }
-            ];
-            if (triggerContent) {
-                const cleanSnippet = triggerContent.length > 80 ? triggerContent.slice(0, 77) + '...' : triggerContent;
-                enFields.push({ name: '💬 Detected Message', value: `\`\`\`text\n${cleanSnippet}\n\`\`\``, inline: false });
-            }
-            enFields.push(
-                {
-                    name: '⚠️ Your Discord Account May Be Compromised',
-                    value: 
-                        'If you did not send this message yourself, your Discord token was **grabbed / compromised by malware or untrusted scripts**.\n\n' +
-                        '💡 **How to secure your account immediately:**\n' +
-                        '1️⃣ Go to **User Settings ➔ My Account**\n' +
-                        '2️⃣ Click **Change Password** immediately\n' +
-                        '3️⃣ Enable **Two-Factor Authentication (2FA)**\n\n' +
-                        '*(Changing your password invalidates your token and kicks out the intruder immediately!)*',
-                    inline: false
-                },
-                {
-                    name: '📌 Contact Admin',
-                    value: 'If you believe this is a mistake, you may politely reach out to an Admin.',
-                    inline: false
-                }
-            );
-
-            const enEmbed = new EmbedBuilder()
-                .setTitle(`🛡️ Security Alert — ${guild?.name || 'KROZ Community'}`)
-                .setColor(0x5865F2) // Discord Blurple
-                .setDescription(`⚠️ **You have been timed out for 5 minutes.**\nYou triggered our automated **Spam Bot Trap (Honeypot Channel)**.`)
-                .addFields(enFields)
-                .setFooter({ text: 'KROZ Community Automated Security' })
-                .setTimestamp();
-
-            // ส่งแยกกัน 2 ข้อความ (ไทย 1 ข้อความ + อังกฤษ 1 ข้อความ)
-            await member.send({ embeds: [thaiEmbed] });
-            await member.send({ embeds: [enEmbed] });
+            await member.send({ embeds: [embed] });
             return true;
         }
 
