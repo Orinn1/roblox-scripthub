@@ -245,16 +245,23 @@ async function logAntiRaidAction(guild, targetMember, reason, actionTaken, dmSen
 }
 
 /**
- * Punish member (Delete Message -> DM -> Apply Timeout/Ban -> Purge)
+ * Punish member (Delete Message -> Apply Timeout/Ban -> DM -> Purge)
  */
 async function punishUser(message, member, reason, timeoutDuration, isHoneypot = false) {
     const userId = member.id;
+
+    // 0. Distributed Check: If user is already timed out on Discord, abort immediately (prevents multi-instance spam)
+    if (member.communicationDisabledUntilTimestamp && member.communicationDisabledUntilTimestamp > Date.now()) {
+        try { await message.delete().catch(() => {}); } catch (e) {}
+        return;
+    }
+
     if (activePunishingUsers.has(userId)) {
         try { await message.delete().catch(() => {}); } catch (e) {}
         return;
     }
     activePunishingUsers.add(userId);
-    setTimeout(() => activePunishingUsers.delete(userId), 30000);
+    setTimeout(() => activePunishingUsers.delete(userId), 60000);
 
     const content = message.content || '';
     const currentViolations = (userViolationCount.get(userId) || 0) + 1;
@@ -279,15 +286,12 @@ async function punishUser(message, member, reason, timeoutDuration, isHoneypot =
         actionTaken = `Timeout (${mins} mins / ${mins} นาที)`;
     }
 
-    // 2. Send DM notification to violator
-    const dmSent = await sendPunishmentDM(member, message.guild, reason, actionTaken, content, isHoneypot);
-
-    // 3. Apply Timeout or Ban
+    // 2. Apply Timeout or Ban FIRST to lock user status across Discord servers instantly
     if (isBan) {
         try {
             await member.ban({
                 reason: `[Anti-Raid Guard] ${reason}`,
-                deleteMessageSeconds: 86400 // ลบข้อย้อนหลัง 24 ชม. ทุกห้องในเซิร์ฟเวอร์
+                deleteMessageSeconds: 86400 // ลบข้อความย้อนหลัง 24 ชม. ทุกห้องในเซิร์ฟเวอร์
             });
         } catch (err) {
             console.warn('[Anti-Raid Ban Error]:', err.message);
@@ -300,16 +304,21 @@ async function punishUser(message, member, reason, timeoutDuration, isHoneypot =
         }
     }
 
+    // 3. Send DM notification to violator (Single execution)
+    const dmSent = await sendPunishmentDM(member, message.guild, reason, actionTaken, content, isHoneypot);
+
     // 4. Clean up messages across ALL channels in the server (Guild-Wide Sweep)
     await purgeUserAcrossGuild(message.guild, userId);
 
-    // 5. Temporary in-channel alert
-    try {
-        const alert = await message.channel.send(`🛡️ **[Honeypot Guard]** ระงับ <@${userId}>: \`${reason}\` (${actionTaken})`).catch(() => null);
-        if (alert) {
-            setTimeout(() => alert.delete().catch(() => {}), 6000);
-        }
-    } catch (e) {}
+    // 5. In-channel alert (ONLY for regular chat channels, NEVER in Honeypot channel)
+    if (!isHoneypot) {
+        try {
+            const alert = await message.channel.send(`🛡️ **[Anti-Raid]** ระงับ <@${userId}>: \`${reason}\` (${actionTaken})`).catch(() => null);
+            if (alert) {
+                setTimeout(() => alert.delete().catch(() => {}), 5000);
+            }
+        } catch (e) {}
+    }
 
     // 6. Send Log to designated alert channel
     await logAntiRaidAction(message.guild, member, reason, actionTaken, dmSent, content);
@@ -324,6 +333,12 @@ async function handleAntiRaidMessage(message) {
 
     // Concurrency Lock: If user is already undergoing punishment, immediately delete
     if (activePunishingUsers.has(message.author.id)) {
+        try { await message.delete().catch(() => {}); } catch (e) {}
+        return true;
+    }
+
+    // Distributed Lock Check: If member is already timed out on Discord, silently delete and exit
+    if (message.member.communicationDisabledUntilTimestamp && message.member.communicationDisabledUntilTimestamp > Date.now()) {
         try { await message.delete().catch(() => {}); } catch (e) {}
         return true;
     }
