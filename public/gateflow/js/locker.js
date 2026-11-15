@@ -14,8 +14,8 @@ const I18N = {
     scriptDesc: 'ทำภารกิจ 4 ขั้นตอนด้านล่างเพื่อปลดล็อกและรับโค้ดสคริปต์',
     gateTitle: 'ระบบยืนยันสิทธิ์ Security Access Gate',
     gateDesc: 'ทำภารกิจ 4 ขั้นตอนด้านล่างเพื่อรับสิทธิ์เข้าใช้งานเว็บฟรี 24 ชั่วโมง',
-    task1: 'Like Video (กดไลค์คลิป)',
-    task2: 'Comment on Video (คอมเมนต์คลิป)',
+    task1: 'Subscribe on YouTube (กดติดตาม)',
+    task2: 'Like Video & Comment on Video (กดไลค์ & คอมเมนต์คลิป)',
     task3: 'Join Discord Server (เข้าร่วมดิสคอร์ด)',
     task4: 'Visit Sponsor (ดูโฆษณาสปอนเซอร์ 20s)',
     verifying: 'กำลังตรวจสอบ...',
@@ -49,8 +49,8 @@ const I18N = {
     scriptDesc: 'Complete the 4 steps below to unlock and copy the script',
     gateTitle: 'Security Verification Gate',
     gateDesc: 'Complete the 4 steps below to verify access for 24 hours',
-    task1: 'Like Video',
-    task2: 'Comment on Video',
+    task1: 'Subscribe on YouTube',
+    task2: 'Like Video & Comment on Video',
     task3: 'Join Discord Server',
     task4: 'Visit Sponsor (Wait 20s)',
     verifying: 'Verifying...',
@@ -480,7 +480,7 @@ window.handleTaskClick = function(taskNum) {
   let targetUrl = '';
   const pool = getAdPool();
   if (taskNum === 1) {
-    targetUrl = getTargetVideoUrl();
+    targetUrl = getTargetYoutubeUrl();
   } else if (taskNum === 2) {
     targetUrl = getTargetVideoUrl();
   } else if (taskNum === 3) {
