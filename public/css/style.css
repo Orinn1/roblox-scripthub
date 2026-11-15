@@ -2045,17 +2045,32 @@ body {
 
 .locker-box {
     width: 100%;
-    max-width: 460px;
+    max-width: 720px;
+    max-height: 92vh;
+    overflow-y: auto;
     background: #10131c;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 26px 22px 22px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    padding: 28px 24px 24px;
     position: relative;
-    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 35px rgba(56, 189, 248, 0.08);
     text-align: center;
-    overflow: hidden;
     transform: scale(0.96) translateY(10px);
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.locker-box::-webkit-scrollbar {
+    width: 6px;
+}
+.locker-box::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+.locker-box::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+}
+.locker-box::-webkit-scrollbar-thumb:hover {
+    background: rgba(56, 189, 248, 0.4);
 }
 
 .modal-overlay.active .locker-box {
