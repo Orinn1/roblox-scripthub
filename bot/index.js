@@ -65,16 +65,23 @@ if (fs.existsSync(commandsPath)) {
     }
 }
 
-// Update Activity Status
-async function updateBotPresence() {
+// Update Activity Status (Rotating Streaming Presence 24/7)
+const STREAMING_STATUSES = [
+    'Powered by @itzkroz',
+    'KROZ Community & https://discord.gg/6MTUP78KF6'
+];
+let currentStatusIndex = 0;
+
+function updateBotPresence() {
     try {
-        const scripts = await getScripts();
-        const scriptCount = scripts ? scripts.length : 0;
         if (client.user) {
+            const statusText = STREAMING_STATUSES[currentStatusIndex];
             client.user.setActivity({
-                name: `Roblox | /script ⚡ (${scriptCount} สคริปต์)`,
-                type: ActivityType.Playing
+                name: statusText,
+                type: ActivityType.Streaming,
+                url: 'https://www.twitch.tv/itzkroz'
             });
+            currentStatusIndex = (currentStatusIndex + 1) % STREAMING_STATUSES.length;
         }
     } catch (e) {}
 }
@@ -96,7 +103,8 @@ client.once(Events.ClientReady, async (readyClient) => {
     const scripts = await getScripts().catch(() => []);
     console.log(`🌐 [Bot 1]: บอทเชื่อมต่อกับระบบฐานข้อมูล (${scripts?.length || 0} สคริปต์)`);
     updateBotPresence();
-    setInterval(updateBotPresence, 5 * 60 * 1000); // ทุก 5 นาที
+    // สลับข้อความสถานะสตรีมมิ่งทุกๆ 12 วินาที (ความเร็วสูงสุดที่ปลอดภัย ไม่โดน Discord Rate Limit 429)
+    setInterval(updateBotPresence, 12 * 1000);
 
     // Slash commands are already deployed on guild 1548669247998140438.
     // If ever needed, run `node bot/deploy-commands.js` manually.
