@@ -1,7 +1,4 @@
 /**
- * Root Entry Point for Hosting Containers (Pterodactyl / Bot-Hosting)
- * Automatically runs all Discord bots via Multi-Bot Master Runner
+ * Root Entry Point for Roblox Script Hub
  */
-require('./run-all-bots.js');
-
-
+require('./server.js');

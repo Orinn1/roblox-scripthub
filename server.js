@@ -1,28 +1,5 @@
 require('dotenv').config();
 
-// Global hooks to prevent Cloudflare/Render 429 rate-limiting on /gateway and /gateway/bot
-try {
-    const { WebSocketManager } = require('@discordjs/ws');
-    WebSocketManager.prototype.fetchGatewayInformation = async function() {
-        return {
-            url: 'wss://gateway.discord.gg',
-            shards: 1,
-            session_start_limit: { total: 1000, remaining: 999, reset_after: 0, max_concurrency: 1 }
-        };
-    };
-} catch (e) {}
-
-try {
-    const WebSocketManagerSelf = require('discord.js-selfbot-v13/src/client/websocket/WebSocketManager');
-    const WebSocketShardSelf = require('discord.js-selfbot-v13/src/client/websocket/WebSocketShard');
-    WebSocketManagerSelf.prototype.connect = async function() {
-        this.gateway = 'wss://gateway.discord.gg/';
-        this.totalShards = 1;
-        this.shardQueue = new Set([new WebSocketShardSelf(this, 0)]);
-        return this.createShards();
-    };
-} catch (e) {}
-
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -30,13 +7,6 @@ const url = require('url');
 
 // SQLite Database Module
 const db = require('./db.js');
-
-// Discord Bot Helper Module (สำหรับแจ้งเตือนสคริปต์ใหม่ถ้ามี)
-let notifyNewScript = null;
-try {
-    const notifyModule = require('./bot/notify.js');
-    notifyNewScript = notifyModule.notifyNewScript;
-} catch (e) {}
 
 const PORT = process.env.PORT || 3000;
 const MIME_TYPES = {
@@ -563,65 +533,4 @@ server.listen(PORT, () => {
     console.log(`- GET      /api/sunc`);
     console.log(`- GET      /api/roblox-game`);
     console.log(`- GET      /api/health (Keep-alive endpoint)`);
-
-    // =========================================================================
-    // 🤖 LIGHTWEIGHT MULTI-BOT RUNNER (โหมดประหยัดแรม ~60MB สำหรับโควตา 256MB)
-    // =========================================================================
-    // รันบอททั้ง 4 ตัวใน Single Process ทำให้ใช้ RAM เพียง ~60-70MB เท่านั้น
-    // ปลอดภัย 100% ไม่ชนเพดาน 256MB และไม่โดนระบบเตะดับ (No OOM Crash)
-    // เว้นระยะ Login ตัวละ 5 วินาที เพื่อป้องกัน Gateway Rate Limit
-    
-    const botGroup = (process.env.BOT_GROUP || 'all').toLowerCase();
-    console.log(`🎯 [Bot Group Mode]: กำลังทำงานในโหมด "${botGroup.toUpperCase()}"`);
-
-    // 1️⃣ Bot 1: BlacklistScriptx (Roblox Script Hub)
-    if (botGroup === 'all' || botGroup === 'hub') {
-        setTimeout(() => {
-            try {
-                console.log('🤖 [Bot 1]: เริ่มต้นเปิด BlacklistScriptx...');
-                const botConfig = require('./bot/config.js');
-                if (process.env.DISCORD_TOKEN || botConfig.token) {
-                    require('./bot/index.js');
-                }
-            } catch (e) {
-                console.error('❌ [Bot 1 Load Error]:', e.message);
-            }
-        }, 1500);
-    }
-
-    // 2️⃣ Bot 2: แม่พระของเซนโย (Super Bot 24 ชม.)
-    if (botGroup === 'all' || botGroup === 'community') {
-        setTimeout(() => {
-            try {
-                console.log('🌸 [Super Bot]: เริ่มต้นเปิด แม่พระของเซนโย...');
-                require('./super-bot/index.js');
-            } catch (superErr) {
-                console.error('❌ [Super Bot Load Error]:', superErr.message);
-            }
-        }, 6000);
-    }
-
-    // 3️⃣ Bot 3: BunnyHelper (Fresshy Shop Bot 24 ชม.)
-    if (botGroup === 'all' || botGroup === 'community') {
-        setTimeout(() => {
-            try {
-                console.log('🐰 [Shop Bot]: เริ่มต้นเปิด BunnyHelper (Fresshy Shop)...');
-                require('./shop-bot/index.js');
-            } catch (shopErr) {
-                console.error('❌ [Shop Bot Load Error]:', shopErr.message);
-            }
-        }, 11000);
-    }
-
-    // 4️⃣ Bot 4: blacklisthub (สตรีมมิ่งสีม่วง 24 ชม.)
-    if (botGroup === 'all' || botGroup === 'hub') {
-        setTimeout(() => {
-            try {
-                console.log('🟣 [Presence Stream]: เริ่มต้นรักษาสถานะสตรีมมิ่งสีม่วง 24/7...');
-                require('./bot/presence-stream.js');
-            } catch (presenceErr) {
-                console.error('❌ [Presence Stream Error]:', presenceErr.message);
-            }
-        }, botGroup === 'hub' ? 6000 : 16000);
-    }
 });

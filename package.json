@@ -6,25 +6,12 @@
   "scripts": {
     "start": "node server.js",
     "web": "node server.js",
-    "bots": "node run-all-bots.js",
-    "bot": "node bot/index.js",
-    "bot:deploy": "node bot/deploy-commands.js",
-    "super-bot": "node super-bot/index.js",
-    "super-bot:deploy": "node super-bot/deploy-commands.js",
-    "shop-bot": "node shop-bot/index.js",
-    "shop-bot:deploy": "node shop-bot/deploy-commands.js",
     "build": "node build.js"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {
-    "@discordjs/voice": "^0.19.2",
-    "discord.js": "^14.27.0",
-    "discord.js-selfbot-v13": "^3.7.1",
-    "dotenv": "^17.4.2",
-    "jimp": "^0.22.12",
-    "jsqr": "^1.4.0",
-    "tweetnacl": "^1.0.3"
+    "dotenv": "^17.4.2"
   }
 }
