@@ -106,11 +106,8 @@ client.once(Events.ClientReady, async (readyClient) => {
     // สลับข้อความสถานะสตรีมมิ่งทุกๆ 12 วินาที (ความเร็วสูงสุดที่ปลอดภัย ไม่โดน Discord Rate Limit 429)
     setInterval(updateBotPresence, 12 * 1000);
 
-    // Slash commands are already deployed on guild 1548669247998140438.
-    // If ever needed, run `node bot/deploy-commands.js` manually.
-    if (process.env.DEPLOY_ON_STARTUP === 'true') {
-        deployCommands().catch(err => console.error('⚠️ [Deploy Commands Error]:', err.message));
-    }
+    // Deploy and sync slash commands to Discord (Keeps only /ping in the menu)
+    deployCommands().catch(err => console.warn('⚠️ [Deploy Commands Warning]:', err.message));
 
     // Start YouTube Upload Monitor (Channel ID: 1549408423068573807)
     startYouTubeMonitor(client);
