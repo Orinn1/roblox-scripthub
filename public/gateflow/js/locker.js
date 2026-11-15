@@ -388,7 +388,9 @@ function isGhostSensixActive() {
   const params = new URLSearchParams(window.location.search);
   const ch = (params.get('ch') || params.get('yt') || currentLockerChannel || '').toLowerCase();
   const search = window.location.search.toLowerCase();
-  return ch.includes('ghost') || ch.includes('freefire') || search.includes('ghost') || search.includes('freefire');
+  const host = (window.location.hostname || '').toLowerCase();
+  const pathname = (window.location.pathname || '').toLowerCase();
+  return host.includes('ghost') || host.includes('sensix') || ch.includes('ghost') || ch.includes('freefire') || search.includes('ghost') || search.includes('freefire') || pathname.includes('ghost');
 }
 
 // Helper: Get Target YouTube Channel URL (with auto-subscribe popup)
@@ -399,7 +401,7 @@ function getTargetYoutubeUrl() {
 
   const params = new URLSearchParams(window.location.search);
   const customYt = params.get('yt') || params.get('ch') || currentLockerChannel;
-  if (customYt && customYt !== 'Blacklistxyx') {
+  if (customYt && customYt !== 'itzkroz' && customYt !== 'Blacklistxyx') {
     let url = customYt.trim();
     if (!url.startsWith('http')) {
       url = `https://www.youtube.com/${url.startsWith('@') ? url : '@' + url}`;
@@ -407,7 +409,7 @@ function getTargetYoutubeUrl() {
     return url.includes('sub_confirmation') ? url : `${url}${url.includes('?') ? '&' : '?'}sub_confirmation=1`;
   }
 
-  return 'https://www.youtube.com/@Blacklistxyx?sub_confirmation=1';
+  return 'https://www.youtube.com/@itzkroz?sub_confirmation=1';
 }
 
 // Auto-fetch latest YouTube video in the background via Worker API
