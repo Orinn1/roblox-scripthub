@@ -1,4 +1,4 @@
-﻿# Anti-Bypass Checkpoint Gateway Server (Port 3000)
+# Anti-Bypass Checkpoint Gateway Server (Port 3000)
 param([int]$Port = 3000)
 
 $Root = Join-Path $PSScriptRoot "public"
