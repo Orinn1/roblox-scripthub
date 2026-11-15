@@ -322,6 +322,14 @@ async function punishUser(message, member, reason, timeoutDuration, isHoneypot =
 
     // 6. Send Log to designated alert channel
     await logAntiRaidAction(message.guild, member, reason, actionTaken, dmSent, content);
+
+    // 7. Increment Spam Blocked Counter for Server Stats
+    try {
+        const { incrementSpamBlocked } = require('./server-stats.js');
+        if (typeof incrementSpamBlocked === 'function') {
+            incrementSpamBlocked();
+        }
+    } catch (e) {}
 }
 
 /**

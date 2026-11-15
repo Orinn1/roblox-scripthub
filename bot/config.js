@@ -25,5 +25,9 @@ module.exports = {
     honeypotChannelId: process.env.DISCORD_HONEYPOT_CHANNEL_ID || '1571400673273188424',
     antiRaidExemptChannels: process.env.DISCORD_ANTI_RAID_EXEMPT_CHANNELS
         ? process.env.DISCORD_ANTI_RAID_EXEMPT_CHANNELS.split(',').map(s => s.trim()).filter(Boolean)
-        : ['1566177348330463242']
+        : ['1566177348330463242'],
+    statsCategoryId: process.env.DISCORD_STATS_CATEGORY_ID || '',
+    statsMembersChannelId: process.env.DISCORD_STATS_MEMBERS_CHANNEL_ID || '',
+    statsYoutubeChannelId: process.env.DISCORD_STATS_YOUTUBE_CHANNEL_ID || '',
+    statsSpamChannelId: process.env.DISCORD_STATS_SPAM_CHANNEL_ID || ''
 };

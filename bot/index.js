@@ -97,6 +97,7 @@ const { startStockMonitor } = require('./stock-monitor.js');
 const { handleBypassMessage } = require('./bypass-helper.js');
 const { handleAntiRaidMessage, setupHoneypotChannel } = require('./anti-raid.js');
 const { handleStickyMessage, postStickyMessage } = require('./sticky-message.js');
+const { startServerStats } = require('./server-stats.js');
 
 client.once(Events.ClientReady, async (readyClient) => {
     console.log(`🤖 [Bot 1]: ออนไลน์แล้วในชื่อ: ${readyClient.user.tag}`);
@@ -129,6 +130,9 @@ client.once(Events.ClientReady, async (readyClient) => {
 
     // Initialize Honeypot Trap Notice in #1571400673273188424
     setupHoneypotChannel(client);
+
+    // Initialize English Live Server Stats Counter Channels
+    startServerStats(client);
 });
 
 // Interaction Handling
