@@ -5153,21 +5153,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initTiltedGridHero();
     refreshIcons();
 
-    // Auto-open script from URL parameter (?script=... or ?id=...) e.g. from Discord announcement
-    try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const autoScriptId = urlParams.get("script") || urlParams.get("id");
-        if (autoScriptId) {
-            const checkAndOpen = () => {
-                if (window.openLocker && typeof window.openLocker === "function") {
-                    window.openLocker(autoScriptId);
-                }
-            };
-            setTimeout(checkAndOpen, 600);
-            setTimeout(checkAndOpen, 1800);
-        }
-    } catch (e) {}
-
     // Check ban status on tab focus instead of aggressive polling (throttled to at most once per 5 minutes)
     document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {

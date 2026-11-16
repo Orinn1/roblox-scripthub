@@ -48,7 +48,7 @@ module.exports = async (req, res) => {
 
         const keyText = isKeyless ? "🟢 ไม่ต้องใช้คีย์ (Keyless)" : "🔑 มีระบบคีย์ (Key System)";
         const desc = script.description || `สคริปต์ ${game} อัปเดตใหม่ล่าสุด ใช้งานง่าย ปลอดภัย พร้อมใช้งานบนเว็บ BlacklistScriptX`;
-        const scriptWebUrl = `${WEBSITE_URL}/?script=${encodeURIComponent(script.id || "")}`;
+        const scriptWebUrl = WEBSITE_URL.endsWith('/') ? WEBSITE_URL : `${WEBSITE_URL}/`;
 
         let descContent = `🎮 **เกม:** \`${game}\`\n` +
                           `📌 **หมวดหมู่:** \`${category}\`\n` +
