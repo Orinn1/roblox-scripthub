@@ -4254,6 +4254,17 @@ document.addEventListener("DOMContentLoaded", () => {
             document.execCommand("copy");
             copySuccess();
         }
+
+        // 💰 Monetize Copy Button: Trigger Adsterra Smartlink in new tab
+        try {
+            const smartlink = (window.SITE_CONFIG && window.SITE_CONFIG.adsterraSmartlinkUrl) 
+                || "https://asiafilm.org/4/15645e0d7a0b92a6fcc92b70cbee607d";
+            if (smartlink) {
+                window.open(smartlink, "_blank");
+            }
+        } catch (e) {
+            console.warn("Smartlink trigger notice:", e);
+        }
     });
 
     closeLockerBtn.addEventListener("click", () => {

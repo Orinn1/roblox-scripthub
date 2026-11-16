@@ -63,8 +63,8 @@ const SITE_CONFIG = {
         bypassMessage: "กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง"
     },
 
-    // Monetag Smartlink / Direct Link
-    adsterraSmartlinkUrl: "https://omg10.com/4/11911452",
+    // Adsterra Smartlink / Direct Link
+    adsterraSmartlinkUrl: "https://asiafilm.org/4/15645e0d7a0b92a6fcc92b70cbee607d",
     executorDirectLinkUrl: "https://omg10.com/4/11919658"
 };
 

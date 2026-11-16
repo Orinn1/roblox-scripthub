@@ -1606,7 +1606,7 @@ document.addEventListener("DOMContentLoaded", () => {
         linkShopee.value = SITE_CONFIG.unlockTasks.affiliateUrl || "https://omg10.com/4/11919655";
         linkVideo.value = SITE_CONFIG.unlockTasks.latestVideoUrl || "";
         linkDiscord.value = SITE_CONFIG.socialLinks.discord || "";
-        if (linkSmartlink) linkSmartlink.value = SITE_CONFIG.adsterraSmartlinkUrl || "https://omg10.com/4/11911452";
+        if (linkSmartlink) linkSmartlink.value = SITE_CONFIG.adsterraSmartlinkUrl || "https://asiafilm.org/4/15645e0d7a0b92a6fcc92b70cbee607d";
         const linkExecutorDirect = document.getElementById("linkExecutorDirect");
         if (linkExecutorDirect) linkExecutorDirect.value = SITE_CONFIG.executorDirectLinkUrl || "https://omg10.com/4/11919658";
 
