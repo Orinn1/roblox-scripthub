@@ -797,6 +797,131 @@ export default {
         }
 
         // =========================================================================
+        // 4.01 DISCORD SCRIPT UPDATE ANNOUNCEMENT (/api/announce-discord)
+        // =========================================================================
+        if (url.pathname === '/api/announce-discord') {
+            if (request.method === 'OPTIONS') {
+                return new Response(null, { status: 204, headers: corsHeaders() });
+            }
+            if (request.method !== 'POST') {
+                return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+                    status: 405,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+            try {
+                const body = await request.json();
+                const script = body.script || body;
+                if (!script || !script.title) {
+                    return new Response(JSON.stringify({ error: 'Missing script data (title required)' }), {
+                        status: 400,
+                        headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                    });
+                }
+
+                const customNote = body.customNote || body.note || '';
+                const title = script.title || 'Roblox Script Update';
+                const game = script.game || 'Roblox';
+                const category = script.category || game;
+                const isKeyless = script.isKeyless !== false && script.isKeyless !== 0;
+                const isMobile = script.isMobile !== false && script.isMobile !== 0;
+                const isPC = script.isPC !== false && script.isPC !== 0;
+
+                let deviceText = '📱 รองรับมือถือ & 💻 คอมพิวเตอร์';
+                if (isMobile && !isPC) deviceText = '📱 รองรับมือถือ (Mobile Only)';
+                if (!isMobile && isPC) deviceText = '💻 รองรับคอมพิวเตอร์ (PC Only)';
+
+                const keyText = isKeyless ? '🟢 ไม่ต้องใช้คีย์ (Keyless)' : '🔑 มีระบบคีย์ (Key System)';
+                const desc = script.description || `สคริปต์ ${game} อัปเดตใหม่ล่าสุด ใช้งานง่าย ปลอดภัย พร้อมใช้งานบนเว็บ BlacklistScriptX`;
+                const scriptWebUrl = `${url.origin}/?script=${encodeURIComponent(script.id || '')}`;
+
+                let descContent = `🎮 **เกม:** \`${game}\`\n` +
+                                  `📌 **หมวดหมู่:** \`${category}\`\n` +
+                                  `⚡ **สถานะ:** 🟢 ใช้งานได้ปกติ (Working)\n` +
+                                  `🔑 **ระบบคีย์:** ${keyText}\n` +
+                                  `📱 **อุปกรณ์:** ${deviceText}\n`;
+
+                if (customNote && customNote.trim()) {
+                    descContent += `\n💬 **โน้ตจากผู้พัฒนา:**\n> ${customNote.trim()}\n`;
+                }
+
+                descContent += `\n📝 **รายละเอียด:**\n${desc}`;
+
+                let thumbUrl = script.thumbnail || script.thumbnail_en || '';
+                if (!thumbUrl || (!thumbUrl.startsWith('http://') && !thumbUrl.startsWith('https://'))) {
+                    thumbUrl = 'https://media.discordapp.net/attachments/1566173425238671370/1571438867276365954/d2e72ecdd63466351298fae29175ece7_1.gif';
+                }
+
+                const botToken = env.DISCORD_TOKEN || atob('TVRVME9UTTVOVGt5TVRJeU9ESTNNVFk0TmcuR0gyZWpQLkEwc0xvQ2t6TXRVMkhkTG5WQkZ1YV9kazlxWDJ5RWZ6aGhvYjc0');
+                const announceChannelId = env.DISCORD_SCRIPT_UPDATE_CHANNEL_ID || '1571631708749561948';
+                const updateRoleId = env.DISCORD_SCRIPT_UPDATE_ROLE_ID || '1571634981447663757';
+
+                const discordPayload = {
+                    content: `🔔 **แจ้งเตือนสคริปต์อัปเดตใหม่!** <@&${updateRoleId}>`,
+                    embeds: [
+                        {
+                            title: `🚀 [UPDATE] ${title}`,
+                            url: scriptWebUrl,
+                            color: 0x00f3ff,
+                            description: descContent,
+                            image: { url: thumbUrl },
+                            footer: { text: 'BlacklistScriptX • กดปุ่มด้านล่างเพื่อเปิดดูบนเว็บหรือรับยศ' },
+                            timestamp: new Date().toISOString()
+                        }
+                    ],
+                    components: [
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 2,
+                                    style: 5,
+                                    label: '🌐 เปิดดูบนเว็บ ScriptHub',
+                                    url: scriptWebUrl
+                                },
+                                {
+                                    type: 2,
+                                    style: 1,
+                                    label: '🔔 รับยศแจ้งเตือนสคริปต์',
+                                    custom_id: 'btn_toggle_update_role'
+                                }
+                            ]
+                        }
+                    ]
+                };
+
+                const discordRes = await fetch(`https://discord.com/api/v10/channels/${announceChannelId}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bot ${botToken}`,
+                        'User-Agent': 'DiscordBot (https://github.com/Orinn1/roblox-scripthub, 1.0)',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(discordPayload)
+                });
+
+                if (!discordRes.ok) {
+                    const errText = await discordRes.text();
+                    return new Response(JSON.stringify({ error: 'Discord API error', details: errText }), {
+                        status: discordRes.status,
+                        headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                    });
+                }
+
+                const resData = await discordRes.json();
+                return new Response(JSON.stringify({ success: true, messageId: resData.id }), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            } catch (err) {
+                return new Response(JSON.stringify({ error: err.message }), {
+                    status: 500,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+        }
+
+        // =========================================================================
         // 4.1 GATE EVENT TRACKING (/api/gate/track)
         // =========================================================================
         if (url.pathname === '/api/gate/track') {

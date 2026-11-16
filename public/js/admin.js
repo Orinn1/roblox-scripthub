@@ -980,11 +980,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ script: item })
             });
-            const data = await res.json();
-            if (data && data.success) {
+            let data = null;
+            const resText = await res.text();
+            try {
+                data = JSON.parse(resText);
+            } catch (e) {
+                data = { error: resText || `HTTP ${res.status}` };
+            }
+
+            if (res.ok && data && data.success) {
                 showToast(`📢 ประกาศสคริปต์ "${item.title}" ลง Discord สำเร็จแล้ว!`);
             } else {
-                showToast(`❌ ส่งไม่สำเร็จ: ${data.error || "เกิดข้อผิดพลาด"}`, "error");
+                showToast(`❌ ส่งไม่สำเร็จ: ${data?.error || data?.details || "กรุณา Push อัปเดต Cloudflare Worker"}`, "error");
             }
         } catch (err) {
             showToast(`❌ เกิดข้อผิดพลาดในการเชื่อมต่อ: ${err.message}`, "error");
