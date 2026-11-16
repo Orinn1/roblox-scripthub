@@ -108,6 +108,14 @@ const server = http.createServer(async (req, res) => {
     }
 
     // =========================================================================
+    // API: Discord Script Update Announce
+    // =========================================================================
+    if (pathname === '/api/announce-discord') {
+        await executeServerless('./api/announce-discord.js', req, res, parsedUrl);
+        return;
+    }
+
+    // =========================================================================
     // API: Config (Site Name & Settings) - Synced with Firebase Firestore & SQLite
     // =========================================================================
     if (pathname === '/api/config') {

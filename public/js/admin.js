@@ -474,6 +474,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <td><span class="tag-badge" style="font-size:11px;">${escapeHtml(s.category || 'all')}</span></td>
                     <td>${s.isKeyless ? '<span style="color:#4ade80; font-weight:500;">ไร้คีย์</span>' : '<span style="color:#9ca3af;">มีคีย์</span>'}</td>
                     <td style="text-align: right; white-space: nowrap;">
+                        <button type="button" class="btn-announce" style="background: rgba(88,101,242,0.12); color: #818cf8; border: 1px solid rgba(88,101,242,0.3); padding: 5px 9px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px;" onclick="announceScriptToDiscord('${escapeHtml(s.id)}')">
+                            <i data-lucide="bell" style="width: 12px; height: 12px; pointer-events: none;"></i>
+                            <span style="pointer-events: none;">แจ้ง Discord</span>
+                        </button>
                         <button type="button" class="btn-edit" data-id="${escapeHtml(s.id)}" onclick="openEditModal('${escapeHtml(s.id)}')">
                             <i data-lucide="edit-3" style="width: 13px; height: 13px; pointer-events: none;"></i>
                             <span style="pointer-events: none;">แก้ไข</span>
@@ -872,9 +876,26 @@ document.addEventListener("DOMContentLoaded", () => {
             submitBtn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width: 14px; height: 14px;"></i> กำลังบันทึกข้อมูล...`;
         }
 
+        const shouldAnnounce = document.getElementById("sAnnounceDiscord") ? document.getElementById("sAnnounceDiscord").checked : true;
+
         scripts.unshift(newScript);
         saveScriptsData(scripts);
         const cloudSaved = await syncToCloudDb(scripts);
+
+        // ส่งแจ้งเตือนไปยังห้อง Discord ทันที
+        if (shouldAnnounce) {
+            try {
+                fetch("/api/announce-discord", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ script: newScript })
+                }).then(r => r.json()).then(data => {
+                    if (data && data.success) {
+                        showToast(`📢 ส่งแจ้งเตือนลง Discord (#📜・update-script) เรียบร้อย!`);
+                    }
+                }).catch(err => console.warn("[Admin] Discord announce error:", err));
+            } catch (err) {}
+        }
 
         try {
             await fetch("/api/scripts", {
@@ -937,6 +958,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
         loadDbStats();
         showToast(`ลบสคริปต์ "${title}" เรียบร้อยแล้ว`);
+    };
+
+    // ส่งแจ้งเตือนสคริปต์ลง Discord โดยตรงจากตาราง
+    window.announceScriptToDiscord = async function(id) {
+        if (!scripts || scripts.length === 0) scripts = getScriptsData();
+        const item = scripts.find(s => String(s.id) === String(id));
+        if (!item) {
+            showToast("ไม่พบข้อมูลสคริปต์นี้", "error");
+            return;
+        }
+
+        if (!confirm(`คุณต้องการส่งการแจ้งเตือนสคริปต์:\n"${item.title}"\nไปยังห้อง #update-script ใน Discord หรือไม่?`)) {
+            return;
+        }
+
+        showToast("กำลังส่งการแจ้งเตือนลง Discord...");
+        try {
+            const res = await fetch("/api/announce-discord", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ script: item })
+            });
+            const data = await res.json();
+            if (data && data.success) {
+                showToast(`📢 ประกาศสคริปต์ "${item.title}" ลง Discord สำเร็จแล้ว!`);
+            } else {
+                showToast(`❌ ส่งไม่สำเร็จ: ${data.error || "เกิดข้อผิดพลาด"}`, "error");
+            }
+        } catch (err) {
+            showToast(`❌ เกิดข้อผิดพลาดในการเชื่อมต่อ: ${err.message}`, "error");
+        }
     };
 
     // จัดการ Event Delegation สำหรับปุ่มแก้ไขในตาราง
@@ -1200,6 +1252,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Sync to Firebase
             await syncToCloudDb(scripts);
+
+            // แจ้งเตือนอัปเดตลง Discord หากเลือกไว้
+            const editShouldAnnounce = document.getElementById("editAnnounceDiscord") ? document.getElementById("editAnnounceDiscord").checked : false;
+            if (editShouldAnnounce) {
+                try {
+                    fetch("/api/announce-discord", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ script: scripts[index], customNote: "อัปเดตสคริปต์เวอร์ชันล่าสุด" })
+                    }).then(r => r.json()).then(data => {
+                        if (data && data.success) {
+                            showToast(`📢 ส่งแจ้งเตือนอัปเดตลง Discord เรียบร้อย!`);
+                        }
+                    }).catch(err => console.warn("[Admin] Discord announce error:", err));
+                } catch (err) {}
+            }
 
             // Sync to local SQLite server if available
             try {
