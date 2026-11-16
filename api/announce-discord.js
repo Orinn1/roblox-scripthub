@@ -8,7 +8,7 @@ const DEFAULT_TOKEN = Buffer.from('TVRVME9UTTVOVGt5TVRJeU9ESTNNVFk0TmcuR0gyZWpQL
 const BOT_TOKEN = process.env.DISCORD_TOKEN || DEFAULT_TOKEN;
 const ANNOUNCE_CHANNEL_ID = process.env.DISCORD_SCRIPT_UPDATE_CHANNEL_ID || '1571631708749561948';
 const UPDATE_ROLE_ID = process.env.DISCORD_SCRIPT_UPDATE_ROLE_ID || '1571634981447663757';
-const WEBSITE_URL = process.env.WEBSITE_URL || 'https://blacklistscripty.vercel.app';
+const WEBSITE_URL = process.env.WEBSITE_URL || 'https://th.blacklisthub.workers.dev';
 
 module.exports = async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");

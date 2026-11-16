@@ -833,7 +833,8 @@ export default {
 
                 const keyText = isKeyless ? '🟢 ไม่ต้องใช้คีย์ (Keyless)' : '🔑 มีระบบคีย์ (Key System)';
                 const desc = script.description || `สคริปต์ ${game} อัปเดตใหม่ล่าสุด ใช้งานง่าย ปลอดภัย พร้อมใช้งานบนเว็บ BlacklistScriptX`;
-                const scriptWebUrl = `${url.origin}/?script=${encodeURIComponent(script.id || '')}`;
+                const baseUrl = (url.origin && !url.origin.includes('localhost') && !url.origin.includes('127.0.0.1')) ? url.origin : 'https://th.blacklisthub.workers.dev';
+                const scriptWebUrl = `${baseUrl}/?script=${encodeURIComponent(script.id || '')}`;
 
                 let descContent = `🎮 **เกม:** \`${game}\`\n` +
                                   `📌 **หมวดหมู่:** \`${category}\`\n` +
