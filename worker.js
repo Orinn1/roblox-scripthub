@@ -822,30 +822,13 @@ export default {
                 const customNote = body.customNote || body.note || '';
                 const title = script.title || 'Roblox Script Update';
                 const game = script.game || 'Roblox';
-                const category = script.category || game;
-                const isKeyless = script.isKeyless !== false && script.isKeyless !== 0;
-                const isMobile = script.isMobile !== false && script.isMobile !== 0;
-                const isPC = script.isPC !== false && script.isPC !== 0;
-
-                let deviceText = '📱 รองรับมือถือ & 💻 คอมพิวเตอร์';
-                if (isMobile && !isPC) deviceText = '📱 รองรับมือถือ (Mobile Only)';
-                if (!isMobile && isPC) deviceText = '💻 รองรับคอมพิวเตอร์ (PC Only)';
-
-                const keyText = isKeyless ? '🟢 ไม่ต้องใช้คีย์ (Keyless)' : '🔑 มีระบบคีย์ (Key System)';
-                const desc = script.description || `สคริปต์ ${game} อัปเดตใหม่ล่าสุด ใช้งานง่าย ปลอดภัย พร้อมใช้งานบนเว็บ BlacklistScriptX`;
                 const scriptWebUrl = 'https://th.blacklisthub.workers.dev/';
 
-                let descContent = `🎮 **เกม:** \`${game}\`\n` +
-                                  `📌 **หมวดหมู่:** \`${category}\`\n` +
-                                  `⚡ **สถานะ:** 🟢 ใช้งานได้ปกติ (Working)\n` +
-                                  `🔑 **ระบบคีย์:** ${keyText}\n` +
-                                  `📱 **อุปกรณ์:** ${deviceText}\n`;
+                let descContent = `📜 **ชื่อสคริปต์:** ${title}\n🎮 **ชื่อแมพ:** \`${game}\``;
 
                 if (customNote && customNote.trim()) {
-                    descContent += `\n💬 **โน้ตจากผู้พัฒนา:**\n> ${customNote.trim()}\n`;
+                    descContent += `\n💬 **โน้ต:** ${customNote.trim()}`;
                 }
-
-                descContent += `\n📝 **รายละเอียด:**\n${desc}`;
 
                 let thumbUrl = script.thumbnail || script.thumbnail_en || '';
                 if (!thumbUrl || (!thumbUrl.startsWith('http://') && !thumbUrl.startsWith('https://'))) {
@@ -857,7 +840,7 @@ export default {
                 const updateRoleId = env.DISCORD_SCRIPT_UPDATE_ROLE_ID || '1571634981447663757';
 
                 const discordPayload = {
-                    content: `🔔 **แจ้งเตือนสคริปต์อัปเดตใหม่!** <@&${updateRoleId}>`,
+                    content: `🔔 **อัปเดตสคริปต์ใหม่ในเว็บไซต์!** <@&${updateRoleId}>`,
                     embeds: [
                         {
                             title: `🚀 [UPDATE] ${title}`,
