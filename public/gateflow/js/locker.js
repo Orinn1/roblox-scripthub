@@ -164,59 +164,90 @@ async function verifyHubLootlabsAccess() {
   const isHubAccess = path === '/access' || path === '/hub' || path === '/gate' || slug === 'hub-access';
   if (!isHubAccess) return;
 
+  const tasksGroup = document.querySelector('.social-tasks-group');
+  const progressBlock = document.querySelector('.social-progress-block');
+  const verifyCard = document.getElementById('humanVerifyCard');
+  const btnUnlock = document.getElementById('btnUnlock');
+  const titleEl = document.getElementById('lockerTitle');
+  const descEl = document.getElementById('lockerDesc');
+
+  const setGateControlsVisible = (visible) => {
+    const val = visible ? '' : 'none';
+    if (tasksGroup) tasksGroup.style.display = val;
+    if (progressBlock) progressBlock.style.display = val;
+    if (verifyCard) verifyCard.style.display = val;
+    if (btnUnlock) btnUnlock.style.display = val;
+  };
+
+  // Hide all 4 tasks & controls immediately while verifying S2S Postback
+  setGateControlsVisible(false);
+  if (titleEl) {
+    titleEl.textContent = 'กำลังตรวจสอบสิทธิ์ LootLabs...';
+    titleEl.style.color = '';
+  }
+  if (descEl) {
+    descEl.textContent = 'กำลังยืนยัน Postback จากเซิร์ฟเวอร์ LootLabs กรุณารอสักครู่...';
+    descEl.style.color = '';
+  }
+
   const puid = (() => {
     try { return localStorage.getItem('blacklist_lootlabs_puid') || ''; } catch { return ''; }
   })();
 
   let lastData = null;
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const res = await fetch(`/api/check-session?puid=${encodeURIComponent(puid)}`, { cache: 'no-store' });
       if (res.ok) {
         lastData = await res.json();
-        if (lastData && lastData.verified) {
+        if (lastData && (lastData.verified || (lastData.provider && lastData.provider !== 'lootlabs'))) {
           isLootlabsBypassBlocked = false;
-          return;
-        }
-        if (lastData && lastData.provider && lastData.provider !== 'lootlabs') {
-          isLootlabsBypassBlocked = false;
+          initCustomTitleAndDesc();
+          if (titleEl) titleEl.style.color = '';
+          if (descEl) descEl.style.color = '';
+          setGateControlsVisible(true);
           return;
         }
       }
     } catch {}
-    if (attempt < 2) {
-      await new Promise((r) => setTimeout(r, 1500));
+    if (attempt < 1) {
+      await new Promise((r) => setTimeout(r, 1200));
     }
   }
 
-  // Only enforce strict block when server explicitly confirms provider === 'lootlabs' and not verified
-  if (lastData && lastData.provider === 'lootlabs' && !lastData.verified) {
+  // Block whenever LootLabs is active (or check failed) without verified S2S postback
+  if (!lastData || (lastData.provider === 'lootlabs' && !lastData.verified)) {
     isLootlabsBypassBlocked = true;
-    const msg = '⛔ ตรวจพบการบายพาส! ยังไม่พบการยืนยัน Postback จาก LootLabs กรุณากลับหน้าหลักแล้วกดผ่านลิงก์ตามปกติ';
-    const descEl = document.getElementById('lockerDesc');
+    setGateControlsVisible(false);
+    const msg = 'ไม่พบการยืนยัน Postback จาก LootLabs — ไม่สามารถเปิดลิงก์ /access ตรงๆ หรือใช้บอท Bypass ได้ กรุณากลับไปทำภารกิจผ่านลิงก์ LootLabs ตามปกติ';
+    if (titleEl) {
+      titleEl.textContent = '⛔ ตรวจพบการบายพาส (Bypass Blocked)';
+      titleEl.style.color = '#f87171';
+    }
     if (descEl) {
       descEl.textContent = msg;
-      descEl.style.color = '#f87171';
-    }
-    const btnUnlock = document.getElementById('btnUnlock');
-    const txtUnlock = document.getElementById('txtUnlock');
-    if (btnUnlock) {
-      btnUnlock.disabled = true;
-      btnUnlock.className = 'btn-social-unlock locked';
-    }
-    if (txtUnlock) {
-      txtUnlock.textContent = '🔒 Blocked (LootLabs Postback Required)';
+      descEl.style.color = '#fca5a5';
     }
     const card = document.querySelector('.social-modal-card');
     if (card && !document.getElementById('backToGateLink')) {
+      const alertBox = document.createElement('div');
+      alertBox.id = 'bypassBlockedNotice';
+      alertBox.style.cssText = 'margin-top:14px;padding:12px 14px;border-radius:10px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);color:#fecaca;font-size:12.5px;line-height:1.5;text-align:center;';
+      alertBox.textContent = 'ระบบ Anti-Bypass ปฏิเสธการเข้าถึง: ลิงก์นี้ต้องผ่านขั้นตอน LootLabs และได้รับ S2S Postback จากเซิร์ฟเวอร์จริงเท่านั้น';
+      card.appendChild(alertBox);
+
       const backBtn = document.createElement('a');
       backBtn.id = 'backToGateLink';
       backBtn.href = '/';
       backBtn.textContent = '← กลับหน้าหลักเพื่อเริ่มผ่าน LootLabs ใหม่';
-      backBtn.style.cssText = 'display:block;text-align:center;margin-top:12px;padding:10px 14px;border-radius:10px;background:rgba(239,68,68,0.14);border:1px solid rgba(239,68,68,0.45);color:#fecaca;text-decoration:none;font-size:13px;font-weight:600;';
+      backBtn.style.cssText = 'display:block;text-align:center;margin-top:12px;padding:12px 14px;border-radius:10px;background:rgba(239,68,68,0.22);border:1px solid rgba(239,68,68,0.6);color:#ffffff;text-decoration:none;font-size:13.5px;font-weight:700;';
       card.appendChild(backBtn);
     }
     showToast(msg, 'error', 7000);
+  } else {
+    isLootlabsBypassBlocked = false;
+    initCustomTitleAndDesc();
+    setGateControlsVisible(true);
   }
 }
 
