@@ -2182,7 +2182,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     })
                     .catch(() => {
-                        grantDeviceAccess();
+                        showToast(currentLang === 'th' ? "⛔ ไม่สามารถตรวจสอบโทเค็นยืนยันตัวตนได้ กรุณาลองใหม่" : "Unable to verify access token. Please try again.");
+                        checkLootlabsGate();
                     });
                 return;
             }
@@ -2202,6 +2203,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (incomingToken && incomingToken === requiredToken) {
             const provider = gate.provider || "blackpass";
+
+            // Do not allow static token query shortcut when LootLabs S2S Postback gate is active
+            if (provider === "lootlabs") {
+                showToast(currentLang === 'th' ? "⛔ กรุณาปลดล็อคผ่านลิงก์ LootLabs ตามปกติ" : "Please complete LootLabs verification normally.");
+                try {
+                    const cleanUrl = window.location.origin + window.location.pathname;
+                    window.history.replaceState({}, document.title, cleanUrl);
+                } catch (e) {}
+                return;
+            }
 
             // Anti-Bypass Check 1: Known Bypass Referrers
             if (document.referrer) {

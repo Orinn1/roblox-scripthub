@@ -155,6 +155,70 @@ const activeTimers = {};
 let isHumanVerified = false;
 let isVerifyingHuman = false;
 let serverSessionTicket = '';
+let isLootlabsBypassBlocked = false;
+
+async function verifyHubLootlabsAccess() {
+  const path = window.location.pathname.toLowerCase();
+  const params = new URLSearchParams(window.location.search);
+  const slug = path.startsWith('/l/') ? path.slice(3).trim() : (params.get('slug') || (path === '/access' || path === '/hub' || path === '/gate' ? 'hub-access' : ''));
+  const isHubAccess = path === '/access' || path === '/hub' || path === '/gate' || slug === 'hub-access';
+  if (!isHubAccess) return;
+
+  const puid = (() => {
+    try { return localStorage.getItem('blacklist_lootlabs_puid') || ''; } catch { return ''; }
+  })();
+
+  let lastData = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(`/api/check-session?puid=${encodeURIComponent(puid)}`, { cache: 'no-store' });
+      if (res.ok) {
+        lastData = await res.json();
+        if (lastData && lastData.verified) {
+          isLootlabsBypassBlocked = false;
+          return;
+        }
+        if (lastData && lastData.provider && lastData.provider !== 'lootlabs') {
+          isLootlabsBypassBlocked = false;
+          return;
+        }
+      }
+    } catch {}
+    if (attempt < 2) {
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+  }
+
+  // Only enforce strict block when server explicitly confirms provider === 'lootlabs' and not verified
+  if (lastData && lastData.provider === 'lootlabs' && !lastData.verified) {
+    isLootlabsBypassBlocked = true;
+    const msg = '⛔ ตรวจพบการบายพาส! ยังไม่พบการยืนยัน Postback จาก LootLabs กรุณากลับหน้าหลักแล้วกดผ่านลิงก์ตามปกติ';
+    const descEl = document.getElementById('lockerDesc');
+    if (descEl) {
+      descEl.textContent = msg;
+      descEl.style.color = '#f87171';
+    }
+    const btnUnlock = document.getElementById('btnUnlock');
+    const txtUnlock = document.getElementById('txtUnlock');
+    if (btnUnlock) {
+      btnUnlock.disabled = true;
+      btnUnlock.className = 'btn-social-unlock locked';
+    }
+    if (txtUnlock) {
+      txtUnlock.textContent = '🔒 Blocked (LootLabs Postback Required)';
+    }
+    const card = document.querySelector('.social-modal-card');
+    if (card && !document.getElementById('backToGateLink')) {
+      const backBtn = document.createElement('a');
+      backBtn.id = 'backToGateLink';
+      backBtn.href = '/';
+      backBtn.textContent = '← กลับหน้าหลักเพื่อเริ่มผ่าน LootLabs ใหม่';
+      backBtn.style.cssText = 'display:block;text-align:center;margin-top:12px;padding:10px 14px;border-radius:10px;background:rgba(239,68,68,0.14);border:1px solid rgba(239,68,68,0.45);color:#fecaca;text-decoration:none;font-size:13px;font-weight:600;';
+      card.appendChild(backBtn);
+    }
+    showToast(msg, 'error', 7000);
+  }
+}
 
 // Initialize Server-Side Anti-Bypass Session Ticket (/api/gate/start)
 async function initGateAntiBypassSession() {
@@ -264,6 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initGateAntiBypassSession();
+  verifyHubLootlabsAccess();
   const path = window.location.pathname.toLowerCase();
   const slug = path.startsWith('/l/') ? path.slice(3).trim() : (params.get('slug') || (path === '/access' || path === '/hub' || path === '/gate' ? 'hub-access' : ''));
 
@@ -598,6 +663,17 @@ function updateProgressState() {
   if (progressBar) progressBar.style.width = `${(completedCount / TOTAL_TASKS) * 100}%`;
 
   // When all required tasks are completed
+  if (isLootlabsBypassBlocked) {
+    if (btnUnlock) {
+      btnUnlock.disabled = true;
+      btnUnlock.className = 'btn-social-unlock locked';
+    }
+    if (txtUnlock) {
+      txtUnlock.textContent = '🔒 Blocked (LootLabs Postback Required)';
+    }
+    return;
+  }
+
   if (completedCount >= TOTAL_TASKS) {
     if (isHumanVerified) {
       if (btnUnlock) {
@@ -637,6 +713,10 @@ function updateProgressState() {
 
 // 5. Handle Final Unlock Button Click
 window.handleUnlockClick = function() {
+  if (isLootlabsBypassBlocked) {
+    showToast('⛔ ยังไม่พบการยืนยัน Postback จาก LootLabs กรุณากลับหน้าหลักแล้วทำผ่านลิงก์ตามปกติ', 'error', 5000);
+    return;
+  }
   const completedCount = tasksDone.slice(0, TOTAL_TASKS).filter(Boolean).length;
   if (completedCount < TOTAL_TASKS) return;
 
@@ -660,11 +740,9 @@ window.handleUnlockClick = function() {
     trackGateEvent(activeSlug, 'unlock');
   }
 
-  // 1. Grant 24-Hour Access in localStorage
-  grant24HourAccess();
-
   // 3. If a script code is attached: REVEAL SCRIPT DIRECTLY ON THIS PAGE!
   if (targetScriptCode) {
+    grant24HourAccess();
     const tasksGroup = document.querySelector('.social-tasks-group');
     const progressBlock = document.querySelector('.social-progress-block');
     const btnUnlock = document.getElementById('btnUnlock');
@@ -690,7 +768,7 @@ window.handleUnlockClick = function() {
   const txtUnlock = document.getElementById('txtUnlock');
   const btnUnlock = document.getElementById('btnUnlock');
 
-  // Server-Side Anti-Bypass Verification (HMAC-SHA256 Token & Dwell Time)
+  // Server-Side Anti-Bypass Verification (HMAC-SHA256 Token & Dwell Time + LootLabs Postback)
   if (isHub) {
     if (btnUnlock) btnUnlock.disabled = true;
     if (txtUnlock) txtUnlock.textContent = t('verifying');
@@ -698,21 +776,28 @@ window.handleUnlockClick = function() {
     (async () => {
       try {
         let passToken = '';
-        if (serverSessionTicket) {
-          const verifyRes = await fetch('/api/gate/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ticket: serverSessionTicket })
-          });
-          const verifyData = await verifyRes.json();
-          if (!verifyData.success) {
-            if (btnUnlock) btnUnlock.disabled = false;
-            if (txtUnlock) txtUnlock.textContent = t('enterWebBtn');
-            showToast(verifyData.error || 'Anti-Bypass: คุณทำภารกิจไม่ครบเวลาที่กำหนด', 'error', 4500);
-            return;
-          }
-          passToken = verifyData.passToken;
+        if (!serverSessionTicket) {
+          if (btnUnlock) btnUnlock.disabled = false;
+          if (txtUnlock) txtUnlock.textContent = t('enterWebBtn');
+          showToast('⛔ ไม่พบตั๋วเซสชันจากเซิร์ฟเวอร์ กรุณารีเฟรชหน้าใหม่', 'error', 4500);
+          return;
         }
+        const storedPuid = (() => {
+          try { return localStorage.getItem('blacklist_lootlabs_puid') || ''; } catch { return ''; }
+        })();
+        const verifyRes = await fetch('/api/gate/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ticket: serverSessionTicket, puid: storedPuid })
+        });
+        const verifyData = await verifyRes.json();
+        if (!verifyData.success) {
+          if (btnUnlock) btnUnlock.disabled = false;
+          if (txtUnlock) txtUnlock.textContent = t('enterWebBtn');
+          showToast(verifyData.error || 'Anti-Bypass: คุณทำภารกิจไม่ครบเงื่อนไขที่กำหนด', 'error', 5000);
+          return;
+        }
+        passToken = verifyData.passToken;
 
         grant24HourAccess();
         if (passToken) {
@@ -729,9 +814,10 @@ window.handleUnlockClick = function() {
           window.location.href = redirectUrl;
         }, 600);
       } catch (err) {
-        console.warn('Anti-Bypass verify offline fallback:', err);
-        grant24HourAccess();
-        window.location.href = destinationUrl;
+        console.warn('Anti-Bypass verify error:', err);
+        if (btnUnlock) btnUnlock.disabled = false;
+        if (txtUnlock) txtUnlock.textContent = t('enterWebBtn');
+        showToast('⛔ ไม่สามารถยืนยันสิทธิ์กับเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง', 'error', 4500);
       }
     })();
     return;

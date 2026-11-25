@@ -154,6 +154,80 @@ function corsHeaders() {
     };
 }
 
+function cleanLootParam(v) {
+    const s = String(v || '').trim();
+    if (!s || (s.includes('{') && s.includes('}'))) return '';
+    return s;
+}
+
+async function getLootlabsProvider() {
+    try {
+        const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/hub/config?key=${FIREBASE_API_KEY}`;
+        const fbRes = await fetch(firestoreUrl);
+        if (fbRes.ok) {
+            const data = await fbRes.json();
+            if (data?.fields?.configJson?.stringValue) {
+                const parsed = JSON.parse(data.fields.configJson.stringValue);
+                const gate = parsed?.lootlabsGate || {};
+                if (gate.enabled === false) return 'disabled';
+                return String(gate.provider || 'lootlabs').toLowerCase();
+            }
+        }
+    } catch (e) {}
+    return 'lootlabs';
+}
+
+function isDocWithin24h(fields) {
+    if (!fields || fields.verified?.booleanValue !== true) return false;
+    const now = Date.now();
+    const ttl = 24 * 60 * 60 * 1000;
+    const tsRaw = fields.timestamp?.integerValue || fields.verifiedAt?.integerValue;
+    if (tsRaw) {
+        const ts = Number(tsRaw);
+        return !Number.isNaN(ts) && ts > 0 && (now - ts) < ttl;
+    }
+    const isoRaw = fields.verifiedAt?.stringValue;
+    if (isoRaw) {
+        const ts = Date.parse(isoRaw);
+        return !Number.isNaN(ts) && ts > 0 && (now - ts) < ttl;
+    }
+    return false;
+}
+
+async function checkLootlabsVerified(puid, clientIp, skipIp = false) {
+    const cleanPuid = cleanLootParam(puid);
+    if (cleanPuid) {
+        try {
+            const docUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(cleanPuid)}?key=${FIREBASE_API_KEY}`;
+            const res = await fetch(docUrl);
+            if (res.ok) {
+                const data = await res.json();
+                if (isDocWithin24h(data?.fields)) {
+                    return { verified: true, by: 'puid' };
+                }
+            }
+        } catch (e) {}
+    }
+
+    const cleanIp = !skipIp && clientIp && clientIp !== '127.0.0.1'
+        ? clientIp.replace(/[^a-zA-Z0-9_]/g, '_')
+        : '';
+    if (cleanIp) {
+        try {
+            const ipUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_ips/${cleanIp}?key=${FIREBASE_API_KEY}`;
+            const ipRes = await fetch(ipUrl);
+            if (ipRes.ok) {
+                const data = await ipRes.json();
+                if (isDocWithin24h(data?.fields)) {
+                    return { verified: true, by: 'ip' };
+                }
+            }
+        } catch (e) {}
+    }
+
+    return { verified: false, by: null };
+}
+
 export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
@@ -488,6 +562,25 @@ export default {
                 });
             }
 
+            // Require real LootLabs Server-to-Server Postback when provider is lootlabs on hub-access gate
+            if ((ticketData.slug || 'hub-access') === 'hub-access') {
+                const provider = await getLootlabsProvider();
+                if (provider === 'lootlabs') {
+                    const puid = cleanLootParam(body?.puid || body?.session || '');
+                    const pbCheck = await checkLootlabsVerified(puid, clientIp, false);
+                    if (!pbCheck.verified) {
+                        return new Response(JSON.stringify({
+                            success: false,
+                            requireLootlabs: true,
+                            error: '⛔ ตรวจพบการบายพาส! ยังไม่พบการยืนยัน Postback จาก LootLabs กรุณาทำภารกิจผ่านลิงก์ LootLabs ตามปกติก่อนเข้าหน้านี้'
+                        }), {
+                            status: 403,
+                            headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                        });
+                    }
+                }
+            }
+
             // Issue Cryptographically Signed 24-Hour Pass Token
             const expiry24h = Date.now() + (24 * 60 * 60 * 1000);
             const passData = {
@@ -608,10 +701,42 @@ export default {
         // 3.5 LOOTLABS ANTI-BYPASS POSTBACK & CHECKPOINT (/api/lootlabs-postback, /api/checkpoint/*)
         // =========================================================================
         if (url.pathname === '/api/lootlabs-postback') {
-            const uid = url.searchParams.get('uid') || url.searchParams.get('puid') || url.searchParams.get('session') || url.searchParams.get('click_id') || '';
-            const clickId = url.searchParams.get('click_id') || '';
-            if (uid) {
-                // 1. Save to BlacklistScripts Firestore
+            const expectedSecret = String(env?.BLACKLIST_POSTBACK_SECRET || '').trim();
+            const providedSecret = cleanLootParam(url.searchParams.get('secret') || url.searchParams.get('token'));
+            if (expectedSecret && providedSecret !== expectedSecret) {
+                return new Response(JSON.stringify({ error: 'Invalid postback secret' }), {
+                    status: 403,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            const uid =
+                cleanLootParam(url.searchParams.get('click_id')) ||
+                cleanLootParam(url.searchParams.get('puid')) ||
+                cleanLootParam(url.searchParams.get('uid')) ||
+                cleanLootParam(url.searchParams.get('session'));
+            const clickId = cleanLootParam(url.searchParams.get('click_id')) || uid;
+            const ip = cleanLootParam(url.searchParams.get('ip')) || (request.headers.get('cf-connecting-ip') || '').trim();
+            const uniqueId = cleanLootParam(url.searchParams.get('unique_id'));
+
+            if (!uniqueId || uniqueId.length < 6) {
+                return new Response(JSON.stringify({ error: 'Invalid or missing conversion unique_id' }), {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            const hasValidUid = Boolean(uid && (uid.startsWith('ll_') || uid.startsWith('bs_')) && uid.length >= 10);
+            if (!hasValidUid && !ip) {
+                return new Response(JSON.stringify({ error: 'Missing valid click_id or ip' }), {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+
+            const nowMs = Date.now();
+            if (hasValidUid) {
+                // 1. Save to BlacklistScripts Firestore by PUID/click_id
                 try {
                     const docUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(uid)}?key=${FIREBASE_API_KEY}`;
                     await fetch(docUrl, {
@@ -621,7 +746,10 @@ export default {
                             fields: {
                                 verified: { booleanValue: true },
                                 clickId: { stringValue: clickId },
-                                verifiedAt: { integerValue: String(Date.now()) }
+                                ip: { stringValue: ip },
+                                uniqueId: { stringValue: uniqueId },
+                                verifiedAt: { integerValue: String(nowMs) },
+                                timestamp: { integerValue: String(nowMs) }
                             }
                         })
                     });
@@ -639,34 +767,70 @@ export default {
                             fields: {
                                 verified: { booleanValue: true },
                                 clickId: { stringValue: clickId },
-                                verifiedAt: { integerValue: String(Date.now()) }
+                                uniqueId: { stringValue: uniqueId },
+                                verifiedAt: { integerValue: String(nowMs) }
                             }
                         })
                     }).catch(() => {});
                 } catch (e) {}
             }
-            return new Response(JSON.stringify({ status: 'ok', message: 'LootLabs postback credited successfully', uid, verified: true }), {
+
+            // 3. Also save by IP to allow IP-based verification (e.g. static links or cross-tab fallback)
+            if (ip && ip !== '127.0.0.1') {
+                const cleanIp = ip.replace(/[^a-zA-Z0-9_]/g, '_');
+                const ipUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_ips/${cleanIp}?key=${FIREBASE_API_KEY}`;
+                await fetch(ipUrl, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fields: {
+                            verified: { booleanValue: true },
+                            clickId: { stringValue: uid || '' },
+                            uniqueId: { stringValue: uniqueId },
+                            timestamp: { integerValue: String(nowMs) },
+                            verifiedAt: { stringValue: new Date(nowMs).toISOString() }
+                        }
+                    })
+                }).catch(() => {});
+            }
+
+            return new Response(JSON.stringify({ status: 'ok', message: 'LootLabs postback credited successfully', uid, ip, uniqueId, verified: true }), {
                 status: 200,
                 headers: { 'Content-Type': 'application/json', ...corsHeaders() }
             });
         }
 
         if (url.pathname === '/api/checkpoint/status' || url.pathname === '/api/check-session') {
-            const sessionId = url.searchParams.get('session') || url.searchParams.get('puid') || '';
-            let verified = false;
-            if (sessionId) {
-                try {
-                    const docUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_sessions/${encodeURIComponent(sessionId)}?key=${FIREBASE_API_KEY}`;
-                    const res = await fetch(docUrl);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.fields && data.fields.verified && data.fields.verified.booleanValue === true) {
-                            verified = true;
-                        }
-                    }
-                } catch (e) {}
+            const clientIp = (request.headers.get('cf-connecting-ip') || '').trim();
+            const cleanIp = clientIp.replace(/[^a-zA-Z0-9_]/g, '_');
+            const action = url.searchParams.get('action') || '';
+            if (action === 'reset' || request.method === 'DELETE') {
+                let cleared = false;
+                if (cleanIp) {
+                    const ipDocUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/lootlabs_ips/${cleanIp}?key=${FIREBASE_API_KEY}`;
+                    const fbRes = await fetch(ipDocUrl, { method: 'DELETE' }).catch(() => null);
+                    if (fbRes && fbRes.ok) cleared = true;
+                }
+                return new Response(JSON.stringify({ success: true, clientIp, cleared }), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders() }
+                });
             }
-            return new Response(JSON.stringify({ sessionId, puid: sessionId, verified }), {
+
+            const sessionId = cleanLootParam(url.searchParams.get('session') || url.searchParams.get('puid') || url.searchParams.get('click_id'));
+            const skipIp = url.searchParams.get('skip_ip') === '1' || url.searchParams.get('test') === '1';
+            const [pbCheck, provider] = await Promise.all([
+                checkLootlabsVerified(sessionId, clientIp, skipIp),
+                getLootlabsProvider()
+            ]);
+
+            return new Response(JSON.stringify({
+                sessionId,
+                puid: sessionId,
+                verified: pbCheck.verified,
+                by: pbCheck.by,
+                provider
+            }), {
                 status: 200,
                 headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders() }
             });
