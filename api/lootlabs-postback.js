@@ -135,7 +135,7 @@ async function sendDiscordLog({ clickId, ip, uniqueId }) {
             timestamp: new Date().toISOString()
         };
 
-        const webhookUrl = process.env.DISCORD_WEBHOOK_URL || DEFAULT_WEBHOOK_URL;
+        const webhookUrl = process.env.DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL;
         await fetch(webhookUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
