@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Kanit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/redesign.css?v=4" />
+  <link rel="stylesheet" href="/css/redesign.css?v=5" />
 </head>
 <body>
   <div class="bg-orb orb-1" aria-hidden="true"></div>
@@ -281,6 +281,53 @@
     </div>
   </div>
 
+  <!-- Entry Support Modal (YouTube Subscribe + Like Latest Video) -->
+  <div id="entryGateModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="entryGateTitle">
+    <div class="modal-card modal-sm entry-gate-card">
+      <div class="entry-gate-head">
+        <div class="entry-yt-badge">
+          <i data-lucide="youtube"></i>
+        </div>
+        <h2 id="entryGateTitle" data-i18n="entryTitle">สนับสนุนช่องก่อนเข้าใช้งาน</h2>
+        <p class="vip-desc" data-i18n="entryDesc">ทำภารกิจสั้นๆ 2 ข้อ (จำให้ 24 ชม. — ไม่ต้องทำซ้ำทุกรอบ)</p>
+      </div>
+
+      <div class="entry-task-list">
+        <div id="entrySubRow" class="entry-task-row">
+          <div class="entry-task-info">
+            <strong data-i18n="entrySubTitle">1. กดติดตาม (Subscribe)</strong>
+            <span id="entrySubName">@Blacklistxyx</span>
+          </div>
+          <button id="entrySubBtn" type="button" class="entry-task-btn">
+            <i data-lucide="youtube"></i>
+            <span id="entrySubBtnText" data-i18n="entrySubBtn">กดติดตาม</span>
+          </button>
+        </div>
+
+        <div id="entryLikeRow" class="entry-task-row">
+          <div class="entry-task-info">
+            <strong data-i18n="entryLikeTitle">2. กดไลค์คลิปล่าสุด</strong>
+            <span id="entryLikeNote" data-i18n="entryLikeNote">เปิดคลิปล่าสุดแล้วกดไลค์ 5 วิ</span>
+          </div>
+          <button id="entryLikeBtn" type="button" class="entry-task-btn">
+            <i data-lucide="thumbs-up"></i>
+            <span id="entryLikeBtnText" data-i18n="entryLikeBtn">กดไลค์คลิป</span>
+          </button>
+        </div>
+      </div>
+
+      <button id="entryGateEnterBtn" type="button" class="btn-unlock btn-entry-enter" disabled>
+        <i data-lucide="lock"></i>
+        <span id="entryGateEnterText" data-i18n="entryEnterLocked">ทำครบ 2 ข้อเพื่อเข้าสู่เว็บไซต์</span>
+      </button>
+
+      <button id="entryVipBtn" type="button" class="btn-ghost" style="width:100%; justify-content:center; margin-top:8px;">
+        <i data-lucide="shield-check"></i>
+        <span data-i18n="entryVipSkip">สมาชิก VIP Discord (เข้าสู่ระบบเพื่อข้าม)</span>
+      </button>
+    </div>
+  </div>
+
   <!-- Mobile Thumb Bottom Navigation -->
   <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
     <button type="button" class="mobile-nav-btn active" data-mobile-view="scripts">
@@ -304,6 +351,6 @@
   <div id="toastRoot" class="toast-root" aria-live="polite"></div>
 
   <script src="/js/lucide.min.js"></script>
-  <script src="/js/redesign-app.js?v=4"></script>
+  <script src="/js/redesign-app.js?v=5"></script>
 </body>
 </html>

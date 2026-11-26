@@ -56,7 +56,19 @@ const I18N = {
     discordBtn: 'เข้าร่วม Discord เพื่อไปต่อ',
     discordHelper: (days, sec) => `กดเข้าเซิร์ฟเวอร์ Discord ของเราและรอ ${sec} วินาที — ระบบจะจำไว้ ${days} วัน รอบหน้าไม่ต้องทำซ้ำ!`,
     discordWaiting: (sec) => `กำลังตรวจสอบการเข้า Discord (${sec}s)...`,
-    discordToastDone: (days) => `บันทึกการเข้า Discord แล้ว! ระบบจำไว้ ${days} วัน`
+    discordToastDone: (days) => `บันทึกการเข้า Discord แล้ว! ระบบจำไว้ ${days} วัน`,
+    entryTitle: 'สนับสนุนช่องก่อนเข้าใช้งาน',
+    entryDesc: 'ทำภารกิจสั้นๆ 2 ข้อ (จำให้ 24 ชม. — ไม่ต้องทำซ้ำทุกรอบ)',
+    entrySubTitle: '1. กดติดตาม (Subscribe)',
+    entrySubBtn: 'กดติดตาม',
+    entryLikeTitle: '2. กดไลค์คลิปล่าสุด',
+    entryLikeNote: 'เปิดคลิปล่าสุดแล้วกดไลค์ 5 วิ',
+    entryLikeBtn: 'กดไลค์คลิป',
+    entryTaskDone: 'ผ่านแล้ว',
+    entryTaskWait: (sec) => `รอตรวจ ${sec}s...`,
+    entryEnterLocked: 'ทำครบ 2 ข้อเพื่อเข้าสู่เว็บไซต์',
+    entryEnterReady: 'เข้าสู่เว็บไซต์ทันที',
+    entryVipSkip: 'สมาชิก VIP Discord (เข้าสู่ระบบเพื่อข้าม)'
   },
   en: {
     brandSub: 'ROBLOX SCRIPT HUB',
@@ -111,7 +123,19 @@ const I18N = {
     discordBtn: 'Join Discord to Continue',
     discordHelper: (days, sec) => `Join our Discord server and keep it open ${sec}s — remembered for ${days} days so it will not bother you again!`,
     discordWaiting: (sec) => `Verifying Discord join (${sec}s)...`,
-    discordToastDone: (days) => `Discord step saved! Remembered for ${days} days.`
+    discordToastDone: (days) => `Discord step saved! Remembered for ${days} days.`,
+    entryTitle: 'Support Channel Before Entering',
+    entryDesc: 'Quick 2-step support (remembered for 24h).',
+    entrySubTitle: '1. Subscribe on YouTube',
+    entrySubBtn: 'Subscribe',
+    entryLikeTitle: '2. Like Latest Video',
+    entryLikeNote: 'Open latest video & like (5s check)',
+    entryLikeBtn: 'Like Video',
+    entryTaskDone: 'Verified',
+    entryTaskWait: (sec) => `Checking ${sec}s...`,
+    entryEnterLocked: 'Complete 2 steps to enter website',
+    entryEnterReady: 'Enter Website Now',
+    entryVipSkip: 'VIP Discord Member (Sign in to skip)'
   }
 };
 
@@ -120,6 +144,12 @@ const state = {
   view: 'scripts',
   scripts: [],
   unlockConfig: { stepsTotal: 4, waitSeconds: 5, monetagMultiTagZone: '', discordRequiredOnce: true, discordRememberDays: 30, discordInviteUrl: '' },
+  entryTasks: { enabled: true, youtubeChannelUrl: 'https://www.youtube.com/@Blacklistxyx', youtubeChannelName: '@Blacklistxyx', latestVideoUrl: '', waitSeconds: 5, rememberHours: 24 },
+  entrySubDone: false,
+  entryLikeDone: false,
+  entrySubBusy: false,
+  entryLikeBusy: false,
+  resolvedLatestVideoUrl: '',
   executors: [],
   execLoaded: false,
   execPlatform: 'all',
@@ -224,6 +254,9 @@ async function loadPublicScripts() {
       state.unlockConfig = data.unlock;
       injectMultiTagIfConfigured(data.unlock.monetagMultiTagZone);
     }
+    if (data.entryTasks) {
+      state.entryTasks = data.entryTasks;
+    }
   } catch (err) {
     showToast('โหลดรายชื่อสคริปต์ไม่สำเร็จ: ' + err.message, 'error');
     state.scripts = [];
@@ -232,6 +265,7 @@ async function loadPublicScripts() {
   updateStats();
   renderGamePills();
   renderScripts();
+  maybeOpenEntryGate();
 }
 
 async function loadExecutors() {
@@ -526,7 +560,79 @@ function getSavedScriptSession(scriptId) {
 function syncModalScrollLock() {
   const scriptOpen = !$('scriptModal').classList.contains('hidden');
   const vipOpen = !$('vipModal').classList.contains('hidden');
-  document.body.classList.toggle('modal-open', scriptOpen || vipOpen);
+  const entryEl = $('entryGateModal');
+  const entryOpen = entryEl ? !entryEl.classList.contains('hidden') : false;
+  document.body.classList.toggle('modal-open', scriptOpen || vipOpen || entryOpen);
+}
+
+function getYoutubeSubUrl() {
+  const raw = String(state.entryTasks?.youtubeChannelUrl || 'https://www.youtube.com/@Blacklistxyx').trim();
+  if (raw.includes('sub_confirmation=')) return raw;
+  return raw + (raw.includes('?') ? '&' : '?') + 'sub_confirmation=1';
+}
+
+function renderEntryGateUI() {
+  const subRow = $('entrySubRow');
+  const likeRow = $('entryLikeRow');
+  const subBtn = $('entrySubBtn');
+  const likeBtn = $('entryLikeBtn');
+  const enterBtn = $('entryGateEnterBtn');
+  if (!subRow || !likeRow || !enterBtn) return;
+
+  if ($('entrySubName')) {
+    $('entrySubName').textContent = state.entryTasks?.youtubeChannelName || '@Blacklistxyx';
+  }
+  subRow.classList.toggle('done', state.entrySubDone);
+  likeRow.classList.toggle('done', state.entryLikeDone);
+
+  if (!state.entrySubBusy) {
+    subBtn.disabled = state.entrySubDone;
+    $('entrySubBtnText').textContent = state.entrySubDone ? t('entryTaskDone') : t('entrySubBtn');
+  }
+  if (!state.entryLikeBusy) {
+    likeBtn.disabled = state.entryLikeDone;
+    $('entryLikeBtnText').textContent = state.entryLikeDone ? t('entryTaskDone') : t('entryLikeBtn');
+  }
+
+  const allDone = state.entrySubDone && state.entryLikeDone;
+  enterBtn.disabled = !allDone;
+  $('entryGateEnterText').textContent = allDone ? t('entryEnterReady') : t('entryEnterLocked');
+  refreshIcons();
+}
+
+async function resolveLatestVideoForEntry() {
+  if (state.resolvedLatestVideoUrl) return state.resolvedLatestVideoUrl;
+  const fallback = String(state.entryTasks?.latestVideoUrl || state.entryTasks?.youtubeChannelUrl || 'https://www.youtube.com/@Blacklistxyx/videos');
+  try {
+    const chMatch = String(state.entryTasks?.youtubeChannelUrl || '').match(/@([A-Za-z0-9_.-]+)/);
+    const chParam = chMatch ? `@${chMatch[1]}` : '@Blacklistxyx';
+    const res = await fetch(`/api/latest-video?ch=${encodeURIComponent(chParam)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.videoUrl) {
+        state.resolvedLatestVideoUrl = data.videoUrl;
+        return data.videoUrl;
+      }
+    }
+  } catch (e) {}
+  state.resolvedLatestVideoUrl = fallback;
+  return fallback;
+}
+
+function maybeOpenEntryGate() {
+  const modal = $('entryGateModal');
+  if (!modal) return;
+  if (!state.entryTasks?.enabled || state.canBypass) return;
+  try {
+    const entryUntil = Number(localStorage.getItem('bs_entry_yt_until') || 0);
+    if (entryUntil > Date.now()) return;
+    const subUntil = Number(localStorage.getItem('bs_yt_subbed_until') || 0);
+    state.entrySubDone = subUntil > Date.now();
+  } catch (e) {}
+  resolveLatestVideoForEntry();
+  modal.classList.remove('hidden');
+  syncModalScrollLock();
+  renderEntryGateUI();
 }
 
 async function openScriptModal(scriptId) {
@@ -842,6 +948,11 @@ function updateVipUI(data) {
     btn.classList.add('is-vip');
     if (mobBtn) mobBtn.classList.add('is-vip');
     $('vipBtnText').textContent = state.vipUser?.username || 'VIP';
+    const entryEl = $('entryGateModal');
+    if (entryEl) {
+      entryEl.classList.add('hidden');
+      syncModalScrollLock();
+    }
   }
   if (state.vipUser) {
     $('vipUserCard').classList.remove('hidden');
@@ -995,6 +1106,82 @@ document.addEventListener('DOMContentLoaded', () => {
       syncModalScrollLock();
     }
   });
+
+  const entrySubBtn = $('entrySubBtn');
+  if (entrySubBtn) {
+    entrySubBtn.addEventListener('click', () => {
+      if (state.entrySubDone || state.entrySubBusy) return;
+      window.open(getYoutubeSubUrl(), '_blank', 'noopener,noreferrer');
+      state.entrySubBusy = true;
+      entrySubBtn.disabled = true;
+      let left = Number(state.entryTasks?.waitSeconds) || 5;
+      $('entrySubBtnText').textContent = t('entryTaskWait', left);
+      const iv = setInterval(() => {
+        left -= 1;
+        if (left <= 0) {
+          clearInterval(iv);
+          state.entrySubBusy = false;
+          state.entrySubDone = true;
+          try {
+            localStorage.setItem('bs_yt_subbed_until', String(Date.now() + 30 * 86400 * 1000));
+          } catch (e) {}
+          renderEntryGateUI();
+        } else {
+          $('entrySubBtnText').textContent = t('entryTaskWait', left);
+        }
+      }, 1000);
+    });
+  }
+
+  const entryLikeBtn = $('entryLikeBtn');
+  if (entryLikeBtn) {
+    entryLikeBtn.addEventListener('click', async () => {
+      if (state.entryLikeDone || state.entryLikeBusy) return;
+      const vidWin = window.open('about:blank', '_blank');
+      if (vidWin) vidWin.opener = null;
+      const vidUrl = await resolveLatestVideoForEntry();
+      if (vidWin) vidWin.location.href = vidUrl;
+      else window.open(vidUrl, '_blank', 'noopener,noreferrer');
+
+      state.entryLikeBusy = true;
+      entryLikeBtn.disabled = true;
+      let left = Number(state.entryTasks?.waitSeconds) || 5;
+      $('entryLikeBtnText').textContent = t('entryTaskWait', left);
+      const iv = setInterval(() => {
+        left -= 1;
+        if (left <= 0) {
+          clearInterval(iv);
+          state.entryLikeBusy = false;
+          state.entryLikeDone = true;
+          renderEntryGateUI();
+        } else {
+          $('entryLikeBtnText').textContent = t('entryTaskWait', left);
+        }
+      }, 1000);
+    });
+  }
+
+  const entryGateEnterBtn = $('entryGateEnterBtn');
+  if (entryGateEnterBtn) {
+    entryGateEnterBtn.addEventListener('click', () => {
+      if (!state.entrySubDone || !state.entryLikeDone) return;
+      const hours = Math.max(1, Number(state.entryTasks?.rememberHours) || 24);
+      try {
+        localStorage.setItem('bs_entry_yt_until', String(Date.now() + hours * 3600 * 1000));
+      } catch (e) {}
+      $('entryGateModal').classList.add('hidden');
+      syncModalScrollLock();
+      showToast(t('entryEnterReady'), 'success');
+    });
+  }
+
+  const entryVipBtn = $('entryVipBtn');
+  if (entryVipBtn) {
+    entryVipBtn.addEventListener('click', () => {
+      $('vipModal').classList.remove('hidden');
+      syncModalScrollLock();
+    });
+  }
 
   refreshIcons();
   checkVipSession();

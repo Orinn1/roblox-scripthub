@@ -76,6 +76,8 @@ async function getUnlockConfigLocal() {
             'https://asiafilm.org/4/d8707d797617eddbed2038e5921285e3',
             'https://uplcm.com/4/11905140'
         ];
+    const ytTasks = cfg.unlockTasks || {};
+    const entryCfg = cfg.entryTasks || {};
     return {
         stepsTotal: Number(flow.stepsTotal) || 4,
         waitSeconds: Number(flow.waitSeconds) || 5,
@@ -83,7 +85,15 @@ async function getUnlockConfigLocal() {
         monetagMultiTagZone: String(flow.monetagMultiTagZone || ''),
         discordRequiredOnce: flow.discordRequiredOnce !== false,
         discordInviteUrl: String(flow.discordInviteUrl || cfg.discordInviteUrl || 'https://discord.gg/6MTUP78KF6'),
-        discordRememberDays: Number(flow.discordRememberDays) || 30
+        discordRememberDays: Number(flow.discordRememberDays) || 30,
+        entryTasks: {
+            enabled: entryCfg.enabled !== false,
+            youtubeChannelUrl: String(ytTasks.youtubeChannelUrl || (cfg.socialLinks && cfg.socialLinks.youtube) || 'https://www.youtube.com/@Blacklistxyx'),
+            youtubeChannelName: String(ytTasks.youtubeChannelName || 'ช่อง Blacklistxyx'),
+            latestVideoUrl: String(ytTasks.latestVideoUrl || ''),
+            waitSeconds: Number(entryCfg.waitSeconds) || 5,
+            rememberHours: Number(entryCfg.rememberHours) || 24
+        }
     };
 }
 
@@ -293,7 +303,8 @@ const server = http.createServer(async (req, res) => {
                     discordRequiredOnce: unlockCfg.discordRequiredOnce,
                     discordRememberDays: unlockCfg.discordRememberDays,
                     discordInviteUrl: unlockCfg.discordInviteUrl
-                }
+                },
+                entryTasks: unlockCfg.entryTasks
             }));
         } catch (err) {
             res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -721,6 +732,53 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === '/api/banned-ips') {
         await executeServerless('./api/banned-ips.js', req, res, parsedUrl);
+        return;
+    }
+
+    // =========================================================================
+    // API: GET /api/latest-video (Auto-fetch latest YouTube video via RSS)
+    // =========================================================================
+    if (pathname === '/api/latest-video') {
+        const rawCh = String(parsedUrl.query?.ch || parsedUrl.query?.channel || '@Blacklistxyx').trim();
+        const cleanCh = rawCh.replace(/^@/, '').toLowerCase();
+        const KNOWN_CHANNELS = {
+            ghostsensix: 'UC8laKzbaWUNJMJ6XN_pxiBg',
+            ghostsensi: 'UC8laKzbaWUNJMJ6XN_pxiBg',
+            blacklistxyx: 'UCOAGxYeICyBbSjxJkul3HXA',
+            blacklist: 'UCOAGxYeICyBbSjxJkul3HXA'
+        };
+        let channelId = KNOWN_CHANNELS[cleanCh] || '';
+        if (!channelId && cleanCh) {
+            try {
+                const ytRes = await fetch(`https://www.youtube.com/@${encodeURIComponent(cleanCh)}`, {
+                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+                });
+                const ytHtml = await ytRes.text();
+                const m = ytHtml.match(/browseId":"(UC[a-zA-Z0-9_-]{22})"/);
+                if (m && m[1]) channelId = m[1];
+            } catch (e) {}
+        }
+        if (channelId) {
+            try {
+                const rssRes = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`, {
+                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+                });
+                if (rssRes.ok) {
+                    const rssXml = await rssRes.text();
+                    const vMatch = rssXml.match(/<yt:videoId>([a-zA-Z0-9_-]{11})<\/yt:videoId>/);
+                    if (vMatch && vMatch[1]) {
+                        const vid = vMatch[1];
+                        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=180' });
+                        res.end(JSON.stringify({ success: true, channel: cleanCh, channelId, videoId: vid, videoUrl: `https://www.youtube.com/watch?v=${vid}` }));
+                        return;
+                    }
+                }
+            } catch (e) {}
+        }
+        const cfg = await getUnlockConfigLocal();
+        const fallbackUrl = cfg.entryTasks?.latestVideoUrl || `https://www.youtube.com/@${cleanCh || 'Blacklistxyx'}/videos`;
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: true, channel: cleanCh, videoUrl: fallbackUrl }));
         return;
     }
 

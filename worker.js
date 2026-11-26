@@ -254,6 +254,8 @@ async function getUnlockConfigWorker(env) {
             'https://asiafilm.org/4/d8707d797617eddbed2038e5921285e3',
             'https://uplcm.com/4/11905140'
         ];
+    const ytTasks = cfg.unlockTasks || {};
+    const entryCfg = cfg.entryTasks || {};
     return {
         stepsTotal: Number(flow.stepsTotal) || 4,
         waitSeconds: Number(flow.waitSeconds) || 5,
@@ -261,7 +263,15 @@ async function getUnlockConfigWorker(env) {
         monetagMultiTagZone: String(flow.monetagMultiTagZone || ''),
         discordRequiredOnce: flow.discordRequiredOnce !== false,
         discordInviteUrl: String(flow.discordInviteUrl || cfg.discordInviteUrl || 'https://discord.gg/6MTUP78KF6'),
-        discordRememberDays: Number(flow.discordRememberDays) || 30
+        discordRememberDays: Number(flow.discordRememberDays) || 30,
+        entryTasks: {
+            enabled: entryCfg.enabled !== false,
+            youtubeChannelUrl: String(ytTasks.youtubeChannelUrl || (cfg.socialLinks && cfg.socialLinks.youtube) || 'https://www.youtube.com/@Blacklistxyx'),
+            youtubeChannelName: String(ytTasks.youtubeChannelName || 'ช่อง Blacklistxyx'),
+            latestVideoUrl: String(ytTasks.latestVideoUrl || ''),
+            waitSeconds: Number(entryCfg.waitSeconds) || 5,
+            rememberHours: Number(entryCfg.rememberHours) || 24
+        }
     };
 }
 
@@ -602,7 +612,8 @@ export default {
                     discordRequiredOnce: unlockCfg.discordRequiredOnce,
                     discordRememberDays: unlockCfg.discordRememberDays,
                     discordInviteUrl: unlockCfg.discordInviteUrl
-                }
+                },
+                entryTasks: unlockCfg.entryTasks
             }), {
                 status: 200,
                 headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders() }

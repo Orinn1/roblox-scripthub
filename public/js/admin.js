@@ -1701,6 +1701,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const ufDiscordInvite = document.getElementById("ufDiscordInvite");
         const ufDiscordDays = document.getElementById("ufDiscordDays");
         const ufMultiTagZone = document.getElementById("ufMultiTagZone");
+        const ufEntryYtEnabled = document.getElementById("ufEntryYtEnabled");
+        const ufEntryYtChannel = document.getElementById("ufEntryYtChannel");
+        const ufEntryYtVideo = document.getElementById("ufEntryYtVideo");
+        const entryCfg = SITE_CONFIG.entryTasks || {};
 
         if (ufStepsTotal) ufStepsTotal.value = stepsVal;
         if (ufWaitSeconds) ufWaitSeconds.value = waitVal;
@@ -1712,6 +1716,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (ufDiscordInvite) ufDiscordInvite.value = discordInviteVal;
         if (ufDiscordDays) ufDiscordDays.value = discordDaysVal;
         if (ufMultiTagZone) ufMultiTagZone.value = flow.monetagMultiTagZone || "";
+        if (ufEntryYtEnabled) ufEntryYtEnabled.checked = entryCfg.enabled !== false;
+        if (ufEntryYtChannel) ufEntryYtChannel.value = (SITE_CONFIG.unlockTasks && SITE_CONFIG.unlockTasks.youtubeChannelUrl) || "https://www.youtube.com/@Blacklistxyx";
+        if (ufEntryYtVideo) ufEntryYtVideo.value = (SITE_CONFIG.unlockTasks && SITE_CONFIG.unlockTasks.latestVideoUrl) || "";
 
         const statAdminUnlock = document.getElementById("statAdminUnlock");
         const statAdminDiscord = document.getElementById("statAdminDiscord");
@@ -1737,6 +1744,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const discordInviteUrl = (document.getElementById("ufDiscordInvite")?.value || "").trim() || "https://discord.gg/6MTUP78KF6";
             const discordRememberDays = Math.max(1, Math.min(365, Number(document.getElementById("ufDiscordDays")?.value) || 30));
             const monetagMultiTagZone = (document.getElementById("ufMultiTagZone")?.value || "").trim();
+            const entryYtEnabled = Boolean(document.getElementById("ufEntryYtEnabled")?.checked);
+            const entryYtChannel = (document.getElementById("ufEntryYtChannel")?.value || "").trim() || "https://www.youtube.com/@Blacklistxyx";
+            const entryYtVideo = (document.getElementById("ufEntryYtVideo")?.value || "").trim();
 
             SITE_CONFIG.unlockFlow = {
                 stepsTotal,
@@ -1747,6 +1757,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 discordInviteUrl,
                 discordRememberDays
             };
+            SITE_CONFIG.entryTasks = {
+                ...(SITE_CONFIG.entryTasks || {}),
+                enabled: entryYtEnabled,
+                waitSeconds: 5,
+                rememberHours: 24
+            };
+            if (!SITE_CONFIG.unlockTasks) SITE_CONFIG.unlockTasks = {};
+            SITE_CONFIG.unlockTasks.youtubeChannelUrl = entryYtChannel;
+            SITE_CONFIG.unlockTasks.latestVideoUrl = entryYtVideo;
 
             const storageKey = window.getSiteConfigStorageKey ? window.getSiteConfigStorageKey() : "nova_site_config";
             localStorage.setItem(storageKey, JSON.stringify(SITE_CONFIG));
@@ -1755,7 +1774,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 await fetch("/api/config", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ unlockFlow: SITE_CONFIG.unlockFlow })
+                    body: JSON.stringify({
+                        unlockFlow: SITE_CONFIG.unlockFlow,
+                        entryTasks: SITE_CONFIG.entryTasks,
+                        unlockTasks: SITE_CONFIG.unlockTasks
+                    })
                 });
             } catch (err) {
                 console.warn("Failed to sync unlockFlow to server:", err);

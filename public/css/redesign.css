@@ -1439,6 +1439,106 @@ button {
   font-weight: 600;
 }
 
+/* Entry Support Gate (YouTube Sub + Like) */
+.entry-gate-card {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.entry-gate-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.entry-yt-badge {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.42);
+  color: #f87171;
+  display: grid;
+  place-items: center;
+}
+
+.entry-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+
+.entry-task-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 13px;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.entry-task-row.done {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: var(--emerald-soft);
+}
+
+.entry-task-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.entry-task-info strong {
+  font-size: 0.88rem;
+  color: #fff;
+}
+
+.entry-task-info span {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entry-task-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 13px;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fecaca;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-height: 38px;
+  transition: filter 0.15s;
+}
+
+.entry-task-btn:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.entry-task-row.done .entry-task-btn {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.5);
+  color: #6ee7b7;
+}
+
+.btn-entry-enter:not(:disabled) {
+  box-shadow: 0 8px 26px rgba(16, 185, 129, 0.35);
+}
+
 /* Footer */
 .footer {
   border-top: 1px solid var(--border);

@@ -389,6 +389,21 @@
                                 <label class="form-label">Monetag MultiTag Zone ID (เสริม — ปล่อยว่างได้)</label>
                                 <input type="text" id="ufMultiTagZone" class="form-control" placeholder="ใส่ตัวเลข Zone ID ถ้าต้องการเปิด MultiTag เพิ่มรายได้">
                             </div>
+
+                            <div class="full-width" style="padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
+                                <label class="checkbox-label" style="color: #fff; font-weight: 600;">
+                                    <input type="checkbox" id="ufEntryYtEnabled" checked>
+                                    <span>เปิดหน้า "กดซัพ + ไลค์คลิปล่าสุด" ตอนเข้าเว็บ (จำให้ 24 ชม.)</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="form-label">ลิงก์ช่อง YouTube</label>
+                                <input type="url" id="ufEntryYtChannel" class="form-control" placeholder="https://www.youtube.com/@Blacklistxyx">
+                            </div>
+                            <div>
+                                <label class="form-label">ลิงก์คลิปล่าสุด (ปล่อยว่าง = ดึงจากช่องอัตโนมัติ)</label>
+                                <input type="url" id="ufEntryYtVideo" class="form-control" placeholder="https://youtu.be/...">
+                            </div>
                         </div>
 
                         <button type="submit" class="btn-submit">
@@ -745,9 +760,9 @@
 
     <!-- Scripts -->
     <script src="js/lucide.min.js"></script>
-    <script src="js/config.js?v=20261126_admin_v3"></script>
-    <script src="js/firebase-db.js?v=20261126_admin_v3"></script>
-    <script src="js/scripts-data.js?v=20261126_admin_v3"></script>
-    <script src="js/admin.js?v=20261126_admin_v3"></script>
+    <script src="js/config.js?v=20261126_admin_v4"></script>
+    <script src="js/firebase-db.js?v=20261126_admin_v4"></script>
+    <script src="js/scripts-data.js?v=20261126_admin_v4"></script>
+    <script src="js/admin.js?v=20261126_admin_v4"></script>
 </body>
 </html>

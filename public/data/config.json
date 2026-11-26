@@ -34,6 +34,11 @@
     "discordInviteUrl": "https://discord.gg/6MTUP78KF6",
     "discordRememberDays": 30
   },
+  "entryTasks": {
+    "enabled": true,
+    "waitSeconds": 5,
+    "rememberHours": 24
+  },
   "lootlabsGate": {
     "enabled": true,
     "provider": "lootlabs",
