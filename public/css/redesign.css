@@ -1539,6 +1539,75 @@ button {
   box-shadow: 0 8px 26px rgba(16, 185, 129, 0.35);
 }
 
+/* Tutorial Video Button & Modal */
+.chip-tutorial {
+  border-color: rgba(239, 68, 68, 0.42);
+  background: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
+}
+
+.chip-tutorial:hover {
+  border-color: rgba(239, 68, 68, 0.72);
+  background: rgba(239, 68, 68, 0.22);
+  color: #fff;
+}
+
+.btn-tutorial-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.btn-tutorial-link svg {
+  width: 14px;
+  height: 14px;
+  color: #f87171;
+}
+
+.btn-tutorial-link:hover {
+  color: #fff;
+  border-color: rgba(239, 68, 68, 0.45);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.tutorial-modal-card {
+  max-width: 720px;
+}
+
+.tutorial-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-right: 36px;
+}
+
+.tutorial-embed-box {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #07070c;
+  border: 1px solid var(--border);
+}
+
+.tutorial-embed-box iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
 /* Footer */
 .footer {
   border-top: 1px solid var(--border);

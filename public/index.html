@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Kanit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/redesign.css?v=5" />
+  <link rel="stylesheet" href="/css/redesign.css?v=6" />
 </head>
 <body>
   <div class="bg-orb orb-1" aria-hidden="true"></div>
@@ -80,6 +80,10 @@
           <button type="button" class="chip" data-filter="pc">
             <i data-lucide="monitor"></i>
             <span>PC</span>
+          </button>
+          <button id="heroTutorialBtn" type="button" class="chip chip-tutorial">
+            <i data-lucide="play-circle"></i>
+            <span data-i18n="tutorialBtn">วิธีเอาสคริปต์</span>
           </button>
         </div>
       </div>
@@ -229,6 +233,11 @@
                 <i data-lucide="zap"></i>
                 <span data-i18n="vipInstantUnlock">ปลดล็อคทันที (VIP Bypass)</span>
               </button>
+
+              <button id="modalTutorialBtn" type="button" class="btn-tutorial-link">
+                <i data-lucide="play-circle"></i>
+                <span data-i18n="unlockTutorialLink">งงวิธีปลดล็อค? ดูคลิปสอนที่นี่</span>
+              </button>
             </div>
 
             <!-- Revealed Script Box -->
@@ -277,6 +286,31 @@
           </a>
           <button id="vipLogoutBtn" type="button" class="btn-ghost hidden" data-i18n="vipLogout">ออกจากระบบ</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tutorial Video Modal -->
+  <div id="tutorialModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="tutorialModalTitle">
+    <div class="modal-card tutorial-modal-card">
+      <button id="closeTutorialModal" type="button" class="modal-close" aria-label="Close">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="tutorial-modal-head">
+        <div class="entry-yt-badge" style="width:40px;height:40px;border-radius:12px;">
+          <i data-lucide="play-circle"></i>
+        </div>
+        <div>
+          <h2 id="tutorialModalTitle" style="font-size:1.08rem;font-weight:700;" data-i18n="tutorialModalTitle">สอนวิธีเอาสคริปต์แบบง่ายๆ (ฟรี)</h2>
+          <p class="vip-desc" style="font-size:0.78rem;">@Blacklistxyx · YouTube Guide</p>
+        </div>
+      </div>
+      <div id="tutorialEmbedBox" class="tutorial-embed-box"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+        <a href="https://youtu.be/di4VotYIApQ" target="_blank" rel="noopener noreferrer" class="btn-ghost">
+          <i data-lucide="external-link"></i>
+          <span data-i18n="tutorialOpenYt">เปิดดูบน YouTube</span>
+        </a>
       </div>
     </div>
   </div>
@@ -351,6 +385,6 @@
   <div id="toastRoot" class="toast-root" aria-live="polite"></div>
 
   <script src="/js/lucide.min.js"></script>
-  <script src="/js/redesign-app.js?v=5"></script>
+  <script src="/js/redesign-app.js?v=6"></script>
 </body>
 </html>

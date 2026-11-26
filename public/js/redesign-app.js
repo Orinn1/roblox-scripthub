@@ -68,7 +68,11 @@ const I18N = {
     entryTaskWait: (sec) => `รอตรวจ ${sec}s...`,
     entryEnterLocked: 'ทำครบ 2 ข้อเพื่อเข้าสู่เว็บไซต์',
     entryEnterReady: 'เข้าสู่เว็บไซต์ทันที',
-    entryVipSkip: 'สมาชิก VIP Discord (เข้าสู่ระบบเพื่อข้าม)'
+    entryVipSkip: 'สมาชิก VIP Discord (เข้าสู่ระบบเพื่อข้าม)',
+    tutorialBtn: 'วิธีเอาสคริปต์',
+    unlockTutorialLink: 'งงวิธีปลดล็อค? ดูคลิปสอนที่นี่',
+    tutorialModalTitle: 'สอนวิธีเอาสคริปต์แบบง่ายๆ (ฟรี)',
+    tutorialOpenYt: 'เปิดดูบน YouTube'
   },
   en: {
     brandSub: 'ROBLOX SCRIPT HUB',
@@ -135,7 +139,11 @@ const I18N = {
     entryTaskWait: (sec) => `Checking ${sec}s...`,
     entryEnterLocked: 'Complete 2 steps to enter website',
     entryEnterReady: 'Enter Website Now',
-    entryVipSkip: 'VIP Discord Member (Sign in to skip)'
+    entryVipSkip: 'VIP Discord Member (Sign in to skip)',
+    tutorialBtn: 'How to Get Script',
+    unlockTutorialLink: 'Need help? Watch tutorial video',
+    tutorialModalTitle: 'How to Get Scripts Easily (Free)',
+    tutorialOpenYt: 'Open on YouTube'
   }
 };
 
@@ -557,12 +565,34 @@ function getSavedScriptSession(scriptId) {
   }
 }
 
+const TUTORIAL_VIDEO_ID = 'di4VotYIApQ';
+
+function openTutorialModal() {
+  const modal = $('tutorialModal');
+  const box = $('tutorialEmbedBox');
+  if (!modal || !box) return;
+  box.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${TUTORIAL_VIDEO_ID}?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+  modal.classList.remove('hidden');
+  syncModalScrollLock();
+  refreshIcons();
+}
+
+function closeTutorialModal() {
+  const modal = $('tutorialModal');
+  const box = $('tutorialEmbedBox');
+  if (box) box.innerHTML = '';
+  if (modal) modal.classList.add('hidden');
+  syncModalScrollLock();
+}
+
 function syncModalScrollLock() {
   const scriptOpen = !$('scriptModal').classList.contains('hidden');
   const vipOpen = !$('vipModal').classList.contains('hidden');
   const entryEl = $('entryGateModal');
   const entryOpen = entryEl ? !entryEl.classList.contains('hidden') : false;
-  document.body.classList.toggle('modal-open', scriptOpen || vipOpen || entryOpen);
+  const tutEl = $('tutorialModal');
+  const tutOpen = tutEl ? !tutEl.classList.contains('hidden') : false;
+  document.body.classList.toggle('modal-open', scriptOpen || vipOpen || entryOpen || tutOpen);
 }
 
 function getYoutubeSubUrl() {
@@ -1101,11 +1131,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      closeTutorialModal();
       closeScriptModal();
       $('vipModal').classList.add('hidden');
       syncModalScrollLock();
     }
   });
+
+  if ($('heroTutorialBtn')) $('heroTutorialBtn').addEventListener('click', openTutorialModal);
+  if ($('modalTutorialBtn')) $('modalTutorialBtn').addEventListener('click', openTutorialModal);
+  if ($('closeTutorialModal')) $('closeTutorialModal').addEventListener('click', closeTutorialModal);
+  if ($('tutorialModal')) {
+    $('tutorialModal').addEventListener('click', (e) => {
+      if (e.target === $('tutorialModal')) closeTutorialModal();
+    });
+  }
 
   const entrySubBtn = $('entrySubBtn');
   if (entrySubBtn) {
