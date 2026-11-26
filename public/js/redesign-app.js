@@ -50,7 +50,13 @@ const I18N = {
     checkingBtn: 'กำลังตรวจสอบกับเซิร์ฟเวอร์...',
     revealBtn: 'เปิดดูโค้ดสคริปต์ (Reveal Script)',
     helperText: (sec) => `กดปุ่มเพื่อเปิดแท็บสปอนเซอร์และรอ ${sec} วินาที จากนั้นระบบเซิร์ฟเวอร์จะบันทึกความคืบหน้าให้ทันที`,
-    helperReady: 'ผ่านครบทุกด่านแล้ว กดปุ่มด้านล่างเพื่อรับโค้ดสคริปต์ได้เลย!'
+    helperReady: 'ผ่านครบทุกด่านแล้ว กดปุ่มด้านล่างเพื่อรับโค้ดสคริปต์ได้เลย!',
+    discordPill: 'เข้า Discord (ทำครั้งเดียว)',
+    discordStepLabel: 'ขั้นตอนพิเศษ (ทำครั้งเดียว)',
+    discordBtn: 'เข้าร่วม Discord เพื่อไปต่อ',
+    discordHelper: (days, sec) => `กดเข้าเซิร์ฟเวอร์ Discord ของเราและรอ ${sec} วินาที — ระบบจะจำไว้ ${days} วัน รอบหน้าไม่ต้องทำซ้ำ!`,
+    discordWaiting: (sec) => `กำลังตรวจสอบการเข้า Discord (${sec}s)...`,
+    discordToastDone: (days) => `บันทึกการเข้า Discord แล้ว! ระบบจำไว้ ${days} วัน`
   },
   en: {
     brandSub: 'ROBLOX SCRIPT HUB',
@@ -99,7 +105,13 @@ const I18N = {
     checkingBtn: 'Verifying with server...',
     revealBtn: 'Reveal Script Code',
     helperText: (sec) => `Click below to open the sponsor tab for ${sec} seconds. Progress is verified strictly on the server.`,
-    helperReady: 'All steps completed! Click Reveal Script Code below.'
+    helperReady: 'All steps completed! Click Reveal Script Code below.',
+    discordPill: 'Join Discord (1-Time)',
+    discordStepLabel: 'Bonus Step (Once Only)',
+    discordBtn: 'Join Discord to Continue',
+    discordHelper: (days, sec) => `Join our Discord server and keep it open ${sec}s — remembered for ${days} days so it will not bother you again!`,
+    discordWaiting: (sec) => `Verifying Discord join (${sec}s)...`,
+    discordToastDone: (days) => `Discord step saved! Remembered for ${days} days.`
   }
 };
 
@@ -107,7 +119,7 @@ const state = {
   lang: localStorage.getItem('bs_lang') === 'en' ? 'en' : 'th',
   view: 'scripts',
   scripts: [],
-  unlockConfig: { stepsTotal: 4, waitSeconds: 5, monetagMultiTagZone: '' },
+  unlockConfig: { stepsTotal: 4, waitSeconds: 5, monetagMultiTagZone: '', discordRequiredOnce: true, discordRememberDays: 30, discordInviteUrl: '' },
   executors: [],
   execLoaded: false,
   execPlatform: 'all',
@@ -572,21 +584,63 @@ function closeScriptModal() {
   syncModalScrollLock();
 }
 
+function isDiscordRemembered() {
+  try {
+    if (/(?:^|;\s*)bs_discord_joined=1(?:;|$)/.test(document.cookie || '')) return true;
+    const until = Number(localStorage.getItem('bs_discord_joined_until') || 0);
+    return until > Date.now();
+  } catch (e) {
+    return false;
+  }
+}
+
+function markDiscordRemembered(days) {
+  try {
+    const validDays = Math.max(1, Number(days) || 30);
+    localStorage.setItem('bs_discord_joined_until', String(Date.now() + validDays * 86400 * 1000));
+    document.cookie = `bs_discord_joined=1; path=/; max-age=${validDays * 86400}; SameSite=Lax`;
+  } catch (e) {}
+}
+
 function renderUnlockUI() {
   if (!state.activeScript) return;
   const total = state.session?.total || state.unlockConfig.stepsTotal || 4;
   const waitSec = state.session?.waitSeconds || state.unlockConfig.waitSeconds || 5;
   const step = state.session?.step || 0;
   const complete = Boolean(state.session?.complete);
-  const pct = complete ? 100 : Math.round((step / total) * 100);
+  const rememberDays = state.unlockConfig.discordRememberDays || 30;
+  const showDiscordPill = state.session
+    ? Boolean(state.session.discordRequired)
+    : Boolean(state.unlockConfig.discordRequiredOnce && !isDiscordRemembered());
+  const discordDone = state.session
+    ? Boolean(state.session.discordDone)
+    : !showDiscordPill;
+  const needsDiscord = showDiscordPill && !discordDone;
+
+  const totalWithDiscord = total + (showDiscordPill ? 1 : 0);
+  const doneCount = step + (showDiscordPill && discordDone ? 1 : 0);
+  const pct = complete ? 100 : Math.round((doneCount / totalWithDiscord) * 100);
 
   $('unlockProgressBar').style.width = `${pct}%`;
-  $('unlockStepLabel').textContent = complete ? t('stepDoneLabel', total) : t('stepLabel', step, total);
-  $('unlockHelperText').textContent = complete ? t('helperReady') : t('helperText', waitSec);
+  if (complete) {
+    $('unlockStepLabel').textContent = t('stepDoneLabel', total);
+    $('unlockHelperText').textContent = t('helperReady');
+  } else if (needsDiscord) {
+    $('unlockStepLabel').textContent = t('discordStepLabel');
+    $('unlockHelperText').textContent = t('discordHelper', rememberDays, waitSec);
+  } else {
+    $('unlockStepLabel').textContent = t('stepLabel', step, total);
+    $('unlockHelperText').textContent = t('helperText', waitSec);
+  }
 
   let pillsHtml = '';
+  if (showDiscordPill) {
+    const dCls = discordDone ? 'done' : 'active';
+    const dIcon = discordDone ? 'check-circle-2' : 'message-square';
+    pillsHtml += `<div class="step-pill discord-pill ${dCls}"><i data-lucide="${dIcon}" style="width:14px;height:14px"></i><span>${t('discordPill')}</span></div>`;
+  }
   for (let i = 0; i < total; i++) {
-    const cls = i < step || complete ? 'done' : (i === step ? 'active' : '');
+    const cls = i < step || complete ? 'done' : (!needsDiscord && i === step ? 'active' : '');
     const icon = i < step || complete ? 'check-circle-2' : 'clock';
     pillsHtml += `<div class="step-pill ${cls}"><i data-lucide="${icon}" style="width:14px;height:14px"></i><span>${t('stepPill', i + 1, waitSec)}</span></div>`;
   }
@@ -594,15 +648,19 @@ function renderUnlockUI() {
 
   const btn = $('unlockActionBtn');
   const btnTxt = $('unlockActionText');
+  btn.classList.toggle('is-discord', needsDiscord);
   if (state.isBusy) {
     btn.disabled = true;
     btnTxt.textContent = t('checkingBtn');
   } else if (state.countdown !== null) {
     btn.disabled = true;
-    btnTxt.textContent = t('waitingBtn', state.countdown);
+    btnTxt.textContent = needsDiscord ? t('discordWaiting', state.countdown) : t('waitingBtn', state.countdown);
   } else if (complete) {
     btn.disabled = false;
     btnTxt.textContent = t('revealBtn');
+  } else if (needsDiscord) {
+    btn.disabled = false;
+    btnTxt.textContent = t('discordBtn');
   } else if (step > 0) {
     btn.disabled = false;
     btnTxt.textContent = t('continueBtn', step, total);
@@ -632,7 +690,7 @@ async function handleUnlockButtonClick() {
       const res = await fetch('/api/unlock/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scriptId: state.activeScript.id })
+        body: JSON.stringify({ scriptId: state.activeScript.id, discordJoined: isDiscordRemembered() })
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || 'Failed to start unlock');
@@ -641,7 +699,7 @@ async function handleUnlockButtonClick() {
       state.isBusy = false;
     }
 
-    const goUrl = `/api/unlock/go?session=${encodeURIComponent(state.session.id)}&s=${state.session.step}&t=${Date.now()}`;
+    const goUrl = `/api/unlock/go?session=${encodeURIComponent(state.session.id)}&d=${state.session.discordDone ? 1 : 0}&s=${state.session.step}&t=${Date.now()}`;
     if (adWin) {
       adWin.location.href = goUrl;
     } else {
@@ -703,10 +761,14 @@ async function verifyUnlockStep(attempt) {
     }
     state.session = data.session;
     state.isBusy = false;
-    renderUnlockUI();
-    if (state.session.complete) {
+    if (data.discordJustCompleted) {
+      const days = state.unlockConfig.discordRememberDays || 30;
+      markDiscordRemembered(days);
+      showToast(t('discordToastDone', days), 'success');
+    } else if (state.session.complete) {
       showToast(t('revealedBadge'), 'success');
     }
+    renderUnlockUI();
   } catch (err) {
     state.isBusy = false;
     renderUnlockUI();

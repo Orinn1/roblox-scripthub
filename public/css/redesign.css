@@ -1254,6 +1254,16 @@ button {
   color: #6ee7b7;
 }
 
+.step-pill.discord-pill {
+  grid-column: 1 / -1;
+}
+
+.step-pill.discord-pill.active {
+  border-color: rgba(88, 101, 242, 0.72);
+  background: rgba(88, 101, 242, 0.16);
+  color: #e0e7ff;
+}
+
 .unlock-helper {
   font-size: 0.84rem;
   color: var(--text-muted);
@@ -1280,6 +1290,11 @@ button {
   font-weight: 700;
   color: #fff;
   transition: filter 0.16s, transform 0.15s;
+}
+
+.btn-unlock.is-discord {
+  background: linear-gradient(135deg, #5865f2, #7c3aed);
+  box-shadow: 0 8px 24px rgba(88, 101, 242, 0.35);
 }
 
 .btn-unlock:hover:not(:disabled) {

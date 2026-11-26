@@ -258,7 +258,10 @@ async function getUnlockConfigWorker(env) {
         stepsTotal: Number(flow.stepsTotal) || 4,
         waitSeconds: Number(flow.waitSeconds) || 5,
         stepUrls,
-        monetagMultiTagZone: String(flow.monetagMultiTagZone || '')
+        monetagMultiTagZone: String(flow.monetagMultiTagZone || ''),
+        discordRequiredOnce: flow.discordRequiredOnce !== false,
+        discordInviteUrl: String(flow.discordInviteUrl || cfg.discordInviteUrl || 'https://discord.gg/6MTUP78KF6'),
+        discordRememberDays: Number(flow.discordRememberDays) || 30
     };
 }
 
@@ -311,6 +314,8 @@ async function getUnlockSessionDoc(sid) {
         total: Number(f.total?.integerValue || 4),
         waitSeconds: Number(f.waitSeconds?.integerValue || 5),
         stepStartedAt: Number(f.stepStartedAt?.integerValue || 0),
+        discordRequired: f.discordRequired?.booleanValue === true,
+        discordDone: f.discordDone?.booleanValue === true,
         complete: f.complete?.booleanValue === true,
         createdAt: Number(f.createdAt?.integerValue || 0)
     };
@@ -328,6 +333,8 @@ async function saveUnlockSessionDoc(sess) {
                 total: { integerValue: String(sess.total) },
                 waitSeconds: { integerValue: String(sess.waitSeconds) },
                 stepStartedAt: { integerValue: String(sess.stepStartedAt) },
+                discordRequired: { booleanValue: Boolean(sess.discordRequired) },
+                discordDone: { booleanValue: Boolean(sess.discordDone) },
                 complete: { booleanValue: Boolean(sess.complete) },
                 createdAt: { integerValue: String(sess.createdAt) }
             }
@@ -559,7 +566,30 @@ export default {
         }
 
         // =========================================================================
-        // 2.2 PUBLIC LOCKED SCRIPTS & SERVER-SIDE 2-STEP UNLOCK API
+        // 2.1 LIVE EXECUTORS PROXY (WEAO API)
+        // =========================================================================
+        if (url.pathname === '/api/exploits' && request.method === 'GET') {
+            try {
+                const resp = await fetch('https://weao.xyz/api/status/exploits', {
+                    headers: { 'User-Agent': 'WEAO-3PService', 'Accept': 'application/json' },
+                    cf: { cacheTtl: 180, cacheEverything: true }
+                });
+                if (!resp.ok) throw new Error(`WEAO API responded with ${resp.status}`);
+                const data = await resp.json();
+                return new Response(JSON.stringify(data), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=180', ...corsHeaders() }
+                });
+            } catch (err) {
+                return new Response(JSON.stringify({ error: 'Failed to fetch WEAO exploits', details: err.message }), {
+                    status: 502,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+        }
+
+        // =========================================================================
+        // 2.2 PUBLIC LOCKED SCRIPTS & SERVER-SIDE UNLOCK API
         // =========================================================================
         if (url.pathname === '/api/public/scripts' && request.method === 'GET') {
             const [scripts, unlockCfg] = await Promise.all([loadAllScriptsWorker(env), getUnlockConfigWorker(env)]);
@@ -568,7 +598,10 @@ export default {
                 unlock: {
                     stepsTotal: unlockCfg.stepsTotal,
                     waitSeconds: unlockCfg.waitSeconds,
-                    monetagMultiTagZone: unlockCfg.monetagMultiTagZone
+                    monetagMultiTagZone: unlockCfg.monetagMultiTagZone,
+                    discordRequiredOnce: unlockCfg.discordRequiredOnce,
+                    discordRememberDays: unlockCfg.discordRememberDays,
+                    discordInviteUrl: unlockCfg.discordInviteUrl
                 }
             }), {
                 status: 200,
@@ -588,6 +621,10 @@ export default {
                 });
             }
             const cfg = await getUnlockConfigWorker(env);
+            const cookieStr = request.headers.get('Cookie') || '';
+            const alreadyJoined = Boolean(body?.discordJoined) || /(?:^|;\s*)bs_discord_joined=1(?:;|$)/.test(cookieStr);
+            const discordRequired = Boolean(cfg.discordRequiredOnce && cfg.discordInviteUrl && !alreadyJoined);
+            const discordDone = !discordRequired;
             const randBytes = new Uint8Array(6);
             crypto.getRandomValues(randBytes);
             const hex = Array.from(randBytes, b => b.toString(16).padStart(2, '0')).join('');
@@ -597,6 +634,8 @@ export default {
                 step: 0,
                 total: cfg.stepsTotal,
                 waitSeconds: cfg.waitSeconds,
+                discordRequired,
+                discordDone,
                 stepStartedAt: 0,
                 complete: false,
                 createdAt: Date.now()
@@ -604,7 +643,16 @@ export default {
             await saveUnlockSessionDoc(sess);
             return new Response(JSON.stringify({
                 ok: true,
-                session: { id: sess.id, scriptId: sess.scriptId, step: sess.step, total: sess.total, waitSeconds: sess.waitSeconds, complete: sess.complete }
+                session: {
+                    id: sess.id,
+                    scriptId: sess.scriptId,
+                    step: sess.step,
+                    total: sess.total,
+                    waitSeconds: sess.waitSeconds,
+                    discordRequired: sess.discordRequired,
+                    discordDone: sess.discordDone,
+                    complete: sess.complete
+                }
             }), {
                 status: 200,
                 headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders() }
@@ -620,7 +668,9 @@ export default {
             const cfg = await getUnlockConfigWorker(env);
             sess.stepStartedAt = Date.now();
             await saveUnlockSessionDoc(sess);
-            const targetUrl = cfg.stepUrls[sess.step % cfg.stepUrls.length] || 'https://uplcm.com/4/12169736';
+            const targetUrl = (sess.discordRequired && !sess.discordDone)
+                ? (cfg.discordInviteUrl || 'https://discord.gg/6MTUP78KF6')
+                : (cfg.stepUrls[sess.step % cfg.stepUrls.length] || 'https://uplcm.com/4/12169736');
             return new Response(null, {
                 status: 302,
                 headers: { Location: targetUrl, 'Cache-Control': 'no-store', ...corsHeaders() }
@@ -639,7 +689,19 @@ export default {
                 });
             }
             if (sess.complete) {
-                return new Response(JSON.stringify({ ok: true, session: { id: sess.id, scriptId: sess.scriptId, step: sess.step, total: sess.total, waitSeconds: sess.waitSeconds, complete: true } }), {
+                return new Response(JSON.stringify({
+                    ok: true,
+                    session: {
+                        id: sess.id,
+                        scriptId: sess.scriptId,
+                        step: sess.step,
+                        total: sess.total,
+                        waitSeconds: sess.waitSeconds,
+                        discordRequired: Boolean(sess.discordRequired),
+                        discordDone: Boolean(sess.discordDone),
+                        complete: true
+                    }
+                }), {
                     status: 200,
                     headers: { 'Content-Type': 'application/json', ...corsHeaders() }
                 });
@@ -658,16 +720,37 @@ export default {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders() }
                 });
             }
-            sess.step += 1;
-            sess.stepStartedAt = 0;
-            sess.complete = sess.step >= sess.total;
+            let discordJustCompleted = false;
+            const respHeaders = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders() };
+            if (sess.discordRequired && !sess.discordDone) {
+                sess.discordDone = true;
+                sess.stepStartedAt = 0;
+                discordJustCompleted = true;
+                const cfg = await getUnlockConfigWorker(env);
+                const maxAge = Math.max(1, cfg.discordRememberDays || 30) * 86400;
+                respHeaders['Set-Cookie'] = `bs_discord_joined=1; Path=/; Max-Age=${maxAge}; SameSite=Lax; Secure`;
+            } else {
+                sess.step += 1;
+                sess.stepStartedAt = 0;
+                sess.complete = sess.step >= sess.total;
+            }
             await saveUnlockSessionDoc(sess);
             return new Response(JSON.stringify({
                 ok: true,
-                session: { id: sess.id, scriptId: sess.scriptId, step: sess.step, total: sess.total, waitSeconds: sess.waitSeconds, complete: sess.complete }
+                discordJustCompleted,
+                session: {
+                    id: sess.id,
+                    scriptId: sess.scriptId,
+                    step: sess.step,
+                    total: sess.total,
+                    waitSeconds: sess.waitSeconds,
+                    discordRequired: Boolean(sess.discordRequired),
+                    discordDone: Boolean(sess.discordDone),
+                    complete: sess.complete
+                }
             }), {
                 status: 200,
-                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders() }
+                headers: respHeaders
             });
         }
 
@@ -693,7 +776,7 @@ export default {
             }
             const sid = String(body?.session || '').trim();
             const sess = sid ? await getUnlockSessionDoc(sid) : null;
-            if (!sess || sess.scriptId !== String(found.id) || !sess.complete) {
+            if (!sess || sess.scriptId !== String(found.id) || !sess.complete || (sess.discordRequired && !sess.discordDone)) {
                 return new Response(JSON.stringify({ ok: false, error: 'Unlock steps not completed' }), {
                     status: 403,
                     headers: { 'Content-Type': 'application/json', ...corsHeaders() }

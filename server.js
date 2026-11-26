@@ -80,7 +80,10 @@ async function getUnlockConfigLocal() {
         stepsTotal: Number(flow.stepsTotal) || 4,
         waitSeconds: Number(flow.waitSeconds) || 5,
         stepUrls,
-        monetagMultiTagZone: String(flow.monetagMultiTagZone || '')
+        monetagMultiTagZone: String(flow.monetagMultiTagZone || ''),
+        discordRequiredOnce: flow.discordRequiredOnce !== false,
+        discordInviteUrl: String(flow.discordInviteUrl || cfg.discordInviteUrl || 'https://discord.gg/6MTUP78KF6'),
+        discordRememberDays: Number(flow.discordRememberDays) || 30
     };
 }
 
@@ -286,7 +289,10 @@ const server = http.createServer(async (req, res) => {
                 unlock: {
                     stepsTotal: unlockCfg.stepsTotal,
                     waitSeconds: unlockCfg.waitSeconds,
-                    monetagMultiTagZone: unlockCfg.monetagMultiTagZone
+                    monetagMultiTagZone: unlockCfg.monetagMultiTagZone,
+                    discordRequiredOnce: unlockCfg.discordRequiredOnce,
+                    discordRememberDays: unlockCfg.discordRememberDays,
+                    discordInviteUrl: unlockCfg.discordInviteUrl
                 }
             }));
         } catch (err) {
@@ -298,7 +304,7 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === '/api/unlock/start' && req.method === 'POST') {
         try {
-            const { scriptId } = await readJsonBody(req);
+            const { scriptId, discordJoined } = await readJsonBody(req);
             const scripts = await loadAllScriptsLocal();
             const found = scripts.find(s => String(s.id) === String(scriptId));
             if (!found) {
@@ -307,6 +313,10 @@ const server = http.createServer(async (req, res) => {
                 return;
             }
             const cfg = await getUnlockConfigLocal();
+            const cookieStr = String(req.headers.cookie || '');
+            const alreadyJoined = Boolean(discordJoined) || /(?:^|;\s*)bs_discord_joined=1(?:;|$)/.test(cookieStr);
+            const discordRequired = Boolean(cfg.discordRequiredOnce && cfg.discordInviteUrl && !alreadyJoined);
+            const discordDone = !discordRequired;
             const sid = 'ul_' + Date.now().toString(36) + '_' + crypto.randomBytes(6).toString('hex');
             const sess = {
                 id: sid,
@@ -314,13 +324,27 @@ const server = http.createServer(async (req, res) => {
                 step: 0,
                 total: cfg.stepsTotal,
                 waitSeconds: cfg.waitSeconds,
+                discordRequired,
+                discordDone,
                 stepStartedAt: 0,
                 complete: false,
                 createdAt: Date.now()
             };
             unlockSessions.set(sid, sess);
             res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-            res.end(JSON.stringify({ ok: true, session: { id: sess.id, scriptId: sess.scriptId, step: sess.step, total: sess.total, waitSeconds: sess.waitSeconds, complete: sess.complete } }));
+            res.end(JSON.stringify({
+                ok: true,
+                session: {
+                    id: sess.id,
+                    scriptId: sess.scriptId,
+                    step: sess.step,
+                    total: sess.total,
+                    waitSeconds: sess.waitSeconds,
+                    discordRequired: sess.discordRequired,
+                    discordDone: sess.discordDone,
+                    complete: sess.complete
+                }
+            }));
         } catch (err) {
             res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
             res.end(JSON.stringify({ ok: false, error: err.message }));
@@ -339,7 +363,9 @@ const server = http.createServer(async (req, res) => {
         const cfg = await getUnlockConfigLocal();
         sess.stepStartedAt = Date.now();
         unlockSessions.set(sid, sess);
-        const targetUrl = cfg.stepUrls[sess.step % cfg.stepUrls.length] || 'https://uplcm.com/4/12169736';
+        const targetUrl = (sess.discordRequired && !sess.discordDone)
+            ? (cfg.discordInviteUrl || 'https://discord.gg/6MTUP78KF6')
+            : (cfg.stepUrls[sess.step % cfg.stepUrls.length] || 'https://uplcm.com/4/12169736');
         res.writeHead(302, { Location: targetUrl, 'Cache-Control': 'no-store' });
         res.end();
         return;
@@ -356,7 +382,19 @@ const server = http.createServer(async (req, res) => {
             }
             if (sess.complete) {
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-                res.end(JSON.stringify({ ok: true, session: { id: sess.id, scriptId: sess.scriptId, step: sess.step, total: sess.total, waitSeconds: sess.waitSeconds, complete: true } }));
+                res.end(JSON.stringify({
+                    ok: true,
+                    session: {
+                        id: sess.id,
+                        scriptId: sess.scriptId,
+                        step: sess.step,
+                        total: sess.total,
+                        waitSeconds: sess.waitSeconds,
+                        discordRequired: Boolean(sess.discordRequired),
+                        discordDone: Boolean(sess.discordDone),
+                        complete: true
+                    }
+                }));
                 return;
             }
             if (!sess.stepStartedAt) {
@@ -371,12 +409,36 @@ const server = http.createServer(async (req, res) => {
                 res.end(JSON.stringify({ ok: false, code: 'too_early', secondsLeft }));
                 return;
             }
-            sess.step += 1;
-            sess.stepStartedAt = 0;
-            sess.complete = sess.step >= sess.total;
+            let discordJustCompleted = false;
+            const headers = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
+            if (sess.discordRequired && !sess.discordDone) {
+                sess.discordDone = true;
+                sess.stepStartedAt = 0;
+                discordJustCompleted = true;
+                const cfg = await getUnlockConfigLocal();
+                const maxAge = Math.max(1, cfg.discordRememberDays || 30) * 86400;
+                headers['Set-Cookie'] = `bs_discord_joined=1; Path=/; Max-Age=${maxAge}; SameSite=Lax`;
+            } else {
+                sess.step += 1;
+                sess.stepStartedAt = 0;
+                sess.complete = sess.step >= sess.total;
+            }
             unlockSessions.set(sess.id, sess);
-            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-            res.end(JSON.stringify({ ok: true, session: { id: sess.id, scriptId: sess.scriptId, step: sess.step, total: sess.total, waitSeconds: sess.waitSeconds, complete: sess.complete } }));
+            res.writeHead(200, headers);
+            res.end(JSON.stringify({
+                ok: true,
+                discordJustCompleted,
+                session: {
+                    id: sess.id,
+                    scriptId: sess.scriptId,
+                    step: sess.step,
+                    total: sess.total,
+                    waitSeconds: sess.waitSeconds,
+                    discordRequired: Boolean(sess.discordRequired),
+                    discordDone: Boolean(sess.discordDone),
+                    complete: sess.complete
+                }
+            }));
         } catch (err) {
             res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
             res.end(JSON.stringify({ ok: false, error: err.message }));
@@ -403,7 +465,7 @@ const server = http.createServer(async (req, res) => {
                 }
             }
             const sess = unlockSessions.get(String(sid || '').trim());
-            if (!sess || sess.scriptId !== String(found.id) || !sess.complete) {
+            if (!sess || sess.scriptId !== String(found.id) || !sess.complete || (sess.discordRequired && !sess.discordDone)) {
                 res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
                 res.end(JSON.stringify({ ok: false, error: 'Unlock steps not completed' }));
                 return;
