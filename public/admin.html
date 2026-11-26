@@ -2,1196 +2,655 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบจัดการหลังบ้าน - Admin Panel & Database Manager</title>
-    <!-- Instant Dark Mode to avoid white flash -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#08080e">
+    <title>ระบบจัดการหลังบ้าน - Admin Panel</title>
     <style>
-        html, body {
-            background-color: #06080e !important;
-            color: #f3f4f6;
-            margin: 0;
-            padding: 0;
-        }
+        html, body { background-color: #08080e; color: #f3f4fa; margin: 0; padding: 0; }
     </style>
-    <!-- Google Fonts Non-blocking Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
-    <!-- Favicon Logo.ico -->
+    <link rel="stylesheet" href="css/admin-redesign.css?v=2">
     <link rel="icon" type="image/x-icon" href="Logo.ico">
-    <link rel="shortcut icon" type="image/x-icon" href="Logo.ico">
-    <link rel="apple-touch-icon" href="Logo.ico">
-    <style>
-        .admin-page {
-            max-width: 1040px;
-            margin: 40px auto;
-            padding: 0 20px;
-            width: 100%;
-        }
-        .admin-card {
-            background: #12141a;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-        .admin-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap;
-            gap: 14px;
-        }
-        .admin-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 24px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 12px;
-            flex-wrap: wrap;
-        }
-        .admin-tab {
-            background: var(--bg-surface);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            padding: 10px 18px;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .admin-tab:hover {
-            color: #fff;
-            background: var(--border);
-        }
-        .admin-tab.active {
-            background: var(--red);
-            border-color: var(--red);
-            color: #fff;
-        }
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-        .full-width {
-            grid-column: 1 / -1;
-        }
-        .form-label {
-            display: block;
-            font-size: 13px;
-            color: var(--text-primary);
-            margin-bottom: 6px;
-            font-weight: 500;
-        }
-        .form-control {
-            width: 100%;
-            background: #090a0d;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px 14px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 13px;
-            outline: none;
-            transition: 0.15s;
-        }
-        .form-control:focus {
-            border-color: var(--red);
-        }
-        .checkbox-group {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            padding: 10px 0;
-            flex-wrap: wrap;
-        }
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--text-secondary);
-            cursor: pointer;
-        }
-        .btn-submit {
-            background: var(--red);
-            color: #fff;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-submit:hover { background: var(--red-hover); }
-
-        .btn-del-bulk {
-            background: #ef4444;
-            color: #fff;
-            border: none;
-            padding: 7px 16px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: 0.15s;
-        }
-        .btn-del-bulk:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            background: #374151;
-        }
-        .btn-del-bulk:not(:disabled):hover {
-            background: #dc2626;
-        }
-
-        .db-stat-box {
-            background: #090a0d;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 18px 22px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 14px;
-        }
-
-        /* Roblox Auto-Fetch Box Styling */
-        .roblox-autofetch-card {
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(37, 99, 235, 0.04) 100%);
-            border: 1px solid rgba(56, 189, 248, 0.25);
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-        .roblox-autofetch-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .roblox-autofetch-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #38bdf8;
-            display: flex;
-            align-items: center;
-            gap: 7px;
-        }
-        .roblox-autofetch-badge {
-            font-size: 11px;
-            background: rgba(56, 189, 248, 0.12);
-            color: #7dd3fc;
-            padding: 2px 8px;
-            border-radius: 4px;
-            border: 1px solid rgba(56, 189, 248, 0.2);
-        }
-        .roblox-fetch-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .btn-fetch-roblox {
-            background: linear-gradient(135deg, #0284c7, #2563eb);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 9px 16px;
-            border-radius: 7px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-        }
-        .btn-fetch-roblox:hover {
-            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
-        }
-        .btn-fetch-roblox:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        .spin {
-            animation: spin 1s linear infinite;
-            display: inline-block;
-        }
-
-        .scripts-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        .scripts-table th {
-            text-align: left;
-            padding: 12px 10px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-        .scripts-table td {
-            padding: 12px 10px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-secondary);
-            vertical-align: middle;
-        }
-        .btn-edit {
-            background: rgba(56, 189, 248, 0.15);
-            border: 1px solid rgba(56, 189, 248, 0.35);
-            color: #38bdf8;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            transition: 0.15s;
-            margin-right: 6px;
-        }
-        .btn-edit:hover {
-            background: #0284c7;
-            color: #fff;
-        }
-        #editScriptModal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(8px);
-            z-index: 999999;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            display: none;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.15s ease, visibility 0.15s ease;
-        }
-        #editScriptModal.active {
-            display: flex !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-        .btn-del {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #f87171;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            transition: 0.15s;
-        }
-        .btn-del:hover {
-            background: #ef4444;
-            color: #fff;
-        }
-
-        .login-screen {
-            max-width: 380px;
-            margin: 100px auto;
-            text-align: center;
-            background: #12141a;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 34px 28px;
-        }
-
-        .manual-ban-grid {
-            display: grid;
-            grid-template-columns: 1fr 140px 1.5fr auto;
-            gap: 10px;
-            align-items: end;
-        }
-
-        .btn-file-upload {
-            background: rgba(56, 189, 248, 0.12);
-            border: 1px dashed rgba(56, 189, 248, 0.45);
-            color: #38bdf8;
-            padding: 9px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            user-select: none;
-            white-space: nowrap;
-        }
-        .btn-file-upload:hover {
-            background: rgba(56, 189, 248, 0.22);
-            border-color: #38bdf8;
-            color: #fff;
-            transform: translateY(-1px);
-        }
-        .thumb-preview-box {
-            display: none;
-            align-items: center;
-            gap: 14px;
-            background: #0d0f14;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px 14px;
-            margin-top: 6px;
-        }
-        .thumb-preview-img {
-            width: 64px;
-            height: 48px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.15);
-            background: #000;
-        }
-
-        /* Mobile Optimization for Admin Dashboard */
-        @media (max-width: 820px) {
-            body {
-                padding: 10px !important;
-            }
-            .container {
-                padding: 0 !important;
-                max-width: 100% !important;
-            }
-            .card {
-                padding: 18px 14px !important;
-                border-radius: 14px !important;
-                margin-bottom: 16px !important;
-            }
-            .admin-header {
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 12px !important;
-            }
-            .admin-header > div:last-child {
-                display: flex;
-                gap: 8px;
-                flex-wrap: wrap;
-            }
-            .admin-header .btn-submit,
-            .admin-header .btn-secondary {
-                flex: 1;
-                justify-content: center;
-                padding: 10px 12px;
-                font-size: 12px;
-            }
-            .admin-tabs {
-                overflow-x: auto;
-                flex-wrap: nowrap;
-                padding-bottom: 8px;
-                margin-bottom: 16px;
-                -webkit-overflow-scrolling: touch;
-            }
-            .admin-tab {
-                white-space: nowrap;
-                padding: 8px 14px;
-                font-size: 12px;
-                flex-shrink: 0;
-            }
-            .form-grid {
-                grid-template-columns: 1fr !important;
-                gap: 12px !important;
-            }
-            .checkbox-group {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            .db-stat-box {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 12px;
-                padding: 14px;
-            }
-            .db-stat-box > div {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-            }
-            .db-stat-box button {
-                width: 100%;
-                justify-content: center;
-            }
-            .manual-ban-grid {
-                grid-template-columns: 1fr 1fr !important;
-            }
-            .manual-ban-grid button {
-                grid-column: 1 / -1;
-                width: 100%;
-                justify-content: center;
-            }
-            .login-screen {
-                margin: 40px auto;
-                padding: 24px 18px;
-                width: 95%;
-            }
-            button, a, input, select {
-                touch-action: manipulation;
-            }
-        }
-
-        @media (max-width: 520px) {
-            .manual-ban-grid {
-                grid-template-columns: 1fr !important;
-            }
-        }
-    </style>
 </head>
-<body style="background: #08090c; display: block;">
+<body>
 
     <!-- หน้าจอ Login PIN -->
     <div class="login-screen" id="loginScreen">
-        <div style="margin-bottom: 16px;">
-            <i data-lucide="shield" style="width: 44px; height: 44px; color: var(--red);"></i>
+        <div class="login-icon-ring">
+            <i data-lucide="shield" style="width: 28px; height: 28px;"></i>
         </div>
-        <h2 style="font-size: 20px; margin-bottom: 6px; color: #fff;">เข้าสู่ระบบหลังบ้าน</h2>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 22px;">Admin & Database Management</p>
-        
+        <h2 style="font-size: 20px; margin: 0 0 6px; color: #fff;">เข้าสู่ระบบหลังบ้าน</h2>
+        <p style="font-size: 13px; color: var(--ad-muted); margin: 0 0 22px;">Admin &amp; Database Management</p>
+
         <form id="loginForm">
             <input type="password" id="pinInput" class="form-control" placeholder="ใส่รหัสผ่านผู้ดูแลระบบ" style="text-align: center; letter-spacing: 4px; font-size: 16px; margin-bottom: 12px;" autofocus>
-            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px;">
+            <label style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 18px; font-size: 12px; color: var(--ad-muted); cursor: pointer;">
                 <input type="checkbox" id="rememberAdminCheckbox" checked style="cursor: pointer;">
-                <label for="rememberAdminCheckbox" style="font-size: 12px; color: var(--text-muted); cursor: pointer; user-select: none;">จดจำการเข้าสู่ระบบบนเครื่องนี้ (ไม่ต้องใส่รหัสอีก)</label>
-            </div>
+                <span>จดจำการเข้าสู่ระบบบนเครื่องนี้</span>
+            </label>
             <button type="submit" class="btn-submit" style="width: 100%; justify-content: center;">เข้าสู่ระบบ</button>
         </form>
     </div>
 
-    <!-- หน้าจัดการ Admin Panel -->
-    <div class="admin-page" id="adminDashboard" style="display: none;">
-        <div class="admin-header">
-            <div>
-                <h1 style="font-size: 20px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="database" style="width: 22px; height: 22px; color: var(--red);"></i>
-                    <span id="adminHeaderSiteTitle">ระบบจัดการหลังบ้าน & Firebase Firestore</span>
-                </h1>
-                <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px; flex-wrap: wrap;">
-                    <span class="badge" style="background: rgba(255, 153, 0, 0.15); color: #ffa000; border: 1px solid rgba(255, 153, 0, 0.35); padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
-                        <i data-lucide="flame" style="width: 12px; height: 12px;"></i> Firebase Firestore ออนไลน์
-                    </span>
-                    <div id="dbTargetSelectorWrapper" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(56, 189, 248, 0.12); padding: 3px 10px; border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.3);">
-                        <i data-lucide="layers" style="width: 13px; height: 13px; color: #38bdf8;"></i>
-                        <span style="font-size: 11px; color: #94a3b8; font-weight: 500;">ฐานข้อมูลเป้าหมาย:</span>
-                        <select id="selectDbTarget" style="background: transparent; color: #38bdf8; border: none; font-size: 12px; font-weight: 700; cursor: pointer; outline: none; font-family: inherit;">
-                            <option value="hub" style="background: #111; color: #fff;">🇹🇭 hub (เว็บไทย / th.blacklisthub.workers.dev)</option>
-                            <option value="hub_global" style="background: #111; color: #38bdf8;">🌐 hub_global (เว็บสากล / hub.blacklisthub.workers.dev)</option>
-                        </select>
-                    </div>
+    <!-- Admin App Shell -->
+    <div id="adminDashboard" style="display: none;">
+      <div class="admin-shell" id="adminShell">
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon">
+                    <i data-lucide="database" style="width: 20px; height: 20px;"></i>
                 </div>
+                <div style="min-width: 0; flex: 1;">
+                    <h1 class="sidebar-title" id="adminHeaderSiteTitle">BlacklistScriptx Admin</h1>
+                    <span class="sidebar-status-badge">
+                        <i data-lucide="flame" style="width: 11px; height: 11px;"></i>
+                        Firestore ออนไลน์
+                    </span>
+                </div>
+                <button type="button" id="btnCloseSidebar" class="btn-sidebar-close" title="ย่อ / ปิดเมนู" aria-label="ย่อหรือปิดเมนู">
+                    <i data-lucide="panel-left-close" style="width: 16px; height: 16px;"></i>
+                </button>
             </div>
-            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <a href="/gateflow/generator.html" target="_blank" style="text-decoration: none; color: #fff; background: linear-gradient(135deg, #0284c7, #2563eb); border: 1px solid rgba(56, 189, 248, 0.4); padding: 8px 16px; border-radius: 8px; display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35); transition: 0.15s;">
-                    <i data-lucide="zap" style="width: 14px; height: 14px; color: #fde047;"></i>
-                    <span>⚡ สร้างลิงก์ GateFlow</span>
-                    <i data-lucide="external-link" style="width: 12px; height: 12px; opacity: 0.8;"></i>
-                </a>
-                <a href="index.html" class="sidebar-btn" style="text-decoration: none; color: #fff; background: var(--bg-surface); padding: 8px 16px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
-                    <span>ดูหน้าเว็บจริง</span>
+
+            <div class="db-target-box" id="dbTargetSelectorWrapper">
+                <div class="db-target-head">
+                    <i data-lucide="layers" style="width: 12px; height: 12px; color: #38bdf8;"></i>
+                    <span>ฐานข้อมูลเป้าหมาย</span>
+                </div>
+                <select id="selectDbTarget" class="db-target-select">
+                    <option value="hub" style="background: #111; color: #fff;">🇹🇭 hub (th.blacklisthub)</option>
+                    <option value="hub_global" style="background: #111; color: #38bdf8;">🌐 hub_global (เว็บสากล)</option>
+                </select>
+            </div>
+
+            <nav class="admin-tabs" aria-label="Admin Navigation">
+                <button type="button" class="admin-tab active" data-tab="manage">
+                    <i data-lucide="list"></i>
+                    <span>จัดการสคริปต์</span>
+                    <span class="tab-pill-count" id="countBadge">0</span>
+                </button>
+                <button type="button" class="admin-tab" data-tab="add">
+                    <i data-lucide="plus-circle"></i>
+                    <span>เพิ่มสคริปต์ใหม่</span>
+                </button>
+                <button type="button" class="admin-tab" data-tab="links">
+                    <i data-lucide="zap"></i>
+                    <span>ระบบปลดล็อค &amp; โฆษณา</span>
+                </button>
+                <button type="button" class="admin-tab" data-tab="site">
+                    <i data-lucide="globe"></i>
+                    <span>ตั้งค่าชื่อเว็บ</span>
+                </button>
+                <button type="button" class="admin-tab" data-tab="database">
+                    <i data-lucide="hard-drive"></i>
+                    <span>ฐานข้อมูล &amp; สำรอง</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="/" class="sidebar-action-link">
                     <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                    <span>ดูหน้าเว็บจริง</span>
                 </a>
-                <button type="button" id="btnAdminLogout" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #ef4444; padding: 8px 14px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; font-family: inherit; transition: 0.15s;">
+                <a href="/gateflow/generator.html" target="_blank" rel="noopener noreferrer" class="sidebar-action-link gateflow">
+                    <i data-lucide="link-2" style="width: 14px; height: 14px;"></i>
+                    <span>สร้างลิงก์ GateFlow ↗</span>
+                </a>
+                <button type="button" id="btnAdminLogout" class="btn-logout">
                     <i data-lucide="log-out" style="width: 14px; height: 14px;"></i>
                     <span>ออกจากระบบ</span>
                 </button>
             </div>
-        </div>
+        </aside>
 
-        <!-- Quick Banner: ระบบสร้างลิงก์ GateFlow -->
-        <div style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(37, 99, 235, 0.08) 100%); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(14, 165, 233, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; color: #38bdf8; flex-shrink: 0;">
-                    <i data-lucide="link-2" style="width: 20px; height: 20px;"></i>
-                </div>
-                <div>
-                    <div style="font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
-                        <span>GateFlow Link Generator (ระบบสร้างลิงก์แจกไฟล์ & สคริปต์)</span>
-                        <span style="font-size: 10px; background: #0284c7; color: #fff; padding: 2px 7px; border-radius: 999px; font-weight: 600;">NEW</span>
-                    </div>
-                    <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">
-                        สร้างลิงก์กั้นโฆษณา 6 ปุ่ม สไตล์ SocialWolvez สำหรับแจกสคริปต์หรือไฟล์ดาวน์โหลดได้ง่ายๆ ในคลิกเดียว
-                    </div>
-                </div>
-            </div>
-            <a href="/gateflow/generator.html" target="_blank" style="background: linear-gradient(135deg, #0284c7, #2563eb); color: #fff; text-decoration: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4); transition: all 0.2s ease;">
-                <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-                <span>เปิดระบบทำลิงก์ ➔</span>
-            </a>
-        </div>
-
-        <!-- แท็บเมนู -->
-        <div class="admin-tabs">
-            <button class="admin-tab active" data-tab="site">
-                <i data-lucide="globe"></i>
-                <span>ตั้งค่าชื่อเว็บ & ทั่วไป</span>
-            </button>
-            <button class="admin-tab" data-tab="manage">
-                <i data-lucide="list"></i>
-                <span>จัดการสคริปต์ (<span id="countBadge">0</span>)</span>
-            </button>
-            <button class="admin-tab" data-tab="add">
-                <i data-lucide="plus-circle"></i>
-                <span>เพิ่มสคริปต์ใหม่</span>
-            </button>
-            <button class="admin-tab" data-tab="database">
-                <i data-lucide="hard-drive"></i>
-                <span>จัดการฐานข้อมูล (DB Tools)</span>
-            </button>
-            <button class="admin-tab" data-tab="links">
-                <i data-lucide="link"></i>
-                <span>ตั้งค่าลิงก์ Sub2Unlock</span>
-            </button>
-            <a href="/gateflow/generator.html" target="_blank" class="admin-tab" style="text-decoration: none; background: rgba(14, 165, 233, 0.12); border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; margin-left: auto;">
-                <i data-lucide="link-2" style="color: #38bdf8;"></i>
-                <span>เครื่องมือทำลิงก์ (GateFlow) ↗</span>
-            </a>
-        </div>
-
-        <!-- TAB 1: ตั้งค่าชื่อเว็บและข้อมูลทั่วไป -->
-        <div class="admin-card" id="tabSite">
-            <h3 style="font-size: 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="globe" style="width: 18px; height: 18px; color: var(--red);"></i>
-                <span>แก้ไขชื่อเว็บไซต์ & ข้อมูลแบรนด์</span>
-            </h3>
-            <form id="adminSiteForm">
-                <div class="form-grid">
-                    <div class="full-width">
-                        <label class="form-label">ชื่อเว็บไซต์เต็ม (Website Full Name) *</label>
-                        <input type="text" id="siteNameInput" class="form-control" placeholder="เช่น BlacklistScriptx หรือ BloxHub" required>
-                        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">จะแสดงใน Title บาร์เบราว์เซอร์ และส่วนหัวของเว็บไซต์</p>
-                    </div>
-
-                    <div>
-                        <label class="form-label">คำนำหน้าโลโก้ (Brand Prefix) *</label>
-                        <input type="text" id="brandPrefixInput" class="form-control" placeholder="เช่น Blacklist" required>
-                    </div>
-
-                    <div>
-                        <label class="form-label">คำต่อท้ายโลโก้ (Brand Suffix ไฮไลต์สีน้ำเงิน) *</label>
-                        <input type="text" id="brandSuffixInput" class="form-control" placeholder="เช่น Scriptx" required>
-                    </div>
-
-                    <!-- แสดงตัวอย่าง Logo Preview สดๆ -->
-                    <div class="full-width" style="background: #090a0d; border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 16px;">
-                        <span style="font-size: 12px; color: var(--text-muted);">ตัวอย่างโลโก้บนเว็บ:</span>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <img src="Logo.ico" alt="Logo" style="width: 24px; height: 24px; object-fit: contain;">
-                            <div style="font-size: 18px; font-weight: 700; color: #fff;" id="previewBrandTitle">Blacklist<span style="color: var(--red);">Scriptx</span></div>
-                        </div>
-                    </div>
-
-                    <div class="full-width">
-                        <label class="form-label">สโลแกน / คำอธิบายเว็บไซต์ (Site Tagline)</label>
-                        <input type="text" id="siteTaglineInput" class="form-control" placeholder="เช่น ศูนย์รวมสคริปต์ Roblox อัปเดตล่าสุด ปลอดภัย ปลดล็อคฟรี">
-                    </div>
-                </div>
-
-                <div style="margin-top: 20px;">
-                    <button type="submit" class="btn-submit">
-                        <i data-lucide="save"></i>
-                        <span>บันทึกชื่อเว็บและการตั้งค่า</span>
+        <!-- Main Workspace -->
+        <main class="admin-main">
+            <!-- Collapsible Sidebar Topbar -->
+            <header class="admin-topbar">
+                <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                    <button type="button" id="btnToggleSidebar" class="btn-sidebar-toggle" title="เปิด / ปิดแถบเมนู">
+                        <i data-lucide="panel-left" style="width: 16px; height: 16px;"></i>
+                        <span>เมนู</span>
                     </button>
+                    <h2 id="currentTabTitle" class="topbar-section-title">จัดการสคริปต์</h2>
                 </div>
-            </form>
-        </div>
+                <a href="/" class="sidebar-action-link" style="padding: 6px 12px; font-size: 12px;">
+                    <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
+                    <span>ดูหน้าเว็บ</span>
+                </a>
+            </header>
 
-        <!-- TAB 2: ตารางจัดการและลบสคริปต์ -->
-        <div class="admin-card" id="tabManage" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-                <h3 style="font-size: 16px; display: flex; align-items: center; gap: 8px; margin: 0;">
-                    <i data-lucide="list" style="width: 18px; height: 18px; color: var(--red);"></i>
-                    <span>รายการสคริปต์ในฐานข้อมูล</span>
-                </h3>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <!-- ปุ่มลบหลายรายการที่เลือกพร้อมกัน -->
-                    <button class="btn-del-bulk" id="btnDeleteSelected" type="button" disabled>
-                        <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-                        <span>ลบรายการที่เลือก (<span id="selectedCount">0</span>)</span>
-                    </button>
-                    <button class="btn-submit" id="btnGoAddTab" type="button" style="padding: 7px 16px; font-size: 12px;">
-                        <i data-lucide="plus"></i> <span>เพิ่มสคริปต์ใหม่</span>
-                    </button>
+            <!-- Top KPI Summary Row -->
+            <section class="admin-stats">
+                <div class="admin-stat-card">
+                    <span class="admin-stat-label"><i data-lucide="layers"></i> สคริปต์ทั้งหมด</span>
+                    <strong class="admin-stat-val" id="statAdminTotal">--</strong>
                 </div>
-            </div>
-
-            <!-- ช่องค้นหาสคริปต์ -->
-            <div style="margin-bottom: 14px;">
-                <input type="text" id="searchManageScripts" class="form-control" placeholder="ค้นหาสคริปต์ตามชื่อเกม หรือชื่อสคริปต์...">
-            </div>
-
-            <div style="overflow-x: auto;">
-                <table class="scripts-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 36px; text-align: center;">
-                                <input type="checkbox" id="selectAllCheckbox" title="เลือกทั้งหมด" style="cursor: pointer;">
-                            </th>
-                            <th style="width: 50px;">รูป</th>
-                            <th>เกม</th>
-                            <th>ชื่อสคริปต์</th>
-                            <th>หมวดหมู่</th>
-                            <th>สถานะคีย์</th>
-                            <th style="text-align: right;">การจัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="scriptsTableBody">
-                        <!-- โหลดจาก JS -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- ตัวแบ่งหน้าตารางสคริปต์ (Pagination Controls เพื่อรองรับสคริปต์จำนวนมาก) -->
-            <div id="adminPagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 8px;">
-                <span id="lblAdminPageInfo" style="font-size: 13px; color: var(--text-muted);">หน้า 1 / 1</span>
-                <div style="display: flex; gap: 8px;">
-                    <button type="button" id="btnAdminPrevPage" class="btn-secondary" style="padding: 6px 14px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" disabled>
-                        <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i> <span>ก่อนหน้า</span>
-                    </button>
-                    <button type="button" id="btnAdminNextPage" class="btn-secondary" style="padding: 6px 14px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" disabled>
-                        <span>ถัดไป</span> <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
-                    </button>
+                <div class="admin-stat-card">
+                    <span class="admin-stat-label"><i data-lucide="key-round"></i> ไร้คีย์ (Keyless)</span>
+                    <strong class="admin-stat-val emerald" id="statAdminKeyless">--</strong>
                 </div>
-            </div>
-        </div>
+                <div class="admin-stat-card">
+                    <span class="admin-stat-label"><i data-lucide="clock"></i> ด่านโฆษณา</span>
+                    <strong class="admin-stat-val violet" id="statAdminUnlock">4 รอบ × 5 วิ</strong>
+                </div>
+                <div class="admin-stat-card">
+                    <span class="admin-stat-label"><i data-lucide="message-square"></i> ด่านเข้า Discord</span>
+                    <strong class="admin-stat-val indigo" id="statAdminDiscord">เปิด (30 วัน)</strong>
+                </div>
+            </section>
 
-        <!-- TAB 3: เพิ่มสคริปต์ใหม่ -->
-        <div class="admin-card" id="tabAdd" style="display: none;">
-            <h3 style="font-size: 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="plus-circle" style="width: 18px; height: 18px; color: var(--red);"></i>
-                <span>เพิ่มสคริปต์ใหม่ลงในฐานข้อมูล</span>
-            </h3>
-            <form id="addScriptForm">
-                <!-- ตัวช่วยดึงข้อมูลเกมอัตโนมัติ (Roblox Game Auto-Fetch) -->
-                <div class="roblox-autofetch-card">
-                    <div class="roblox-autofetch-header">
-                        <div class="roblox-autofetch-title">
-                            <i data-lucide="sparkles" style="width: 16px; height: 16px; color: #38bdf8;"></i>
-                            <span>ดึงข้อมูลเกม Roblox อัตโนมัติ (Roblox Auto-Fetch)</span>
-                        </div>
-                        <span class="roblox-autofetch-badge">⚡ ดึงชื่อเกม, หมวดหมู่ และรูปปก HD ให้อัตโนมัติ</span>
-                    </div>
-                    <div class="roblox-fetch-row">
-                        <div style="flex: 1; position: relative;">
-                            <input type="text" id="robloxPlaceInput" class="form-control" placeholder="วางลิงก์เกม (เช่น https://www.roblox.com/games/2753915549/...) หรือใส่เฉพาะ Place ID" style="padding-left: 36px;">
-                            <i data-lucide="link" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text-muted); pointer-events: none;"></i>
-                        </div>
-                        <button type="button" id="btnFetchRobloxGame" class="btn-fetch-roblox">
-                            <i data-lucide="download-cloud" style="width: 14px; height: 14px;"></i>
-                            <span>ดึงข้อมูล</span>
+            <!-- TAB: จัดการสคริปต์ (Default Active) -->
+            <section class="admin-card" id="tabManage">
+                <div class="card-header-row">
+                    <h3 class="card-heading">
+                        <i data-lucide="list"></i>
+                        <span>รายการสคริปต์ในฐานข้อมูล</span>
+                    </h3>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <button class="btn-del-bulk" id="btnDeleteSelected" type="button" disabled>
+                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                            <span>ลบที่เลือก (<span id="selectedCount">0</span>)</span>
+                        </button>
+                        <button class="btn-submit" id="btnGoAddTab" type="button" style="padding: 8px 15px; font-size: 13px;">
+                            <i data-lucide="plus" style="width: 15px; height: 15px;"></i>
+                            <span>เพิ่มสคริปต์ใหม่</span>
                         </button>
                     </div>
-                    <div id="robloxFetchStatus" style="display: none; margin-top: 10px; font-size: 12px; border-radius: 6px; padding: 8px 12px;"></div>
                 </div>
 
-                <div class="form-grid">
-                    <div>
-                        <label class="form-label">ชื่อเกม *</label>
-                        <input type="text" id="sGame" class="form-control" placeholder="เช่น Blox Fruits" required>
+                <div class="manage-toolbar">
+                    <div class="manage-search-wrap">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="searchManageScripts" class="form-control" placeholder="ค้นหาตามชื่อเกม, ชื่อสคริปต์ หรือหมวดหมู่...">
                     </div>
-
-                    <div>
-                        <label class="form-label">ชื่อสคริปต์ *</label>
-                        <input type="text" id="sTitle" class="form-control" placeholder="เช่น Blox Fruits แจกสคริปต์ฟาร์มออโต้" required>
+                    <div class="admin-filter-chips">
+                        <button type="button" class="admin-filter-chip active" data-key-filter="all">ทั้งหมด</button>
+                        <button type="button" class="admin-filter-chip" data-key-filter="keyless">ไร้คีย์ (Keyless)</button>
+                        <button type="button" class="admin-filter-chip" data-key-filter="key">มีคีย์</button>
                     </div>
+                </div>
 
-                    <div class="full-width">
-                        <label class="form-label">หมวดหมู่ระบบ (ภาษาอังกฤษพิมพ์เล็ก)</label>
-                        <input type="text" id="sCategory" class="form-control" placeholder="เช่น bloxfruits (ปล่อยว่างได้ ระบบตั้งให้อัตโนมัติ)">
+                <div style="overflow-x: auto;">
+                    <table class="scripts-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 36px; text-align: center;">
+                                    <input type="checkbox" id="selectAllCheckbox" title="เลือกทั้งหมด" style="cursor: pointer;">
+                                </th>
+                                <th style="width: 50px;">รูป</th>
+                                <th>เกม</th>
+                                <th>ชื่อสคริปต์</th>
+                                <th>หมวดหมู่</th>
+                                <th>สถานะคีย์</th>
+                                <th style="text-align: right;">การจัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scriptsTableBody"></tbody>
+                    </table>
+                </div>
+
+                <div id="adminPagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--ad-border); flex-wrap: wrap; gap: 8px;">
+                    <span id="lblAdminPageInfo" style="font-size: 13px; color: var(--ad-muted);">หน้า 1 / 1</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" id="btnAdminPrevPage" class="btn-secondary" style="padding: 7px 14px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" disabled>
+                            <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i> <span>ก่อนหน้า</span>
+                        </button>
+                        <button type="button" id="btnAdminNextPage" class="btn-secondary" style="padding: 7px 14px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" disabled>
+                            <span>ถัดไป</span> <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                        </button>
                     </div>
+                </div>
+            </section>
 
-                    <div class="full-width">
-                        <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span>รูปภาพปกสคริปต์หลัก (Cover Image)</span>
-                            <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">เลือกรูปจากเครื่อง หรือ วางลิงก์รูปภาพ</span>
-                        </label>
-                        <div style="font-size: 11px; color: #38bdf8; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); padding: 6px 10px; border-radius: 6px; margin-bottom: 8px;">
-                            💡 <strong>ทิปสำหรับลงสคริปต์เยอะๆ:</strong> แนะนำให้วางเป็นลิงก์ URL รูปภาพออนไลน์ (เช่น PostImages, Imgur, Discord) แทนการอัปโหลดไฟล์ตรง จะทำให้ประหยัดพื้นที่ฐานข้อมูล และเพิ่มสคริปต์ได้ไม่จำกัด
-                        </div>
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                                <label class="btn-file-upload">
-                                    <i data-lucide="image-plus" style="width: 16px; height: 16px;"></i>
-                                    <span>📁 เลือกรูปจากเครื่อง</span>
-                                    <input type="file" id="sThumbFile" accept="image/*" style="display: none;">
-                                </label>
-                                <span style="font-size: 12px; color: var(--text-muted);">หรือ</span>
-                                <input type="text" id="sThumb" class="form-control" placeholder="วางลิงก์รูปภาพ เช่น https://... (ปล่อยว่างมีรูปให้)" style="flex: 1; min-width: 220px;">
+            <!-- TAB: เพิ่มสคริปต์ใหม่ -->
+            <section class="admin-card" id="tabAdd" style="display: none;">
+                <h3 class="card-heading" style="margin-bottom: 16px;">
+                    <i data-lucide="plus-circle"></i>
+                    <span>เพิ่มสคริปต์ใหม่ลงในฐานข้อมูล</span>
+                </h3>
+
+                <form id="addScriptForm">
+                    <div class="roblox-autofetch-card">
+                        <div class="roblox-autofetch-header">
+                            <div class="roblox-autofetch-title">
+                                <i data-lucide="sparkles" style="width: 16px; height: 16px; color: #38bdf8;"></i>
+                                <span>ดึงข้อมูลเกม Roblox อัตโนมัติ</span>
                             </div>
-                            <div id="sThumbPreviewBox" class="thumb-preview-box">
-                                <img id="sThumbPreviewImg" class="thumb-preview-img" src="" alt="Cover Preview">
-                                <div style="flex: 1; min-width: 0;">
-                                    <div style="font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="sThumbFileName">รูปภาพปกที่เลือก</div>
-                                    <div style="font-size: 11px; color: #4ade80; margin-top: 2px;" id="sThumbFileSize">✓ พร้อมบันทึก</div>
-                                </div>
-                                <button type="button" id="btnRemoveThumb" style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
-                                    <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> ลบรูป
-                                </button>
+                            <span class="roblox-autofetch-badge">⚡ ดึงชื่อเกม + รูปปก HD อัตโนมัติ</span>
+                        </div>
+                        <div class="roblox-fetch-row">
+                            <div style="flex: 1; position: relative;">
+                                <input type="text" id="robloxPlaceInput" class="form-control" placeholder="วางลิงก์เกม Roblox หรือใส่ Place ID" style="padding-left: 36px;">
+                                <i data-lucide="link" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--ad-muted); pointer-events: none;"></i>
                             </div>
+                            <button type="button" id="btnFetchRobloxGame" class="btn-fetch-roblox">
+                                <i data-lucide="download-cloud" style="width: 14px; height: 14px;"></i>
+                                <span>ดึงข้อมูล</span>
+                            </button>
                         </div>
+                        <div id="robloxFetchStatus" style="display: none; margin-top: 10px; font-size: 12px; border-radius: 8px; padding: 8px 12px;"></div>
                     </div>
 
-                    <div class="full-width">
-                        <label class="form-label">โค้ดสคริปต์ Lua (Loadstring) *</label>
-                        <textarea id="sCode" class="form-control" style="height: 120px; font-family: monospace;" placeholder='loadstring(game:HttpGet("https://raw.githubusercontent.com/..."))()' required></textarea>
-                    </div>
-
-                    <div class="full-width">
-                        <label class="form-label">ลิงก์คลิปวิดีโอตัวอย่างสคริปต์ (YouTube Video URL / Shorts / MP4)</label>
-                        <input type="url" id="sVideoUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=... หรือ https://youtu.be/...">
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">รองรับลิงก์ YouTube ปกติ, YouTube Shorts หรือไฟล์วิดีโอ .mp4 (ตอนคนกดรับสคริปต์จะมีคลิปนี้เด้งขึ้นมาให้ดู)</div>
-                    </div>
-
-                    <div class="full-width checkbox-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="sKeyless" checked> ไร้คีย์ (Keyless ไม่ต้องใส่คีย์)
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="sMobile" checked> รองรับมือถือ (Delta / Codex / Hydrogen)
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="sPC" checked> รองรับ PC
-                        </label>
-                    </div>
-                </div>
-
-                <div style="margin-top: 16px; padding: 12px 16px; background: rgba(88, 101, 242, 0.1); border: 1px solid rgba(88, 101, 242, 0.3); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <i data-lucide="bell" style="width: 20px; height: 20px; color: #5865F2;"></i>
+                    <div class="form-grid">
                         <div>
-                            <div style="font-size: 13px; font-weight: 600; color: #fff;">แจ้งเตือนลง Discord ทันที (#📜・update-script)</div>
-                            <div style="font-size: 11px; color: var(--text-muted);">แท็กยศ @Update (1571634981447663757) พร้อมปุ่มเปิดดูบนเว็บ & ปุ่มรับยศ</div>
+                            <label class="form-label">ชื่อเกม *</label>
+                            <input type="text" id="sGame" class="form-control" placeholder="เช่น Blox Fruits" required>
                         </div>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="sAnnounceDiscord" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-
-                <div style="margin-top: 20px;">
-                    <button type="submit" class="btn-submit">
-                        <i data-lucide="save"></i>
-                        <span>บันทึกลงฐานข้อมูลทันที</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- TAB 4: จัดการฐานข้อมูล (DB Tools & Clear/Reset) -->
-        <div class="admin-card" id="tabDatabase" style="display: none;">
-            <h3 style="font-size: 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="hard-drive" style="width: 18px; height: 18px; color: var(--red);"></i>
-                <span>เครื่องมือจัดการฐานข้อมูล (Database Tools)</span>
-            </h3>
-
-            <!-- ข้อมูลสถานะ Cloud Database -->
-            <div style="background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <i data-lucide="cloud" style="width: 24px; height: 24px; color: #4ade80;"></i>
-                    <div>
-                        <div style="font-size: 14px; font-weight: 600; color: #fff;">Cloud Database (JSONBin) เชื่อมต่อสำเร็จแล้ว</div>
-                        <div style="font-size: 12px; color: var(--text-muted);">
-                            รหัส Bin ID: <code style="color: #38bdf8;">6aa6a183ac6210605ac7dcf7</code> • สคริปต์ซิงค์สด ทุกคนบนโลกเห็นตรงกัน 24 ชม.
-                        </div>
-                    </div>
-                </div>
-                <span style="font-size: 11px; color: #4ade80; background: rgba(34, 197, 94, 0.2); padding: 4px 10px; border-radius: 6px; font-weight: 600; border: 1px solid rgba(34, 197, 94, 0.3); display: inline-flex; align-items: center; gap: 4px;">
-                    <i data-lucide="check-circle-2" style="width: 12px; height: 12px;"></i> ออนไลน์ (Realtime Sync)
-                </span>
-            </div>
-
-            <!-- ข้อมูลสถานะฐานข้อมูล -->
-            <div class="db-stat-box">
-                <div>
-                    <div style="font-size: 12px; color: var(--text-muted);">ชนิดฐานข้อมูล & ไฟล์จัดเก็บ</div>
-                    <div style="font-size: 15px; font-weight: 700; color: #fff; margin-top: 2px;">
-                        SQLite Database (<code style="color: #38bdf8; font-size: 13px;">data/database.sqlite</code>)
-                    </div>
-                    <div style="font-size: 12px; color: #4ade80; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
-                        <i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i> เชื่อมต่อและทำงานปกติ
-                    </div>
-                </div>
-                <div style="display: flex; gap: 20px; text-align: right;">
-                    <div>
-                        <div style="font-size: 11px; color: var(--text-muted);">จำนวนสคริปต์ทั้งหมด</div>
-                        <div style="font-size: 18px; font-weight: 700; color: #fff;" id="dbStatTotal">0</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 11px; color: var(--text-muted);">ขนาดไฟล์ฐานข้อมูล</div>
-                        <div style="font-size: 18px; font-weight: 700; color: #38bdf8;" id="dbStatSize">-</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- กล่องคำสั่งลบและจัดการฐานข้อมูล -->
-            <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 20px;">
-                <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 18px;">
-                    <h4 style="color: #f87171; font-size: 15px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-                        <i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i> ล้างข้อมูลสคริปต์ทั้งหมดในฐานข้อมูล (Clear All)
-                    </h4>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-                        ลบสคริปต์ทุกตัวออกจากฐานข้อมูล SQLite ทันทีในคลิกเดียว เหมาะสำหรับตอนที่คุณต้องการเคลียร์ข้อมูลเก่าออกทั้งหมดเพื่อลงชุดใหม่
-                    </p>
-                    <button type="button" class="btn-del-bulk" id="btnClearAllDbBtn">
-                        <i data-lucide="trash-2"></i>
-                        <span>ล้างสคริปต์ทั้งหมดออกจาก Database</span>
-                    </button>
-                </div>
-
-                <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 18px;">
-                    <h4 style="color: #38bdf8; font-size: 15px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-                        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> รีเซ็ตฐานข้อมูลเป็นค่าเริ่มต้น (Reset Default)
-                    </h4>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-                        กู้คืนสคริปต์ตัวอย่างมาตรฐาน (Blox Fruits, Fisch, Steal An Egg, Blade Ball, Pet Sim 99 ฯลฯ) กลับคืนสู่ฐานข้อมูล
-                    </p>
-                    <button type="button" class="sidebar-btn" id="btnResetDefaultDbBtn" style="background: #0284c7; color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; border: none; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                        <i data-lucide="rotate-ccw"></i>
-                        <span>รีเซ็ตสคริปต์กลับค่าเริ่มต้น</span>
-                    </button>
-                </div>
-
-                <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px;">
-                    <h4 style="color: #fff; font-size: 15px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-                        <i data-lucide="download" style="width: 16px; height: 16px;"></i> ส่งออกข้อมูลสำรอง (Export JSON Backup)
-                    </h4>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-                        ดาวน์โหลดสำรองสคริปต์ทั้งหมดเป็นไฟล์ .json เก็บไว้ในเครื่องคอมพิวเตอร์ของคุณ
-                    </p>
-                    <button type="button" class="sidebar-btn" id="btnExportJsonBtn" style="background: var(--border); color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; border: none; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                        <i data-lucide="file-json"></i>
-                        <span>ดาวน์โหลดสำรองสคริปต์ JSON</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 5: ตั้งค่าลิงก์ Sub2Unlock -->
-        <div class="admin-card" id="tabLinks" style="display: none;">
-            <h3 style="font-size: 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="link" style="width: 18px; height: 18px; color: var(--red);"></i>
-                <span>ตั้งค่าลิงก์ในระบบปลดล็อค (Sub2Unlock)</span>
-            </h3>
-            <form id="adminLinksForm">
-                <div class="cfg-row" style="margin-bottom: 16px;">
-                    <label class="form-label">ลิงก์ปุ่มที่ 1 (YouTube ช่องของคุณ)</label>
-                    <input type="url" id="linkYt" class="form-control" placeholder="https://www.youtube.com/@ชื่อช่องคุณ">
-                </div>
-
-                <div class="cfg-row" style="margin-bottom: 16px;">
-                    <label class="form-label">ลิงก์ปุ่มที่ 2 (ภารกิจผู้สนับสนุน Direct Link หรือ Discord)</label>
-                    <input type="url" id="linkShopee" class="form-control" placeholder="https://omg10.com/4/11919655 (หรือใส่ลิงก์ Discord)">
-                </div>
-
-                <div class="cfg-row" style="margin-bottom: 16px;">
-                    <label class="form-label">ลิงก์ปุ่มที่ 3 (คลิป YouTube ล่าสุดที่อยากให้คนกดไลค์)</label>
-                    <input type="url" id="linkVideo" class="form-control" placeholder="https://www.youtube.com/watch?v=xxxx">
-                </div>
-
-                <div class="cfg-row" style="margin-bottom: 20px;">
-                    <label class="form-label">ลิงก์ Discord ของคุณ</label>
-                    <input type="url" id="linkDiscord" class="form-control" placeholder="https://discord.gg/xxxx">
-                </div>
-
-                <div class="cfg-row" style="margin-bottom: 20px;">
-                    <label class="form-label" style="display: flex; align-items: center; justify-content: space-between;">
-                        <span>🔗 ลิงก์ Monetag Smartlink / Direct Link (เปิดอัตโนมัติตอนคนกดคัดลอกโค้ดสคริปต์)</span>
-                        <span style="font-size: 11px; color: #4ade80; background: rgba(74, 222, 128, 0.1); padding: 2px 8px; border-radius: 4px;">สร้างรายได้เด้งที่ 2</span>
-                    </label>
-                    <input type="url" id="linkSmartlink" class="form-control" placeholder="https://omg10.com/4/..." value="https://omg10.com/4/11911452">
-                    <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">เมื่อผู้ใช้ทั่วไปกดปุ่ม "Copy Script (คัดลอกโค้ด)" ระบบจะคัดลอกโค้ดให้และเปิดลิงก์นี้ในแท็บใหม่เพื่อสร้างรายได้ (สำหรับ VIP จะไม่เด้ง)</p>
-                </div>
-
-                <div class="cfg-row" style="margin-bottom: 20px;">
-                    <label class="form-label" style="display: flex; align-items: center; justify-content: space-between;">
-                        <span>📥 ลิงก์ Direct Link ดาวน์โหลดตัวรัน Executor (Monetag)</span>
-                        <span style="font-size: 11px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 2px 8px; border-radius: 4px;">ปุ่มดาวน์โหลดตัวรัน</span>
-                    </label>
-                    <input type="url" id="linkExecutorDirect" class="form-control" placeholder="https://omg10.com/4/..." value="https://omg10.com/4/11919658">
-                    <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">เมื่อผู้ใช้กดปุ่ม "ดาวน์โหลดตัวรัน (Official Website)" ในหน้าสถานะตัวรัน ระบบจะเปิดลิงก์นี้เพื่อสร้างรายได้</p>
-                </div>
-
-                <!-- ระบบสร้างรายได้และป้องกัน Bypass (ShrinkEarn / LootLabs Gate) -->
-                <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border);">
-                    <h4 style="font-size: 15px; margin-bottom: 8px; color: #34d399; display: flex; align-items: center; gap: 8px;">
-                        <i data-lucide="shield-check" style="width: 18px; height: 18px; color: #10b981;"></i>
-                        <span>ระบบสร้างรายได้ & ล็อคป้องกัน Bypass (Monetization & Security Gate)</span>
-                    </h4>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
-                        ล็อคหน้าเว็บทั้งหมด บังคับเข้าผ่านลิงก์ย่อสร้างรายได้ (ShrinkEarn หรือ LootLabs) พร้อมระบบป้องกันบอท Bypass และป้องกันคนก๊อปลิงก์ไปแจกฟรี 100%
-                    </p>
-
-                    <div style="margin-bottom: 16px;">
-                        <label class="checkbox-label" style="font-weight: 500; color: #fff;">
-                            <input type="checkbox" id="gateEnableCheckbox"> 
-                            <span>เปิดใช้งานระบบล็อคหน้าเว็บสร้างรายได้ (Monetization Gate)</span>
-                        </label>
-                    </div>
-
-                    <div style="margin-bottom: 16px;">
-                        <label class="form-label">เลือกผู้ให้บริการสร้างรายได้ (Provider)</label>
-                        <select id="adminGateProvider" class="form-control" style="background: #0f111a; color: #fff; border-color: rgba(16, 185, 129, 0.4);">
-                            <option value="linkvertise" selected>🔗 Linkvertise (Anti-Bypass Protection แนะนำ)</option>
-                            <option value="shrinkme">💜 ShrinkMe.io (Shortener - ถอนไว เรทไทย $4.00)</option>
-                            <option value="blackpass">⚡ BlackPass Content Locker (3 ด่าน Adsterra ทำเงินสูงสุด & เว็บหลักสะอาดไม่มีสแปม)</option>
-                            <option value="shrinkearn">🌟 ShrinkEarn (Shortener)</option>
-                            <option value="lootlabs">💎 LootLabs (รองรับ Postback Webhook)</option>
-                            <option value="custom">🔗 ลิงก์ย่ออื่นๆ (Custom Shortener)</option>
-                        </select>
-                    </div>
-
-                    <div class="form-grid" style="margin-bottom: 16px;">
                         <div>
-                            <label class="form-label">Access Token ประจำเว็บ (รหัสลับปลดล็อค)</label>
-                            <div style="display: flex; gap: 8px;">
-                                <input type="text" id="adminGateToken" class="form-control" placeholder="blacklist_vip">
-                                <button type="button" id="btnRandomizeToken" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; padding: 0 12px; border-radius: 8px; font-size: 11px; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 4px;">
-                                    <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> <span>สุ่มรหัส</span>
-                                </button>
-                            </div>
-                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">รหัสลับประจำเว็บ สามารถกดสุ่มใหม่ได้ตลอดเวลาหากกลัวรหัสหลุด</span>
+                            <label class="form-label">ชื่อสคริปต์ *</label>
+                            <input type="text" id="sTitle" class="form-control" placeholder="เช่น Redz Hub Auto Farm" required>
                         </div>
-
-                        <div>
-                            <label class="form-label" id="lblAdminGateUrl">ลิงก์สำหรับให้ผู้ใช้กด (BlackPass Content Locker)</label>
-                            <input type="text" id="adminGateUrl" class="form-control" placeholder="https://th.blacklisthub.workers.dev/access">
-                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;" id="descAdminGateUrl">ลิงก์หน้าปลดล็อคเว็บไซต์แบบสั้น (เช่น https://th.blacklisthub.workers.dev/access หรือ /access)</span>
-                        </div>
-
-                        <div>
-                            <label class="form-label">ShrinkEarn API Token (ถ้าใช้ ShrinkEarn)</label>
-                            <input type="text" id="adminShrinkearnApiToken" class="form-control" placeholder="3ce8c70d0c1e31404164f66164ea8f9117b29b69">
-                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">รหัส API Token จากหน้า Developers API บนเว็บ ShrinkEarn</span>
-                        </div>
-
-                        <div>
-                            <label class="form-label">ระยะเวลาจำเครื่อง (ชั่วโมง)</label>
-                            <input type="number" id="adminGateExpiryHours" class="form-control" value="24" min="1" max="720" placeholder="24">
-                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">ระยะเวลาที่จะไม่ถามลิงก์ซ้ำบนเครื่องเดิม (ค่าเริ่มต้น 24 ชั่วโมง)</span>
+                        <div class="full-width">
+                            <label class="form-label">หมวดหมู่ระบบ (ภาษาอังกฤษพิมพ์เล็ก — ปล่อยว่างได้)</label>
+                            <input type="text" id="sCategory" class="form-control" placeholder="เช่น bloxfruits">
                         </div>
 
                         <div class="full-width">
-                            <label class="form-label">ลิงก์คลิป YouTube สอนวิธีผ่าน (Tutorial Video URL)</label>
-                            <input type="url" id="adminGateTutorialUrl" class="form-control" placeholder="https://youtu.be/FdXsvivWhOw">
-                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">วิดีโอคลิปสอนวิธีผ่านลิงก์ เพื่อให้ผู้ใช้กดดูคลิปตัวอย่างได้ทันทีในหน้าล็อค</span>
+                            <label class="form-label">รูปภาพปกสคริปต์ (วางลิงก์รูปหรือเลือกไฟล์)</label>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                    <label class="btn-file-upload">
+                                        <i data-lucide="image-plus" style="width: 16px; height: 16px;"></i>
+                                        <span>เลือกรูปจากเครื่อง</span>
+                                        <input type="file" id="sThumbFile" accept="image/*" style="display: none;">
+                                    </label>
+                                    <input type="text" id="sThumb" class="form-control" placeholder="วางลิงก์รูปภาพ https://... (หรือกด Auto-Fetch ด้านบน)" style="flex: 1; min-width: 220px;">
+                                </div>
+                                <div id="sThumbPreviewBox" class="thumb-preview-box">
+                                    <img id="sThumbPreviewImg" class="thumb-preview-img" src="" alt="Cover Preview">
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="sThumbFileName">รูปภาพปกที่เลือก</div>
+                                        <div style="font-size: 11px; color: #4ade80; margin-top: 2px;" id="sThumbFileSize">✓ พร้อมบันทึก</div>
+                                    </div>
+                                    <button type="button" id="btnRemoveThumb" class="btn-del">
+                                        <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> ลบรูป
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="full-width">
+                            <label class="form-label">โค้ดสคริปต์ Lua (Loadstring) *</label>
+                            <textarea id="sCode" class="form-control" style="height: 120px; font-family: 'JetBrains Mono', monospace;" placeholder='loadstring(game:HttpGet("https://raw.githubusercontent.com/..."))()' required></textarea>
+                        </div>
+
+                        <div class="full-width">
+                            <label class="form-label">ลิงก์คลิปตัวอย่าง (YouTube / Shorts / MP4)</label>
+                            <input type="url" id="sVideoUrl" class="form-control" placeholder="https://youtu.be/...">
+                        </div>
+
+                        <div class="full-width checkbox-group">
+                            <label class="checkbox-label"><input type="checkbox" id="sKeyless" checked> ไร้คีย์ (Keyless)</label>
+                            <label class="checkbox-label"><input type="checkbox" id="sMobile" checked> รองรับมือถือ</label>
+                            <label class="checkbox-label"><input type="checkbox" id="sPC" checked> รองรับ PC</label>
                         </div>
                     </div>
 
-                    <!-- กล่องแนะนำวิธีใช้งาน BlackPass Content Locker -->
-                    <div id="blackpassGuideBox" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 10px; padding: 18px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 14px;">
-                        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                    <div style="margin-top: 14px; padding: 12px 15px; background: rgba(88, 101, 242, 0.1); border: 1px solid rgba(88, 101, 242, 0.3); border-radius: 11px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i data-lucide="bell" style="width: 19px; height: 19px; color: #818cf8;"></i>
                             <div>
-                                <div style="font-size: 14px; font-weight: 700; color: #34d399; display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i>
-                                    <span>BlackPass Content Locker (3 ด่านทำเงิน Adsterra Smartlinks)</span>
-                                </div>
-                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
-                                    ระบบจะนำผู้ใช้เข้าสู่หน้า Locker ผ่าน 3 ด่าน (Smartlink 1 & 2 & 3) เมื่อทำครบจะพาวาร์ปกลับมาหน้าเว็บหลัก <code>?auth_success=1</code> และปลดล็อคหน้าเว็บให้ทันที 24 ชม.
-                                </div>
-                            </div>
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <a href="/gateflow/generator.html" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, #0284c7, #2563eb); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);">
-                                    <i data-lucide="zap" style="width: 14px; height: 14px; color: #fde047;"></i>
-                                    <span>⚡ เปิดเครื่องมือสร้างลิงก์</span>
-                                </a>
-                                <a href="/access" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
-                                    <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-                                    <span>🚀 ทดสอบหน้า Locker</span>
-                                </a>
-                                <a href="/gateflow/dashboard.html" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="layout-dashboard" style="width: 14px; height: 14px;"></i>
-                                    <span>แดชบอร์ด BlackPass</span>
-                                </a>
+                                <div style="font-size: 13px; font-weight: 600; color: #fff;">ส่งแจ้งเตือนลง Discord ทันที</div>
+                                <div style="font-size: 11px; color: var(--ad-muted);">โพสต์ลงห้องอัปเดตสคริปต์พร้อมปุ่มเปิดดูบนเว็บ</div>
                             </div>
                         </div>
-
-                        <div>
-                            <div style="font-size: 12px; color: #34d399; font-weight: 600; margin-bottom: 6px;">
-                                🔗 ลิงก์หน้า BlackPass Locker แบบสั้น (นำไปใส่ในช่องด้านบนได้ทันที):
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <input type="text" id="blackpassLockerUrlHelper" class="form-control" value="https://th.blacklisthub.workers.dev/access" readonly style="background: #090a0d; color: #34d399; font-family: monospace; font-size: 13px; font-weight: 600;">
-                                <button type="button" id="btnCopyBlackpassHelper" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 0 16px; border-radius: 8px; font-size: 12px; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="copy" style="width: 14px; height: 14px;"></i> <span>คัดลอก</span>
-                                </button>
-                            </div>
-                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="sAnnounceDiscord" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
                     </div>
 
-                    <!-- กล่องแนะนำวิธีใช้งาน ShrinkEarn (Anti-Bypass ปลอดภัย 100%) -->
-                    <div id="shrinkearnGuideBox" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 10px; padding: 18px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 14px;">
-                        <!-- ปุ่มสร้างลิงก์อัตโนมัติ 100% ผ่าน API -->
-                        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-                            <div>
-                                <div style="font-size: 13px; font-weight: 600; color: #34d399; display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i>
-                                    <span>ย่อลิงก์อัตโนมัติด้วย ShrinkEarn API (ไม่ต้องเข้าเว็บ ShrinkEarn)</span>
-                                </div>
-                                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
-                                    กดปุ่มนี้ ระบบจะดึง API ย่อลิงก์ปลายทาง และใส่ในช่องลิงก์ให้ทันทีใน 1 วินาที!
-                                </div>
-                            </div>
-                            <button type="button" id="btnAutoShortenShrinkearn" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 9px 20px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35); transition: 0.15s;">
-                                <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
-                                <span>⚡ สั่งย่อลิงก์ด้วย API ทันที</span>
-                            </button>
-                        </div>
-
-                        <div style="font-weight: 600; font-size: 13px; color: #34d399; display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="help-circle" style="width: 16px; height: 16px;"></i>
-                            <span>หรือจะนำลิงก์ปลายทางไปสร้างเองบนเว็บ ShrinkEarn (วิธีแบบแมนนวล):</span>
-                        </div>
-                        <ol style="font-size: 12px; color: var(--text-muted); margin: 0; padding-left: 20px; line-height: 1.8;">
-                            <li>คัดลอก <b>"ลิงก์ปลายทาง (Target URL)"</b> ในกล่องสีเขียวด้านล่างนี้</li>
-                            <li>เปิดเว็บ <a href="https://shrinkearn.com/member/links" target="_blank" rel="noopener noreferrer" style="color: #34d399; text-decoration: underline; font-weight: 500;">ShrinkEarn -> เมนู New Shorten Link (คลิกที่นี่)</a> นำลิงก์นี้ไปวางในช่อง <b>Your URL Here</b> แล้วกดปุ่ม <b>Shorten</b></li>
-                            <li>คัดลอกลิงก์ย่อที่ ShrinkEarn ให้มา นำมาวางในช่อง <b>"ลิงก์สำหรับให้ผู้ใช้กด"</b> ด้านบน แล้วกดปุ่มบันทึก</li>
-                        </ol>
-
-                        <div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                <label style="font-size: 12px; color: #34d399; font-weight: 600;">
-                                    📋 ลิงก์ปลายทาง (Target URL) สำหรับนำไปวางใน ShrinkEarn:
-                                </label>
-                                <button type="button" id="btnRandomizeShrinkearnUrl" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; padding: 3px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                                    <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> <span>สุ่มพารามิเตอร์ใหม่</span>
-                                </button>
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <input type="text" id="shrinkearnTargetUrlHelper" class="form-control" readonly style="background: #08090d; color: #34d399; font-family: monospace; font-size: 12px;">
-                                <button type="button" id="btnCopyShrinkearnHelper" style="background: #059669; color: #fff; border: none; padding: 0 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="copy"></i> <span>คัดลอก</span>
-                                </button>
-                            </div>
-                            <div style="margin-top: 8px; padding: 10px 12px; background: rgba(0, 0, 0, 0.35); border-radius: 6px; border-left: 3px solid #10b981;">
-                                <div style="font-size: 11px; color: #6ee7b7; line-height: 1.6;">
-                                    🛡️ <b>เกราะป้องกัน Bypass ทำงานอัตโนมัติ:</b><br>
-                                    • <b>Handshake Protection:</b> คนที่เปิดลิงก์นี้ตรงๆ หรือก๊อปลิงก์ไปแจกใน Discord จะปลดล็อคไม่ได้ (ต้องกดปุ่มจากหน้าเว็บเราก่อนเท่านั้น)<br>
-                                    • <b>Speed Check:</b> ดักจับบอทที่ข้ามลิงก์เร็วกว่า 10 วินาที (มนุษย์ต้องรอนับถอยหลัง 10-15s เสมอ)<br>
-                                    • <b>Referrer Blacklist:</b> แบน IP และบล็อกเว็บ Bypass ทุกชนิดอัตโนมัติ
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- กล่องแสดง URL สำหรับ LootLabs (แสดงเมื่อเลือก LootLabs) -->
-                    <div id="lootlabsGuideBox" style="display: none; background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 16px; margin-bottom: 20px; flex-direction: column; gap: 14px;">
-                        <div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                <label style="font-size: 12px; color: #c084fc; font-weight: 600;">
-                                    📋 1. ลิงก์สำหรับใส่ในช่อง "Place redirect url here" บน LootLabs:
-                                </label>
-                                <button type="button" id="btnRandomizeTargetUrl" style="background: rgba(192, 132, 252, 0.15); border: 1px solid rgba(192, 132, 252, 0.3); color: #c084fc; padding: 3px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                                    <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> <span>สุ่ม URL ใหม่</span>
-                                </button>
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <input type="text" id="lootlabsTargetUrlHelper" class="form-control" readonly style="background: #08090d; color: #a78bfa; font-family: monospace; font-size: 12px;">
-                                <button type="button" id="btnCopyLootlabsHelper" style="background: #7c3aed; color: #fff; border: none; padding: 0 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="copy"></i> <span>คัดลอก</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label style="font-size: 12px; color: #38bdf8; font-weight: 600; display: block; margin-bottom: 6px;">
-                                ⚡ 2. ลิงก์ Postback ที่บันทึกใน LootLabs (Anti-Bypass 100%):
-                            </label>
-                            <div style="display: flex; gap: 8px;">
-                                <input type="text" id="lootlabsPostbackUrlHelper" class="form-control" readonly style="background: #08090d; color: #38bdf8; font-family: monospace; font-size: 12px;">
-                                <button type="button" id="btnCopyPostbackHelper" style="background: #0284c7; color: #fff; border: none; padding: 0 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="copy"></i> <span>คัดลอก</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- เครื่องมือทดสอบระบบ: เลิกจำคอมเครื่องนี้ -->
-                    <div style="background: rgba(239, 68, 68, 0.08); border: 1px dashed rgba(239, 68, 68, 0.4); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
-                        <div>
-                            <div style="font-weight: 600; font-size: 13px; color: #f87171; display: flex; align-items: center; gap: 8px;">
-                                <i data-lucide="rotate-ccw" style="width: 16px; height: 16px;"></i>
-                                <span>เครื่องมือทดสอบระบบ: เลิกจำคอมเครื่องนี้ (Reset Lock)</span>
-                            </div>
-                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
-                                ล้างการจำเครื่อง (24 ชม.) และล้างประวัติ IP ในระบบ เพื่อให้หน้าเว็บกลับมาล็อคเหมือนคนเข้าเว็บครั้งแรก
-                            </div>
-                        </div>
-                        <button type="button" id="btnResetDeviceLock" style="background: #ef4444; color: #fff; border: none; padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35); transition: 0.15s;">
-                            <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
-                            <span>ล้างการจำเครื่อง & ไปหน้าล็อคทันที</span>
+                    <div style="margin-top: 18px;">
+                        <button type="submit" class="btn-submit">
+                            <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+                            <span>บันทึกลงฐานข้อมูลทันที</span>
                         </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- TAB: ระบบปลดล็อค & โฆษณา (4 รอบ × 5 วิ + Discord ครั้งเดียว) -->
+            <section class="admin-card" id="tabLinks" style="display: none;">
+                <h3 class="card-heading" style="margin-bottom: 16px;">
+                    <i data-lucide="zap"></i>
+                    <span>ตั้งค่าระบบปลดล็อคสคริปต์ &amp; ลิงก์ทำเงิน</span>
+                </h3>
+
+                <!-- การ์ดหลัก: ระบบปลดล็อคใหม่ที่ใช้งานอยู่จริง -->
+                <div class="unlock-highlight-card">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
+                        <div>
+                            <div style="font-size: 15px; font-weight: 700; color: #fff;">🚀 ตั้งค่าด่านปลดล็อคปัจจุบัน (Active Unlock Flow)</div>
+                            <div style="font-size: 12px; color: var(--ad-muted);">แก้จำนวนรอบ เวลารอ ลิงก์ Adsterra / Monetag และด่านเข้า Discord ครั้งเดียวได้ทันที</div>
+                        </div>
+                        <span style="font-size: 11px; font-weight: 600; color: #6ee7b7; background: rgba(16, 185, 129, 0.16); border: 1px solid rgba(16, 185, 129, 0.4); padding: 4px 10px; border-radius: 999px;">ใช้งานจริงบนหน้าเว็บ</span>
+                    </div>
+
+                    <form id="adminUnlockFlowForm">
+                        <div class="form-grid" style="margin-bottom: 14px;">
+                            <div>
+                                <label class="form-label">จำนวนรอบโฆษณา (Steps)</label>
+                                <input type="number" id="ufStepsTotal" class="form-control" min="1" max="5" value="4" required>
+                            </div>
+                            <div>
+                                <label class="form-label">เวลารอต่อรอบ (วินาที)</label>
+                                <input type="number" id="ufWaitSeconds" class="form-control" min="3" max="60" value="5" required>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <label class="form-label">ลิงก์โฆษณาแต่ละรอบ (แนะนำสลับ A → B → A → B)</label>
+                            <div class="step-url-list">
+                                <div class="step-url-row">
+                                    <span class="step-url-tag">ด่าน 1 (A)</span>
+                                    <input type="url" id="ufStepUrl1" class="form-control" placeholder="https://asiafilm.org/4/..." required>
+                                </div>
+                                <div class="step-url-row">
+                                    <span class="step-url-tag">ด่าน 2 (B)</span>
+                                    <input type="url" id="ufStepUrl2" class="form-control" placeholder="https://uplcm.com/4/...">
+                                </div>
+                                <div class="step-url-row">
+                                    <span class="step-url-tag">ด่าน 3 (A)</span>
+                                    <input type="url" id="ufStepUrl3" class="form-control" placeholder="https://asiafilm.org/4/...">
+                                </div>
+                                <div class="step-url-row">
+                                    <span class="step-url-tag">ด่าน 4 (B)</span>
+                                    <input type="url" id="ufStepUrl4" class="form-control" placeholder="https://uplcm.com/4/...">
+                                </div>
+                                <div class="step-url-row">
+                                    <span class="step-url-tag">ด่าน 5 (สำรอง)</span>
+                                    <input type="url" id="ufStepUrl5" class="form-control" placeholder="ปล่อยว่างได้ถ้าใช้ 4 ด่าน">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid" style="margin-bottom: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08);">
+                            <div class="full-width">
+                                <label class="checkbox-label" style="color: #fff; font-weight: 600;">
+                                    <input type="checkbox" id="ufDiscordOnce" checked>
+                                    <span>บังคับด่าน "เข้า Discord ครั้งเดียว" ก่อนเริ่มปลดล็อคสคริปต์แรก</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="form-label">ลิงก์เชิญ Discord</label>
+                                <input type="url" id="ufDiscordInvite" class="form-control" placeholder="https://discord.gg/6MTUP78KF6">
+                            </div>
+                            <div>
+                                <label class="form-label">จำการเข้า Discord ไว้ (วัน)</label>
+                                <input type="number" id="ufDiscordDays" class="form-control" min="1" max="365" value="30">
+                            </div>
+                            <div class="full-width">
+                                <label class="form-label">Monetag MultiTag Zone ID (เสริม — ปล่อยว่างได้)</label>
+                                <input type="text" id="ufMultiTagZone" class="form-control" placeholder="ใส่ตัวเลข Zone ID ถ้าต้องการเปิด MultiTag เพิ่มรายได้">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-submit">
+                            <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+                            <span>บันทึกระบบปลดล็อคทันที</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- ตั้งค่าระบบเก่าพับเก็บไว้ (ยังคง DOM ID เดิมทั้งหมดไว้ 100%) -->
+                <details class="admin-accordion">
+                    <summary>
+                        <span>⚙️ ตั้งค่าระบบเสริม / ระบบเก่า (Sub2Unlock, GateFlow, LootLabs, ShrinkEarn)</span>
+                        <span style="font-size: 12px; color: #a78bfa;">คลิกเพื่อขยาย ▾</span>
+                    </summary>
+                    <div class="admin-accordion-body">
+                        <form id="adminLinksForm">
+                            <div class="form-grid" style="margin-bottom: 16px;">
+                                <div>
+                                    <label class="form-label">ลิงก์ปุ่มที่ 1 (YouTube)</label>
+                                    <input type="url" id="linkYt" class="form-control" placeholder="https://www.youtube.com/@Blacklistxyx">
+                                </div>
+                                <div>
+                                    <label class="form-label">ลิงก์ปุ่มที่ 2 (Direct Link / Sponsor)</label>
+                                    <input type="url" id="linkShopee" class="form-control" placeholder="https://omg10.com/4/11919655">
+                                </div>
+                                <div>
+                                    <label class="form-label">ลิงก์ปุ่มที่ 3 (คลิป YouTube ล่าสุด)</label>
+                                    <input type="url" id="linkVideo" class="form-control" placeholder="https://www.youtube.com/watch?v=xxxx">
+                                </div>
+                                <div>
+                                    <label class="form-label">ลิงก์ Discord (Social Links)</label>
+                                    <input type="url" id="linkDiscord" class="form-control" placeholder="https://discord.gg/xxxx">
+                                </div>
+                                <div>
+                                    <label class="form-label">ลิงก์ Adsterra / Smartlink เดิม</label>
+                                    <input type="url" id="linkSmartlink" class="form-control" value="https://asiafilm.org/4/15645e0d7a0b92a6fcc92b70cbee607d">
+                                </div>
+                                <div>
+                                    <label class="form-label">ลิงก์ดาวน์โหลดตัวรัน (Monetag)</label>
+                                    <input type="url" id="linkExecutorDirect" class="form-control" value="https://omg10.com/4/11919658">
+                                </div>
+                            </div>
+
+                            <div style="padding-top: 16px; border-top: 1px solid var(--ad-border);">
+                                <div style="margin-bottom: 12px;">
+                                    <label class="checkbox-label" style="color: #fff; font-weight: 500;">
+                                        <input type="checkbox" id="gateEnableCheckbox">
+                                        <span>เปิดใช้งาน Gate หน้าเว็บเก่า (ไม่แนะนำสำหรับหน้าเว็บใหม่)</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-grid" style="margin-bottom: 14px;">
+                                    <div>
+                                        <label class="form-label">Provider (Gate เก่า)</label>
+                                        <select id="adminGateProvider" class="form-control">
+                                            <option value="linkvertise" selected>Linkvertise</option>
+                                            <option value="shrinkme">ShrinkMe.io</option>
+                                            <option value="blackpass">BlackPass Content Locker</option>
+                                            <option value="shrinkearn">ShrinkEarn</option>
+                                            <option value="lootlabs">LootLabs</option>
+                                            <option value="custom">Custom Shortener</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="form-label">Access Token</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="adminGateToken" class="form-control" placeholder="blacklist_vip">
+                                            <button type="button" id="btnRandomizeToken" class="btn-secondary" style="padding: 0 12px; font-size: 11px; cursor: pointer; white-space: nowrap;">สุ่มรหัส</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="form-label" id="lblAdminGateUrl">ลิงก์ Gate</label>
+                                        <input type="text" id="adminGateUrl" class="form-control" placeholder="https://th.blacklisthub.workers.dev/access">
+                                        <span id="descAdminGateUrl" style="font-size: 11px; color: var(--ad-muted); display: block; margin-top: 4px;"></span>
+                                    </div>
+                                    <div>
+                                        <label class="form-label">ShrinkEarn API Token</label>
+                                        <input type="text" id="adminShrinkearnApiToken" class="form-control">
+                                    </div>
+                                    <div>
+                                        <label class="form-label">ระยะเวลาจำเครื่อง (ชั่วโมง)</label>
+                                        <input type="number" id="adminGateExpiryHours" class="form-control" value="24" min="1" max="720">
+                                    </div>
+                                    <div>
+                                        <label class="form-label">Tutorial Video URL</label>
+                                        <input type="url" id="adminGateTutorialUrl" class="form-control">
+                                    </div>
+                                </div>
+
+                                <div id="blackpassGuideBox" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" id="blackpassLockerUrlHelper" class="form-control" value="https://th.blacklisthub.workers.dev/access" readonly>
+                                        <button type="button" id="btnCopyBlackpassHelper" class="btn-secondary" style="padding: 0 14px; font-size: 12px; cursor: pointer;">คัดลอก</button>
+                                    </div>
+                                </div>
+
+                                <div id="shrinkearnGuideBox" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 12px; margin-bottom: 12px; display: none; flex-direction: column; gap: 8px;">
+                                    <button type="button" id="btnAutoShortenShrinkearn" class="btn-secondary" style="padding: 8px 14px; font-size: 12px; cursor: pointer;">⚡ ย่อลิงก์ด้วย ShrinkEarn API</button>
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" id="shrinkearnTargetUrlHelper" class="form-control" readonly>
+                                        <button type="button" id="btnCopyShrinkearnHelper" class="btn-secondary" style="padding: 0 14px; font-size: 12px; cursor: pointer;">คัดลอก</button>
+                                        <button type="button" id="btnRandomizeShrinkearnUrl" class="btn-secondary" style="padding: 0 12px; font-size: 11px; cursor: pointer;">สุ่มใหม่</button>
+                                    </div>
+                                </div>
+
+                                <div id="lootlabsGuideBox" style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 12px; margin-bottom: 12px; display: none; flex-direction: column; gap: 8px;">
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" id="lootlabsTargetUrlHelper" class="form-control" readonly>
+                                        <button type="button" id="btnCopyLootlabsHelper" class="btn-secondary" style="padding: 0 14px; font-size: 12px; cursor: pointer;">คัดลอก</button>
+                                        <button type="button" id="btnRandomizeTargetUrl" class="btn-secondary" style="padding: 0 12px; font-size: 11px; cursor: pointer;">สุ่มใหม่</button>
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" id="lootlabsPostbackUrlHelper" class="form-control" readonly>
+                                        <button type="button" id="btnCopyPostbackHelper" class="btn-secondary" style="padding: 0 14px; font-size: 12px; cursor: pointer;">คัดลอก Postback</button>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px;">
+                                    <button type="submit" class="btn-submit" style="background: #27273a;">
+                                        <i data-lucide="save" style="width: 15px; height: 15px;"></i>
+                                        <span>บันทึกตั้งค่าระบบเก่า</span>
+                                    </button>
+                                    <button type="button" id="btnResetDeviceLock" class="btn-del" style="padding: 10px 16px;">
+                                        <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
+                                        <span>ล้างการจำเครื่อง (Reset Lock)</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </details>
+            </section>
+
+            <!-- TAB: ตั้งค่าชื่อเว็บและทั่วไป -->
+            <section class="admin-card" id="tabSite" style="display: none;">
+                <h3 class="card-heading" style="margin-bottom: 16px;">
+                    <i data-lucide="globe"></i>
+                    <span>แก้ไขชื่อเว็บไซต์ &amp; ข้อมูลแบรนด์</span>
+                </h3>
+                <form id="adminSiteForm">
+                    <div class="form-grid">
+                        <div class="full-width">
+                            <label class="form-label">ชื่อเว็บไซต์เต็ม (Website Full Name) *</label>
+                            <input type="text" id="siteNameInput" class="form-control" placeholder="เช่น BlacklistScriptx" required>
+                        </div>
+                        <div>
+                            <label class="form-label">คำนำหน้าโลโก้ (Brand Prefix) *</label>
+                            <input type="text" id="brandPrefixInput" class="form-control" placeholder="Blacklist" required>
+                        </div>
+                        <div>
+                            <label class="form-label">คำต่อท้ายโลโก้ (Brand Suffix) *</label>
+                            <input type="text" id="brandSuffixInput" class="form-control" placeholder="Scriptx" required>
+                        </div>
+                        <div class="full-width" style="background: #090910; border: 1px solid var(--ad-border); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 14px;">
+                            <span style="font-size: 12px; color: var(--ad-muted);">ตัวอย่างโลโก้:</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <img src="Logo.ico" alt="Logo" style="width: 24px; height: 24px; object-fit: contain;">
+                                <div style="font-size: 18px; font-weight: 700; color: #fff;" id="previewBrandTitle">Blacklist<span style="color: var(--red);">Scriptx</span></div>
+                            </div>
+                        </div>
+                        <div class="full-width">
+                            <label class="form-label">สโลแกน / คำอธิบายเว็บไซต์</label>
+                            <input type="text" id="siteTaglineInput" class="form-control" placeholder="ศูนย์รวมสคริปต์ Roblox อัปเดตล่าสุด">
+                        </div>
+                    </div>
+                    <div style="margin-top: 18px;">
+                        <button type="submit" class="btn-submit">
+                            <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+                            <span>บันทึกชื่อเว็บและการตั้งค่า</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- TAB: จัดการฐานข้อมูล -->
+            <section class="admin-card" id="tabDatabase" style="display: none;">
+                <h3 class="card-heading" style="margin-bottom: 16px;">
+                    <i data-lucide="hard-drive"></i>
+                    <span>เครื่องมือจัดการฐานข้อมูล &amp; สำรองข้อมูล</span>
+                </h3>
+
+                <div class="db-stat-box" style="margin-bottom: 16px;">
+                    <div>
+                        <div style="font-size: 12px; color: var(--ad-muted);">ฐานข้อมูลหลัก</div>
+                        <div style="font-size: 15px; font-weight: 700; color: #fff; margin-top: 2px;">Firebase Firestore + SQLite (<code style="color: #38bdf8;">data/database.sqlite</code>)</div>
+                    </div>
+                    <div style="display: flex; gap: 20px; text-align: right;">
+                        <div>
+                            <div style="font-size: 11px; color: var(--ad-muted);">จำนวนสคริปต์</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #fff;" id="dbStatTotal">0</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--ad-muted);">ขนาด DB</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #38bdf8;" id="dbStatSize">-</div>
+                        </div>
                     </div>
                 </div>
 
-                <button type="submit" class="btn-submit">
-                    <i data-lucide="save"></i>
-                    <span>บันทึกการเปลี่ยนแปลงลิงก์และระบบกัน Bypass</span>
-                </button>
-            </form>
-        </div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div class="db-stat-box">
+                        <div>
+                            <strong style="color: #fff; font-size: 14px;">ส่งออกข้อมูลสำรอง (Export JSON Backup)</strong>
+                            <div style="font-size: 12px; color: var(--ad-muted);">ดาวน์โหลดสคริปต์ทั้งหมดเป็นไฟล์ .json</div>
+                        </div>
+                        <button type="button" class="btn-secondary" id="btnExportJsonBtn" style="padding: 9px 16px; font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                            <i data-lucide="file-json" style="width: 15px; height: 15px;"></i>
+                            <span>ดาวน์โหลด JSON</span>
+                        </button>
+                    </div>
+
+                    <div class="db-stat-box" style="border-color: rgba(56, 189, 248, 0.25);">
+                        <div>
+                            <strong style="color: #38bdf8; font-size: 14px;">รีเซ็ตเป็นค่าเริ่มต้น (Reset Default)</strong>
+                            <div style="font-size: 12px; color: var(--ad-muted);">กู้คืนสคริปต์ตัวอย่างมาตรฐานเข้าฐานข้อมูล</div>
+                        </div>
+                        <button type="button" id="btnResetDefaultDbBtn" class="btn-fetch-roblox" style="font-size: 12.5px; padding: 9px 16px;">
+                            <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
+                            <span>รีเซ็ตค่าเริ่มต้น</span>
+                        </button>
+                    </div>
+
+                    <div class="db-stat-box" style="border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.06);">
+                        <div>
+                            <strong style="color: #f87171; font-size: 14px;">ล้างข้อมูลสคริปต์ทั้งหมด (Clear All)</strong>
+                            <div style="font-size: 12px; color: var(--ad-muted);">ลบสคริปต์ทั้งหมดออกจากฐานข้อมูลในคลิกเดียว</div>
+                        </div>
+                        <button type="button" class="btn-del-bulk" id="btnClearAllDbBtn">
+                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                            <span>ล้างสคริปต์ทั้งหมด</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+      </div>
     </div>
 
-    <!-- MODAL แก้ไขสคริปต์ (Edit Script Modal) -->
+    <!-- MODAL แก้ไขสคริปต์ -->
     <div id="editScriptModal">
-        <div style="background: #11141c; border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; padding: 28px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="font-size: 18px; color: #fff; display: flex; align-items: center; gap: 8px; margin: 0;">
-                    <i data-lucide="edit-3" style="width: 20px; height: 20px; color: #38bdf8;"></i>
+        <div style="background: #10101a; border: 1px solid rgba(139, 92, 246, 0.32); border-radius: 18px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; padding: 24px; position: relative; box-shadow: 0 24px 60px rgba(0,0,0,0.85);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <h3 class="card-heading" style="margin: 0;">
+                    <i data-lucide="edit-3" style="color: #38bdf8;"></i>
                     <span>แก้ไขข้อมูลสคริปต์</span>
                 </h3>
-                <button type="button" id="closeEditModalBtn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px; padding: 4px; line-height: 1;">✕</button>
+                <button type="button" id="closeEditModalBtn" style="background: rgba(255,255,255,0.06); border: none; color: var(--ad-muted); cursor: pointer; font-size: 18px; width: 34px; height: 34px; border-radius: 9px;">✕</button>
             </div>
 
             <form id="editScriptForm">
                 <input type="hidden" id="editScriptId">
 
-                <!-- ตัวช่วยดึงข้อมูลเกมอัตโนมัติใน Modal แก้ไข -->
-                <div class="roblox-autofetch-card" style="margin-bottom: 16px; padding: 12px 14px;">
+                <div class="roblox-autofetch-card" style="padding: 12px 14px; margin-bottom: 16px;">
                     <div class="roblox-autofetch-header" style="margin-bottom: 8px;">
                         <div class="roblox-autofetch-title" style="font-size: 12px;">
                             <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #38bdf8;"></i>
-                            <span>ดึงข้อมูลใหม่อัตโนมัติจาก Roblox (Auto-Fetch)</span>
+                            <span>ดึงข้อมูลใหม่จาก Roblox (Auto-Fetch)</span>
                         </div>
-                        <span class="roblox-autofetch-badge">⚡ อัปเดตรูปและชื่อเกม</span>
                     </div>
                     <div class="roblox-fetch-row">
-                        <input type="text" id="editRobloxPlaceInput" class="form-control" placeholder="วางลิงก์เกม หรือ Place ID เพื่อดึงรูป/ชื่อเกมใหม่" style="font-size: 12px;">
-                        <button type="button" id="btnEditFetchRobloxGame" class="btn-fetch-roblox" style="padding: 7px 14px; font-size: 12px;">
+                        <input type="text" id="editRobloxPlaceInput" class="form-control" placeholder="วางลิงก์เกม หรือ Place ID เพื่ออัปเดตรูป/ชื่อเกม">
+                        <button type="button" id="btnEditFetchRobloxGame" class="btn-fetch-roblox" style="padding: 9px 14px; font-size: 12px;">
                             <i data-lucide="download-cloud" style="width: 13px; height: 13px;"></i> ดึงข้อมูล
                         </button>
                     </div>
@@ -1203,31 +662,25 @@
                         <label class="form-label">ชื่อเกม *</label>
                         <input type="text" id="editGame" class="form-control" required>
                     </div>
-
                     <div>
                         <label class="form-label">ชื่อสคริปต์ *</label>
                         <input type="text" id="editTitle" class="form-control" required>
                     </div>
-
                     <div class="full-width">
                         <label class="form-label">หมวดหมู่ระบบ (ภาษาอังกฤษ)</label>
                         <input type="text" id="editCategory" class="form-control">
                     </div>
 
                     <div class="full-width">
-                        <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span>รูปภาพปกสคริปต์หลัก (Cover Image)</span>
-                            <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">เลือกรูปจากเครื่อง หรือ วางลิงก์รูปภาพ</span>
-                        </label>
+                        <label class="form-label">รูปภาพปกสคริปต์</label>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
                             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                                 <label class="btn-file-upload">
                                     <i data-lucide="image-plus" style="width: 16px; height: 16px;"></i>
-                                    <span>📁 เปลี่ยนรูปจากเครื่อง</span>
+                                    <span>เปลี่ยนรูปจากเครื่อง</span>
                                     <input type="file" id="editThumbFile" accept="image/*" style="display: none;">
                                 </label>
-                                <span style="font-size: 12px; color: var(--text-muted);">หรือ</span>
-                                <input type="text" id="editThumb" class="form-control" placeholder="วางลิงก์รูปภาพ เช่น https://..." style="flex: 1; min-width: 220px;">
+                                <input type="text" id="editThumb" class="form-control" placeholder="วางลิงก์รูปภาพ https://..." style="flex: 1; min-width: 220px;">
                             </div>
                             <div id="editThumbPreviewBox" class="thumb-preview-box">
                                 <img id="editThumbPreviewImg" class="thumb-preview-img" src="" alt="Cover Preview">
@@ -1235,7 +688,7 @@
                                     <div style="font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="editThumbFileName">รูปภาพปกปัจจุบัน</div>
                                     <div style="font-size: 11px; color: #4ade80; margin-top: 2px;" id="editThumbFileSize">✓ พร้อมใช้งาน</div>
                                 </div>
-                                <button type="button" id="btnRemoveEditThumb" style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                                <button type="button" id="btnRemoveEditThumb" class="btn-del">
                                     <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> ลบรูป
                                 </button>
                             </div>
@@ -1244,34 +697,27 @@
 
                     <div class="full-width">
                         <label class="form-label">โค้ดสคริปต์ Lua (Loadstring) *</label>
-                        <textarea id="editCode" class="form-control" style="height: 120px; font-family: monospace;" required></textarea>
+                        <textarea id="editCode" class="form-control" style="height: 120px; font-family: 'JetBrains Mono', monospace;" required></textarea>
                     </div>
 
                     <div class="full-width">
-                        <label class="form-label">ลิงก์คลิปวิดีโอตัวอย่างสคริปต์ (YouTube Video URL / Shorts / MP4)</label>
-                        <input type="url" id="editVideoUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=... หรือ https://youtu.be/...">
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">รองรับลิงก์ YouTube ปกติ, YouTube Shorts หรือไฟล์วิดีโอ .mp4 (ตอนคนกดรับสคริปต์จะมีคลิปนี้เด้งขึ้นมาให้ดู)</div>
+                        <label class="form-label">ลิงก์คลิปตัวอย่าง (YouTube / Shorts / MP4)</label>
+                        <input type="url" id="editVideoUrl" class="form-control" placeholder="https://youtu.be/...">
                     </div>
 
                     <div class="full-width checkbox-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="editKeyless"> ไร้คีย์ (Keyless ไม่ต้องใส่คีย์)
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="editMobile"> รองรับมือถือ
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="editPC"> รองรับ PC
-                        </label>
+                        <label class="checkbox-label"><input type="checkbox" id="editKeyless"> ไร้คีย์ (Keyless)</label>
+                        <label class="checkbox-label"><input type="checkbox" id="editMobile"> รองรับมือถือ</label>
+                        <label class="checkbox-label"><input type="checkbox" id="editPC"> รองรับ PC</label>
                     </div>
                 </div>
 
-                <div style="margin-top: 16px; padding: 12px 16px; background: rgba(88, 101, 242, 0.1); border: 1px solid rgba(88, 101, 242, 0.3); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                <div style="margin-top: 14px; padding: 12px 15px; background: rgba(88, 101, 242, 0.1); border: 1px solid rgba(88, 101, 242, 0.3); border-radius: 11px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <i data-lucide="bell" style="width: 20px; height: 20px; color: #5865F2;"></i>
+                        <i data-lucide="bell" style="width: 19px; height: 19px; color: #818cf8;"></i>
                         <div>
-                            <div style="font-size: 13px; font-weight: 600; color: #fff;">ส่งแจ้งเตือนอัปเดตลง Discord (#📜・update-script)</div>
-                            <div style="font-size: 11px; color: var(--text-muted);">แท็กยศ @Update พร้อมปุ่มเปิดดูบนเว็บ & ปุ่มรับยศ</div>
+                            <div style="font-size: 13px; font-weight: 600; color: #fff;">ส่งแจ้งเตือนอัปเดตลง Discord</div>
+                            <div style="font-size: 11px; color: var(--ad-muted);">โพสต์ลงห้องอัปเดตพร้อมปุ่มเปิดดูบนเว็บ</div>
                         </div>
                     </div>
                     <label class="toggle-switch">
@@ -1280,12 +726,10 @@
                     </label>
                 </div>
 
-                <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
-                    <button type="button" id="cancelEditBtn" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: #9ca3af; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 13px;">
-                        ยกเลิก
-                    </button>
-                    <button type="submit" class="btn-submit" style="background: #0284c7;">
-                        <i data-lucide="save"></i>
+                <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" id="cancelEditBtn" class="btn-secondary" style="padding: 10px 18px; cursor: pointer; font-size: 13px;">ยกเลิก</button>
+                    <button type="submit" class="btn-submit">
+                        <i data-lucide="save" style="width: 15px; height: 15px;"></i>
                         <span>บันทึกการแก้ไข</span>
                     </button>
                 </div>
@@ -1301,9 +745,9 @@
 
     <!-- Scripts -->
     <script src="js/lucide.min.js"></script>
-    <script src="js/config.js?v=20261111_linkvertise_v4"></script>
-    <script src="js/firebase-db.js?v=20261111_linkvertise_v4"></script>
-    <script src="js/scripts-data.js?v=20261111_linkvertise_v4"></script>
-    <script src="js/admin.js?v=20261111_linkvertise_v4"></script>
+    <script src="js/config.js?v=20261126_admin_v3"></script>
+    <script src="js/firebase-db.js?v=20261126_admin_v3"></script>
+    <script src="js/scripts-data.js?v=20261126_admin_v3"></script>
+    <script src="js/admin.js?v=20261126_admin_v3"></script>
 </body>
 </html>

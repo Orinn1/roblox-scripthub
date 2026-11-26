@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let scripts = (typeof getScriptsData === "function") ? getScriptsData() : ((typeof window !== "undefined" && typeof window.getScriptsData === "function") ? window.getScriptsData() : []);
     let selectedIds = new Set();
+    let manageKeyFilter = "all";
 
     // Elements
     const loginScreen = document.getElementById("loginScreen");
@@ -182,7 +183,43 @@ document.addEventListener("DOMContentLoaded", () => {
         refreshIcons();
     }
 
-    // 2. สลับแท็บ
+    // 2. สลับแท็บ + ย่อ/เปิด-ปิด Sidebar
+    const adminShell = document.getElementById("adminShell");
+    const btnToggleSidebar = document.getElementById("btnToggleSidebar");
+    const btnCloseSidebar = document.getElementById("btnCloseSidebar");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+    const currentTabTitle = document.getElementById("currentTabTitle");
+
+    if (adminShell) {
+        try {
+            if (localStorage.getItem("bs_admin_sidebar_collapsed") === "1") {
+                adminShell.classList.add("sidebar-collapsed");
+            }
+        } catch (e) {}
+
+        if (btnToggleSidebar) {
+            btnToggleSidebar.addEventListener("click", () => {
+                if (window.innerWidth <= 960) {
+                    adminShell.classList.toggle("sidebar-mobile-open");
+                } else {
+                    const collapsed = adminShell.classList.toggle("sidebar-collapsed");
+                    try { localStorage.setItem("bs_admin_sidebar_collapsed", collapsed ? "1" : "0"); } catch (e) {}
+                }
+            });
+        }
+
+        const closeSidebar = () => {
+            if (window.innerWidth <= 960) {
+                adminShell.classList.remove("sidebar-mobile-open");
+            } else {
+                adminShell.classList.add("sidebar-collapsed");
+                try { localStorage.setItem("bs_admin_sidebar_collapsed", "1"); } catch (e) {}
+            }
+        };
+        if (btnCloseSidebar) btnCloseSidebar.addEventListener("click", closeSidebar);
+        if (sidebarBackdrop) sidebarBackdrop.addEventListener("click", () => adminShell.classList.remove("sidebar-mobile-open"));
+    }
+
     tabs.forEach(tab => {
         tab.addEventListener("click", () => {
             tabs.forEach(t => t.classList.remove("active"));
@@ -194,6 +231,12 @@ document.addEventListener("DOMContentLoaded", () => {
             tabAdd.style.display = tName === "add" ? "block" : "none";
             tabDatabase.style.display = tName === "database" ? "block" : "none";
             tabLinks.style.display = tName === "links" ? "block" : "none";
+
+            if (currentTabTitle) {
+                const labelEl = tab.querySelector("span");
+                if (labelEl) currentTabTitle.textContent = labelEl.textContent.trim();
+            }
+            if (adminShell) adminShell.classList.remove("sidebar-mobile-open");
 
             if (tName === "database") {
                 loadDbStats();
@@ -208,6 +251,17 @@ document.addEventListener("DOMContentLoaded", () => {
             if (addTabBtn) addTabBtn.click();
         });
     }
+
+    document.querySelectorAll(".admin-filter-chip[data-key-filter]").forEach((chip) => {
+        chip.addEventListener("click", () => {
+            manageKeyFilter = chip.dataset.keyFilter || "all";
+            document.querySelectorAll(".admin-filter-chip[data-key-filter]").forEach((c) => {
+                c.classList.toggle("active", c === chip);
+            });
+            adminCurrentPage = 1;
+            renderTable();
+        });
+    });
 
     // =========================================================================
     // 3. ตั้งค่าชื่อเว็บไซต์ (Site Name & Brand Config)
@@ -429,9 +483,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderTable() {
         countBadge.textContent = scripts.length;
+        const statTotal = document.getElementById("statAdminTotal");
+        const statKeyless = document.getElementById("statAdminKeyless");
+        if (statTotal) statTotal.textContent = String(scripts.length);
+        if (statKeyless) statKeyless.textContent = String(scripts.filter(s => s.isKeyless).length);
+
         const q = (searchManageScripts ? searchManageScripts.value : "").trim().toLowerCase();
 
         const filtered = scripts.filter(s => {
+            if (manageKeyFilter === "keyless" && !s.isKeyless) return false;
+            if (manageKeyFilter === "key" && s.isKeyless) return false;
             if (!q) return true;
             return (s.title && s.title.toLowerCase().includes(q)) ||
                    (s.game && s.game.toLowerCase().includes(q)) ||
@@ -1619,8 +1680,102 @@ document.addEventListener("DOMContentLoaded", () => {
         if (adminShrinkearnApiToken) adminShrinkearnApiToken.value = gate.shrinkearnApiToken || "3ce8c70d0c1e31404164f66164ea8f9117b29b69";
         if (adminGateTutorialUrl) adminGateTutorialUrl.value = gate.tutorialVideoUrl || "https://youtu.be/FdXsvivWhOw";
 
+        // Populate active Unlock Flow (4-Step x 5s + 1-Time Discord)
+        const flow = SITE_CONFIG.unlockFlow || {};
+        const defaultUrls = [
+            SITE_CONFIG.adsterraSmartlinkUrl || "https://asiafilm.org/4/15645e0d7a0b92a6fcc92b70cbee607d",
+            SITE_CONFIG.monetagDirectLinkUrl || "https://uplcm.com/4/12169736",
+            "https://asiafilm.org/4/d8707d797617eddbed2038e5921285e3",
+            "https://uplcm.com/4/11905140"
+        ];
+        const urls = Array.isArray(flow.stepUrls) && flow.stepUrls.length ? flow.stepUrls : defaultUrls;
+        const stepsVal = Number(flow.stepsTotal) || 4;
+        const waitVal = Number(flow.waitSeconds) || 5;
+        const discordOnceVal = flow.discordRequiredOnce !== false;
+        const discordDaysVal = Number(flow.discordRememberDays) || 30;
+        const discordInviteVal = flow.discordInviteUrl || (SITE_CONFIG.socialLinks && SITE_CONFIG.socialLinks.discord) || "https://discord.gg/6MTUP78KF6";
+
+        const ufStepsTotal = document.getElementById("ufStepsTotal");
+        const ufWaitSeconds = document.getElementById("ufWaitSeconds");
+        const ufDiscordOnce = document.getElementById("ufDiscordOnce");
+        const ufDiscordInvite = document.getElementById("ufDiscordInvite");
+        const ufDiscordDays = document.getElementById("ufDiscordDays");
+        const ufMultiTagZone = document.getElementById("ufMultiTagZone");
+
+        if (ufStepsTotal) ufStepsTotal.value = stepsVal;
+        if (ufWaitSeconds) ufWaitSeconds.value = waitVal;
+        for (let i = 1; i <= 5; i++) {
+            const inp = document.getElementById(`ufStepUrl${i}`);
+            if (inp) inp.value = urls[i - 1] || "";
+        }
+        if (ufDiscordOnce) ufDiscordOnce.checked = discordOnceVal;
+        if (ufDiscordInvite) ufDiscordInvite.value = discordInviteVal;
+        if (ufDiscordDays) ufDiscordDays.value = discordDaysVal;
+        if (ufMultiTagZone) ufMultiTagZone.value = flow.monetagMultiTagZone || "";
+
+        const statAdminUnlock = document.getElementById("statAdminUnlock");
+        const statAdminDiscord = document.getElementById("statAdminDiscord");
+        if (statAdminUnlock) statAdminUnlock.textContent = `${stepsVal} รอบ × ${waitVal} วิ`;
+        if (statAdminDiscord) statAdminDiscord.textContent = discordOnceVal ? `เปิด (${discordDaysVal} วัน)` : "ปิด";
+
         handleGateProviderChange();
         updateGateHelperUrl();
+    }
+
+    const adminUnlockFlowForm = document.getElementById("adminUnlockFlowForm");
+    if (adminUnlockFlowForm) {
+        adminUnlockFlowForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const stepsTotal = Math.max(1, Math.min(5, Number(document.getElementById("ufStepsTotal")?.value) || 4));
+            const waitSeconds = Math.max(3, Math.min(60, Number(document.getElementById("ufWaitSeconds")?.value) || 5));
+            const stepUrls = [];
+            for (let i = 1; i <= 5; i++) {
+                const v = (document.getElementById(`ufStepUrl${i}`)?.value || "").trim();
+                if (v) stepUrls.push(v);
+            }
+            const discordRequiredOnce = Boolean(document.getElementById("ufDiscordOnce")?.checked);
+            const discordInviteUrl = (document.getElementById("ufDiscordInvite")?.value || "").trim() || "https://discord.gg/6MTUP78KF6";
+            const discordRememberDays = Math.max(1, Math.min(365, Number(document.getElementById("ufDiscordDays")?.value) || 30));
+            const monetagMultiTagZone = (document.getElementById("ufMultiTagZone")?.value || "").trim();
+
+            SITE_CONFIG.unlockFlow = {
+                stepsTotal,
+                waitSeconds,
+                stepUrls,
+                monetagMultiTagZone,
+                discordRequiredOnce,
+                discordInviteUrl,
+                discordRememberDays
+            };
+
+            const storageKey = window.getSiteConfigStorageKey ? window.getSiteConfigStorageKey() : "nova_site_config";
+            localStorage.setItem(storageKey, JSON.stringify(SITE_CONFIG));
+
+            try {
+                await fetch("/api/config", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ unlockFlow: SITE_CONFIG.unlockFlow })
+                });
+            } catch (err) {
+                console.warn("Failed to sync unlockFlow to server:", err);
+            }
+
+            if (window.FirebaseDB && window.FirebaseDB.isAvailable()) {
+                try {
+                    await window.FirebaseDB.saveConfig(SITE_CONFIG);
+                } catch (fbErr) {
+                    console.warn("Failed to sync unlockFlow to Firebase:", fbErr);
+                }
+            }
+
+            const statAdminUnlock = document.getElementById("statAdminUnlock");
+            const statAdminDiscord = document.getElementById("statAdminDiscord");
+            if (statAdminUnlock) statAdminUnlock.textContent = `${stepsTotal} รอบ × ${waitSeconds} วิ`;
+            if (statAdminDiscord) statAdminDiscord.textContent = discordRequiredOnce ? `เปิด (${discordRememberDays} วัน)` : "ปิด";
+
+            showToast("บันทึกระบบปลดล็อคและลิงก์โฆษณาเรียบร้อยแล้ว!");
+        });
     }
 
     adminLinksForm.addEventListener("submit", async (e) => {
