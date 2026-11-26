@@ -228,6 +228,113 @@ async function checkLootlabsVerified(puid, clientIp, skipIp = false) {
     return { verified: false, by: null };
 }
 
+let workerScriptsCache = { data: null, ts: 0 };
+
+async function getUnlockConfigWorker(env) {
+    let cfg = {};
+    try {
+        const fbRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/hub/config?key=${FIREBASE_API_KEY}`);
+        if (fbRes.ok) {
+            const d = await fbRes.json();
+            if (d?.fields?.configJson?.stringValue) cfg = JSON.parse(d.fields.configJson.stringValue);
+        }
+    } catch (e) {}
+    if ((!cfg || !Object.keys(cfg).length) && env?.ASSETS) {
+        try {
+            const aRes = await env.ASSETS.fetch('https://assets.local/data/config.json');
+            if (aRes.ok) cfg = await aRes.json();
+        } catch (e) {}
+    }
+    const flow = cfg.unlockFlow || {};
+    const stepUrls = Array.isArray(flow.stepUrls) && flow.stepUrls.length
+        ? flow.stepUrls
+        : [
+            cfg.adsterraSmartlinkUrl || 'https://asiafilm.org/4/15645e0d7a0b92a6fcc92b70cbee607d',
+            cfg.monetagDirectLinkUrl || 'https://uplcm.com/4/12169736',
+            'https://asiafilm.org/4/d8707d797617eddbed2038e5921285e3',
+            'https://uplcm.com/4/11905140'
+        ];
+    return {
+        stepsTotal: Number(flow.stepsTotal) || 4,
+        waitSeconds: Number(flow.waitSeconds) || 5,
+        stepUrls,
+        monetagMultiTagZone: String(flow.monetagMultiTagZone || '')
+    };
+}
+
+async function loadAllScriptsWorker(env) {
+    const now = Date.now();
+    if (workerScriptsCache.data && (now - workerScriptsCache.ts) < 60000) {
+        return workerScriptsCache.data;
+    }
+    try {
+        const fbRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/hub/database?key=${FIREBASE_API_KEY}`);
+        if (fbRes.ok) {
+            const d = await fbRes.json();
+            if (d?.fields?.scriptsJson?.stringValue) {
+                const parsed = JSON.parse(d.fields.scriptsJson.stringValue);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    workerScriptsCache = { data: parsed, ts: now };
+                    return parsed;
+                }
+            }
+        }
+    } catch (e) {}
+    if (env?.ASSETS) {
+        try {
+            const aRes = await env.ASSETS.fetch('https://assets.local/data/scripts.json');
+            if (aRes.ok) {
+                const parsed = await aRes.json();
+                if (Array.isArray(parsed)) return parsed;
+            }
+        } catch (e) {}
+    }
+    return [];
+}
+
+function stripLoadstringWorker(item) {
+    const copy = { ...item };
+    delete copy.loadstring;
+    copy.locked = true;
+    return copy;
+}
+
+async function getUnlockSessionDoc(sid) {
+    const res = await fetch(`https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/unlock_sessions/${encodeURIComponent(sid)}?key=${FIREBASE_API_KEY}`);
+    if (!res.ok) return null;
+    const d = await res.json();
+    const f = d?.fields || {};
+    return {
+        id: f.id?.stringValue || sid,
+        scriptId: f.scriptId?.stringValue || '',
+        step: Number(f.step?.integerValue || 0),
+        total: Number(f.total?.integerValue || 4),
+        waitSeconds: Number(f.waitSeconds?.integerValue || 5),
+        stepStartedAt: Number(f.stepStartedAt?.integerValue || 0),
+        complete: f.complete?.booleanValue === true,
+        createdAt: Number(f.createdAt?.integerValue || 0)
+    };
+}
+
+async function saveUnlockSessionDoc(sess) {
+    return fetch(`https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/unlock_sessions/${encodeURIComponent(sess.id)}?key=${FIREBASE_API_KEY}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            fields: {
+                id: { stringValue: sess.id },
+                scriptId: { stringValue: String(sess.scriptId) },
+                step: { integerValue: String(sess.step) },
+                total: { integerValue: String(sess.total) },
+                waitSeconds: { integerValue: String(sess.waitSeconds) },
+                stepStartedAt: { integerValue: String(sess.stepStartedAt) },
+                complete: { booleanValue: Boolean(sess.complete) },
+                createdAt: { integerValue: String(sess.createdAt) }
+            }
+        })
+    });
+}
+
 export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
@@ -448,6 +555,153 @@ export default {
             }), {
                 status: 200,
                 headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+            });
+        }
+
+        // =========================================================================
+        // 2.2 PUBLIC LOCKED SCRIPTS & SERVER-SIDE 2-STEP UNLOCK API
+        // =========================================================================
+        if (url.pathname === '/api/public/scripts' && request.method === 'GET') {
+            const [scripts, unlockCfg] = await Promise.all([loadAllScriptsWorker(env), getUnlockConfigWorker(env)]);
+            return new Response(JSON.stringify({
+                scripts: scripts.map(stripLoadstringWorker),
+                unlock: {
+                    stepsTotal: unlockCfg.stepsTotal,
+                    waitSeconds: unlockCfg.waitSeconds,
+                    monetagMultiTagZone: unlockCfg.monetagMultiTagZone
+                }
+            }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders() }
+            });
+        }
+
+        if (url.pathname === '/api/unlock/start' && request.method === 'POST') {
+            let body = {};
+            try { body = await request.json(); } catch (e) {}
+            const scripts = await loadAllScriptsWorker(env);
+            const found = scripts.find(s => String(s.id) === String(body?.scriptId));
+            if (!found) {
+                return new Response(JSON.stringify({ ok: false, error: 'Script not found' }), {
+                    status: 404,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+            const cfg = await getUnlockConfigWorker(env);
+            const randBytes = new Uint8Array(6);
+            crypto.getRandomValues(randBytes);
+            const hex = Array.from(randBytes, b => b.toString(16).padStart(2, '0')).join('');
+            const sess = {
+                id: `ul_${Date.now().toString(36)}_${hex}`,
+                scriptId: String(found.id),
+                step: 0,
+                total: cfg.stepsTotal,
+                waitSeconds: cfg.waitSeconds,
+                stepStartedAt: 0,
+                complete: false,
+                createdAt: Date.now()
+            };
+            await saveUnlockSessionDoc(sess);
+            return new Response(JSON.stringify({
+                ok: true,
+                session: { id: sess.id, scriptId: sess.scriptId, step: sess.step, total: sess.total, waitSeconds: sess.waitSeconds, complete: sess.complete }
+            }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders() }
+            });
+        }
+
+        if (url.pathname === '/api/unlock/go' && request.method === 'GET') {
+            const sid = String(url.searchParams.get('session') || '').trim();
+            const sess = sid ? await getUnlockSessionDoc(sid) : null;
+            if (!sess || (Date.now() - sess.createdAt) > 30 * 60 * 1000) {
+                return new Response('Unlock session expired or not found', { status: 404, headers: corsHeaders() });
+            }
+            const cfg = await getUnlockConfigWorker(env);
+            sess.stepStartedAt = Date.now();
+            await saveUnlockSessionDoc(sess);
+            const targetUrl = cfg.stepUrls[sess.step % cfg.stepUrls.length] || 'https://uplcm.com/4/12169736';
+            return new Response(null, {
+                status: 302,
+                headers: { Location: targetUrl, 'Cache-Control': 'no-store', ...corsHeaders() }
+            });
+        }
+
+        if (url.pathname === '/api/unlock/step' && request.method === 'POST') {
+            let body = {};
+            try { body = await request.json(); } catch (e) {}
+            const sid = String(body?.session || '').trim();
+            const sess = sid ? await getUnlockSessionDoc(sid) : null;
+            if (!sess || (Date.now() - sess.createdAt) > 30 * 60 * 1000) {
+                return new Response(JSON.stringify({ ok: false, code: 'session_not_found', error: 'Session expired' }), {
+                    status: 404,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+            if (sess.complete) {
+                return new Response(JSON.stringify({ ok: true, session: { id: sess.id, scriptId: sess.scriptId, step: sess.step, total: sess.total, waitSeconds: sess.waitSeconds, complete: true } }), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+            if (!sess.stepStartedAt) {
+                return new Response(JSON.stringify({ ok: false, code: 'step_not_started', error: 'Please open the sponsor link first' }), {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+            const elapsedMs = Date.now() - sess.stepStartedAt;
+            if (elapsedMs < (sess.waitSeconds - 1) * 1000) {
+                const secondsLeft = Math.max(1, Math.ceil(((sess.waitSeconds * 1000) - elapsedMs) / 1000));
+                return new Response(JSON.stringify({ ok: false, code: 'too_early', secondsLeft }), {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+            sess.step += 1;
+            sess.stepStartedAt = 0;
+            sess.complete = sess.step >= sess.total;
+            await saveUnlockSessionDoc(sess);
+            return new Response(JSON.stringify({
+                ok: true,
+                session: { id: sess.id, scriptId: sess.scriptId, step: sess.step, total: sess.total, waitSeconds: sess.waitSeconds, complete: sess.complete }
+            }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders() }
+            });
+        }
+
+        if (url.pathname === '/api/unlock/reveal' && request.method === 'POST') {
+            let body = {};
+            try { body = await request.json(); } catch (e) {}
+            const scripts = await loadAllScriptsWorker(env);
+            const found = scripts.find(s => String(s.id) === String(body?.scriptId));
+            if (!found) {
+                return new Response(JSON.stringify({ ok: false, error: 'Script not found' }), {
+                    status: 404,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+            if (body?.vipToken) {
+                const vr = await verifyVipToken(vipSecret, body.vipToken, FALLBACK_VIP_SECRET);
+                if (vr.valid && vr.payload?.canBypass === true) {
+                    return new Response(JSON.stringify({ ok: true, code: found.loadstring || '', vip: true }), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders() }
+                    });
+                }
+            }
+            const sid = String(body?.session || '').trim();
+            const sess = sid ? await getUnlockSessionDoc(sid) : null;
+            if (!sess || sess.scriptId !== String(found.id) || !sess.complete) {
+                return new Response(JSON.stringify({ ok: false, error: 'Unlock steps not completed' }), {
+                    status: 403,
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+                });
+            }
+            return new Response(JSON.stringify({ ok: true, code: found.loadstring || '', vip: false }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders() }
             });
         }
 

@@ -1,4 +1,4 @@
-require('dotenv').config();
+try { require('dotenv').config(); } catch (e) {}
 
 const http = require('http');
 const fs = require('fs');
@@ -8,6 +8,7 @@ const url = require('url');
 // SQLite Database Module
 const db = require('./db.js');
 
+const crypto = require('crypto');
 const PORT = process.env.PORT || 3000;
 const MIME_TYPES = {
     '.html': 'text/html; charset=utf-8',
@@ -16,9 +17,106 @@ const MIME_TYPES = {
     '.json': 'application/json; charset=utf-8',
     '.png': 'image/png',
     '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.webp': 'image/webp',
+    '.gif': 'image/gif',
     '.svg': 'image/svg+xml',
     '.ico': 'image/x-icon'
 };
+
+const FIREBASE_PROJECT_ID = 'blacklistscripts';
+const FIREBASE_API_KEY = 'AIzaSyApTJf2qSiaaM3qQ9e2XE16Za1p3FGXpxI';
+const unlockSessions = new Map();
+let firestoreScriptsCache = { data: null, ts: 0 };
+
+function verifyVipTokenLocal(token) {
+    if (!token || typeof token !== 'string') return { valid: false };
+    const parts = token.trim().split('.');
+    if (parts.length !== 2) return { valid: false };
+    const [payloadBase64, providedSig] = parts;
+    const secrets = [
+        process.env.VIP_SECRET_KEY,
+        'a53db45fa4ed7ec5e4126e9ff14e625cfe010938a411fc44b73015f9fa20c56c',
+        'b1c7af121565c79c916f738bbbbed70a97d1600c14c9218dc8c14e8033b27812',
+        'blacklist_vip_default_secret_salt_2026_x89'
+    ].filter(Boolean);
+    try {
+        for (const sec of secrets) {
+            const expectedSig = crypto.createHmac('sha256', sec).update(payloadBase64).digest('base64url');
+            if (expectedSig === providedSig) {
+                const payload = JSON.parse(Buffer.from(payloadBase64, 'base64url').toString('utf8'));
+                if (payload.exp && Number(payload.exp) > 0 && Date.now() > Number(payload.exp)) return { valid: false };
+                return { valid: true, payload };
+            }
+        }
+    } catch (e) {}
+    return { valid: false };
+}
+
+async function getUnlockConfigLocal() {
+    let cfg = {};
+    try {
+        const fbRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/hub/config?key=${FIREBASE_API_KEY}`);
+        if (fbRes.ok) {
+            const d = await fbRes.json();
+            if (d?.fields?.configJson?.stringValue) cfg = JSON.parse(d.fields.configJson.stringValue);
+        }
+    } catch (e) {}
+    if (!cfg || !Object.keys(cfg).length) {
+        try {
+            cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'public', 'data', 'config.json'), 'utf8'));
+        } catch (e) {}
+    }
+    const flow = cfg.unlockFlow || {};
+    const stepUrls = Array.isArray(flow.stepUrls) && flow.stepUrls.length
+        ? flow.stepUrls
+        : [
+            cfg.adsterraSmartlinkUrl || 'https://asiafilm.org/4/15645e0d7a0b92a6fcc92b70cbee607d',
+            cfg.monetagDirectLinkUrl || 'https://uplcm.com/4/12169736',
+            'https://asiafilm.org/4/d8707d797617eddbed2038e5921285e3',
+            'https://uplcm.com/4/11905140'
+        ];
+    return {
+        stepsTotal: Number(flow.stepsTotal) || 4,
+        waitSeconds: Number(flow.waitSeconds) || 5,
+        stepUrls,
+        monetagMultiTagZone: String(flow.monetagMultiTagZone || '')
+    };
+}
+
+async function loadAllScriptsLocal() {
+    const now = Date.now();
+    if (firestoreScriptsCache.data && (now - firestoreScriptsCache.ts) < 60000) {
+        return firestoreScriptsCache.data;
+    }
+    try {
+        const fbRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/hub/database?key=${FIREBASE_API_KEY}`);
+        if (fbRes.ok) {
+            const d = await fbRes.json();
+            if (d?.fields?.scriptsJson?.stringValue) {
+                const parsed = JSON.parse(d.fields.scriptsJson.stringValue);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    firestoreScriptsCache = { data: parsed, ts: now };
+                    return parsed;
+                }
+            }
+        }
+    } catch (e) {}
+    const local = db.getAllScripts();
+    if (Array.isArray(local) && local.length > 0) return local;
+    try {
+        return JSON.parse(fs.readFileSync(path.join(__dirname, 'public', 'data', 'scripts.json'), 'utf8'));
+    } catch (e) {
+        return [];
+    }
+}
+
+function stripLoadstring(item) {
+    const copy = { ...item };
+    delete copy.loadstring;
+    copy.locked = true;
+    return copy;
+}
 
 // Caches for WEAO API to respect rate-limits
 let exploitsCache = { data: null, timestamp: 0 };
@@ -173,6 +271,149 @@ const server = http.createServer(async (req, res) => {
         const resetList = db.resetDefaultScripts();
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ success: true, message: 'Database reset to default sample scripts', total: resetList.length }));
+        return;
+    }
+
+    // =========================================================================
+    // API: Public Locked Scripts & Server-Side 2-Step Unlock Flow
+    // =========================================================================
+    if (pathname === '/api/public/scripts' && req.method === 'GET') {
+        try {
+            const [scripts, unlockCfg] = await Promise.all([loadAllScriptsLocal(), getUnlockConfigLocal()]);
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+            res.end(JSON.stringify({
+                scripts: scripts.map(stripLoadstring),
+                unlock: {
+                    stepsTotal: unlockCfg.stepsTotal,
+                    waitSeconds: unlockCfg.waitSeconds,
+                    monetagMultiTagZone: unlockCfg.monetagMultiTagZone
+                }
+            }));
+        } catch (err) {
+            res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: err.message }));
+        }
+        return;
+    }
+
+    if (pathname === '/api/unlock/start' && req.method === 'POST') {
+        try {
+            const { scriptId } = await readJsonBody(req);
+            const scripts = await loadAllScriptsLocal();
+            const found = scripts.find(s => String(s.id) === String(scriptId));
+            if (!found) {
+                res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ ok: false, error: 'Script not found' }));
+                return;
+            }
+            const cfg = await getUnlockConfigLocal();
+            const sid = 'ul_' + Date.now().toString(36) + '_' + crypto.randomBytes(6).toString('hex');
+            const sess = {
+                id: sid,
+                scriptId: String(found.id),
+                step: 0,
+                total: cfg.stepsTotal,
+                waitSeconds: cfg.waitSeconds,
+                stepStartedAt: 0,
+                complete: false,
+                createdAt: Date.now()
+            };
+            unlockSessions.set(sid, sess);
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+            res.end(JSON.stringify({ ok: true, session: { id: sess.id, scriptId: sess.scriptId, step: sess.step, total: sess.total, waitSeconds: sess.waitSeconds, complete: sess.complete } }));
+        } catch (err) {
+            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ ok: false, error: err.message }));
+        }
+        return;
+    }
+
+    if (pathname === '/api/unlock/go' && req.method === 'GET') {
+        const sid = String(parsedUrl.query?.session || '').trim();
+        const sess = unlockSessions.get(sid);
+        if (!sess || (Date.now() - sess.createdAt) > 30 * 60 * 1000) {
+            res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+            res.end('Unlock session expired or not found');
+            return;
+        }
+        const cfg = await getUnlockConfigLocal();
+        sess.stepStartedAt = Date.now();
+        unlockSessions.set(sid, sess);
+        const targetUrl = cfg.stepUrls[sess.step % cfg.stepUrls.length] || 'https://uplcm.com/4/12169736';
+        res.writeHead(302, { Location: targetUrl, 'Cache-Control': 'no-store' });
+        res.end();
+        return;
+    }
+
+    if (pathname === '/api/unlock/step' && req.method === 'POST') {
+        try {
+            const { session: sid } = await readJsonBody(req);
+            const sess = unlockSessions.get(String(sid || '').trim());
+            if (!sess || (Date.now() - sess.createdAt) > 30 * 60 * 1000) {
+                res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ ok: false, code: 'session_not_found', error: 'Session expired' }));
+                return;
+            }
+            if (sess.complete) {
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ ok: true, session: { id: sess.id, scriptId: sess.scriptId, step: sess.step, total: sess.total, waitSeconds: sess.waitSeconds, complete: true } }));
+                return;
+            }
+            if (!sess.stepStartedAt) {
+                res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ ok: false, code: 'step_not_started', error: 'Please open the sponsor link first' }));
+                return;
+            }
+            const elapsedMs = Date.now() - sess.stepStartedAt;
+            if (elapsedMs < (sess.waitSeconds - 1) * 1000) {
+                const secondsLeft = Math.max(1, Math.ceil(((sess.waitSeconds * 1000) - elapsedMs) / 1000));
+                res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ ok: false, code: 'too_early', secondsLeft }));
+                return;
+            }
+            sess.step += 1;
+            sess.stepStartedAt = 0;
+            sess.complete = sess.step >= sess.total;
+            unlockSessions.set(sess.id, sess);
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+            res.end(JSON.stringify({ ok: true, session: { id: sess.id, scriptId: sess.scriptId, step: sess.step, total: sess.total, waitSeconds: sess.waitSeconds, complete: sess.complete } }));
+        } catch (err) {
+            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ ok: false, error: err.message }));
+        }
+        return;
+    }
+
+    if (pathname === '/api/unlock/reveal' && req.method === 'POST') {
+        try {
+            const { scriptId, session: sid, vipToken } = await readJsonBody(req);
+            const scripts = await loadAllScriptsLocal();
+            const found = scripts.find(s => String(s.id) === String(scriptId));
+            if (!found) {
+                res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ ok: false, error: 'Script not found' }));
+                return;
+            }
+            if (vipToken) {
+                const vr = verifyVipTokenLocal(vipToken);
+                if (vr.valid && vr.payload?.canBypass === true) {
+                    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+                    res.end(JSON.stringify({ ok: true, code: found.loadstring || '', vip: true }));
+                    return;
+                }
+            }
+            const sess = unlockSessions.get(String(sid || '').trim());
+            if (!sess || sess.scriptId !== String(found.id) || !sess.complete) {
+                res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ ok: false, error: 'Unlock steps not completed' }));
+                return;
+            }
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+            res.end(JSON.stringify({ ok: true, code: found.loadstring || '', vip: false }));
+        } catch (err) {
+            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ ok: false, error: err.message }));
+        }
         return;
     }
 

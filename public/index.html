@@ -1,1128 +1,309 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlacklistScriptX - Roblox Scripts & Exploit Hub</title>
-
-    <!-- Instant Dark Mode to avoid white screen flash on iOS / Mobile WebKit -->
-    <style>
-        html,
-        body {
-            background-color: #06080e !important;
-            color: #f3f4f6;
-            margin: 0;
-            padding: 0;
-        }
-    </style>
-
-    <!-- Google Fonts Non-blocking Preconnect -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
-
-    <meta name="description"
-        content="Free & 100% safe Roblox scripts, updated daily with executor status and sUNC score benchmarks.">
-
-    <!-- Open Graph / Discord / Facebook Embed -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://blacklistscripty.vercel.app/">
-    <meta property="og:title" content="BlacklistScriptX - Roblox Scripts & Exploit Hub">
-    <meta property="og:description"
-        content="Free & 100% safe Roblox scripts, updated daily with executor status and sUNC score benchmarks.">
-    <meta property="og:image" content="https://blacklistscripty.vercel.app/Banner.png">
-    <meta property="og:site_name" content="BlacklistScriptx">
-    <meta name="theme-color" content="#38bdf8">
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="BlacklistScriptX - Roblox Scripts & Exploit Hub">
-    <meta name="twitter:description"
-        content="Free & 100% safe Roblox scripts, updated daily with executor status and sUNC score benchmarks.">
-    <meta name="twitter:image" content="https://blacklistscripty.vercel.app/Banner.png">
-
-    <!-- VIP Shield: Immediately check VIP and block all Adsterra/popunder networks before anything loads -->
-    <script>
-        (function () {
-            try {
-                // 1. Immediately decode and save VIP token from URL parameters synchronously
-                var params = new URLSearchParams(window.location.search);
-                var token = params.get('vip_token') || params.get('vip_code');
-                var isAuthSuccess = params.get('auth_success') === '1' || params.get('vip_success') === 'true';
-                if (token && token.includes('.')) {
-                    var payloadStr = atob(token.split('.')[0].replace(/-/g, '+').replace(/_/g, '/'));
-                    var payload = JSON.parse(payloadStr);
-                    var canBypass = Boolean(payload.canBypass);
-                    var vipSession = {
-                        token: token,
-                        user: {
-                            userId: payload.userId,
-                            id: payload.userId,
-                            username: payload.username || 'Discord User',
-                            avatar: payload.avatar || ''
-                        },
-                        roles: payload.roles || [],
-                        primaryRole: payload.primaryRole || { id: '', name: 'Member', tag: 'Member', color: '#94a3b8', canBypass: false },
-                        canBypass: canBypass,
-                        expiresAt: 0 // Lifetime
-                    };
-                    localStorage.setItem('blacklist_vip_pass', JSON.stringify(vipSession));
-                    localStorage.setItem('blacklist_lootlabs_auth_expiry', canBypass ? '9999999999999' : String(Date.now() + 86400000));
-                    sessionStorage.setItem('blacklist_lootlabs_auth', 'true');
-                } else if (isAuthSuccess) {
-                    var threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-                    var vipExpiresAt = Date.now() + threeDaysMs;
-                    localStorage.setItem('blacklist_lootlabs_auth_expiry', String(vipExpiresAt));
-                    sessionStorage.setItem('blacklist_lootlabs_auth', 'true');
-                    var vipSession = {
-                        token: 'cpalead_fastpass_3days',
-                        user: {
-                            userId: 'fastpass',
-                            id: 'fastpass',
-                            username: 'VIP FastPass',
-                            avatar: ''
-                        },
-                        roles: ['VIP FastPass'],
-                        primaryRole: { id: 'fastpass', name: 'VIP FastPass', tag: 'VIP 72H', color: '#f59e0b', canBypass: true },
-                        canBypass: true,
-                        expiresAt: vipExpiresAt
-                    };
-                    localStorage.setItem('blacklist_vip_pass', JSON.stringify(vipSession));
-                    window.__AD_CAPPED__ = true;
-                }
-            } catch (e) { }
-
-            // 2. Check if user has ad bypass permission
-            var isVip = false;
-            try {
-                var raw = localStorage.getItem('blacklist_vip_pass');
-                if (raw) {
-                    var data = JSON.parse(raw);
-                    if (data && data.canBypass === true) {
-                        var exp = Number(data.expiresAt || 0);
-                        if (exp === 0 || Date.now() < exp) {
-                            isVip = true;
-                        }
-                    }
-                }
-            } catch (e) { }
-
-            window.__IS_VIP__ = isVip;
-
-            // Check if device already has active 24h gate pass
-            var isPassValid = false;
-            try {
-                var expTime = Number(localStorage.getItem('blacklist_lootlabs_auth_expiry') || 0);
-                if (expTime > Date.now() || sessionStorage.getItem('blacklist_lootlabs_auth') === 'true') {
-                    isPassValid = true;
-                }
-            } catch (e) { }
-
-            // If not authorized and not banned, flag gate as initially required (zero content flash)
-            if (!isVip && !isPassValid) {
-                document.documentElement.classList.add('gate-active-init');
-            }
-            if (params.has('lock') || params.has('test') || params.has('reset') || params.has('relock')) {
-                document.documentElement.classList.add('gate-active-init');
-            }
-            // 3. If VIP, actively intercept and kill any ad script injection or popunders
-            if (isVip) {
-                // Intercept Notification.requestPermission to prevent ad push prompts for VIPs
-                if (window.Notification) {
-                    try {
-                        window.Notification.requestPermission = function () {
-                            return Promise.resolve('denied');
-                        };
-                    } catch (e) { }
-                }
-
-                // Intercept document.createElement('script') append
-                var origAppend = Element.prototype.appendChild;
-                Element.prototype.appendChild = function (el) {
-                    if (el && el.tagName === 'SCRIPT' && el.src) {
-                        var s = el.src.toLowerCase();
-                        if (s.includes('accountut') || s.includes('bellnewyork') || s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm') || s.includes('highcpmgate') || s.includes('quge5') || s.includes('5gvci') || s.includes('monetag') || s.includes('ardance')) {
-                            console.warn('[VIP Shield] Ad script injection blocked:', el.src);
-                            return document.createElement('script');
-                        }
-                    }
-                    return origAppend.apply(this, arguments);
-                };
-
-                var origInsert = Element.prototype.insertBefore;
-                Element.prototype.insertBefore = function (el, ref) {
-                    if (el && el.tagName === 'SCRIPT' && el.src) {
-                        var s = el.src.toLowerCase();
-                        if (s.includes('accountut') || s.includes('bellnewyork') || s.includes('profitableratecpmnetwork') || s.includes('pl3137') || s.includes('alwingulla') || s.includes('adsterra') || s.includes('cpm') || s.includes('highcpmgate') || s.includes('quge5') || s.includes('5gvci') || s.includes('monetag') || s.includes('ardance')) {
-                            console.warn('[VIP Shield] Ad script insert blocked:', el.src);
-                            return document.createElement('script');
-                        }
-                    }
-                    return origInsert.apply(this, arguments);
-                };
-
-                // Intercept window.open against ad popunders
-                var origOpen = window.open;
-                window.open = function (url, target, features) {
-                    if (typeof url === 'string') {
-                        var u = url.toLowerCase();
-                        if (u.includes('omg10') || u.includes('quge5') || u.includes('5gvci') || u.includes('monetag') || u.includes('accountut') || u.includes('bellnewyork') || u.includes('profitableratecpmnetwork') || u.includes('alwingulla') || u.includes('adsterra') || u.includes('highcpmgate') || u.includes('ardance')) {
-                            console.warn('[VIP Shield] Ad popup blocked:', url);
-                            return null;
-                        }
-                    }
-                    return origOpen.apply(this, arguments);
-                };
-
-                document.querySelectorAll('script[data-zone="303760"], script[data-zone="287788"]').forEach(function (el) { el.remove(); });
-
-                console.log('[VIP Shield] VIP Bypass active: All ads and popups blocked 100%.');
-
-            } else {
-                console.log('[System] Clean ad-free mode active.');
-            }
-        })();
-    </script>
-
-    <link rel="stylesheet" href="css/style.css?v=20261024_badge_v1">
-    <link rel="stylesheet" href="css/sunc.css?v=20260919_v5">
-    <!-- Favicon Logo.ico -->
-    <link rel="icon" type="image/x-icon" href="Logo.ico">
-    <link rel="shortcut icon" type="image/x-icon" href="Logo.ico">
-    <link rel="apple-touch-icon" href="Logo.ico">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#08080e" />
+  <title>BlacklistScriptx — ศูนย์รวมสคริปต์ Roblox อัปเดตล่าสุด ฟรี</title>
+  <meta name="description" content="BlacklistScriptx ศูนย์รวมสคริปต์ Roblox อัปเดตล่าสุด รองรับทั้งมือถือและ PC เข้าดูสคริปต์ได้ทันที พร้อมระบบปลดล็อค 2 ขั้นตอน" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Kanit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/redesign.css?v=3" />
 </head>
-
 <body>
+  <div class="bg-orb orb-1" aria-hidden="true"></div>
+  <div class="bg-orb orb-2" aria-hidden="true"></div>
 
-    <!-- In-App Browser (Messenger/FB/LINE) Notice Bar -->
-    <div id="iabNoticeBar" class="iab-notice-bar" style="display: none;">
-        <div class="iab-notice-content">
-            <i data-lucide="compass" style="width: 18px; height: 18px; color: #38bdf8;"></i>
-            <span id="lblInAppNotice">Opened in in-app browser. Tap <strong>Compass 🧭 (bottom right)</strong> to open
-                in Safari</span>
+  <!-- Sticky Glass Navbar -->
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a href="/" class="brand">
+        <img src="/Logo.png" alt="BlacklistScriptx" class="brand-logo" onerror="this.style.display='none'" />
+        <div class="brand-text">
+          <span class="brand-name">Blacklist<span class="accent">Scriptx</span></span>
+          <span class="brand-sub" data-i18n="brandSub">ROBLOX SCRIPT HUB</span>
         </div>
-        <button type="button" class="iab-close-btn" id="iabCloseBtn" aria-label="Close notice">
-            <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+      </a>
+
+      <nav class="nav-tabs" aria-label="Primary">
+        <button type="button" class="nav-tab active" data-view="scripts">
+          <i data-lucide="code-2"></i>
+          <span data-i18n="navScripts">สคริปต์ทั้งหมด</span>
         </button>
-    </div>
+        <button type="button" class="nav-tab" data-view="executors">
+          <i data-lucide="cpu"></i>
+          <span data-i18n="navExecutors">ตัวรัน (Executors)</span>
+        </button>
+      </nav>
 
-    <!-- Backdrop สำหรับเมนูสไลด์บนมือถือ -->
-    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-
-    <div class="app-wrapper">
-        <!-- ===================================================================
-             CORE HEADER NAVBAR (21st.dev CoreHeader: SimpleNavbar + SecondaryNavbar)
-             =================================================================== -->
-        <header class="core-header-wrapper" id="coreHeaderWrapper">
-            <!-- Tier 1: SimpleNavbar -->
-            <nav class="core-simple-navbar" id="coreSimpleNavbar">
-                <!-- Background Grid Matrix with Radial Mask (21st.dev Pattern) -->
-                <div class="core-nav-grid-bg" aria-hidden="true"></div>
-
-                <!-- Brand / Logo on the Left -->
-                <div class="core-brand" id="brandLogo">
-                    <div class="core-brand-icon">
-                        <img src="Logo.ico" alt="Logo" style="width: 26px; height: 26px; object-fit: contain;">
-                    </div>
-                    <h1 class="core-brand-title" id="brandTitleText">Blacklist<span class="text-sky-glow">Scriptx</span></h1>
-                </div>
-
-                <!-- Center: Global Search Bar -->
-                <div class="core-search-box" id="topbarSearchBox">
-                    <i data-lucide="search" class="search-icon" style="color: var(--text-muted); flex-shrink: 0;"></i>
-                    <input type="text" id="globalSearch" placeholder="Search games, scripts, or executors..." autocomplete="off" spellcheck="false">
-                    <button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Clear search" style="display: none;">
-                        <i data-lucide="x" style="width: 13px; height: 13px;"></i>
-                    </button>
-                    <div class="search-kbd-badge" id="searchKbdBadge" title="Press Ctrl + K or / to search">
-                        <span>Ctrl</span><span>K</span>
-                    </div>
-                </div>
-
-                <!-- Right: Social Links, User Identity Card, Language -->
-                <div class="core-nav-actions">
-                    <!-- YouTube Quick Button with Official SVG Logo -->
-                    <a href="https://www.youtube.com/@Blacklistxyx" target="_blank" class="core-action-btn yt-btn" id="sideYtBtn" title="YouTube Channel">
-                        <svg class="social-svg yt-svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                            <path class="yt-pill" fill="currentColor" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
-                            <path class="yt-play" fill="#ffffff" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                        </svg>
-                        <span class="btn-text" id="lblSideYt">YouTube</span>
-                    </a>
-
-                    <!-- Discord Quick Button with Official SVG Logo -->
-                    <a href="https://discord.gg" target="_blank" class="core-action-btn dc-btn" id="sideDcBtn" title="Join Discord">
-                        <svg class="social-svg dc-svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
-                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-                        </svg>
-                        <span class="btn-text" id="lblSideDc">Discord</span>
-                    </a>
-
-                    <!-- CoreHeader User Identity (Minimal Avatar Profile) -->
-                    <div class="core-user-identity" id="vipNavContainer">
-                        <button type="button" class="core-user-card-btn" id="vipNavBtn" aria-label="User Account" title="Discord Login / VIP Status">
-                            <div class="core-avatar-frame" id="vipBtnIcon">
-                                <img src="https://i.postimg.cc/QMT9KvP4/Holy-Grail-Smoking-GIF.gif" alt="User Profile" class="core-avatar-img" id="coreUserAvatarImg">
-                            </div>
-                            <span class="core-avatar-status-dot" id="coreUserStatusDot" aria-hidden="true"></span>
-                            <!-- Hidden elements preserved for JS and accessibility compatibility -->
-                            <div class="core-user-info" style="display: none !important;">
-                                <span class="core-user-name" id="vipNavText">Discord Login</span>
-                                <div class="core-user-status" id="coreUserStatus">
-                                    <span class="pulse-dot green"></span>
-                                    <span id="coreUserStatusText">Active Now</span>
-                                </div>
-                            </div>
-                        </button>
-                    </div>
-
-                    <!-- Language Switcher -->
-                    <div class="lang-switcher" id="langSwitcher" role="group" aria-label="Language Switcher">
-                        <button type="button" class="lang-btn active" id="langBtnEn" data-lang="en">
-                            <i data-lucide="globe" style="width: 13px; height: 13px;"></i> <span>EN</span>
-                        </button>
-                        <button type="button" class="lang-btn" id="langBtnTh" data-lang="th">
-                            <i data-lucide="languages" style="width: 13px; height: 13px;"></i> <span>TH</span>
-                        </button>
-                    </div>
-                </div>
-            </nav>
-
-            <!-- Tier 2: SecondaryNavbar (Sleek Horizontal Navigation + Game Dropdown) -->
-            <div class="core-secondary-navbar" id="coreSecondaryNavbar">
-                <div class="core-tabs-scroll-area" id="coreTabsScrollArea">
-                    <!-- Main Menu Tabs -->
-                    <div class="core-tabs-group" id="mainMenu">
-                        <div class="core-nav-tab menu-item active" data-nav="home">
-                            <span class="menu-left"><i data-lucide="home"></i> <span id="lblNavHome">Home</span></span>
-                        </div>
-                        <div class="core-nav-tab menu-item" data-nav="feed" data-filter="all">
-                            <span class="menu-left"><i data-lucide="folder"></i> <span id="lblNavAll">All Scripts</span></span>
-                            <span class="core-tab-badge menu-badge" id="totalCount">0</span>
-                        </div>
-                        <div class="core-nav-tab menu-item" data-nav="feed" data-filter="keyless">
-                            <span class="menu-left"><i data-lucide="key"></i> <span id="lblNavKeyless">Keyless</span></span>
-                        </div>
-                        <div class="core-nav-tab menu-item" data-nav="feed" data-filter="mobile">
-                            <span class="menu-left"><i data-lucide="smartphone"></i> <span id="lblNavMobile">Mobile</span></span>
-                        </div>
-                        <div class="core-nav-tab menu-item" data-nav="exploits">
-                            <span class="menu-left"><i data-lucide="cpu"></i> <span id="lblNavExploits">Executor Status & sUNC</span></span>
-                            <span class="core-tab-badge green menu-badge">WEAO</span>
-                        </div>
-                    </div>
-
-                    <!-- Divider Separator -->
-                    <div class="core-tabs-separator" aria-hidden="true"></div>
-
-                    <!-- Game Category Dropdown Trigger -->
-                    <div class="core-game-dropdown-wrapper" id="coreGameDropdownWrapper">
-                        <button type="button" class="core-nav-tab core-game-dropdown-btn" id="coreGameDropdownBtn" aria-expanded="false" aria-haspopup="true">
-                            <span class="menu-left"><i data-lucide="gamepad-2"></i> <span id="lblNavGames">Games</span></span>
-                            <span class="core-tab-badge" id="gameCountBadge">0</span>
-                            <i data-lucide="chevron-down" class="dropdown-chevron-icon"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Right Fade Edge for Smooth Overflow Scrolling on Mobile -->
-                <div class="core-tabs-fade-right" aria-hidden="true"></div>
-            </div>
-        </header>
-
-        <!-- Floating Glassmorphic Dropdown Menu (Accessible from both Desktop & Mobile) -->
-        <div class="core-game-dropdown-menu" id="coreGameDropdownMenu" role="menu" aria-orientation="vertical">
-            <div class="game-dropdown-header">
-                <div class="game-dropdown-title-row">
-                    <span class="game-dropdown-title" id="lblGameDropdownTitle">Select Game</span>
-                    <span class="game-dropdown-badge" id="gameDropdownCountBadge">0</span>
-                </div>
-                <div class="game-dropdown-search-box">
-                    <i data-lucide="search" class="search-mini-icon"></i>
-                    <input type="text" id="gameDropdownSearchInput" placeholder="Filter games..." autocomplete="off" />
-                    <button type="button" id="gameDropdownSearchClear" class="search-clear-btn" style="display:none;">&times;</button>
-                </div>
-            </div>
-            <div class="game-dropdown-list" id="gameMenu">
-                <!-- Populated dynamically via updateCategoryBadges() -->
-            </div>
+      <div class="topbar-actions">
+        <div class="search-box">
+          <i data-lucide="search"></i>
+          <input id="searchInput" type="search" placeholder="ค้นหาชื่อเกม หรือสคริปต์..." autocomplete="off" />
         </div>
 
-        <!-- ===================================================================
-             MAIN AREA (Full Widescreen 100%)
-             =================================================================== -->
-        <div class="app-main">
+        <button id="langToggleBtn" type="button" class="btn-ghost btn-sm" title="Switch Language">
+          <i data-lucide="languages"></i>
+          <span id="langLabel">TH</span>
+        </button>
 
-            <main class="content-body">
-                <!-- =======================================================
-                     VIEW 1: หน้าหลัก (HOME VIEW)
-                     ======================================================= -->
-                <div class="home-view" id="homeView">
-
-                    <!-- Mobile Dedicated Search Bar for Home View -->
-                    <div class="mobile-search-box mobile-home-search-box" id="mobileHomeSearchBox">
-                        <i data-lucide="search" class="search-icon"></i>
-                        <input type="text" id="mobileHomeSearchInput" placeholder="ค้นหาสคริปต์ / Search scripts..." autocomplete="off">
-                        <button type="button" class="mobile-search-clear-btn" id="mobileHomeSearchClear" style="display: none;" aria-label="Clear search">
-                            <i data-lucide="x" style="width: 13px; height: 13px;"></i>
-                        </button>
-                    </div>
-
-                    <!-- 3D Curved Cylinder Horizon Showcase (21st.dev TiltedGridHero) -->
-                    <section class="tilted-hero-section" id="tiltedHeroSection">
-                        <div class="tilted-hero-header">
-                            <div class="tilted-hero-badge">
-                                <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i>
-                                <span id="lblTiltedBadge">ROBLOX GAME EXPERIENCES</span>
-                            </div>
-                            <h2 class="tilted-hero-title">
-                                <span id="lblTiltedTitle">สำรวจสคริปต์</span> <span class="text-sky-glow" id="lblTiltedTitleAccent">แมพยอดนิยม</span>
-                            </h2>
-                            <p class="tilted-hero-desc" id="lblTiltedDesc">
-                                ภาพแมพเกม Roblox อัปเดตล่าสุด &bull; คลิกเลือกแมพเพื่อค้นหาสคริปต์ที่ต้องการได้ทันที
-                            </p>
-                        </div>
-                        <div class="tilted-grid-hero" id="tiltedGridHero">
-                            <div class="tilted-grid-band" id="tiltedGridBand" aria-hidden="true">
-                                <!-- Dynamically generated 3D tiles with 16 slices each -->
-                            </div>
-                            <!-- Edge Fade Overlays for Guaranteed Smooth Dissolve -->
-                            <div class="tgh-fade-edge tgh-fade-left"></div>
-                            <div class="tgh-fade-edge tgh-fade-right"></div>
-                        </div>
-                    </section>
-
-                    <!-- Executors Live from WEAO API (Infinite Marquee with Real Logos) -->
-                    <section class="home-executors-section">
-                        <div class="section-head">
-                            <div class="section-head-title">
-                                <span class="section-icon-glow green"><i data-lucide="cpu"></i></span>
-                                <h3><span id="lblExecutorsHead">Live Executor Status & sUNC (WEAO)</span></h3>
-                                <span class="section-pill-badge green"><span class="pulse-dot green"></span> SYNCED</span>
-                            </div>
-                            <button class="btn-view-all" id="btnSeeAllExploits"><span id="lblSeeAllExploits">View All
-                                    30+ Executors</span> <i data-lucide="arrow-right"
-                                    style="width: 14px; height: 14px;"></i></button>
-                        </div>
-                        <div class="executors-marquee-container" id="homeExecutorsContainer">
-                            <div class="executors-marquee-track" id="homeExecutorsGrid">
-                                <!-- Loaded dynamically from WEAO API with infinite logo marquee -->
-                                <div style="padding: 24px; color: var(--text-muted); text-align: center; width: 100%;"
-                                    id="lblLoadingExploits">
-                                    <i data-lucide="loader-2" class="spin"></i> Loading executor status from WEAO API...
-                                </div>
-                            </div>
-                            <div class="marquee-fade-edge marquee-fade-left"></div>
-                            <div class="marquee-fade-edge marquee-fade-right"></div>
-                        </div>
-                    </section>
-
-                    <!-- Home Scripts Feed Section (Trending & Recent Scripts) -->
-                    <section class="home-scripts-section" id="homeScriptsSection">
-                        <div class="section-head">
-                            <div class="section-head-title">
-                                <span class="section-icon-glow"><i data-lucide="sparkles"></i></span>
-                                <h3><span id="lblTrendingHead">สคริปต์มาแรงล่าสุด</span></h3>
-                                <span class="section-pill-badge"><span class="pulse-dot"></span> UPDATED</span>
-                            </div>
-                            <button type="button" class="btn-view-all" id="btnSeeAllScripts">
-                                <span id="lblSeeAllScripts">ดูทั้งหมด</span> 
-                                <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
-                            </button>
-                        </div>
-                        <div class="scripts-feed" id="homeRecentScripts">
-                            <!-- Populated dynamically by renderHomeRecent() in app.js -->
-                        </div>
-                    </section>
-                </div>
-
-                <!-- =======================================================
-                     VIEW 2: All Scripts Feed (FEED VIEW)
-                     ======================================================= -->
-                <div class="feed-view" id="feedView">
-                    <div class="view-toolbar">
-                        <div class="view-title-group">
-                            <h2 id="currentViewTitle">All Scripts</h2>
-                            <p id="currentViewDesc">Select a script to unlock its code</p>
-                        </div>
-
-                        <!-- Mobile-Friendly Dedicated Search Input -->
-                        <div class="mobile-search-box" id="mobileFeedSearchBox">
-                            <i data-lucide="search" class="search-icon"></i>
-                            <input type="text" id="mobileFeedSearchInput" placeholder="ค้นหาสคริปต์ / Search scripts..." autocomplete="off">
-                            <button type="button" class="mobile-search-clear-btn" id="mobileFeedSearchClear" style="display: none;" aria-label="Clear search">
-                                <i data-lucide="x" style="width: 13px; height: 13px;"></i>
-                            </button>
-                        </div>
-
-                        <div class="view-filter-chips">
-                            <span class="chip active" data-tag="all" id="lblChipAll">All</span>
-                            <span class="chip" data-tag="keyless"><i data-lucide="key"></i> <span
-                                    id="lblChipKeyless">Keyless</span></span>
-                            <span class="chip" data-tag="mobile"><i data-lucide="smartphone"></i> <span
-                                    id="lblChipMobile">Mobile</span></span>
-                        </div>
-                    </div>
-
-                    <div class="scripts-feed" id="scriptsFeed">
-                        <!-- Loaded from JS -->
-                    </div>
-
-                    <!-- ปุ่มโหลดเพิ่มเติมเมื่อมีสคริปต์จำนวนมาก เพื่อความลื่นไหลของหน้าเว็บ -->
-                    <div id="feedLoadMoreContainer" style="display: none; text-align: center; margin: 24px 0 32px 0;">
-                        <button type="button" id="btnFeedLoadMore" class="btn-secondary" style="padding: 10px 28px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px;">
-                            <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
-                            <span id="lblFeedLoadMore">โหลดสคริปต์เพิ่มเติม</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- =======================================================
-                     VIEW 3: Executor Status & sUNC Data (WEAO API VIEW)
-                     ======================================================= -->
-                <div class="feed-view" id="exploitsView" style="display: none;">
-                    <div class="view-toolbar">
-                        <div class="view-title-group">
-                            <h2><i data-lucide="cpu"></i> <span id="lblExploitsViewTitle">Top Executor Status & sUNC
-                                    Data</span></h2>
-                            <p id="lblExploitsViewDesc">Live status of top executors (Delta, Codex, Solara, Wave, etc.)
-                                with sUNC scores and official downloads</p>
-                        </div>
-
-                        <!-- Platform filter chips -->
-                        <div class="view-filter-chips" id="exploitPlatformFilter">
-                            <span class="chip active" data-plat="all" id="lblPlatAll">All</span>
-                            <span class="chip" data-plat="Windows">Windows</span>
-                            <span class="chip" data-plat="Android">Android</span>
-                            <span class="chip" data-plat="Mac">Mac</span>
-                            <span class="chip" data-plat="iOS">iOS</span>
-                        </div>
-                    </div>
-
-                    <!-- Exploits grid -->
-                    <div class="exploits-grid" id="exploitsGrid">
-                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);"
-                            id="lblLoadingAllExploits">
-                            <i data-lucide="loader-2" class="spin"></i> Loading data from WEAO API...
-                        </div>
-                    </div>
-                </div>
-
-
-            </main>
-        </div>
+        <button id="vipOpenBtn" type="button" class="btn-vip">
+          <i data-lucide="shield-check"></i>
+          <span id="vipBtnText" data-i18n="vipBtn">VIP Discord</span>
+        </button>
+      </div>
     </div>
+  </header>
 
-    <!-- =======================================================================
-         MODAL sUNC Test Data
-         ======================================================================= -->
-    <div class="modal-overlay" id="suncModal">
-        <div class="sunc-modal-box">
-            <button class="modal-close" id="closeSuncModalBtn" aria-label="Close"><i data-lucide="x"></i></button>
-
-            <div style="margin-bottom: 12px;">
-                <span class="tag-badge" style="color: #38bdf8; background: rgba(56, 189, 248, 0.1);">sUNC Benchmark
-                    Test</span>
-                <h3 id="suncModalTitle" style="font-size: 18px; color: #fff; margin-top: 4px;">Potassium - sUNC Data
-                </h3>
-                <div id="suncModalMeta"
-                    style="font-size: 12px; color: var(--text-muted); display: flex; gap: 12px; margin-top: 4px;">
-                    <span id="lblSuncVer">Version: <strong id="suncVersion">-</strong></span>
-                    <span id="lblSuncTime">Tested: <strong id="suncTime">-</strong></span>
-                    <span style="color: #4ade80;" id="lblSuncPass">Passed: <strong
-                            id="suncPassedCount">0</strong></span>
-                    <span style="color: #f87171;" id="lblSuncFail">Failed: <strong
-                            id="suncFailedCount">0</strong></span>
-                </div>
-            </div>
-
-            <!-- Search box in sUNC -->
-            <div style="margin-bottom: 10px;">
-                <input type="text" id="searchSuncFunc" class="form-control"
-                    placeholder="Search functions e.g. getrawmetatable, hookmetamethod..."
-                    style="font-size: 12px; padding: 8px 12px;">
-            </div>
-
-            <!-- Tested functions list -->
-            <div class="sunc-test-list" id="suncTestList">
-                <div style="text-align: center; padding: 20px; color: var(--text-muted);" id="lblLoadingSunc">
-                    <i data-lucide="loader-2" class="spin"></i> Loading function benchmark results...
-                </div>
-            </div>
+  <main class="container main-content">
+    <!-- Hero Bento Header -->
+    <section class="hero">
+      <div class="hero-left">
+        <div class="hero-pill">
+          <span class="pulse-dot"></span>
+          <span data-i18n="heroBadge">เข้าใช้งานได้ทันที • สคริปต์ล็อคปลอดภัยฝั่งเซิร์ฟเวอร์</span>
         </div>
-    </div>
+        <h1 class="hero-title" data-i18n="heroTitle">ศูนย์รวมสคริปต์ <span class="accent-gradient">Roblox</span> อัปเดตล่าสุด</h1>
+        <p class="hero-desc" data-i18n="heroDesc">เลือกดูรายชื่อสคริปต์และสถานะตัวรันได้ทันทีโดยไม่ติดหน้ากั้น เมื่อเจอสคริปต์ที่ต้องการ กดปลดล็อค 4 ขั้นตอนสั้นๆ (รอบละ 5 วิ) เพื่อรับโค้ด</p>
+        <div class="hero-chips">
+          <button type="button" class="chip active" data-filter="all" data-i18n="filterAll">ทั้งหมด</button>
+          <button type="button" class="chip" data-filter="keyless">
+            <i data-lucide="key-round"></i>
+            <span data-i18n="filterKeyless">ไม่มีคีย์ (Keyless)</span>
+          </button>
+          <button type="button" class="chip" data-filter="mobile">
+            <i data-lucide="smartphone"></i>
+            <span>Mobile</span>
+          </button>
+          <button type="button" class="chip" data-filter="pc">
+            <i data-lucide="monitor"></i>
+            <span>PC</span>
+          </button>
+        </div>
+      </div>
 
-    <!-- =======================================================================
-         MODAL Sub2Unlock Gaming Locker
-         ======================================================================= -->
-    <div class="modal-overlay" id="lockerModal">
-        <div class="locker-box">
-            <button class="modal-close" id="closeLockerBtn" aria-label="Close">
-                <i data-lucide="x"></i>
+      <div class="hero-stats">
+        <div class="stat-card">
+          <div class="stat-head">
+            <i data-lucide="layers"></i>
+            <span class="stat-label" data-i18n="statTotal">สคริปต์ทั้งหมด</span>
+          </div>
+          <strong id="statTotalScripts" class="stat-val">--</strong>
+        </div>
+        <div class="stat-card">
+          <div class="stat-head">
+            <i data-lucide="key-round"></i>
+            <span class="stat-label" data-i18n="statKeyless">ไร้คีย์ (Keyless)</span>
+          </div>
+          <strong id="statKeylessScripts" class="stat-val emerald">--</strong>
+        </div>
+        <div class="stat-card">
+          <div class="stat-head">
+            <i data-lucide="gamepad-2"></i>
+            <span class="stat-label" data-i18n="statGames">จำนวนแมพ</span>
+          </div>
+          <strong id="statGamesCount" class="stat-val violet">--</strong>
+        </div>
+        <div class="stat-card">
+          <div class="stat-head">
+            <i data-lucide="shield-check"></i>
+            <span class="stat-label" data-i18n="statUnlock">ระบบปลดล็อค</span>
+          </div>
+          <strong id="statUnlockSteps" class="stat-val">4 Steps · 5s</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scripts View -->
+    <section id="scriptsView" class="view-section active">
+      <div class="toolbar">
+        <div id="gamePills" class="game-pills" role="tablist"></div>
+        <div class="results-meta">
+          <span id="resultsCountText">0 scripts</span>
+        </div>
+      </div>
+
+      <div id="scriptsGrid" class="scripts-grid"></div>
+      <div id="emptyState" class="empty-state hidden">
+        <i data-lucide="search-x"></i>
+        <h3 data-i18n="emptyTitle">ไม่พบสคริปต์ที่ค้นหา</h3>
+        <p data-i18n="emptyDesc">ลองเปลี่ยนคำค้นหา หรือล้างตัวกรองเกม</p>
+        <button id="resetFiltersBtn" type="button" class="btn-primary" data-i18n="resetFilters">แสดงทั้งหมด</button>
+      </div>
+    </section>
+
+    <!-- Executors View -->
+    <section id="executorsView" class="view-section hidden">
+      <div class="section-head">
+        <div>
+          <h2 data-i18n="execTitle">สถานะตัวรัน Roblox (Live WEAO)</h2>
+          <p data-i18n="execDesc">เช็กสถานะอัปเดตล่าสุด ค่า sUNC และลิงก์ดาวน์โหลดแท้</p>
+        </div>
+        <div class="hero-chips" id="execFilterChips">
+          <button type="button" class="chip active" data-platform="all">All</button>
+          <button type="button" class="chip" data-platform="windows">Windows</button>
+          <button type="button" class="chip" data-platform="android">Android</button>
+          <button type="button" class="chip" data-platform="ios">iOS</button>
+          <button type="button" class="chip" data-platform="mac">Mac</button>
+        </div>
+      </div>
+      <div id="executorsGrid" class="executors-grid"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <strong>Blacklist<span class="accent">Scriptx</span></strong>
+        <span data-i18n="footerNote">Fast access • Server-protected script locker</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://discord.gg/6MTUP78KF6" target="_blank" rel="noopener noreferrer">
+          <i data-lucide="message-square"></i> Discord
+        </a>
+        <a href="https://www.youtube.com/@Blacklistxyx" target="_blank" rel="noopener noreferrer">
+          <i data-lucide="youtube"></i> YouTube
+        </a>
+        <a href="/admin.html">
+          <i data-lucide="settings"></i> Admin
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script Detail & Server-Side Unlock Modal -->
+  <div id="scriptModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-card modal-lg">
+      <button id="closeScriptModal" type="button" class="modal-close" aria-label="Close">
+        <i data-lucide="x"></i>
+      </button>
+
+      <div class="modal-grid">
+        <!-- Left Column: Media & Details -->
+        <div class="modal-media-col">
+          <div id="modalMediaBox" class="media-box">
+            <img id="modalThumb" src="/Logo.png" alt="Preview" />
+            <button id="modalPlayBtn" type="button" class="play-overlay hidden" aria-label="Play Video">
+              <i data-lucide="play"></i>
             </button>
+          </div>
 
-            <!-- Hero Emblem -->
-            <div class="locker-hero-badge">
-                <div class="locker-hero-icon">
-                    <i data-lucide="check-circle" style="color: #22c55e;"></i>
-                </div>
-            </div>
-
-            <h3 class="locker-title" id="lblLockerTitle">รับโค้ดสคริปต์</h3>
-            <p class="locker-desc" id="lblLockerDesc">สามารถคัดลอกโค้ดสคริปต์ไปรันในเกมได้ทันที</p>
-
-            <!-- Step Progress Tracker (ซ่อน) -->
-            <div class="locker-steps-tracker" style="display: none;">
-                <div class="tracker-step active" id="dot1">
-                    <div class="step-num">1</div>
-                    <span class="step-txt" id="lblStep1">Task 1</span>
-                </div>
-                <div class="tracker-line" id="line1"></div>
-                <div class="tracker-step" id="dot2">
-                    <div class="step-num">2</div>
-                    <span class="step-txt" id="lblStep2">Task 2</span>
-                </div>
-                <div class="tracker-line" id="line2"></div>
-                <div class="tracker-step" id="dot3">
-                    <div class="step-num">3</div>
-                    <span class="step-txt" id="lblStep3">Task 3</span>
-                </div>
-            </div>
-
-            <!-- Action Cards (ซ่อน) -->
-            <div class="actions-stack" id="tasksStack" style="display: none;">
-                <button class="btn-task primary-red" id="task1Btn">
-                    <div class="task-left">
-                        <div class="task-badge">01</div>
-                        <div class="task-icon-box"><i data-lucide="video"></i></div>
-                        <div class="task-meta">
-                            <span class="task-name" id="task1Text">Subscribe to YouTube Channel</span>
-                            <span class="task-hint" id="task1Hint">Open link and wait 5 seconds for verification</span>
-                        </div>
-                    </div>
-                    <div class="task-status">
-                        <span class="status-pill active-pill" id="task1Status">Start <i
-                                data-lucide="arrow-right"></i></span>
-                    </div>
-                </button>
-
-                <button class="btn-task" id="task2Btn">
-                    <div class="task-left">
-                        <div class="task-badge">02</div>
-                        <div class="task-icon-box"><i data-lucide="message-square"></i></div>
-                        <div class="task-meta">
-                            <span class="task-name" id="task2Text">Join Discord Community</span>
-                            <span class="task-hint" id="task2Hint">Open link and wait 5 seconds for verification</span>
-                        </div>
-                    </div>
-                    <div class="task-status">
-                        <span class="status-pill wait-pill" id="task2Status"><i data-lucide="lock"></i> Pending</span>
-                    </div>
-                </button>
-
-                <button class="btn-task" id="task3Btn">
-                    <div class="task-left">
-                        <div class="task-badge">03</div>
-                        <div class="task-icon-box"><i data-lucide="thumbs-up"></i></div>
-                        <div class="task-meta">
-                            <span class="task-name" id="task3Text">Like & Comment on Video</span>
-                            <span class="task-hint" id="task3Hint">Open video and wait 3 seconds for verification</span>
-                        </div>
-                    </div>
-                    <div class="task-status">
-                        <span class="status-pill wait-pill" id="task3Status"><i data-lucide="lock"></i> Pending</span>
-                    </div>
-                </button>
-            </div>
-
-            <!-- Footer Lock Notice (ซ่อน) -->
-            <div class="locked-footer-label" id="lockedLabel" style="display: none;">
-                <i data-lucide="shield-alert"></i>
-                <span id="lockedStatusText">Script is ready</span>
-            </div>
-
-            <!-- Unlocked View (Shows after all tasks complete) -->
-            <div class="unlocked-view" id="unlockedView">
-                <div class="unlocked-banner">
-                    <div class="unlocked-glow-ring">
-                        <i data-lucide="check-circle-2"></i>
-                    </div>
-                    <div class="unlocked-texts">
-                        <h4 id="lblUnlockedTitle">Unlocked Successfully!</h4>
-                        <p id="lblUnlockedDesc">You can now copy the script code and run it in your game</p>
-                    </div>
-                </div>
-
-                <!-- Video Preview Box -->
-                <div class="script-video-preview-wrap" id="scriptVideoWrap" style="display: none;">
-                    <div class="video-preview-header">
-                        <span class="video-preview-tag">
-                            <i data-lucide="play-circle"></i>
-                            <span id="lblVideoPreviewTitle">วิดีโอตัวอย่างสคริปต์ / Gameplay Demo</span>
-                        </span>
-                        <a id="scriptVideoExternalLink" href="#" target="_blank" rel="noopener noreferrer" class="video-external-btn">
-                            <i data-lucide="external-link"></i>
-                            <span id="lblWatchOnYt">ดูบน YouTube</span>
-                        </a>
-                    </div>
-                    <div class="script-video-container" id="scriptVideoPlayerContainer"></div>
-                </div>
-
-                <div class="code-terminal">
-                    <div class="terminal-bar">
-                        <div class="terminal-status-badge">
-                            <span class="pulse-indicator"></span>
-                            <span class="terminal-title">LUA EXECUTABLE SCRIPT</span>
-                        </div>
-                        <span class="terminal-tag">READY TO RUN</span>
-                    </div>
-                    <textarea class="script-code-box" id="scriptCodeBox" readonly spellcheck="false"></textarea>
-                </div>
-
-                <button class="btn-copy-script" id="btnCopyScript">
-                    <i data-lucide="copy"></i>
-                    <span id="lblBtnCopy">Copy Script (Copy Code)</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div class="toast-bar" id="toastBar">Script copied to clipboard!</div>
-
-    <!-- =======================================================================
-         MODAL POPUP: Discord Support Popup
-         ======================================================================= -->
-    <div class="site-popup-overlay" id="siteNoticePopup" style="display: none;">
-        <div class="site-popup-box">
-            <button type="button" class="site-popup-close" id="sitePopupCloseBtn" aria-label="Close modal">
-                <i data-lucide="x"></i>
-            </button>
-
-            <a href="https://discord.gg/6MTUP78KF6" target="_blank" rel="noopener noreferrer"
-                class="site-popup-img-wrap" id="sitePopupLink">
-                <img src="popup.png" alt="Need Help? Contact Support on Discord!" class="site-popup-img">
-            </a>
-
-            <div class="site-popup-footer">
-                <button type="button" class="btn-popup-dismiss-24h" id="sitePopupDismiss24hBtn">
-                    <i data-lucide="clock"></i>
-                    <span id="lblPopup24h">Don't show again for 24 hours</span>
-                </button>
-                <button type="button" class="btn-popup-close-now" id="sitePopupCloseNowBtn">
-                    <span id="lblPopupClose">Close Window</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- =======================================================================
-         SECURITY ACCESS GATE (Cinematic Cyber & Ambient Bloom Edition)
-         ======================================================================= -->
-    <div class="lootlabs-gate-overlay" id="lootlabsGateOverlay" style="display: none;">
-        <!-- 3D Isometric Script Wall Background (Darkened, moody, non-clickable) -->
-        <div class="gate-3d-bg-wrap" id="gate3dMarqueeBg" aria-hidden="true">
-            <div class="gate-3d-dark-vignette"></div>
-            <div class="marquee-3d-stage gate-marquee-stage">
-                <!-- Col 1: Moves Up -->
-                <div class="marquee-3d-col marquee-col-up">
-                    <div class="marquee-3d-card">
-                        <img src="https://i.postimg.cc/LXwvsz1d/Neon-Blox-Fruits-Script-Thumbnail.png" alt="Blox Fruits" loading="lazy">
-                        <div class="marquee-card-label">⚔️ Blox Fruits Redz</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="https://i.postimg.cc/tgX1dhD7/Neon-Fisch-Night-Fishing-Thumbnail.png" alt="Fisch" loading="lazy">
-                        <div class="marquee-card-label">🎣 Fisch Auto Catch</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="assets/thumbnails/script-1789655182421.webp" alt="Slayers 2" loading="lazy">
-                        <div class="marquee-card-label">⚡ Slayers 2 Auto</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="https://i.postimg.cc/7LFmc3YZ/Chat-GPT-Image-Oct-7-2026-05-35-28-PM.png" alt="Steal An Egg" loading="lazy">
-                        <div class="marquee-card-label">🥚 Steal An Egg</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="assets/thumbnails/script-1789880768357.webp" alt="Blox Fruits" loading="lazy">
-                        <div class="marquee-card-label">🌊 Blox Fruits Farm</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="https://i.postimg.cc/d1HrjZbT/2.png" alt="Slayers 2" loading="lazy">
-                        <div class="marquee-card-label">🔥 Slayers 2 Boss</div>
-                    </div>
-                </div>
-
-                <!-- Col 2: Moves Down -->
-                <div class="marquee-3d-col marquee-col-down">
-                    <div class="marquee-3d-card">
-                        <img src="assets/thumbnails/script-1789880900671.webp" alt="Rivals" loading="lazy">
-                        <div class="marquee-card-label">🎯 Rivals Aimbot</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="https://i.postimg.cc/0NDV9yKX/Anime-Zero-Red-Neon-Gaming-Banner.png" alt="Anime Zero" loading="lazy">
-                        <div class="marquee-card-label">🛡️ Anime Zero</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="assets/thumbnails/script-1790231804563.webp" alt="King Legacy" loading="lazy">
-                        <div class="marquee-card-label">👑 King Legacy</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="https://i.postimg.cc/25nxKBzN/Golden-Lightning-Slayers-2-Thumbnail.png" alt="Slayers 2 GLU" loading="lazy">
-                        <div class="marquee-card-label">⚔️ Slayers 2 GLU</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="assets/thumbnails/script-1790340787892.webp" alt="Pet Sim 99" loading="lazy">
-                        <div class="marquee-card-label">🐾 Pet Simulator 99</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="https://i.postimg.cc/bJ8pT0HL/Breaking-the-Lava-Egg-with-a-Pet.png" alt="Lava Egg" loading="lazy">
-                        <div class="marquee-card-label">🥚 Lava Egg Pet</div>
-                    </div>
-                </div>
-
-                <!-- Col 3: Moves Up -->
-                <div class="marquee-3d-col marquee-col-up">
-                    <div class="marquee-3d-card">
-                        <img src="assets/thumbnails/script-1790345741707.webp" alt="Brookhaven" loading="lazy">
-                        <div class="marquee-card-label">🏡 Brookhaven RP</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="https://i.postimg.cc/mgbyh7wX/Chat-GPT-Image-Oct-7-2026-07-26-51-PM.png" alt="Anime Zero" loading="lazy">
-                        <div class="marquee-card-label">🌀 Anime Zero Auto</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="assets/thumbnails/script-1790502533341.webp" alt="Blade Ball" loading="lazy">
-                        <div class="marquee-card-label">⚽ Blade Ball Parry</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="https://i.postimg.cc/2yBX3H7m/Chat-GPT-Image-Oct-5-2026-09-15-14-AM.png" alt="Slayers 2" loading="lazy">
-                        <div class="marquee-card-label">⚡ Slayers 2 Farm</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="assets/thumbnails/script-1790593586261.webp" alt="Da Hood" loading="lazy">
-                        <div class="marquee-card-label">🔫 Da Hood Lock</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="https://i.postimg.cc/LXwvsz1d/Neon-Blox-Fruits-Script-Thumbnail.png" alt="Blox Fruits" loading="lazy">
-                        <div class="marquee-card-label">⚔️ Blox Fruits Ovaz</div>
-                    </div>
-                </div>
-
-                <!-- Col 4: Moves Down -->
-                <div class="marquee-3d-col marquee-col-down">
-                    <div class="marquee-3d-card">
-                        <img src="assets/thumbnails/script-1790763605119.webp" alt="Demon Slayer" loading="lazy">
-                        <div class="marquee-card-label">🗡️ Demon Slayer Farm</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="https://i.postimg.cc/tgX1dhD7/Neon-Fisch-Night-Fishing-Thumbnail.png" alt="Fisch" loading="lazy">
-                        <div class="marquee-card-label">🎣 Fisch Script</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="https://i.postimg.cc/7LFmc3YZ/Chat-GPT-Image-Oct-7-2026-05-35-28-PM.png" alt="Steal An Egg" loading="lazy">
-                        <div class="marquee-card-label">🥚 Steal An Egg</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="https://i.postimg.cc/0NDV9yKX/Anime-Zero-Red-Neon-Gaming-Banner.png" alt="Anime Zero" loading="lazy">
-                        <div class="marquee-card-label">🛡️ Anime Zero</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="assets/thumbnails/script-1789655182421.webp" alt="Slayers 2" loading="lazy">
-                        <div class="marquee-card-label">⚡ Slayers 2 Pro</div>
-                    </div>
-                    <div class="marquee-3d-card">
-                        <img src="https://i.postimg.cc/25nxKBzN/Golden-Lightning-Slayers-2-Thumbnail.png" alt="Slayers 2 GLU" loading="lazy">
-                        <div class="marquee-card-label">⚔️ Slayers 2 GLU</div>
-                    </div>
-                </div>
-            </div>
+          <div class="modal-badges" id="modalBadges"></div>
+          <h2 id="modalTitle" class="modal-title">Script Title</h2>
+          <p id="modalDesc" class="modal-desc"></p>
         </div>
 
-
-
-        <!-- Center Stage Container -->
-        <div class="gate-stage" id="gateStage">
-            <!-- 1. Center Avatar / Emblem -->
-            <div class="gate-emblem-wrap">
-                <div class="gate-emblem">
-                    <img src="Logo.png" alt="Blacklist Logo" class="gate-emblem-img">
-                </div>
+        <!-- Right Column: Server-Side Locked Unlock Panel -->
+        <div class="modal-unlock-col">
+          <div class="unlock-panel" id="unlockPanel">
+            <div class="unlock-head">
+              <div class="unlock-icon">
+                <i data-lucide="lock"></i>
+              </div>
+              <div>
+                <h3 data-i18n="unlockHeading">ปลดล็อคสคริปต์</h3>
+                <p id="unlockStepLabel" class="unlock-sub">Step 1 of 4</p>
+              </div>
             </div>
 
-            <!-- 2. Status Pill Badge -->
-            <div class="gate-status-pill">
-                <span class="gate-status-dot"></span>
-                <span class="gate-status-text">SECURITY ACCESS GATE</span>
+            <div class="progress-track">
+              <div id="unlockProgressBar" class="progress-fill" style="width: 0%"></div>
             </div>
 
-            <!-- 3. Main Title -->
-            <h1 class="gate-title">
-                <span class="gate-title-prefix">ระบบยืนยันสิทธิ์</span>
-                <span class="gate-title-glow" id="lblGateTitle">Security Access Gate</span>
-            </h1>
+            <div id="unlockStepIndicators" class="step-pills"></div>
 
-            <!-- 4. Subtitle -->
-            <p class="gate-subtitle" id="gateMessageText">
-                กรุณาเข้าใช้งานผ่านลิงก์สนับสนุน LootLabs เพื่อปลดล็อคการเข้าใช้งานเว็บไซต์ 24 ชั่วโมง
+            <p id="unlockHelperText" class="unlock-helper">
+              กดปุ่มด้านล่างเพื่อเปิดหน้าโฆษณาผู้สนับสนุนและรอให้ครบเวลา จากนั้นระบบเซิร์ฟเวอร์จะปลดล็อคโค้ดให้ทันที
             </p>
 
+            <!-- Locked Actions -->
+            <div id="unlockActions" class="unlock-actions">
+              <button id="unlockActionBtn" type="button" class="btn-unlock">
+                <i data-lucide="external-link"></i>
+                <span id="unlockActionText">เริ่มปลดล็อค (ด่านที่ 1/4)</span>
+              </button>
 
-            <!-- 6. Action Buttons Group -->
-            <div class="gate-actions-row">
-                <!-- Primary Action Button (Glowing Blue Pill) -->
-                <a href="https://loot-link.com/s?cWo9w57Q" target="_blank" class="gate-btn-primary" id="gateLootlabsBtn" rel="noopener noreferrer">
-                    <span id="lblGateBtn">ปลดล็อคเข้าใช้งาน (LootLabs 24 ชม.)</span>
-                    <i data-lucide="arrow-right" style="width: 17px; height: 17px;"></i>
-                </a>
-
-                <!-- Secondary Action Button (Dark Glass Pill) -->
-                <button type="button" class="gate-btn-secondary" id="gateOpenVipModalBtn" onclick="if(window.openVipModal)window.openVipModal();">
-                    <i data-lucide="crown" style="width: 16px; height: 16px; color: #fbbf24;"></i>
-                    <span id="lblGateVipBtn">เข้าสู่ระบบด้วย Discord (ไร้โฆษณา 100%)</span>
-                </button>
+              <button id="vipUnlockBtn" type="button" class="btn-vip-instant hidden">
+                <i data-lucide="zap"></i>
+                <span data-i18n="vipInstantUnlock">ปลดล็อคทันที (VIP Bypass)</span>
+              </button>
             </div>
 
-            <!-- 7. Collapsible Tutorial Video & Detection Helper -->
-            <div class="gate-utilities-box">
-                <button type="button" class="btn-gate-tutorial" id="btnToggleGateTutorial">
-                    <i data-lucide="play-circle" style="width: 15px; height: 15px; color: #38bdf8;"></i>
-                    <span id="lblGateTutorial">ดูคลิปสอนวิธีผ่านลิงก์ (คลิกที่นี่)</span>
-                    <i data-lucide="chevron-down" id="gateTutorialChevron" style="width: 14px; height: 14px; transition: transform 0.25s ease;"></i>
-                </button>
-
-                <div class="gate-tutorial-player-box" id="gateTutorialPlayerBox" style="display: none;">
-                    <div class="gate-tutorial-video-wrapper">
-                        <iframe id="gateTutorialIframe" src="" title="How to complete link" frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowfullscreen></iframe>
-                    </div>
-                    <div class="gate-tutorial-actions">
-                        <span id="lblGateTutorialHint">ทำตามขั้นตอนในคลิปเพื่อรับสิทธิ์เข้าใช้งาน</span>
-                        <a href="https://youtu.be/FdXsvivWhOw" target="_blank" rel="noopener noreferrer" class="gate-tutorial-yt-link" id="gateTutorialYtDirectLink">
-                            <i data-lucide="video" style="width: 13px; height: 13px; color: #ef4444;"></i>
-                            <span id="lblGateTutorialYt">เปิดดูบน YouTube</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Anti-Bypass Status Alert Box & Check Button (Hidden as flow auto-unlocks via /access) -->
-                <div id="gateBypassAlertBox" class="gate-bypass-alert-box" style="display: none !important;"></div>
-                <button type="button" id="gateCheckStatusBtn" class="btn-gate-check" style="display: none !important;">
-                    <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
-                    <span id="lblGateCheck">ตรวจสอบสถานะทันที</span>
-                </button>
-
-                <!-- Hidden inputs for token fallback -->
-                <div class="gate-token-form" style="display: none;">
-                    <input type="text" id="gateTokenInput" class="gate-token-input" placeholder="Enter Access Token">
-                    <button type="button" id="gateTokenSubmitBtn" class="btn-gate-token"><span id="lblGateTokenSubmit">Unlock</span></button>
-                </div>
-                <div class="gate-error-msg" id="gateErrorMsg" style="display: none;">Invalid Token. Please try again.</div>
+            <!-- Revealed Script Box -->
+            <div id="revealedBox" class="revealed-box hidden">
+              <div class="revealed-badge">
+                <i data-lucide="unlock"></i>
+                <span data-i18n="revealedBadge">ปลดล็อคสำเร็จแล้ว</span>
+              </div>
+              <textarea id="revealedCode" class="code-viewer" readonly spellcheck="false"></textarea>
+              <button id="copyCodeBtn" type="button" class="btn-copy">
+                <i data-lucide="copy"></i>
+                <span id="copyCodeText" data-i18n="copyCode">คัดลอกสคริปต์ (Copy Script)</span>
+              </button>
             </div>
-
-            <!-- 8. Footer -->
-            <div class="gate-footer">
-                <span>&copy; 2026 BlacklistScriptx &mdash; All rights reserved.</span>
-            </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 
-
-    <!-- =======================================================================
-         MODAL: VIP MEMBER LOGIN / STATUS (DISCORD ROLE 1549727990542508083)
-         ======================================================================= -->
-    <div class="vip-modal-overlay" id="vipModalOverlay" style="display: none;">
-        <div class="vip-modal-box">
-            <!-- WebGL Silk Shader Canvas Background -->
-            <canvas id="vipSilkCanvas" class="vip-silk-canvas"></canvas>
-            <div class="vip-silk-overlay"></div>
-
-            <button class="vip-modal-close" id="vipModalCloseBtn" aria-label="Close modal"><i
-                    data-lucide="x"></i></button>
-            <div class="vip-modal-header">
-                <div class="vip-crown-badge" id="vipModalBadge"><i data-lucide="crown"
-                        style="width: 15px; height: 15px;"></i> DISCORD MEMBERSHIP</div>
-                <h3 id="vipModalTitle">Discord Membership & Roles</h3>
-                <p id="vipModalSubtitle">Log in to display your profile and roles on the website</p>
-            </div>
-
-            <!-- VIP Active State -->
-            <div class="vip-active-panel" id="vipActivePanel" style="display: none;">
-                <div class="vip-active-card">
-                    <div class="vip-avatar" id="vipUserAvatar"><i data-lucide="crown"
-                            style="width: 24px; height: 24px; color: #fbbf24;"></i></div>
-                    <div class="vip-details">
-                        <div class="vip-name-row"
-                            style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                            <span class="vip-name" id="vipUserName">Discord User</span>
-                            <span class="user-role-badge" id="vipUserRoleBadge"><i data-lucide="shield-check"
-                                    style="width: 13px; height: 13px;"></i> Bypass</span>
-                        </div>
-                        <div class="vip-badge-tag" id="vipStatusBadgeTag"><i data-lucide="check-circle"
-                                style="width: 13px; height: 13px; color: #4ade80;"></i> ACTIVE • BYPASS ADS 100%</div>
-                    </div>
-                </div>
-                <div class="vip-features-list" id="vipFeaturesList">
-                    <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i>
-                        100% Ad-free & no popups</div>
-                    <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i> Permanent bypass
-                        for ShrinkEarn / LootLabs gate</div>
-                    <div><i data-lucide="check" style="width: 14px; height: 14px; color: #4ade80;"></i>
-                        Instant access to all script codes</div>
-                </div>
-                <div class="vip-expiry-note" id="vipExpiryText"><i data-lucide="sparkles"
-                        style="width: 14px; height: 14px; color: #fbbf24;"></i> Status: Lifetime Member</div>
-                <button type="button" class="btn-vip-logout" id="vipLogoutBtn">Log out on this device</button>
-            </div>
-
-            <!-- VIP Inactive / Login State -->
-            <div class="vip-inactive-panel" id="vipInactivePanel">
-                <div class="vip-oauth-card">
-                    <div class="vip-oauth-icon">
-                        <svg width="44" height="44" viewBox="0 0 24 24" fill="#5865f2">
-                            <path
-                                d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
-                        </svg>
-                    </div>
-                    <h4 class="vip-oauth-title" id="lblVipOauthTitle">Login with Discord Account</h4>
-                    <p class="vip-oauth-desc" id="lblVipOauthDesc">Click the button below to verify your Discord
-                        account. Your roles (Admin / Dev /
-                        Bypass / Verified) will be automatically detected.</p>
-
-                    <a href="/api/discord-auth?action=login" class="btn-discord-oauth-main" id="btnVipOauthLogin">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
-                        </svg>
-                        <span id="lblBtnVipOauthLogin">Login with Discord</span>
-                    </a>
-                </div>
-            </div>
+  <!-- VIP Discord Modal -->
+  <div id="vipModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-card modal-sm">
+      <button id="closeVipModal" type="button" class="modal-close" aria-label="Close">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="vip-box">
+        <div class="vip-icon-wrap">
+          <i data-lucide="shield-check"></i>
         </div>
-    </div>
-
-    <!-- =======================================================================
-         MODAL BANNED SCREEN OVERLAY
-         ======================================================================= -->
-    <div class="banned-screen-overlay" id="bannedScreenOverlay" style="display: none;">
-        <div class="banned-screen-box">
-            <div class="banned-badge">
-                <i data-lucide="shield-x"></i> <span>SECURITY ENFORCEMENT</span>
-            </div>
-            <div class="banned-icon-pulse">
-                <i data-lucide="ban"></i>
-            </div>
-            <h2 class="banned-title" id="lblBannedTitle">Access Suspended</h2>
-            <p class="banned-subtitle" id="bannedReasonText">
-                Suspicious behavior or security bypass attempt detected by administrator.
-            </p>
-
-            <div class="banned-countdown-box">
-                <div class="countdown-label">
-                    <i data-lucide="clock"></i>
-                    <span id="lblBannedCountdown">Time remaining:</span>
-                </div>
-                <div class="countdown-timer" id="bannedCountdownTimer">
-                    <div class="countdown-item">
-                        <span class="countdown-num" id="bannedHours">00</span>
-                        <span class="countdown-sub" id="lblBannedHoursSub">Hours</span>
-                    </div>
-                    <span class="countdown-sep">:</span>
-                    <div class="countdown-item">
-                        <span class="countdown-num" id="bannedMinutes">00</span>
-                        <span class="countdown-sub" id="lblBannedMinutesSub">Minutes</span>
-                    </div>
-                    <span class="countdown-sep">:</span>
-                    <div class="countdown-item">
-                        <span class="countdown-num" id="bannedSeconds">00</span>
-                        <span class="countdown-sub" id="lblBannedSecondsSub">Seconds</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="banned-info-card">
-                <div class="banned-info-row">
-                    <span id="lblBannedIp"><i data-lucide="globe"
-                            style="width: 14px; height: 14px; vertical-align: middle;"></i> Your Client IP:</span>
-                    <code id="bannedClientIp">Checking...</code>
-                </div>
-                <div class="banned-info-row">
-                    <span id="lblBannedDuration"><i data-lucide="clock"
-                            style="width: 14px; height: 14px; vertical-align: middle;"></i> Duration:</span>
-                    <span id="bannedDurationText">-- Hours</span>
-                </div>
-                <div class="banned-info-row">
-                    <span id="lblBannedUnlock"><i data-lucide="calendar"
-                            style="width: 14px; height: 14px; vertical-align: middle;"></i> Unlocks At:</span>
-                    <span id="bannedExpireTimeText" class="text-amber">--:--</span>
-                </div>
-            </div>
-
-            <p class="banned-footer-notice" id="lblBannedFooter">
-                Access will be automatically restored once the countdown ends. Please do not close this window.
-            </p>
+        <h2 data-i18n="vipModalTitle">Discord VIP & Bypass</h2>
+        <p id="vipStatusDesc" class="vip-desc" data-i18n="vipModalDesc">
+          เข้าสู่ระบบด้วย Discord เพื่อตรวจสอบยศ Admin / Dev / Bypass หากมียศสามารถปลดล็อคสคริปต์ได้ทันทีโดยไม่ต้องรอโฆษณา
+        </p>
+        <div id="vipUserCard" class="vip-user-card hidden">
+          <img id="vipAvatar" src="/Logo.png" alt="Avatar" />
+          <div>
+            <strong id="vipUsername">User</strong>
+            <span id="vipRoleBadge" class="role-tag">Member</span>
+          </div>
         </div>
+        <div class="vip-btns">
+          <a id="discordLoginLink" href="/api/discord-auth?action=login" class="btn-discord">
+            <i data-lucide="log-in"></i>
+            <span data-i18n="vipLoginBtn">เข้าสู่ระบบด้วย Discord</span>
+          </a>
+          <button id="vipLogoutBtn" type="button" class="btn-ghost hidden" data-i18n="vipLogout">ออกจากระบบ</button>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- Mobile Bottom Navigation Bar -->
-        <nav class="mobile-bottom-nav" id="mobileBottomNav">
-            <button class="bottom-nav-item active" data-nav="home">
-                <i data-lucide="home"></i>
-                <span id="lblMobileNavHome">Home</span>
-            </button>
-            <button class="bottom-nav-item" data-nav="feed" data-filter="all">
-                <i data-lucide="folder"></i>
-                <span id="lblMobileNavScripts">Scripts</span>
-            </button>
-            <button class="bottom-nav-item" data-nav="exploits">
-                <i data-lucide="cpu"></i>
-                <span id="lblMobileNavExploits">Executors</span>
-            </button>
-            <button class="bottom-nav-item" id="bottomNavMenuBtn">
-                <i data-lucide="grid"></i>
-                <span id="lblMobileNavCats">Categories</span>
-            </button>
-        </nav>
+  <!-- Mobile Thumb Bottom Navigation -->
+  <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+    <button type="button" class="mobile-nav-btn active" data-mobile-view="scripts">
+      <i data-lucide="code-2"></i>
+      <span data-i18n="mobScripts">สคริปต์</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-mobile-view="executors">
+      <i data-lucide="cpu"></i>
+      <span data-i18n="mobExecutors">ตัวรัน</span>
+    </button>
+    <button id="mobSearchBtn" type="button" class="mobile-nav-btn">
+      <i data-lucide="search"></i>
+      <span data-i18n="mobSearch">ค้นหา</span>
+    </button>
+    <button id="mobVipBtn" type="button" class="mobile-nav-btn">
+      <i data-lucide="shield-check"></i>
+      <span>VIP</span>
+    </button>
+  </nav>
 
-        <!-- Firebase Cloud Firestore SDK (Compat) -->
-        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <div id="toastRoot" class="toast-root" aria-live="polite"></div>
 
-        <!-- Scripts with Cache-Busting Version -->
-        <script src="js/lucide.min.js"></script>
-        <script src="js/config.js?v=20261113_clean_v1"></script>
-        <script src="js/firebase-db.js?v=20261113_clean_v1"></script>
-        <script src="js/scripts-data.js?v=20261113_clean_v1"></script>
-        <script src="js/app.js?v=20261113_clean_v1"></script>
-
-        <!-- In-App Browser Notice Logic -->
-        <script>
-            (function () {
-                try {
-                    var ua = navigator.userAgent || '';
-                    var isIos = /iPhone|iPad|iPod/i.test(ua);
-                    var isIab = /FBAN|FBAV|Messenger|Line|Instagram/i.test(ua);
-                    if (isIos && isIab && !sessionStorage.getItem('blacklist_iab_closed')) {
-                        var bar = document.getElementById('iabNoticeBar');
-                        if (bar) {
-                            bar.style.display = 'flex';
-                            if (window.lucide && typeof window.lucide.createIcons === 'function') {
-                                window.lucide.createIcons();
-                            }
-                        }
-                        var btn = document.getElementById('iabCloseBtn');
-                        if (btn) {
-                            btn.addEventListener('click', function () {
-                                if (bar) bar.style.display = 'none';
-                                sessionStorage.setItem('blacklist_iab_closed', '1');
-                            });
-                        }
-                    }
-                } catch (e) { }
-            })();
-        </script>
+  <script src="/js/lucide.min.js"></script>
+  <script src="/js/redesign-app.js?v=3"></script>
 </body>
-
 </html>
