@@ -260,7 +260,6 @@ async function loadPublicScripts() {
     state.scripts = Array.isArray(data.scripts) ? data.scripts : [];
     if (data.unlock) {
       state.unlockConfig = data.unlock;
-      injectMultiTagIfConfigured(data.unlock.monetagMultiTagZone);
     }
     if (data.entryTasks) {
       state.entryTasks = data.entryTasks;
@@ -651,11 +650,20 @@ async function resolveLatestVideoForEntry() {
 
 function maybeOpenEntryGate() {
   const modal = $('entryGateModal');
-  if (!modal) return;
-  if (!state.entryTasks?.enabled || state.canBypass) return;
+  if (!modal) {
+    injectMultiTagIfConfigured(state.unlockConfig?.monetagMultiTagZone);
+    return;
+  }
+  if (!state.entryTasks?.enabled || state.canBypass) {
+    injectMultiTagIfConfigured(state.unlockConfig?.monetagMultiTagZone);
+    return;
+  }
   try {
     const entryUntil = Number(localStorage.getItem('bs_entry_yt_until') || 0);
-    if (entryUntil > Date.now()) return;
+    if (entryUntil > Date.now()) {
+      injectMultiTagIfConfigured(state.unlockConfig?.monetagMultiTagZone);
+      return;
+    }
     const subUntil = Number(localStorage.getItem('bs_yt_subbed_until') || 0);
     state.entrySubDone = subUntil > Date.now();
   } catch (e) {}
@@ -983,6 +991,7 @@ function updateVipUI(data) {
       entryEl.classList.add('hidden');
       syncModalScrollLock();
     }
+    injectMultiTagIfConfigured(state.unlockConfig?.monetagMultiTagZone);
   }
   if (state.vipUser) {
     $('vipUserCard').classList.remove('hidden');
@@ -1211,6 +1220,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (e) {}
       $('entryGateModal').classList.add('hidden');
       syncModalScrollLock();
+      injectMultiTagIfConfigured(state.unlockConfig?.monetagMultiTagZone);
       showToast(t('entryEnterReady'), 'success');
     });
   }
